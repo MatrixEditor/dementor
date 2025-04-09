@@ -53,7 +53,7 @@ def create_server_threads(session) -> list:
 
 
 class FTPHandler(BaseProtoHandler):
-    def proto_logger(self, client_address) -> ProtocolLogger:
+    def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             extra={
                 "protocol": "FTP",
