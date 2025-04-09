@@ -19,7 +19,6 @@
 # SOFTWARE.
 import re
 import pathlib
-import fnmatch
 
 from typing import Any, List
 
@@ -29,10 +28,18 @@ class FilterObj:
         self.target = target
         self.extra = extra or {}
         #  pre compute pattern
-        self.pattern = re.compile(fnmatch.translate(self.target))
+        if self.target.startswith("re:"):
+            self.pattern = re.compile(self.target[3:])
+            self.target = self.target[3:]
+        else:
+            self.pattern = None
 
     def matches(self, source: str) -> bool:
-        return self.pattern.match(source) is not None
+        return (
+            self.pattern.match(source) is not None
+            if self.pattern
+            else self.target == source
+        )
 
     @staticmethod
     def from_string(target: str, extra: Any | None = None):
@@ -85,6 +92,7 @@ def in_scope(value: str, config: Any) -> bool:
             return False
 
     return True
+
 
 class Filters:
     def __init__(self, config: List[str | dict]) -> None:
