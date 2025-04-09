@@ -62,11 +62,11 @@ def build_dns_answer(req_id: int, question: dns.DNSQR, config: SessionConfig):
 
     # we assume here that the local address is set
     if question.qtype == 28:  # AAAA
-        answer.rdata = config.ipv6
         answer.type = 28
+        answer.rdata = config.ipv6
     else:  # A
-        answer.rdata = config.ipv4
         answer.type = 1
+        answer.rdata = config.ipv4
 
     return dns.DNS(
         id=req_id,  # use request id from query
@@ -130,7 +130,7 @@ class MDNSPoisoner(BaseProtoHandler):
                 # REVISIT: maybe log ignored requests
                 else:
                     self.logger.display(
-                        f"[b]Ignoring[/] request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
+                        f"[b]Ignoring[/b] request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
                         f"type: {qtype})"
                     )
 

