@@ -1,0 +1,6 @@
+impacket
+rich
+scapy
+aiosmtpd
+sqlalchemy
+pyasn1
