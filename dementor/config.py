@@ -105,6 +105,7 @@ class SessionConfig(TomlConfig):
         ("ldap_enabled", "LDAP", True),
         ("quic_enabled", "QUIC", True),
         ("db_duplicate_creds", "DB.DuplicateCreds", True),
+        ("extra_modules", "ExtraModules", list),
     ]
 
     db: DementorDB

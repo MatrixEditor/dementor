@@ -1,0 +1,80 @@
+import argparse
+import types
+import os
+import dementor
+
+from importlib.machinery import SourceFileLoader
+from dementor.config import SessionConfig
+from dementor.paths import DEMENTOR_PATH
+
+
+class ProtocolLoader:
+    def __init__(self) -> None:
+        self.rs_path = os.path.join(DEMENTOR_PATH, "protocols")
+
+    def load_protocol(self, protocol_path: str) -> types.ModuleType:
+        loader = SourceFileLoader("protocol", protocol_path)
+        protocol = types.ModuleType(loader.name)
+        loader.exec_module(protocol)
+        return protocol
+
+    def get_protocols(self, session=None):
+        protocols = {}
+        protocol_paths = [
+            os.path.join(os.path.dirname(dementor.__file__), "protocols"),
+            self.rs_path,
+        ]
+
+        if session is not None:
+            protocol_paths.extend(session.extra_modules)
+
+        for path in protocol_paths:
+            if not os.path.exists(path):
+                continue
+
+            # TODO: check for directory
+
+            for filename in os.listdir(path):
+                if not filename.endswith(".py") or filename == "__init__.py":
+                    continue
+
+                protocol_path = os.path.join(path, filename)
+                name = filename[:-3]
+                protocols[name] = protocol_path
+
+        return protocols
+
+    def apply_config(self, protocol: types.ModuleType, session: SessionConfig):
+        # if config is defined, apply it
+        if hasattr(protocol, "apply_config"):
+            # sgnature is: apply_config(session: SessionConfig)
+            protocol.apply_config(session)
+
+        else:
+            # maybe another submodule?
+            if hasattr(protocol, "config"):
+                config_mod = protocol.config
+                # try again
+                self.apply_config(config_mod, session)
+
+    def create_servers(
+        self,
+        protocol: types.ModuleType,
+        session: SessionConfig,
+    ) -> list:
+        # creates servers for the given protocol (if defined)
+        if hasattr(protocol, "create_server_threads"):
+            # TODO: must be a thread instance
+            return protocol.create_server_threads(session)
+
+        return []
+
+    def gen_cli_args(
+        self,
+        protocol: types.ModuleType,
+        parent: argparse.ArgumentParser,
+    ) -> argparse.ArgumentParser | None:
+        if hasattr(protocol, "gen_cli_args"):
+            return protocol.gen_cli_args(parent=parent)
+
+        return None
