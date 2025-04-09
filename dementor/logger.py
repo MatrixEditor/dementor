@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import argparse
 import logging
 import threading
@@ -76,9 +77,8 @@ def dm_print(msg, *args, **kwargs) -> None:
 
 
 class ProtocolLogger(logging.LoggerAdapter):
-    def __init__(self, extra=None, merge_extra=None) -> None:
+    def __init__(self, extra=None) -> None:
         super().__init__(logging.getLogger("dementor"), extra or {})
-        self.merge_extra = merge_extra
 
     def format(self, msg, *args, **kwargs):
         if self.extra is None:
@@ -115,6 +115,15 @@ class ProtocolLogger(logging.LoggerAdapter):
         prefix = r"[bold %s]\[-][/bold %s]" % (color, color)
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
+
+
+class ProtocolLoggerMixin:
+    def __init__(self) -> None:
+        self.logger = self.proto_logger()
+
+    @abstractmethod
+    def proto_logger(self) -> ProtocolLogger:
+        pass
 
 
 dm_logger = ProtocolLogger()
