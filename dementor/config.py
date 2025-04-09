@@ -139,7 +139,7 @@ class SessionConfig(TomlConfig):
         # global options that are not loaded from configuration
         self.ipv6: Optional[str] = None
         self.ipv4: Optional[str] = None
-        self.interface = "ALL"
+        self.interface = None
         self.analysis = False
         self.loop = asyncio.get_event_loop()
 
