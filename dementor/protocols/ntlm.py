@@ -9,8 +9,6 @@ from dementor.config import SessionConfig, get_value
 
 
 def apply_config(session: SessionConfig) -> None:
-    # even though this is specified in NTLM section, it is required
-    # here
     challenge = get_value("NTLM", "Challenge", default="1337LEET")
     try:
         session.ntlm_challange = bytes.fromhex(challenge)
