@@ -39,14 +39,16 @@ html_show_sourcelink = False
 html_favicon = "_static/favicon.ico"
 
 html_theme_options = {
-    "accent_color": "indigo",
-    "github_url": "/",
+    "accent_color": "cyan",
+    "github_url": "https://github.com/MatrixEditor/Dementor",
     "color_mode": "dark",
 
     # Logo configuration
     "light_logo": "_static/logo-new-big-transparent.png",
     "dark_logo": "_static/logo-new-circle.ico",
-    "logo_target": "https://github.com/MatrixEditor/Dementor",
+    "logo_target": "/",
+
+    "globaltoc_expand_depth": 1,
 
     # navbar
     "nav_links": [
@@ -58,6 +60,11 @@ html_theme_options = {
                     "title": "Multicast Poisoing",
                     "url": "examples/multicast",
                     "summary": "mDNS, LLMNR and NBT-NS Poisoning",
+                },
+                {
+                    "title": "Rogue KDC",
+                    "url": "examples/kdc",
+                    "summary": "Rogue Kerberos KDC for ASREQroasting",
                 }
             ],
         },

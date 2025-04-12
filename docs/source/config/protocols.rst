@@ -8,3 +8,6 @@ Protocols
 
     mdns
     llmnr
+    netbios
+    ftp
+    kerberos

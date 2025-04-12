@@ -15,9 +15,8 @@ Section: ``[mDNS]``
 
     *Linked to* :attr:`mdns.MDNSConfig.mdns_ttl`
 
-    Time-To-Live (TTL) for poisoned responses (in seconds). Note that
-    smaller times may be spotted by AV or EDR software solutions.
-
+    Specifies the Time-To-Live (TTL), in seconds, for poisoned responses.
+    Lower TTL values may increase the likelihood of detection by antivirus (AV) or endpoint detection and response (EDR) solutions.
 
 .. py:attribute:: MaxLabels
     :type: int
@@ -25,11 +24,9 @@ Section: ``[mDNS]``
 
     *Linked to* :attr:`mdns.MDNSConfig.mdns_max_labels`
 
-    Maximum number of domain name labels to filter. This option takes precedence
-    over :attr:`mDNS.AllowedQueryTypes` and the global/local blacklist and whitelist.
-    The default behaviour is to ignore all incoming requests that are searching for
-    services with more than one label (excluding :code:`.local`).
-
+    Defines the maximum number of domain name labels to be processed.
+    This setting overrides :attr:`mDNS.AllowedQueryTypes` as well as global and local blacklist/whitelist configurations.
+    By default, all incoming queries that target services with more than one label (excluding :code:`.local`) are ignored.
 
 .. py:attribute:: AllowedQueryTypes
     :type: list[str | int]
@@ -37,34 +34,30 @@ Section: ``[mDNS]``
 
     *Linked to* :attr:`mdns.MDNSConfig.mdns_qtypes`
 
-    List of DNS query types that will be responded to. Priority is lower than
-    :attr:`mDNS.MaxLabels` but higher than global/local blacklist or whitelist.
+    Specifies the list of DNS query types to respond to.
+    This attribute has lower priority than :attr:`mDNS.MaxLabels`, but higher priority than global or local blacklist/whitelist rules.
 
     .. note::
 
-        Values of this list must be part of :attr:`dns.dnstypes` if specified as
-        string.
+        If query types are provided as strings, they must correspond to valid entries in :attr:`dns.dnstypes`.
+
 
 .. py:attribute:: Ignore
     :type: list[str | dict]
 
-    *Linked to* :attr:`mdns.MDNSConfig.ignored`
-
-    A list of hosts to blacklist. Please refer to :attr:`Globals.Ignore` for more
-    information. If defined here, the global blacklist will be ignored. This
-    setting will be ignored if not defined. For a detailed explanation of how this
-    rule will be applied, refer to :class:`BlacklistConfigMixin`.
-
+    Specifies a list of hosts to be blacklisted. For additional context, see :attr:`Globals.Ignore`.
+    When this attribute is defined, it overrides the global blacklist configuration.
+    If not explicitly set, this attribute has no effect.
+    For a comprehensive explanation of how the blacklist is applied, refer to :class:`BlacklistConfigMixin`.
 
 .. py:attribute:: AnswerTo
     :type: list[str | dict]
 
-    *Linked to* :attr:`mdns.MDNSConfig.targets`
-
-    A list of hosts to respond to. Please refer to :attr:`Globals.AnswerTo` for more
-    information. If defined here, the global whitelist will be ignored. This
-    setting will be ignored if not defined. For a detailed explanation of how this
-    rule will be applied, refer to :class:`WhitelistConfigMixin`.
+    Defines a list of hosts to which responses should be sent.
+    See :attr:`Globals.AnswerTo` for more information.
+    When specified, this attribute takes precedence over the global whitelist.
+    If omitted, the global configuration remains in effect.
+    For detailed behavior and usage, refer to :class:`WhitelistConfigMixin`.
 
 
 Python Config
@@ -72,19 +65,19 @@ Python Config
 
 .. py:class:: mdns.MDNSConfig(config: dict)
 
-    Configuration class for its Toml counterpart section. It uses :class:`WhitelistConfigMixin`
-    and :class:`BlacklistConfigMixin`, which results in two extra fields in this class. Refer to
-    those classes for more information.
+    Represents the configuration for the corresponding `[mdns]` section in the TOML file.
+    This class incorporates both :class:`WhitelistConfigMixin` and :class:`BlacklistConfigMixin`,
+    which introduce two additional configuration fields. For further details on their behavior and usage,
+    refer to the respective mixin class documentation.
 
     .. py:attribute:: enabled
-        :value: True
         :type: bool
+        :value: True
 
         *Corresponds to* :attr:`Dementor.mDNS`
 
-        Enables or disables mDNS poisoning functionality. Please refer to :attr:`Dementor.mDNS`
-        for more details on how to configure the Toml configuration file.
-
+        Controls whether mDNS poisoning is enabled.
+        See :attr:`Dementor.mDNS` for guidance on configuring this option in the TOML file.
 
     .. py:attribute:: mdns_ttl
         :value: 120

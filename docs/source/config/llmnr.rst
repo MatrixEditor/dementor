@@ -4,7 +4,7 @@ LLMNR
 =====
 
 Section: ``[LLMNR]``
------------------
+--------------------
 
 .. py:currentmodule:: LLMNR
 
@@ -23,36 +23,37 @@ Section: ``[LLMNR]``
 .. py:attribute:: Ignore
     :type: list[str | dict]
 
-    A list of hosts to blacklist. Please refer to :attr:`Globals.Ignore` for more
-    information. If defined here, the global blacklist will be ignored. This
-    setting will be ignored if not defined. For a detailed explanation of how this
-    rule will be applied, refer to :class:`BlacklistConfigMixin`.
-
+    Specifies a list of hosts to be blacklisted. For additional context, see :attr:`Globals.Ignore`.
+    When this attribute is defined, it overrides the global blacklist configuration.
+    If not explicitly set, this attribute has no effect.
+    For a comprehensive explanation of how the blacklist is applied, refer to :class:`BlacklistConfigMixin`.
 
 .. py:attribute:: AnswerTo
     :type: list[str | dict]
 
-    A list of hosts to respond to. Please refer to :attr:`Globals.AnswerTo` for more
-    information. If defined here, the global whitelist will be ignored. This
-    setting will be ignored if not defined. For a detailed explanation of how this
-    rule will be applied, refer to :class:`WhitelistConfigMixin`.
+    Defines a list of hosts to which responses should be sent.
+    See :attr:`Globals.AnswerTo` for more information.
+    When specified, this attribute takes precedence over the global whitelist.
+    If omitted, the global configuration remains in effect.
+    For detailed behavior and usage, refer to :class:`WhitelistConfigMixin`.
 
 Python Config
 -------------
 
 .. py:class:: llmnr.LLMNRConfig
 
-    Configuration class for its Toml counterpart section. It uses :class:`WhitelistConfigMixin`
-    and :class:`BlacklistConfigMixin`, which results in two extra fields in this class. Refer to
-    those classes for more information.
+    Defines the configuration for the `[llmnr]` section in the TOML file.
+    This class extends both :class:`WhitelistConfigMixin` and :class:`BlacklistConfigMixin`,
+    introducing two additional fields. Refer to the respective mixins for a detailed explanation of their functionality.
 
     .. py:attribute:: llmnr_answer_name
-        :value: None
         :type: Optional[str]
+        :value: None
 
         *Corresponds to* :attr:`LLMNR.AnswerName`
 
-        Note that the default value here is ``None`` to disable spoofed answer names.
+        Specifies a custom name to use in spoofed LLMNR responses.
+        The default value is ``None``, which disables spoofed answer names.
 
 
 Default Configuration
