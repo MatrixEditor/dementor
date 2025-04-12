@@ -41,7 +41,7 @@ from impacket.krb5.constants import (
 from impacket.krb5.types import KerberosTime
 from pyasn1.codec.der import decoder, encoder
 
-from dementor.config import TomlConfig, get_value
+from dementor.config import TomlConfig, get_value, Attribute as A
 from dementor.servers import (
     ThreadingTCPServer,
     ThreadingUDPServer,
@@ -54,9 +54,9 @@ from dementor.logger import ProtocolLogger
 class KerberosConfig(TomlConfig):
     _section_ = "Kerberos"
     _fields_ = [
-        ("krb5_salt", "Salt", ""),
-        ("krb5_etype", "EncType", EncryptionTypes.rc4_hmac),
-        ("krb5_error_code", "ErrorCode", ErrorCodes.KDC_ERR_C_PRINCIPAL_UNKNOWN),
+        A("krb5_salt", "Salt", ""),
+        A("krb5_etype", "EncType", EncryptionTypes.rc4_hmac),
+        A("krb5_error_code", "ErrorCode", ErrorCodes.KDC_ERR_C_PRINCIPAL_UNKNOWN),
     ]
 
     def set_krb5_salt(self, value):

@@ -21,7 +21,7 @@ import re
 import pathlib
 
 from typing import Any, List
-
+from dementor.config import Attribute as A
 
 class FilterObj:
     def __init__(self, target: str, extra: Any | None = None) -> None:
@@ -59,7 +59,7 @@ class FilterObj:
 
 class BlacklistConfigMixin:
     _extra_fields_ = [
-        ("ignored", "Ignore", None),
+        A("ignored", "Ignore", None, section_local=False),
     ]
 
     def set_ignored(self, value):
@@ -71,7 +71,8 @@ class BlacklistConfigMixin:
 
 class WhitelistConfigMixin:
     _extra_fields_ = [
-        ("targets", "Target", None),
+        # REVISIT: document why section_local is False here
+        A("targets", "Target", None, section_local=False),
     ]
 
     def set_targets(self, value):

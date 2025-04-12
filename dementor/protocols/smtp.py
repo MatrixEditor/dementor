@@ -43,11 +43,9 @@ from aiosmtpd.controller import Controller
 from impacket.ntlm import (
     NTLMAuthChallengeResponse,
     NTLMAuthNegotiate,
-    VERSION,
 )
-from impacket import ntlm
 
-from dementor.config import TomlConfig, SessionConfig, get_value, _LOCAL
+from dementor.config import TomlConfig, SessionConfig, get_value, Attribute as A
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -77,20 +75,20 @@ SMTP_AUTH_Result = AuthResult | None | _Missing | bool
 class SMTPServerConfig(TomlConfig):
     _section_ = "SMTP"
     _fields_ = [
-        ("smtp_port", "Port", _LOCAL),
-        ("smtp_tls", "TLS", False),
-        ("smtp_fqdn", "FQDN", "DEMENTOR"),
-        ("smtp_ident", "Ident", "Dementor 1.0dev0"),
-        ("smtp_downgrade", "Downgrade", False),
-        ("smtp_auth_mechanisms", "AuthMechanisms", list),
-        ("smtp_require_auth", "RequireAUTH", False),
-        ("smtp_require_starttls", "RequireSTARTTLS", False),
-        ("smtp_tls_cert", "Cert", False),
-        ("smtp_tls_key", "Key", False),
+        A("smtp_port", "Port"),
+        A("smtp_tls", "TLS", False),
+        A("smtp_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A("smtp_ident", "Ident", "Dementor 1.0dev0"),
+        A("smtp_downgrade", "Downgrade", False),
+        A("smtp_auth_mechanisms", "AuthMechanisms", list),
+        A("smtp_require_auth", "RequireAUTH", False),
+        A("smtp_require_starttls", "RequireSTARTTLS", False),
+        A("smtp_tls_cert", "Cert", False, section_local=False),
+        A("smtp_tls_key", "Key", False, section_local=False),
     ]
 
 
-def apply_config(session: SessionConfig) -> None:
+def apply_config(session) -> None:
     # setup SMTP server options
     if not session.smtp_enabled:
         return

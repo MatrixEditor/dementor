@@ -36,7 +36,7 @@ from impacket.ldap.ldapasn1 import (
 )
 from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
 
-from dementor.config import SessionConfig, TomlConfig, _LOCAL, get_value
+from dementor.config import SessionConfig, TomlConfig, Attribute as A, get_value
 from dementor.logger import ProtocolLogger
 from dementor.servers import (
     ThreadingTCPServer,
@@ -87,16 +87,16 @@ LDAP_DEFAULT_MECH = [
 class LDAPServerConfig(TomlConfig):
     _section_ = "LDAP"
     _fields_ = [
-        ("ldap_port", "Port", _LOCAL),
-        ("ldap_udp", "Connectionless", _LOCAL),
-        ("ldap_caps", "Capabilities", LDAP_CAPABILITIES),
-        ("ldap_mech", "SASLMechanisms", LDAP_DEFAULT_MECH),
-        ("ldap_timeout", "Timeout", 0),
-        ("ldap_fqdn", "FQDN", "DEMENTOR"),
-        ("ldap_tls", "TLS", False),
-        ("ldap_tls_key", "Key", None),
-        ("ldap_tls_cert", "Cert", None),
-        ("ldap_error_code", "ErrorCode", "unwillingToPerform"),
+        A("ldap_port", "Port"),
+        A("ldap_udp", "Connectionless"),
+        A("ldap_caps", "Capabilities", LDAP_CAPABILITIES),
+        A("ldap_mech", "SASLMechanisms", LDAP_DEFAULT_MECH),
+        A("ldap_timeout", "Timeout", 0),
+        A("ldap_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A("ldap_tls", "TLS", False),
+        A("ldap_tls_key", "Key", None, section_local=False),
+        A("ldap_tls_cert", "Cert", None, section_local=False),
+        A("ldap_error_code", "ErrorCode", "unwillingToPerform"),
     ]
 
     def set_ldap_error_code(self, value: str | int):
@@ -116,7 +116,7 @@ def apply_config(session) -> None:
     session.ldap_config = ldap_config
 
 
-def create_server_threads(session: SessionConfig) -> list:
+def create_server_threads(session) -> list:
     servers = []
     for config in session.ldap_config if session.ldap_enabled else []:
         server_cls = CLDAPServer if config.ldap_udp else LDAPServer

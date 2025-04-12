@@ -21,7 +21,7 @@ import tomllib
 import os
 import asyncio
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, NamedTuple
 
 from dementor.paths import ASSETS_PATH, CONFIG_PATH, DEMENTOR_PATH
 from dementor.database import DementorDB
@@ -30,14 +30,26 @@ from dementor.database import DementorDB
 _LOCAL = object()
 
 
+class Attribute(NamedTuple):
+    attr_name: str
+    qname: str
+    default_val: Any | None = _LOCAL
+    section_local: bool = True
+
+
 class TomlConfig:
     _section_: str | None
-    _fields_: list[tuple]
+    _fields_: list[Attribute]
 
     def __init__(self, config: dict) -> None:
         for field in self._fields_:
-            attr_name, name, default_val = field
-            self._set_field(config, attr_name, name, default_val)
+            self._set_field(
+                config,
+                field.attr_name,
+                field.qname,
+                field.default_val,
+                field.section_local,
+            )
 
     def __getitem__(self, key: str) -> Any:
         if hasattr(self, key):
@@ -57,7 +69,12 @@ class TomlConfig:
         return cls_ty(get_value(section or cls_ty._section_, key=None, default={}))
 
     def _set_field(
-        self, config: dict, field_name: str, qname: str, default_val=None
+        self,
+        config: dict,
+        field_name: str,
+        qname: str,
+        default_val=None,
+        section_local=False,
     ) -> None:
         # Behaviour:
         #   1. resolve default value:
@@ -82,11 +99,13 @@ class TomlConfig:
             #   1. _section_
             #   2. alternative section in qname
             #   3. variable in dm_config.Globals
-            sections = (
+            sections = [
                 get_value(section or "", key=None, default={}),
                 get_value(alt_section or "", key=None, default={}),
-                get_value("Globals", key=None, default={}),
-            )
+            ]
+            if not section_local:
+                sections.append(get_value("Globals", key=None, default={}))
+
             for section_config in sections:
                 if qname in section_config:
                     default_val = section_config[qname]
@@ -112,18 +131,18 @@ class TomlConfig:
 class SessionConfig(TomlConfig):
     _section_ = "Dementor"
     _fields_ = [
-        ("workspace_path", "Workspace", DEMENTOR_PATH),
-        ("llmnr_enabled", "LLMNR", True),
-        ("netbiosns_enabled", "NBTNS", True),
-        ("netbiosds_enabled", "NBTDS", True),
-        ("smtp_enabled", "SMTP", True),
-        ("smb_enabled", "SMB", True),
-        ("ftp_enabled", "FTP", True),
-        ("kdc_enabled", "KDC", True),
-        ("ldap_enabled", "LDAP", True),
-        ("quic_enabled", "QUIC", True),
-        ("db_duplicate_creds", "DB.DuplicateCreds", True),
-        ("extra_modules", "ExtraModules", list),
+        Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
+        Attribute("llmnr_enabled", "LLMNR", True),
+        Attribute("netbiosns_enabled", "NBTNS", True),
+        Attribute("netbiosds_enabled", "NBTDS", True),
+        Attribute("smtp_enabled", "SMTP", True),
+        Attribute("smb_enabled", "SMB", True),
+        Attribute("ftp_enabled", "FTP", True),
+        Attribute("kdc_enabled", "KDC", True),
+        Attribute("ldap_enabled", "LDAP", True),
+        Attribute("quic_enabled", "QUIC", True),
+        Attribute("db_duplicate_creds", "DB.DuplicateCreds", True),
+        Attribute("extra_modules", "ExtraModules", list),
     ]
 
     db: DementorDB

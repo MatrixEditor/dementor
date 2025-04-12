@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from dementor.config import _LOCAL, TomlConfig, get_value
+from dementor.config import Attribute as A, TomlConfig, get_value
 from dementor.logger import ProtocolLogger
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
 from dementor.database import _CLEARTEXT
@@ -33,9 +33,7 @@ ReplyCodes = {
 
 class FTPServerConfig(TomlConfig):
     _section_ = "FTP"
-    _fields_ = [
-        ("ftp_port", "Port", _LOCAL),
-    ]
+    _fields_ = [A("ftp_port", "Port")]
 
 
 def apply_config(session) -> None:

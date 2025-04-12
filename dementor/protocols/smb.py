@@ -31,7 +31,7 @@ from impacket.spnego import (
     TypesMech,
 )
 
-from dementor.config import TomlConfig, SessionConfig, get_value, _LOCAL
+from dementor.config import TomlConfig, SessionConfig, get_value, Attribute as A
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_decode_string,
@@ -44,14 +44,14 @@ from dementor.protocols.spnego import negTokenInit_step
 class SMBServerConfig(TomlConfig):
     _section_ = "SMB"
     _fields_ = [
-        ("smb_port", "Port", _LOCAL),
-        ("smb_server_os", "ServerOS", "Windows"),
-        ("smb_server_name", "ServerName", "DEMENTOR"),
-        ("smb_server_domain", "ServerDomain", "WORKGROUP"),
-        ("smb_error_code", "ErrorCode", nt_errors.STATUS_SMB_BAD_UID),
-        ("smb2_support", "SMB2Support", True),
-        ("smb_ess", "NTLM.ExtendedSessionSecurity", True),
-        ("smb_challenge", "NTLM.Challenge", b"A" * 8),
+        A("smb_port", "Port"),
+        A("smb_server_os", "ServerOS", "Windows"),
+        A("smb_server_name", "ServerName", "DEMENTOR"),
+        A("smb_server_domain", "ServerDomain", "WORKGROUP"),
+        A("smb_error_code", "ErrorCode", nt_errors.STATUS_SMB_BAD_UID),
+        A("smb2_support", "SMB2Support", True),
+        A("smb_ess", "NTLM.ExtendedSessionSecurity", True),
+        A("smb_challenge", "NTLM.Challenge", b"A" * 8),
     ]
 
     def set_smb_challenge(self, value: str | bytes):

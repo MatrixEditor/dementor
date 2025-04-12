@@ -24,7 +24,7 @@ from scapy.layers import llmnr, dns
 
 from dementor.protocols.mdns import build_dns_answer
 from dementor.servers import ThreadingUDPServer, ServerThread, BaseProtoHandler
-from dementor.config import SessionConfig, TomlConfig
+from dementor.config import SessionConfig, TomlConfig, Attribute as A
 from dementor.logger import ProtocolLogger
 from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scope
 
@@ -33,7 +33,7 @@ from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scop
 class LLMNRConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
     _section_ = "LLMNR"
     _fields_ = (
-        [("llmnr_answer_name", "AnswerName", None)]
+        [A("llmnr_answer_name", "AnswerName", None)]
         + BlacklistConfigMixin._extra_fields_
         + WhitelistConfigMixin._extra_fields_
     )

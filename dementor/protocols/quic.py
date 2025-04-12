@@ -33,18 +33,18 @@ from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.connection import QuicConnection
 
 
-from dementor.config import SessionConfig, TomlConfig
+from dementor.config import SessionConfig, TomlConfig, Attribute as A
 from dementor.logger import ProtocolLogger, ProtocolLoggerMixin, dm_logger
 
 
 class QuicServerConfig(TomlConfig):
     _section_ = "QUIC"
     _fields_ = [
-        ("quic_port", "Port", 443),
-        ("quic_cert_path", "Cert", None),
-        ("quic_cert_key", "Key", None),
-        ("quic_smb_host", "TargetSMBHost", None),
-        ("quic_smb_port", "TargetSMBPort", 445),  # default SMB
+        A("quic_port", "Port", 443),
+        A("quic_cert_path", "Cert", None, section_local=False),
+        A("quic_cert_key", "Key", None, section_local=False),
+        A("quic_smb_host", "TargetSMBHost", None),
+        A("quic_smb_port", "TargetSMBPort", 445),  # default SMB
     ]
 
 
