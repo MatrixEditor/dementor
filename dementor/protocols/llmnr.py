@@ -33,10 +33,7 @@ from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scop
 class LLMNRConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
     _section_ = "LLMNR"
     _fields_ = (
-        [
-            ("llmnr_answer_name", "AnswerName", None),
-            ("llmnr_targets", "AnswerTo", None),
-        ]
+        [("llmnr_answer_name", "AnswerName", None)]
         + BlacklistConfigMixin._extra_fields_
         + WhitelistConfigMixin._extra_fields_
     )
@@ -118,7 +115,7 @@ class LLMNRPoisoner(BaseProtoHandler):
         transport.sendto(response.build(), self.client_address)
         text = f"Sent poisoned answer to {self.client_host}"
         if answer_name:
-            text += f" ([i]spoofed name:[/i] {answer_name})"
+            text = f"{text} ([bold yellow]spoofed name: {answer_name}[/bold yellow])"
         self.logger.success(text)
 
 

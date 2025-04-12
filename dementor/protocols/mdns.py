@@ -59,8 +59,6 @@ class MDNSConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
             ("mdns_ttl", "TTL", 120),
             ("mdns_max_labels", "MaxLabels", 1),
             ("mdns_qtypes", "AllowedQueryTypes", [1, 28, 255]),  # A, AAAA, ANY
-            ("mdns_targets", "AnswerTo", None),
-            ("mdns_ignore", "Ignore", None),
         ]
         + BlacklistConfigMixin._extra_fields_
         + WhitelistConfigMixin._extra_fields_
@@ -114,6 +112,7 @@ class MDNSPoisoner(BaseProtoHandler):
         normalized_qname = normalized_name(question.qname)
         if normalized_qname.count(".") > self.config.mdns_config.mdns_max_labels:
             return False
+
 
         if question.qtype not in self.config.mdns_config.mdns_qtypes:  # A, AAAA, ANY
             return False

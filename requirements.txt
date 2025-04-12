@@ -4,3 +4,4 @@ scapy
 aiosmtpd
 sqlalchemy
 pyasn1
+aioquic
