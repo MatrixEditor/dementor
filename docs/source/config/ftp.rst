@@ -35,7 +35,7 @@ Section: ``[FTP]``
 
     Represents a list of FTP server configuration sections. For guidance on specifying
     a list of configuration sections, refer to the general configuration documentation:
-    :ref:`config_guide_setion_lists`.
+    `Array Tables <https://toml.io/en/v1.0.0#array-of-tables>`_.
 
     Each server entry supports the following configuration attribute:
 

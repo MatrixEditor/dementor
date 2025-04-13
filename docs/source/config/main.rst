@@ -44,7 +44,7 @@ Section ``[Dementor]``
     Specifies the directory where the database is stored and where additional modules
     can be placed. By default, this path points to ``~/.dementor`` in the user's home
     directory. For guidance on how to include custom protocols, refer to
-    :ref:`howto_custom_protocol_`.
+    `Array Tables <https://toml.io/en/v1.0.0#array-of-tables>`_.
 
 
 .. py:attribute:: ExtraModules

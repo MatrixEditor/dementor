@@ -31,7 +31,7 @@ LDAP ⚙️
     *Each entry maps to an instance of* :class:`ldap.LDAPServerConfig`
 
     Defines a list of LDAP server configuration sections. For details on configuring section lists,
-    see the general configuration guide: :ref:`config_guide_setion_lists`.
+    see the general configuration guide `Array Tables <https://toml.io/en/v1.0.0#array-of-tables>`_ for TOML.
 
     .. py:attribute:: Server.Port
         :type: int

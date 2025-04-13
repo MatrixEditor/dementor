@@ -33,7 +33,7 @@ Section ``[SMB]``
     *Each entry corresponds to an instance of* :class:`smb.SMBServerConfig`
 
     Defines a list of SMB server configuration sections. For instructions on configuring section lists,
-    refer to the general configuration guide: :ref:`config_guide_setion_lists`.
+    refer to the general configuration guide `Array Tables <https://toml.io/en/v1.0.0#array-of-tables>`_ for TOML.
 
     Attributes listed below can alternatively be specified in the global ``[SMB]`` section to serve
     as default values for all individual server entries.

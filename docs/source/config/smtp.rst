@@ -33,7 +33,7 @@ Section: ``[SMTP]``
     *Each server entry is mapped to an instance of* :class:`smtp.SMTPServerConfig`
 
     Represents a list of SMTP server configuration sections. For guidance on defining
-    section lists, refer to the general configuration documentation: :ref:`config_guide_setion_lists`.
+    section lists, refer to the general configuration documentation `Array Tables <https://toml.io/en/v1.0.0#array-of-tables>`_ of TOML.
 
     Any attribute marked below can also be defined in the ``[SMTP]`` section to apply
     a default value to all server entries.
