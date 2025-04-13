@@ -37,6 +37,9 @@ html_copy_source = False
 html_show_sourcelink = False
 
 html_favicon = "_static/favicon.ico"
+html_css_files = [
+    'theme.css',
+]
 
 html_theme_options = {
     "accent_color": "cyan",
@@ -75,6 +78,32 @@ html_theme_options = {
         {
             "title": "Configuration",
             "url": "config/index",
+            "children": [
+                {
+                    "title": "Main Configuration",
+                    "url": "config/main",
+                    "summary": "Main configuration for Dementor",
+                },
+                {
+                    "title": "Database Configuration",
+                    "url": "config/database",
+                    "summary": "Database directory and name",
+                },
+                {
+                    "title": "Globals",
+                    "url": "config/globals",
+                    "summary": "Global settings for protocol servers",
+                },
+                {
+                    "title": "Protocols",
+                    "url": "config/protocols",
+                    "summary": "Inidividual protocol configuration",
+                },
+            ],
+        },
+        {
+            "title": "Compatibility",
+            "url": "compat",
         }
     ]
 }

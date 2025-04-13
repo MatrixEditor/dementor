@@ -81,6 +81,7 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    :hidden:
 
    intro
+   compat
 
 .. toctree::
    :caption: Getting Started

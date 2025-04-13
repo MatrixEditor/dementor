@@ -19,7 +19,7 @@
 .. SOFTWARE.
 .. _example_kerberos:
 
-Rogue Kerberos  KDC ⚙️
+Rogue Kerberos  KDC
 ===========================================
 
 *Kerberos Spec* :bdg-secondary-line:`RFC-4120`
