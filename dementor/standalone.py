@@ -1,4 +1,4 @@
-# Copyright (c) 2025 MatrixEditor
+# Copyright (c) 2025-Present MatrixEditor
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ def serve(
         session.ipv6 = next(
             (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface), None
         )
-        if session.ipv4 == "0.0.0.0":
+        if session.ipv4 == "0.0.0.0" and not session.ipv6:
             # current interface is not available
             dm_logger.error(
                 f"Interface {session.interface} is not available, check your configuration"

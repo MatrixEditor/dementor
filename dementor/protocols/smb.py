@@ -1,4 +1,4 @@
-# Copyright (c) 2025 MatrixEditor
+# Copyright (c) 2025-Present MatrixEditor
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@ import struct
 import threading
 import configparser
 import socket
+import secrets
 
 from impacket.smbserver import SMBSERVER, encodeSMBString
 from impacket import smb, smb3, nt_errors, smb3structs as smb2, ntlm
@@ -51,7 +52,7 @@ class SMBServerConfig(TomlConfig):
         A("smb_error_code", "ErrorCode", nt_errors.STATUS_SMB_BAD_UID),
         A("smb2_support", "SMB2Support", True),
         A("smb_ess", "NTLM.ExtendedSessionSecurity", True),
-        A("smb_challenge", "NTLM.Challenge", b"A" * 8),
+        A("smb_challenge", "NTLM.Challenge", b""),
     ]
 
     def set_smb_challenge(self, value: str | bytes):
@@ -60,6 +61,7 @@ class SMBServerConfig(TomlConfig):
                 self.smb_challenge = value.encode("utf-8", errors="replace")
             case bytes():
                 self.smb_challenge = value
+
 
     def set_smb_error_code(self, value: str | int):
         match value:
@@ -170,6 +172,18 @@ class SMBServerThread(threading.Thread):
             self.smbComSessionSetupAndX,
         )
 
+    def get_challenge(self, connData: dict):
+        challenge = self.server_config.smb_challenge
+        if not challenge:
+            challenge = connData.get("ChallengeValue")
+            if not challenge:
+                challenge = secrets.token_bytes(8)
+
+        if "ChallengeValue" not in connData:
+            connData["ChallengeValue"] = challenge
+
+        return challenge
+
     def smb2SessionSetup(self, connId: dict, smbServer: SMBSERVER, recvPacket: dict):
         # copied and modified from SMB2Commands to be able to drop ESS support
         connData = smbServer.getConnectionData(connId, checkStatus=False)
@@ -217,12 +231,12 @@ class SMBServerThread(threading.Thread):
                 negotiateMessage = ntlm.NTLMAuthNegotiate()
                 negotiateMessage.fromString(token)
                 connData["NEGOTIATE_MESSAGE"] = negotiateMessage
-                # Let's build the answer flags
+                challenge = self.get_challenge(connData)
                 challengeMessage = NTLM_AUTH_CreateChallenge(
                     negotiateMessage,
                     self.server_config.smb_server_name,
                     self.server_config.smb_server_domain,
-                    self.server_config.smb_challenge,
+                    challenge=challenge,
                     disable_ess=not self.server_config.smb_ess,
                 )
 
@@ -389,12 +403,12 @@ class SMBServerThread(threading.Thread):
                     negotiateMessage = ntlm.NTLMAuthNegotiate()
                     negotiateMessage.fromString(token)
                     connData["NEGOTIATE_MESSAGE"] = negotiateMessage
-                    # Let's build the answer flags
+                    challenge = self.get_challenge(connData)
                     challengeMessage = NTLM_AUTH_CreateChallenge(
                         negotiateMessage,
                         self.server_config.smb_server_name,
                         self.server_config.smb_server_domain,
-                        self.server_config.smb_challenge,
+                        challenge=challenge,
                         disable_ess=not self.server_config.smb_ess,
                     )
 

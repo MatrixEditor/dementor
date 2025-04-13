@@ -1,4 +1,4 @@
-# Copyright (c) 2025 MatrixEditor
+# Copyright (c) 2025-Present MatrixEditor
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@
 import struct
 import time
 import calendar
+import secrets
 
 from typing import Tuple
 from impacket import ntlm
@@ -28,13 +29,16 @@ from dementor.config import SessionConfig, get_value
 
 
 def apply_config(session: SessionConfig) -> None:
-    challenge = get_value("NTLM", "Challenge", default="1337LEET")
-    try:
-        session.ntlm_challange = bytes.fromhex(challenge)
-    except ValueError:
-        session.ntlm_challange = challenge.encode()
+    challenge = get_value("NTLM", "Challenge", default=None)
+    if challenge is None:
+        challenge = secrets.token_hex(16)
+    else:
+        try:
+            session.ntlm_challange = bytes.fromhex(challenge)
+        except ValueError:
+            session.ntlm_challange = challenge.encode()
 
-    session.ntlm_ess = get_value("NTLM", "ESS", default=True)
+    session.ntlm_ess = get_value("NTLM", "ExtendedSessionSecurity", default=True)
 
 
 def NTLM_AUTH_decode_string(data: bytes, flags: int, force_ascii: bool = False) -> str:
