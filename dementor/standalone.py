@@ -49,6 +49,7 @@ def serve(
             return
 
     logger.init()
+    logger.ProtocolLogger.init_logfile(session)
 
     if interface and not session.interface:
         session.interface = interface

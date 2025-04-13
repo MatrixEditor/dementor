@@ -135,22 +135,21 @@ class MDNSPoisoner(BaseProtoHandler):
                 if not normalized_qname.endswith(".local"):
                     continue
 
-                if self.config.analysis:
-                    # Analyze-only mode
-                    continue
-
                 if self.should_answer_request(question):
                     self.logger.display(
                         f"Request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
                         f"type: {qtype})"
                     )
+                    if self.config.analysis:
+                        # Analyze-only mode
+                        continue
                     self.send_poisoned_answer(packet, question, transport)
                 # REVISIT: maybe log ignored requests
-                else:
-                    self.logger.display(
-                        f"[b]Ignoring[/b] request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
-                        f"type: {qtype})"
-                    )
+                # else:
+                #     self.logger.display(
+                #         f"[b]Ignoring[/b] request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
+                #         f"type: {qtype})"
+                #     )
 
     def send_poisoned_answer(self, req, question: dns.DNSQR, transport) -> None:
         # check if we can send a response

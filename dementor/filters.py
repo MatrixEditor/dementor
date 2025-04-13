@@ -18,19 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import re
+import sys
+import glob
 import pathlib
+import warnings
 
 from typing import Any, List
 from dementor.config import Attribute as A
+
 
 class FilterObj:
     def __init__(self, target: str, extra: Any | None = None) -> None:
         self.target = target
         self.extra = extra or {}
+
+        # Patterns can be either regex directly or glob-style
         #  pre compute pattern
         if self.target.startswith("re:"):
             self.pattern = re.compile(self.target[3:])
             self.target = self.target[3:]
+
+        elif self.target.startswith("g:"):
+            self.target = self.target[2:]
+            # glob.translate is only available since 3.13
+            if (sys.version_info.major, sys.version_info.minor) < (3, 13):
+                warnings.warn(
+                    "glob.translate is only available since 3.13, "
+                    "using basic-string instead"
+                )
+                self.pattern = None
+            else:
+                self.pattern = re.compile(glob.translate(self.target))
+
         else:
             self.pattern = None
 

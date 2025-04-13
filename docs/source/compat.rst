@@ -10,12 +10,12 @@ in development. The legend for each symbol is as follows:
 .. raw:: html
 
     <ul>
-        <li><i class="i-lucide checkfb sd-text-success xl"></i>: Supported / Working</li>
-        <li><i class="i-lucide check-check sd-text-success xl"></i>: All features of this category are supported / working</li>
-        <li><i class="i-lucide badge-alert sd-text-danger xl"></i>: This feature is currently broken / does not work properly</li>
-        <li><i class="i-lucide x sd-text-danger xl"></i> — Not Supported / Not Implemented</li>
-        <li><i class="i-lucide triangle-alert sd-text-warning xl"></i> — Partially Supported</li>
-        <li><i class="i-lucide message-square-warning sd-text-info xl"></i> — In Development</li>
+        <li><i class="i-lucide checkfb sd-text-success xl"></i> - Supported / Working</li>
+        <li><i class="i-lucide check-check sd-text-success xl"></i> - All features of this category are supported / working</li>
+        <li><i class="i-lucide badge-alert sd-text-danger xl"></i> - This feature is currently broken / does not work properly</li>
+        <li><i class="i-lucide x sd-text-danger xl"></i> - Not Supported / Not Implemented</li>
+        <li><i class="i-lucide triangle-alert sd-text-warning xl"></i> - Partially Supported</li>
+        <li><i class="i-lucide message-square-warning sd-text-info xl"></i> - In Development</li>
     </ul>
 
 
@@ -233,7 +233,7 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>HTTP</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide message-square-warning sd-text-info xl"></i></td>
+            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
         </tr>
         <tr>
             <td>IMAP</td>
@@ -268,7 +268,7 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>RPC</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide message-square-warning sd-text-info xl"></i></td>
+            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
         </tr>
     </tbody>
     </table>

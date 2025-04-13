@@ -26,7 +26,8 @@ The main configuration is defined in the ``[Dementor]`` section. This section is
 responsible for enabling protocol servers and configuring additional protocols.
 Each server can be enabled or disabled **within the configuration file** using
 values that can be interpreted as booleans, such as ``true``, ``false``, ``1``,
-``"on"``, or ``"off"``.
+``"on"``, or ``"off"``. for more information on the Python side of this
+configuration, refer to :class:`~dementor.config.SessionConfig`.
 
 
 Section ``[Dementor]``
