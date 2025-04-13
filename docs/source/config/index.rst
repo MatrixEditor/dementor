@@ -17,20 +17,7 @@
 .. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 .. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 .. SOFTWARE.
-.. _config_protocols:
+.. _config_idx:
 
-Protocols
-=========
-
-.. toctree::
-    :caption: Available Protocols
-
-    mdns
-    llmnr
-    netbios
-    ftp
-    kerberos
-    ntlm
-    smtp
-    smb
-    quic
+Configuration ⚙️
+================
