@@ -72,10 +72,6 @@ html_theme_options = {
             ],
         },
         {
-            "title": "API Reference",
-            "url": "api/index",
-        },
-        {
             "title": "Configuration",
             "url": "config/index",
             "children": [

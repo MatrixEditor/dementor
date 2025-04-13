@@ -106,7 +106,3 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    config/globals
    config/protocols
    config/logging
-
-.. toctree::
-   :caption: API Reference ⚙️
-   :hidden:
