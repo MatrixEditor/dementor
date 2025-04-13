@@ -22,7 +22,7 @@ import os
 import sqlite3
 
 from datetime import datetime
-from typing import Tuple
+from typing import Any, Tuple
 
 from sqlalchemy.engine import Engine, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -32,13 +32,29 @@ from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable
 
 
 from dementor.logger import dm_logger, dm_console_lock
+from dementor.config import TomlConfig, Attribute as A
 
 
-def init_dementor_db(workspace_path: str) -> str:
-    db_path = os.path.join(workspace_path, "Dementor.db")
+class DatabaseConfig(TomlConfig):
+    _section_ = "DB"
+    _fields_ = [
+        A("db_dir", "Directory", None),
+        A("db_name", "Name", "Dementor.db"),
+        A("db_duplicate_creds", "DuplicateCreds", False),
+    ]
+
+
+def init_dementor_db(session) -> str:
+    workspace_path = session.workspace_path
+    if session.db_config.db_dir:
+        workspace_path = session.db_config.db_dir
+
+    name = session.db_config.db_name
+    db_path = os.path.join(workspace_path, name)
 
     if not os.path.exists(db_path):
         dm_logger.info("Initializing Dementor database")
+        # TODO: check for parent dirs
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
@@ -141,7 +157,7 @@ class DementorDB:
         credtype: str,
         username: str,
         password: str,
-        logger=None,
+        logger: Any = None,
         protocol: str | None = None,
         domain: str | None = None,
         hostname: str | None = None,
@@ -154,7 +170,7 @@ class DementorDB:
             return
 
         target_logger = logger or dm_logger
-        protocol = protocol or logger.extra["protocol"]
+        protocol = str(protocol or logger.extra["protocol"])
         client_address, port, *_ = client
         client_address = normalize_client_address(client_address)
 
@@ -164,17 +180,21 @@ class DementorDB:
         )
 
         q = sql.select(self.CredentialsTable).filter(
-            sql.func.lower(self.CredentialsTable.c.domain) == sql.func.lower(domain or ""),
-            sql.func.lower(self.CredentialsTable.c.username) == sql.func.lower(username),
-            sql.func.lower(self.CredentialsTable.c.credtype) == sql.func.lower(credtype),
-            sql.func.lower(self.CredentialsTable.c.protocol) == sql.func.lower(protocol),
+            sql.func.lower(self.CredentialsTable.c.domain)
+            == sql.func.lower(domain or ""),
+            sql.func.lower(self.CredentialsTable.c.username)
+            == sql.func.lower(username),
+            sql.func.lower(self.CredentialsTable.c.credtype)
+            == sql.func.lower(credtype),
+            sql.func.lower(self.CredentialsTable.c.protocol)
+            == sql.func.lower(protocol),
         )
         results = self.db_exec(q).all()
         text = "Password" if credtype == _CLEARTEXT else "Hash"
         full_name = (
             f"[b]{username}[/]/[b]{domain}[/]" if domain else f"[b]{username}[/]"
         )
-        if not results or self.config.db_duplicate_creds:
+        if not results or self.config.db_config.db_duplicate_creds:
             # just insert a new row
             q = sql.insert(self.CredentialsTable).values(
                 {

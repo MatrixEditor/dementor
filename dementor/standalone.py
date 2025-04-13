@@ -23,7 +23,7 @@ import tomllib
 
 from scapy.arch import get_if_addr, in6_getifaddr
 
-from dementor.config import SessionConfig
+from dementor.config import SessionConfig, TomlConfig
 from dementor import logger, database, config
 from dementor.logger import dm_logger
 from dementor.loader import ProtocolLoader
@@ -75,7 +75,8 @@ def serve(
 
     # Setup database for current session
     if not getattr(session, "db", None):
-        db_path = database.init_dementor_db(session.workspace_path)
+        session.db_config = TomlConfig.build_config(database.DatabaseConfig)
+        db_path = database.init_dementor_db(session)
         session.db = database.DementorDB(database.init_engine(db_path), session)
 
     # Load protocols

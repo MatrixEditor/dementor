@@ -24,7 +24,6 @@ import asyncio
 from typing import Any, List, Optional, NamedTuple
 
 from dementor.paths import ASSETS_PATH, CONFIG_PATH, DEMENTOR_PATH
-from dementor.database import DementorDB
 
 
 _LOCAL = object()
@@ -141,11 +140,12 @@ class SessionConfig(TomlConfig):
         Attribute("kdc_enabled", "KDC", True),
         Attribute("ldap_enabled", "LDAP", True),
         Attribute("quic_enabled", "QUIC", True),
-        Attribute("db_duplicate_creds", "DB.DuplicateCreds", True),
         Attribute("extra_modules", "ExtraModules", list),
     ]
 
-    db: DementorDB
+    # TODO: move into .pyi
+    db: Any
+    db_config: Any
     krb5_config: Any
     mdns_config: Any
     llmnr_config: Any

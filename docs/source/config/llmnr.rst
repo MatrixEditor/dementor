@@ -22,6 +22,8 @@
 LLMNR
 =====
 
+.. _config_llmnr_sectioncfg:
+
 Section: ``[LLMNR]``
 --------------------
 

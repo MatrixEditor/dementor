@@ -22,6 +22,7 @@
 mDNS
 ====
 
+.. _config_mdns_sectioncfg:
 
 Section: ``[mDNS]``
 -------------------

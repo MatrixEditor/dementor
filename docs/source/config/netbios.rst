@@ -22,6 +22,8 @@
 NBTNS
 =====
 
+.. _config_netbios_sectioncfg:
+
 Section ``[NetBIOS]``
 ---------------------
 
