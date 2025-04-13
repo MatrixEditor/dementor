@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Dementor"
-copyright = "2025, MatrixEditor"
+copyright = "2025-Present, MatrixEditor"
 author = "MatrixEditor"
 release = "0.1.0"
 

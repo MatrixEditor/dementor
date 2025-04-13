@@ -34,3 +34,4 @@ Protocols
     smtp
     smb
     quic
+    ldap
