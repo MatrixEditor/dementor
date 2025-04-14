@@ -17,16 +17,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import argparse
 import asyncio
 import tomllib
+import json
+import typer
+
+from typing import List
+from typing_extensions import Annotated
 
 from scapy.arch import get_if_addr, in6_getifaddr
+from rich import print
 
 from dementor.config import SessionConfig, TomlConfig
 from dementor import logger, database, config
 from dementor.logger import dm_logger
 from dementor.loader import ProtocolLoader
+from dementor.paths import BANNER_PATH
 
 
 def serve(
@@ -37,10 +43,8 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
+    éxtra_options: dict | None = None,
 ) -> None:
-    if session is None:
-        session = SessionConfig()
-
     if config_path:
         try:
             config.init_from_file(config_path)
@@ -48,8 +52,19 @@ def serve(
             dm_logger.error(f"Failed to load configuration file: {e}")
             return
 
+    if session is None:
+        session = SessionConfig()
+
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
+
+    if éxtra_options:
+        for section, options in éxtra_options.items():
+            if section not in config.dm_config:
+                config.dm_config[section] = {}
+
+            for key, value in options.items():
+                config.dm_config[section][key] = value
 
     if interface and not session.interface:
         session.interface = interface
@@ -129,60 +144,131 @@ def stop_session(session: SessionConfig, threads=None) -> None:
     session.db.close()
 
 
+_SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
+
+
+def parse_options(options: List[str]) -> dict:
+    result = {}
+    for option in options:
+        key, raw_value = option.split("=", 1)
+        # Each definition is a key=value pair with an optional section prefix
+        if key.count(".") > 1:
+            dm_logger.warning(f"Invalid option definition: {option}")
+            raise typer.Exit(1)
+
+        if "." in key:
+            section, key = key.rsplit(".", 1)
+        else:
+            section = "Dementor"
+
+        match raw_value.strip().lower():
+            case "true" | "on" | "yes":
+                value = True
+            case "false" | "off" | "no":
+                value = False
+            case _:
+                raw_value = raw_value.strip()
+                value = None
+                if raw_value[0] == "[":
+                    value = json.loads(raw_value)
+                elif raw_value[0] not in ('"', "'"):
+                    try:
+                        value = int(raw_value)
+                    except ValueError:
+                        pass
+
+                if value is None:
+                    value = raw_value.removeprefix('"').removesuffix('"')
+
+        if section not in result:
+            result[section] = {}
+
+        result[section][key] = value
+    return result
+
+
 # --- main
-def main() -> None:
+def main(
+    interface: Annotated[
+        str,
+        typer.Option(
+            "--interface",
+            "-I",
+            show_default=False,
+            metavar="NAME",
+            help="Network interface to use (required for poisoning)",
+        ),
+    ],
+    analyze: Annotated[
+        bool,
+        typer.Option(
+            "--analyze",
+            "-A",
+            help="Only analyze traffic, don't respond to requests",
+        ),
+    ] = False,
+    config: Annotated[
+        str,
+        typer.Option(
+            "--config",
+            "-c",
+            metavar="PATH",
+            show_default=False,
+            help="Path to a configuration file (otherwise standard path is used)",
+        ),
+    ] = None,
+    options: Annotated[
+        List[str],
+        typer.Option(
+            "--option",
+            "-O",
+            metavar="KEY=VALUE",
+            show_default=False,
+            help="Add an extra option to the global configuration file.",
+        ),
+    ] = None,
+    verbose: Annotated[bool, _SkippedOption] = False,
+    debug: Annotated[bool, _SkippedOption] = False,
+    quiet: Annotated[
+        bool,
+        typer.Option("--quiet", "-q", help="Don't print banner at startup", show_default=False),
+    ] = False,
+) -> None:
     from impacket.version import version as ImpacketVersion
     from scapy import VERSION as ScapyVersion
 
-    print(
-        f"Dementor - Running with Scapy v{ScapyVersion} and Impacket v{ImpacketVersion}\n"
-    )
+    if not quiet:
+        from aiosmtpd import __version__ as AiosmtpdVersion
+        from aioquic import __version__ as AioquicVersion
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-I",
-        "--interface",
-        dest="interface",
-        metavar="NAME",
-        required=True,
-        help="Network interface to use (required for poisoning)",
-    )
-    parser.add_argument(
-        "-A",
-        "--analyze",
-        dest="analyze_only",
-        action="store_true",
-        help="Only analyze traffic, don't respond to requests",
-    )
-    parser.add_argument(
-        "-c",
-        "--config",
-        dest="config_path",
-        metavar="PATH",
-        required=False,
-        default=None,
-        help="Path to a configuration file (otherwise standard path is used)",
-    )
+        with open(BANNER_PATH, "r") as fp:
+            print(
+                fp.read().format(
+                    scapy_version=ScapyVersion,
+                    impacket_version=ImpacketVersion,
+                    aiosmtpd_version=AiosmtpdVersion,
+                    aioquic_version=AioquicVersion,
+                )
+            )
+    else:
+        print(
+            f"[bold]Dementor[/bold] - [white]Running with Scapy v{ScapyVersion} "
+            f"and Impacket v{ImpacketVersion}[/white]\n",
+        )
 
-    # these are not used actually (only here for documentation)
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enables verbose logging output including debug messages",
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enables debug messages from all loggers",
-    )
-
-    argv = parser.parse_args()
+    # prepare options
+    extras = parse_options(options or [])
     serve(
-        interface=argv.interface,
-        analyze_only=argv.analyze_only,
-        config_path=argv.config_path,
+        interface=interface,
+        analyze_only=analyze,
+        config_path=config,
+        éxtra_options=extras,
     )
+
+
+def run_from_cli() -> None:
+    typer.run(main)
 
 
 if __name__ == "__main__":
-    main()
+    run_from_cli()

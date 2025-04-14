@@ -150,6 +150,7 @@ class SessionConfig(TomlConfig):
         Attribute("ldap_enabled", "LDAP", True, factory=is_true),
         Attribute("quic_enabled", "QUIC", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
+        Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]
 
     # TODO: move into .pyi
