@@ -21,7 +21,7 @@ import tomllib
 import os
 import asyncio
 
-from typing import Any, List, Optional, NamedTuple
+from typing import Any, List, Optional, NamedTuple, Callable
 
 from dementor.paths import ASSETS_PATH, CONFIG_PATH, DEMENTOR_PATH
 
@@ -34,6 +34,7 @@ class Attribute(NamedTuple):
     qname: str
     default_val: Any | None = _LOCAL
     section_local: bool = True
+    factory: Callable[[Any], Any] | None = None
 
 
 class TomlConfig:
@@ -48,6 +49,7 @@ class TomlConfig:
                 field.qname,
                 field.default_val,
                 field.section_local,
+                field.factory,
             )
 
     def __getitem__(self, key: str) -> Any:
@@ -74,6 +76,7 @@ class TomlConfig:
         qname: str,
         default_val=None,
         section_local=False,
+        factory=None,
     ) -> None:
         # Behaviour:
         #   1. resolve default value:
@@ -120,6 +123,9 @@ class TomlConfig:
             # use factory instead of return value
             value = value()
 
+        if factory:
+            value = factory(value)
+
         func = getattr(self, f"set_{field_name}", None)
         if func:
             func(value)
@@ -127,19 +133,22 @@ class TomlConfig:
             setattr(self, field_name, value)
 
 
+def is_true(value) -> bool:
+    return str(value).lower() in ("true", "1", "yes", "on")
+
+
 class SessionConfig(TomlConfig):
     _section_ = "Dementor"
     _fields_ = [
-        Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
-        Attribute("llmnr_enabled", "LLMNR", True),
-        Attribute("netbiosns_enabled", "NBTNS", True),
-        Attribute("netbiosds_enabled", "NBTDS", True),
-        Attribute("smtp_enabled", "SMTP", True),
-        Attribute("smb_enabled", "SMB", True),
-        Attribute("ftp_enabled", "FTP", True),
-        Attribute("kdc_enabled", "KDC", True),
-        Attribute("ldap_enabled", "LDAP", True),
-        Attribute("quic_enabled", "QUIC", True),
+        Attribute("llmnr_enabled", "LLMNR", True, factory=is_true),
+        Attribute("netbiosns_enabled", "NBTNS", True, factory=is_true),
+        Attribute("netbiosds_enabled", "NBTDS", True, factory=is_true),
+        Attribute("smtp_enabled", "SMTP", True, factory=is_true),
+        Attribute("smb_enabled", "SMB", True, factory=is_true),
+        Attribute("ftp_enabled", "FTP", True, factory=is_true),
+        Attribute("kdc_enabled", "KDC", True, factory=is_true),
+        Attribute("ldap_enabled", "LDAP", True, factory=is_true),
+        Attribute("quic_enabled", "QUIC", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
     ]
 
@@ -182,7 +191,7 @@ def _read(path: str):
         return tomllib.load(f)
 
 
-dm_default_config = _read(os.path.join(ASSETS_PATH, "Dementor.conf"))
+dm_default_config = _read(os.path.join(ASSETS_PATH, "Dementor.toml"))
 
 if os.path.exists(CONFIG_PATH):
     dm_config = _read(CONFIG_PATH)
@@ -212,10 +221,6 @@ def get_value(section: str, key: str | None, default=None) -> Any:
         return target
 
     return target.get(key, default)
-
-
-def is_true(value) -> bool:
-    return str(value).lower() in ("true", "1", "yes", "on")
 
 
 def init_from_file(path: str):

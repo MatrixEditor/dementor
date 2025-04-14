@@ -1,22 +1,3 @@
-.. Copyright (c) 2025-Present MatrixEditor
-..
-.. Permission is hereby granted, free of charge, to any person obtaining a copy
-.. of this software and associated documentation files (the "Software"), to deal
-.. in the Software without restriction, including without limitation the rights
-.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-.. copies of the Software, and to permit persons to whom the Software is
-.. furnished to do so, subject to the following conditions:
-..
-.. The above copyright notice and this permission notice shall be included in all
-.. copies or substantial portions of the Software.
-..
-.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-.. SOFTWARE.
 .. _example_kerberos:
 
 Rogue Kerberos  KDC
@@ -55,7 +36,7 @@ exchanged securely without exposing passwords over the network.
 
 4. The client sends a `TGS-REQ <https://tools.ietf.org/html/rfc4120#section-5.4.1>`_ message to the KDC requesting the ST. This message includes the TGT, the Service Principal Name ([SPN](#service-principal-name-spn)) of the target service, and additional encrypted data (such as the client’s username and timestamp) to verify authenticity.
 
-5. The KDC decrypts the TGT using its key, extracts the session key, and verifies the client’s username. Upon validation, the KDC issues a `TGS-REP <https://tools.ietf.org/html/rfc4120#section-5.4.2>`_ message containing two encrypted sections: an ST encrypted with the service’s key and client-related data encrypted with the session key. Shared data, such as the service session key, is embedded in both sections to facilitate communication between the client and the service.
+5. The KDC decrypts the TGT using its key, extracts the session key, and verifies the client's username. Upon validation, the KDC issues a `TGS-REP <https://tools.ietf.org/html/rfc4120#section-5.4.2>`_ message containing two encrypted sections: an ST encrypted with the service’s key and client-related data encrypted with the session key. Shared data, such as the service session key, is embedded in both sections to facilitate communication between the client and the service.
 
 6. The client forwards the ST to the service within an `AP-REQ <https://tools.ietf.org/html/rfc4120#section-5.5.1>`_ message, which is encapsulated in the application protocol. The service decrypts the ST, retrieves the session key, and accesses the Privilege Attribute Certificate (PAC), which contains security information about the client.
 

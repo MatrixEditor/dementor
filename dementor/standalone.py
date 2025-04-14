@@ -135,7 +135,7 @@ def main() -> None:
     from scapy import VERSION as ScapyVersion
 
     print(
-        f"Dementor.py - Running with Scapy v{ScapyVersion} and Impacket v{ImpacketVersion}\n"
+        f"Dementor - Running with Scapy v{ScapyVersion} and Impacket v{ImpacketVersion}\n"
     )
 
     parser = argparse.ArgumentParser()
@@ -165,8 +165,16 @@ def main() -> None:
     )
 
     # these are not used actually (only here for documentation)
-    parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enables verbose logging output including debug messages",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enables debug messages from all loggers",
+    )
 
     argv = parser.parse_args()
     serve(
