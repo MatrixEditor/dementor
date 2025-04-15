@@ -301,6 +301,10 @@ class SMTPServerHandler:
                     "NTLM",
                     auth,
                 )
+            self.logger.display(
+                f"Performing downgrade attack for target {server.session.peer[0]}",
+                host=server.session.peer[0],
+            )
             await server.push(SMTP_AUTH_Fail_Response_Message)
             return None  # unsuccessful, but handled
 
@@ -343,9 +347,9 @@ class SMTPServerThread(threading.Thread):
                 f"Starting {label} server on {self.config.ipv4}:{smtp_config.smtp_port}"
             )
             controller.start()
-        except OSError:
+        except OSError as e:
             dm_logger.error(
-                f"Failed to start {label} server on {self.config.ipv4}:{smtp_config.smtp_port} -> Permission denied!",
+                f"Failed to start {label} server on {self.config.ipv4}:{smtp_config.smtp_port} -> {e.strerror}",
             )
 
     async def arun(self) -> None:

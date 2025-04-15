@@ -37,10 +37,10 @@ def apply_config(session: SessionConfig) -> None:
 
 def create_server_threads(session) -> list:
     servers = []
-    if session.netbiosns_enabled:
+    if session.nbtns_enabled:
         servers.append(ServerThread(session, NetBiosNSServer))
 
-    if session.netbiosds_enabled:
+    if session.nbtds_enabled:
         servers.append(ServerThread(session, NetBiosDatagramService))
 
     return servers

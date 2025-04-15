@@ -39,3 +39,18 @@
 .i-lucide.message-square-warning {
     --icon-url: var(--lucide-message-square-warning);
 }
+
+/* title */
+.title-gradient {
+    background: -webkit-linear-gradient(120deg,
+            #5252d1 24%,
+            cyan);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+.yue h1 {
+    font-size: 3em;
+}

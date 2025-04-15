@@ -68,3 +68,7 @@ Command-Line Options
 --debug
 
     Activates debug logging for all loggers listed in :attr:`Log.DebugLoggers`.
+
+-q, --quiet
+
+    Don't print huge banner at startup.

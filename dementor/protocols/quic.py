@@ -22,6 +22,7 @@
 #   - https://github.com/xpn/ntlmquic
 #   - https://github.com/ctjf/Responder/tree/master
 import asyncio
+import os
 
 from threading import Thread
 from typing import Optional
@@ -174,6 +175,20 @@ class QuicServerThread(Thread):
             alpn_protocols=["smb"],
             is_client=False,
         )
+
+        if not os.path.exists(self.config.quic_config.quic_cert_path):
+            dm_logger.error(
+                f"Failed to start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
+                "Certificate file does not exist!"
+            )
+            return
+
+        if not os.path.exists(self.config.quic_config.quic_cert_key):
+            dm_logger.error(
+                f"Failed to start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
+                "Certificate key file does not exist!"
+            )
+            return
 
         quic_config.load_cert_chain(
             self.config.quic_config.quic_cert_path,

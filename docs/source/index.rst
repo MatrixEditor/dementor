@@ -1,8 +1,12 @@
-:layout: landing
+:layout: compact
 
 
-Dementor
-========
+.. raw:: html
+
+   <img alt="_images/logo-new-big-transparent.png" class="align-left" src="_images/logo-new-big-transparent.png" style="width: 290px; height: 290px;">
+   <br>
+   <br>
+   <h1 class="title-gradient">Dementor</h1>
 
 .. rst-class:: lead
 
@@ -13,6 +17,7 @@ Dementor
 
     `Docs </intro.html>`_
     `GitHub <https://github.com/MatrixEditor/Dementor>`_
+
 
 
 .. grid:: 1 1 2 3
@@ -59,6 +64,10 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
 
    Dementor -I eth0
 
+
+.. container:: demo
+
+   .. image:: _static/images/index-video.gif
 
 .. toctree::
    :hidden:

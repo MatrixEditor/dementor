@@ -21,12 +21,20 @@ import asyncio
 import tomllib
 import json
 import typer
+import pathlib
 
 from typing import List
 from typing_extensions import Annotated
 
+from impacket.version import version as ImpacketVersion
+from aiosmtpd import __version__ as AiosmtpdVersion
+from aioquic import __version__ as AioquicVersion
+from scapy import VERSION as ScapyVersion
 from scapy.arch import get_if_addr, in6_getifaddr
+
 from rich import print
+from rich.console import Console
+from rich.columns import Columns
 
 from dementor.config import SessionConfig, TomlConfig
 from dementor import logger, database, config
@@ -44,7 +52,7 @@ def serve(
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
     éxtra_options: dict | None = None,
-) -> None:
+) -> tuple | None:
     if config_path:
         try:
             config.init_from_file(config_path)
@@ -98,7 +106,10 @@ def serve(
     # Load protocols
     loader = ProtocolLoader()
     protocols = {}
-    for name, path in loader.get_protocols(session).items():
+    if not session.protocols:
+        session.protocols = loader.get_protocols(session)
+
+    for name, path in session.protocols.items():
         protocol = loader.load_protocol(path)
         protocols[name] = protocol
         loader.apply_config(protocol, session)
@@ -130,6 +141,8 @@ def serve(
             pass
         finally:
             stop_session(session, threads)
+
+    return (session, threads)
 
 
 def stop_session(session: SessionConfig, threads=None) -> None:
@@ -188,6 +201,87 @@ def parse_options(options: List[str]) -> dict:
 
 
 # --- main
+def main_print_banner(quiet_mode: bool) -> None:
+    banner_file = pathlib.Path(BANNER_PATH)
+
+    if not quiet_mode and not banner_file.exists():
+        # fall back to small banner
+        quiet_mode = True
+
+    if quiet_mode:
+        # only print out scapy and impacket versions
+        print(
+            f"[bold]Dementor[/bold] - [white]Running with Scapy v{ScapyVersion} "
+            f"and Impacket v{ImpacketVersion}[/white]\n",
+        )
+        return
+
+    text = banner_file.read_text().format(
+        scapy_version=ScapyVersion,
+        impacket_version=ImpacketVersion,
+        aiosmtpd_version=AiosmtpdVersion,
+        aioquic_version=AioquicVersion,
+    )
+    print(text)
+
+
+def main_format_config(name: str, value: str) -> str:
+    line = f"{name} [white]".ljust(35, ".")
+    return f"{line}[/white] {value}"
+
+
+def main_print_options(session: SessionConfig, interface):
+    console = Console()
+    console.rule(style="white", title="Dementor Configuration")
+    analyze_only = r"[bold grey]\[Analyze Only][/bold grey]"
+    on = r"[bold green]\[ON][/bold green]"
+    off = r"[bold red]\[OFF][/bold red]"
+
+    poisoners_lines = ["[bold]Poisoners:[/bold]"]
+    for name in ("LLMNR", "mDNS", "NBTNS"):
+        attr_name = f"{name.lower()}_enabled"
+        status = on if getattr(session, attr_name, False) else off
+        if session.analysis:
+            status = analyze_only
+
+        poisoners_lines.append(main_format_config(name, status))
+
+    poisoners_lines.append("\n[bold]Config:[/bold]")
+    mode = (
+        r"[bold red]\[Attack][/bold red]"
+        if not session.analysis
+        else r"[bold blue]\[Analysis][/bold blue]"
+    )
+    poisoners_lines.append(main_format_config("Mode", mode))
+    poisoners_lines.append(main_format_config("Interface", interface))
+
+    protocols_lines = ["[bold]Servers:[/bold]"]
+    additional_protocols = ["KDC", "NBTDS"]
+    for name in (list(session.protocols) or []) + additional_protocols:
+        attr_name = f"{name.lower()}_enabled"
+        value = getattr(session, attr_name, None)
+        if value is None:
+            continue
+
+        status = on if value else off
+        line = f"{name.upper()} [white]".ljust(48, ".")
+        protocols_lines.append(f"{line}[/white] {status}")
+
+    columns = Columns(
+        [
+            "\n".join(protocols_lines),
+            "\n".join(poisoners_lines),
+        ],
+        expand=True,
+        align="left",
+    )
+    console.print()
+    console.print(columns)
+    console.print()
+    console.rule(style="white", title="Log")
+    console.print()
+
+
 def main(
     interface: Annotated[
         str,
@@ -207,7 +301,7 @@ def main(
             help="Only analyze traffic, don't respond to requests",
         ),
     ] = False,
-    config: Annotated[
+    config_path: Annotated[
         str,
         typer.Option(
             "--config",
@@ -231,39 +325,42 @@ def main(
     debug: Annotated[bool, _SkippedOption] = False,
     quiet: Annotated[
         bool,
-        typer.Option("--quiet", "-q", help="Don't print banner at startup", show_default=False),
+        typer.Option(
+            "--quiet", "-q", help="Don't print banner at startup", show_default=False
+        ),
     ] = False,
 ) -> None:
-    from impacket.version import version as ImpacketVersion
-    from scapy import VERSION as ScapyVersion
-
-    if not quiet:
-        from aiosmtpd import __version__ as AiosmtpdVersion
-        from aioquic import __version__ as AioquicVersion
-
-        with open(BANNER_PATH, "r") as fp:
-            print(
-                fp.read().format(
-                    scapy_version=ScapyVersion,
-                    impacket_version=ImpacketVersion,
-                    aiosmtpd_version=AiosmtpdVersion,
-                    aioquic_version=AioquicVersion,
-                )
-            )
-    else:
-        print(
-            f"[bold]Dementor[/bold] - [white]Running with Scapy v{ScapyVersion} "
-            f"and Impacket v{ImpacketVersion}[/white]\n",
-        )
+    main_print_banner(quiet)
 
     # prepare options
     extras = parse_options(options or [])
-    serve(
-        interface=interface,
-        analyze_only=analyze,
-        config_path=config,
-        éxtra_options=extras,
-    )
+    if config_path:
+        try:
+            config.init_from_file(config_path)
+        except tomllib.TOMLDecodeError as e:
+            dm_logger.error(f"Failed to load configuration file: {e}")
+            return
+
+    session = SessionConfig()
+    session.analysis = analyze
+    logger.init()
+
+    if extras:
+        for section, options in extras.items():
+            if section not in config.dm_config:
+                config.dm_config[section] = {}
+
+            for key, value in options.items():
+                config.dm_config[section][key] = value
+
+    loader = ProtocolLoader()
+    session.protocols = loader.get_protocols(session)
+
+    if not quiet:
+        main_print_options(session, interface)
+
+    logger.ProtocolLogger.init_logfile(session)
+    serve(interface=interface, session=session)
 
 
 def run_from_cli() -> None:

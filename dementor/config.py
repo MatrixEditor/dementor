@@ -141,14 +141,15 @@ class SessionConfig(TomlConfig):
     _section_ = "Dementor"
     _fields_ = [
         Attribute("llmnr_enabled", "LLMNR", True, factory=is_true),
-        Attribute("netbiosns_enabled", "NBTNS", True, factory=is_true),
-        Attribute("netbiosds_enabled", "NBTDS", True, factory=is_true),
+        Attribute("nbtns_enabled", "NBTNS", True, factory=is_true),
+        Attribute("nbtds_enabled", "NBTDS", True, factory=is_true),
         Attribute("smtp_enabled", "SMTP", True, factory=is_true),
         Attribute("smb_enabled", "SMB", True, factory=is_true),
         Attribute("ftp_enabled", "FTP", True, factory=is_true),
         Attribute("kdc_enabled", "KDC", True, factory=is_true),
         Attribute("ldap_enabled", "LDAP", True, factory=is_true),
         Attribute("quic_enabled", "QUIC", True, factory=is_true),
+        Attribute("mdns_enabled", "QUIC", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]
@@ -171,6 +172,7 @@ class SessionConfig(TomlConfig):
         self.interface = None
         self.analysis = False
         self.loop = asyncio.get_event_loop()
+        self.protocols = {}
 
         # SMTP configuration
         self.smtp_servers = []

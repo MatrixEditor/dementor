@@ -20,6 +20,7 @@
 import threading
 import os
 import sqlite3
+import pathlib
 
 from datetime import datetime
 from typing import Any, Tuple
@@ -50,11 +51,14 @@ def init_dementor_db(session) -> str:
         workspace_path = session.db_config.db_dir
 
     name = session.db_config.db_name
-    db_path = os.path.join(workspace_path, name)
+    db_path = pathlib.Path(workspace_path) / name
 
-    if not os.path.exists(db_path):
+    if not db_path.exists():
         dm_logger.info("Initializing Dementor database")
         # TODO: check for parent dirs
+        if not db_path.parent.exists():
+            dm_logger.info(f"Creating directory {db_path.parent}")
+            db_path.parent.mkdir(parents=True, exist_ok=True)
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
