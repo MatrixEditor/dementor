@@ -1,8 +1,8 @@
 
 .. _config_idx:
 
-Configuration ⚙️
-================
+Configuration
+=============
 
 Configuration can be tedious—but it's also one of the most important aspects, and
 good documentation makes all the difference. The sections listed below provide

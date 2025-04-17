@@ -35,7 +35,7 @@ Section ``[Dementor]``
     *Maps to* :attr:`config.SessionConfig.extra_modules`
 
     A list of directories containing custom protocol modules. For instructions on
-    including additional protocols, see :ref:`howto_custom_protocol_`. The loading
+    including additional protocols, see :ref:`howto_custom_protocol`. The loading
     mechanism and its priorities are described in :class:`~dementor.loader.ProtocolLoader`.
 
 The following options control servers that perform poisoning in the local network:

@@ -88,12 +88,3 @@ class ProtocolLoader:
 
         return []
 
-    def gen_cli_args(
-        self,
-        protocol: types.ModuleType,
-        parent: argparse.ArgumentParser,
-    ) -> argparse.ArgumentParser | None:
-        if hasattr(protocol, "gen_cli_args"):
-            return protocol.gen_cli_args(parent=parent)
-
-        return None

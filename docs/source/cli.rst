@@ -1,7 +1,7 @@
 .. _cli:
 
-CLI ⚙️
-======
+CLI
+===
 
 *Dementor* provides a relatively simple CLI interface that encapsulates all
 implemented protocols. Because multicast poisoning requires specific return

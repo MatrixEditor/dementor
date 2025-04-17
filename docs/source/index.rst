@@ -3,7 +3,7 @@
 
 .. raw:: html
 
-   <img alt="_images/logo-new-big-transparent.png" class="align-left" src="_images/logo-new-big-transparent.png" style="width: 290px; height: 290px;">
+   <img alt="_images/logo-new-big-transparent.png" class="align-left" src="_static/logo-new-big-transparent.png" style="width: 290px; height: 290px;">
    <br>
    <br>
    <h1 class="title-gradient">Dementor</h1>
@@ -28,7 +28,7 @@
    .. grid-item-card:: :octicon:`star` Attack Examples
       :link: intro.html
 
-      Examples of attacks that can be performed using this tool.
+      Example attacks that can be carried out using *Dementor*.
 
    .. grid-item-card:: :octicon:`zap` Feature-rich Toolbox
       :link: /config/protocols.html
@@ -60,11 +60,6 @@ A simple Example
 
 It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**:
 
-.. code-block:: bash
-
-   Dementor -I eth0
-
-
 .. container:: demo
 
    .. image:: _static/images/index-video.gif
@@ -81,6 +76,7 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
 
    config/index
    cli
+   proto
 
 
 .. toctree::

@@ -2,3 +2,4 @@ sphinx
 shibuya
 sphinx-copybutton
 sphinx-design
+sphinx-tabs

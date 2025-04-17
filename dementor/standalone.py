@@ -226,10 +226,11 @@ def main_print_banner(quiet_mode: bool) -> None:
 
 
 def main_format_config(name: str, value: str) -> str:
-    line = f"{name} [white]".ljust(35, ".")
+    line = f"{name} [white]".ljust(45, ".")
     return f"{line}[/white] {value}"
 
 
+# TODO: refactor this
 def main_print_options(session: SessionConfig, interface):
     console = Console()
     console.rule(style="white", title="Dementor Configuration")
@@ -237,7 +238,7 @@ def main_print_options(session: SessionConfig, interface):
     on = r"[bold green]\[ON][/bold green]"
     off = r"[bold red]\[OFF][/bold red]"
 
-    poisoners_lines = ["[bold]Poisoners:[/bold]"]
+    poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
     for name in ("LLMNR", "mDNS", "NBTNS"):
         attr_name = f"{name.lower()}_enabled"
         status = on if getattr(session, attr_name, False) else off
@@ -255,7 +256,7 @@ def main_print_options(session: SessionConfig, interface):
     poisoners_lines.append(main_format_config("Mode", mode))
     poisoners_lines.append(main_format_config("Interface", interface))
 
-    protocols_lines = ["[bold]Servers:[/bold]"]
+    protocols_lines = ["", "[bold]Servers:[/bold]"]
     additional_protocols = ["KDC", "NBTDS"]
     for name in (list(session.protocols) or []) + additional_protocols:
         attr_name = f"{name.lower()}_enabled"
@@ -263,9 +264,7 @@ def main_print_options(session: SessionConfig, interface):
         if value is None:
             continue
 
-        status = on if value else off
-        line = f"{name.upper()} [white]".ljust(48, ".")
-        protocols_lines.append(f"{line}[/white] {status}")
+        protocols_lines.append(main_format_config(name.upper(), on if value else off))
 
     columns = Columns(
         [
@@ -275,7 +274,6 @@ def main_print_options(session: SessionConfig, interface):
         expand=True,
         align="left",
     )
-    console.print()
     console.print(columns)
     console.print()
     console.rule(style="white", title="Log")
