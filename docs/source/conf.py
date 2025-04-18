@@ -39,26 +39,23 @@ html_show_sourcelink = False
 
 html_favicon = "_static/favicon.ico"
 html_css_files = [
-    'theme.css',
+    "theme.css",
 ]
 
 html_theme_options = {
     "accent_color": "cyan",
     "github_url": "https://github.com/MatrixEditor/Dementor",
     "color_mode": "dark",
-
     # Logo configuration
     "light_logo": "_static/logo-new-big-transparent.png",
     "dark_logo": "_static/logo-new-circle.ico",
     "logo_target": "/",
-
     "globaltoc_expand_depth": 1,
-
     # navbar
     "nav_links": [
         {
             "title": "Examples",
-            "url": "examples/index",
+            "url": "examples/multicast",
             "children": [
                 {
                     "title": "Multicast Poisoing",
@@ -69,7 +66,12 @@ html_theme_options = {
                     "title": "Rogue KDC",
                     "url": "examples/kdc",
                     "summary": "Rogue Kerberos KDC for ASREQroasting",
-                }
+                },
+                {
+                    "title": "SMTP Downgrade Attack",
+                    "url": "examples/smtp_downgrade",
+                    "summary": "Downgrade NTLM auth to LOGIN or PLAIN",
+                },
             ],
         },
         {
@@ -101,6 +103,6 @@ html_theme_options = {
         {
             "title": "Compatibility",
             "url": "compat",
-        }
-    ]
+        },
+    ],
 }

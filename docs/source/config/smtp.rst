@@ -70,7 +70,7 @@ Section: ``[SMTP]``
         *Linked to* :attr:`smtp.SMTPServerConfig.smtp_downgrade`. *Can also be set in* ``[SMTP]``
 
         Attempts to downgrade authentication from NTLM to weaker methods like LOGIN. This is only effective
-        if the client is configured to permit plaintext authentication. See example_smtp_downgrade_attack_ for practical usage.
+        if the client is configured to permit plaintext authentication. See :ref:`example_smtp_downgrade` for practical usage.
 
     .. py:attribute:: Server.TLS
         :type: bool
