@@ -1,0 +1,36 @@
+[project]
+name = "dementor"
+version = "1.0.0.dev0"
+license = { file = "LICENSE" }
+
+description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
+authors = [{ name = "MatrixEditor" }]
+maintainers = [{ name = "MatrixEditor" }]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Security",
+    "Topic :: System :: Networking",
+    "Typing :: Typed",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+]
+
+[project.scripts]
+Dementor = "dementor.standalone:run_from_cli"
+
+[project.urls]
+homepage = "https://matrixeditor.github.io/dementor"
+documentation = "https://matrixeditor.github.io/dementor"
+source = "https://github.com/MatrixEditor/dementor"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dementor*"]

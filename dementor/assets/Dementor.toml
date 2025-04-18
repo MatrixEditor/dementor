@@ -1,0 +1,392 @@
+# Dementor Configuration File 1.0
+
+# This file describes the settings to be used by the CLI application Dementor.
+# For more details on all configuration values, refer to the official
+# documentation:
+# - https://matrixeditor.github.io/dementor/config/protocols.html
+#
+# The configuration heavily relies on features provided by TOML:
+# - https://toml.io/en/
+#
+# Value Resolution:
+# -----------------
+# All values are resolved in the following order:
+#   1. Most local section (e.g. [[SMB.Server]] or [QUIC])
+#   2. Local (protocol) section (e.g. [SMB] or [Log])
+#   3. Global section ([Globals]) — used only in specific cases.
+#      Refer to the online documentation for a complete list.
+#
+# Note: Some settings can only be used in the most local section (e.g. "Port").
+# These are also described in the docs.
+#
+# Server Configuration:
+# ---------------------
+# For brevity, servers are configured via array tables. This means each server
+# configuration for a protocol can be placed under an extra section named
+# [[PROTOCOL.Server]].
+
+
+# =============================================================================
+# Main Configuration
+# =============================================================================
+[Dementor]
+
+# Workspace directory for storing logs, temporary files, and the database.
+# Uncomment to use the current directory as the workspace.
+# The default value is: "~/.dementor"
+
+# Workspace = "."
+
+# Dementor uses a modular system that can include custom protocol implementations
+# at runtime. This option should contain paths to directories with additional
+# Python module files (.py). Invalid or non-existent directories are silently
+# ignored.
+# The default value is: []
+
+# ExtraModules = [ "/path/to/modules" ]
+
+# Enables mDNS multicast poisoning. Does not require superuser privileges.
+# The default value is: true
+
+mDNS = true
+
+# Enables LLNMR multicast poisoning. Does not require superuser privileges.
+# The default value is: true
+
+LLMNR = true
+
+# Enables NBT-NS multicast poisoning. Does not require superuser privileges.
+# The default value is: true
+
+NBTNS = true
+
+# Enables the SMTP service. Uses privileged ports and requires root privileges.
+# The default value is: true
+
+SMTP = true
+
+# Enables the NetBIOS Datagram Service (NBT-DS). Does not capture hashes, but
+# may help enumerate local hosts.
+# The default value is: true
+
+NBTDS = true
+
+# Enables the SMB server. Runs on privileged ports and requires root privileges.
+# Note: Only supports clients with at least SMBv1 support.
+# The default value is: true
+
+SMB = true
+
+# Enables an unencrypted FTP server. Runs on a privileged port and requires root
+# privileges.
+# The default value is: true
+
+FTP = true
+
+# Enables a rogue Key Distribution Center (KDC). Starts both UDP and TCP servers
+# on port 88.
+# The default value is: true
+
+KDC = true
+
+# Enables LDAP servers. Runs on a privileged port and requires root privileges.
+# The default value is: true
+
+LDAP = true
+
+# Enables the QUIC server on port 443. Runs on a privileged port and requires root
+# privileges.
+# The default value is: true
+
+QUIC = true
+
+
+# =============================================================================
+# Globals
+# =============================================================================
+# All variables defined here act as fallback defaults and can be overridden
+# in more specific sections. This section has the lowest priority and will only
+# be used if the local (protocol-specific) section does not define the value.
+[Globals]
+
+# Describes a list of hosts to *include* for poisoning (whitelist approach).
+# Supported filter formats:
+#
+#   - Simple string:
+#       "127.0.0.1"
+#
+#   - Glob pattern string:
+#       "g:*._tcp.*" (Unix-style wildcards)
+#
+#   - Regex pattern string:
+#       "re:.*foobar.*"
+#
+#   - Dictionary with explicit filter configuration:
+#       Example 1: { Target = "hostname" }
+#       Example 2: { File = "filters.txt" }         # Load filters from file
+#       Example 3: { Target = "host", foo = 1 }      # With custom extras
+#
+#   These extra fields (e.g., `foo`, `bar`) will be passed to the final
+#   FilterObj instance and may be used for protocol-specific handling.
+
+# AnswerTo = []
+
+# Describes a list of hosts to *exclude* from poisoning (blacklist approach).
+# Uses the same filter structure as `AnswerTo`.
+
+# Ignore = []
+
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+[DB]
+
+# If true, allows duplicate credentials to be stored. If false, only unique
+# credentials will be stored and printed once.
+# The default value is: true
+
+DuplicateCreds = true
+
+# Custom database filename (overrides default "Dementor.db"). Do not put any
+# path information here.
+
+# Name = "database.db"
+
+# Custom path where the database file will be stored. If set, it overrides the
+# workspace directory.
+
+# Directory = "/path/to/directory/"
+
+
+# =============================================================================
+# mDNS
+# =============================================================================
+[mDNS]
+
+# Default Time-To-Live (TTL) in seconds for poisoned responses. This value will
+# be applied unless explicitly overridden per target (proposed).
+
+TTL = 120
+
+# Maximum number of domain name labels to process in incoming queries. Queries
+# with more labels than this value will be ignored.
+
+MaxLabels = 1
+
+# List of DNS query types that will receive responses. Supported types include: A,
+# AAAA, ALL, CNAME, PTR, etc.
+
+AllowedQueryTypes = [ "A", "AAAA", "ALL" ]
+
+
+# =============================================================================
+# LLMNR
+# =============================================================================
+[LLMNR]
+
+# Specifies the name to return when responding to LLMNR queries.This can be useful
+# for Kerberos relay attacks. Refer to the documentation for more details.
+
+# AnswerName = "other-srv"
+
+# =============================================================================
+# SMB (Server Message Block) Configuration
+# =============================================================================
+[SMB]
+
+# The name that will be used to identify the SMB server when responding to client
+# queries.
+
+ServerName = "SPOOFED"
+
+# The operating system reported by the SMB server. This helps identify the type
+# of server responding.
+
+# ServerOS = "UNIX"
+
+# The domain that the SMB server is identified as. In many cases, this is "WORKGROUP"
+# for local setups.
+
+ServerDomain = "WORKGROUP"
+
+# Enables SMB2 protocol support.
+
+SMB2Support = true
+
+# Error code to return when access is denied. You can specify NT_STATUS values or
+# string equivalents (e.g., "STATUS_ACCESS_DENIED").
+
+ErrorCode = "STATUS_SMB_BAD_UID"
+
+# You can define multiple SMB server instances to listen on different ports or use
+# different configurations.
+[[SMB.Server]]
+Port = 139
+
+[[SMB.Server]]
+Port = 445
+# e.g.
+# ExtendedSessionSecurity = false
+
+# =============================================================================
+# SMTP (Simple Mail Transfer Protocol)
+# =============================================================================
+[SMTP]
+
+# List of supported authentication mechanisms for SMTP clients.
+
+AuthMechanisms = [ "NTLM", "PLAIN", "LOGIN" ]
+
+# Fully Qualified Domain Name (FQDN) used by the SMTP server.
+# The first part of the FQDN is used as the hostname in responses.
+
+FQDN = "DEMENTOR"
+
+# SMTP server banner (identifier and version sent to clients).
+
+Ident = "Dementor 1.0"
+
+# Require authentication before allowing clients to send emails.
+
+RequireAUTH = false
+
+# Attempt to downgrade authentication from NTLM to weaker methods like LOGIN.
+# Only effective if the client is configured to use plaintext credentials.
+
+Downgrade = true
+
+# Require TLS encryption before processing any SMTP commands.
+
+RequireSTARTTLS = false
+
+# Example servers
+[[SMTP.Server]]
+Port = 25
+
+# [[SMTP.Server]]
+# Port = 465
+
+# [[SMTP.Server]]
+# Port = 587
+# Enable SSL with custom certificate here
+# TLS = true
+# Cert = "/path/to/cert"
+# Key = "/path/to/key"
+
+
+# =============================================================================
+# NTLM Configuration
+# =============================================================================
+[NTLM]
+
+# Server challenge value used in NTLM authentication.
+# Should be a fixed 8-byte string.
+
+Challenge = "1337LEET"
+
+# Enable Extended Session Security (ESS) for NTLM authentication.
+# ESS results in NTLMv1/v2-SSP hashes instead of regular NTLMv1/v2 hashes.
+
+ExtendedSessionSecurity = true
+
+# =============================================================================
+# FTP Server(s)
+# =============================================================================
+[[FTP.Server]]
+Port = 21
+
+# =============================================================================
+# Kerberos KDC
+# =============================================================================
+[Kerberos]
+
+# Port can't be changed, salt should not be set
+# Salt = "1337LEET1337LEET"
+
+# See Hashcat Issue #2783
+# - Kerberos 5, etype 18, Pre-Auth (19900) with salt fails
+#   You can use this setting but make sure no custom salt has been configured
+
+EncType = "aes256_cts_hmac_sha1_96"
+
+# default configuration
+# ErrorCode = "KDC_ERR_C_PRINCIPAL_UNKNOWN"
+
+# =============================================================================
+# LDAP
+# =============================================================================
+[LDAP]
+
+# A list of capabilities to support. You can also set this option in each server
+
+# Capabilities = []
+
+# A list of SASL mechanisms to return. Can be set in each server
+
+# SASLMechanisms = []
+
+# Global timeout configuration (can be changed in each server). Zero (0) indeicates
+# no timeout (default), all other values are set in seconds. Note that no timeout
+# will lead to problems when closing Dementor.
+
+Timeout = 2
+
+# Hostname + fully qualified domain name, whereby the domain name is optional
+# Full example: "HOSTNAME.domain.local"
+
+FQDN = "DEMENTOR"
+
+# Global TLS option, will enable TLS on all TCP servers
+
+TLS = false
+
+# TLS key and certificate (for all TCP servers)
+# Cert = "..."
+
+# Key = "/path/to/key"
+
+# The error code to return after successful authentication. It is recommended to return
+# an actual error code rather that success(0). By default, "unwillingToPerform" will be
+# returned.
+
+# ErrorCode = "unwillingToPerform"
+
+[[LDAP.Server]]
+Connectionless = false
+Port = 389
+
+[[LDAP.Server]]
+# means UDP
+Port = 389
+Connectionless = true
+
+# =============================================================================
+# QUIC
+# =============================================================================
+[QUIC]
+Port = 443
+Cert = "default.cert"
+Key = "default.key"
+
+# Control the target smb server to connect to.
+# TargetSMBPort = 445
+# TargetSMBHost =
+
+# =============================================================================
+# Logging
+# =============================================================================
+[Log]
+# Enable logging output to a file
+
+Enabled = false
+
+# Specify custom log directory under the current workspace
+
+# LogDir = "logs"
+
+# List of debug loggers to enable for troubleshooting. Those won't be visible in
+# file output and only affect the terminal output.
+
+DebugLoggers = [ "asyncio", "mail.log", "impacket.smbserver", "impacket", "quic" ]
+

@@ -1,6 +1,6 @@
 # Dementor
 
-IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner - you can think if it as Responder 2.0. Get more information
+IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner and rogue service provider - you can think if it as Responder 2.0. Get more information
 on the [Documentation](https://matrixeditor.github.io/dementor/) page.
 
 ### Offers
