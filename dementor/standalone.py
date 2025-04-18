@@ -36,8 +36,9 @@ from rich import print
 from rich.console import Console
 from rich.columns import Columns
 
-from dementor.config import SessionConfig, TomlConfig
+from dementor import __version__ as DementorVersion
 from dementor import logger, database, config
+from dementor.config import SessionConfig, TomlConfig
 from dementor.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH
@@ -217,6 +218,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         return
 
     text = banner_file.read_text().format(
+        dementor_version=DementorVersion,
         scapy_version=ScapyVersion,
         impacket_version=ImpacketVersion,
         aiosmtpd_version=AiosmtpdVersion,

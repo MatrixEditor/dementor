@@ -50,7 +50,7 @@ html_theme_options = {
     # Logo configuration
     "light_logo": "_static/logo-new-big-transparent.png",
     "dark_logo": "_static/logo-new-circle.ico",
-    "logo_target": "/",
+    "logo_target": "https://matrixeditor.github.io/dementor/",
     "globaltoc_expand_depth": 1,
     # navbar
     "nav_links": [
