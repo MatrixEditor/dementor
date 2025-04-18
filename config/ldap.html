@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LDAP ⚙️ - Dementor 0.1.0 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Logging" href="logging.html" /><link rel="prev" title="QUIC" href="quic.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="LDAP ⚙️"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="../examples/multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../examples/multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="../examples/kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="../examples/smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP Downgrade Attack</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="protocols.html">Protocols</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">LDAP &#9881;&#65039;</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#LDAP.Server"><code class="docutils literal notranslate"><span class="pre">Server</span></code></a><ul>
+<li><a class="reference internal" href="#LDAP.Server.Port"><code class="docutils literal notranslate">Port</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.Connectionless"><code class="docutils literal notranslate">Connectionless</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.Capabilities"><code class="docutils literal notranslate">Capabilities</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.SASLMechanisms"><code class="docutils literal notranslate">SASLMechanisms</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.Timeout"><code class="docutils literal notranslate">Timeout</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.ErrorCode"><code class="docutils literal notranslate">ErrorCode</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.TLS"><code class="docutils literal notranslate">TLS</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.Cert"><code class="docutils literal notranslate">Cert</span></code></a></li>
+<li><a class="reference internal" href="#LDAP.Server.Key"><code class="docutils literal notranslate">Key</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="protocols.html"><span itemprop="name">Protocols</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">LDAP ⚙️</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="ldap">
+<span id="config-ldap"></span><h1>LDAP ⚙️<a class="headerlink" href="#ldap" title="Link to this heading">¶</a></h1>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server">
+<span class="sig-prename descclassname"><span class="pre">LDAP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#LDAP.Server" title="Link to this definition">¶</a></dt>
+<dd><p><em>Each entry maps to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig</span></code></p>
+<p>Defines a list of LDAP server configuration sections. For details on configuring section lists,
+see the general configuration guide <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a> for TOML.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.Port">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#LDAP.Server.Port" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_port</span></code></p>
+<p>Specifies the port on which the LDAP server instance listens. <strong>This option is required and must be
+defined within each individual ``[[LDAP.Server]]`` section.</strong></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.Connectionless">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Connectionless</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#LDAP.Server.Connectionless" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_udp</span></code></p>
+<p>Configures the LDAP server to operate over UDP (CLDAP), rather than the default TCP transport.
+<strong>This option must be set within each individual server section and is not allowed in the global ``[LDAP]`` section.</strong></p>
+</dd></dl>
+
+<p>The attributes described below may also be specified in the global <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code> section, where they will serve
+as default values for all individual server entries — unless explicitly overridden.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.Capabilities">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Capabilities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#LDAP.Server.Capabilities" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_caps</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
+<p>Lists LDAP capabilities returned by the server when queried. Default values include:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;1.2.840.113556.1.4.800&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">LDAP_CAP_ACTIVE_DIRECTORY_OID</span></code>):</dt><dd><p>Indicates the LDAP server is running Active Directory Domain Services (AD DS). <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;1.2.840.113556.1.4.1791&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">LDAP_CAP_ACTIVE_DIRECTORY_LDAP_INTEG_OID</span></code>):</dt><dd><p>Specifies that the server supports LDAP signing and sealing with NTLM authentication,
+and can handle subsequent binds over secure channels. <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;1.2.840.113556.1.4.1670&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">LDAP_CAP_ACTIVE_DIRECTORY_V51_OID</span></code>):</dt><dd><p>Indicates the LDAP server is running at least the Windows Server 2003 version of AD DS. <a class="footnote-reference brackets" href="#id4" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.SASLMechanisms">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">SASLMechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#LDAP.Server.SASLMechanisms" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_mech</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
+<p>Defines the list of supported SASL authentication mechanisms. By default, the server supports:
+GSSAPI, GSS-SPNEGO, and simple binds.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.Timeout">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Timeout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#LDAP.Server.Timeout" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_timeout</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
+<p>Configures the LDAP operation timeout in seconds. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> disables the timeout (default),
+which may cause issues during tool shutdown. Any non-zero value sets the maximum allowed duration
+for operations.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.FQDN">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LDAP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_fqdn</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
+<p>Specifies the server’s hostname or fully qualified domain name (FQDN). The domain portion is optional.
+Example: <code class="docutils literal notranslate"><span class="pre">&quot;HOSTNAME.domain.local&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.ErrorCode">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#LDAP.Server.ErrorCode" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_error_code</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
+<p>Sets the LDAP error code to return upon successful authentication. It is recommended to return a valid error
+(rather than success). By default, the server returns <code class="docutils literal notranslate"><span class="pre">&quot;unwillingToPerform&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.TLS">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#LDAP.Server.TLS" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_tls</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
+<p>Enables SSL/TLS encryption using a custom certificate.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.Cert">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LDAP.Server.Cert" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_tls_cert</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Specifies the path to the certificate file used when TLS is enabled.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="LDAP.Server.Key">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LDAP.Server.Key" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_tls_key</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Specifies the path to the private key file associated with the TLS certificate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<section id="default-configuration">
+<h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">LDAP configuration section (default values)</span><a class="headerlink" href="#id5" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos"> 1</span><span class="k">[LDAP]</span>
+</span><span data-line="2"><span class="linenos"> 2</span><span class="n">Timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+</span><span data-line="3"><span class="linenos"> 3</span><span class="n">FQDN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEMENTOR&quot;</span>
+</span><span data-line="4"><span class="linenos"> 4</span><span class="n">TLS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span data-line="5"><span class="linenos"> 5</span><span class="n">ErrorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;unwillingToPerform&quot;</span>
+</span><span data-line="6"><span class="linenos"> 6</span>
+</span><span data-line="7"><span class="linenos"> 7</span><span class="k">[[LDAP.Server]]</span>
+</span><span data-line="8"><span class="linenos"> 8</span><span class="n">Connectionless</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span data-line="9"><span class="linenos"> 9</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">389</span>
+</span><span data-line="10"><span class="linenos">10</span>
+</span><span data-line="11"><span class="linenos">11</span><span class="k">[[LDAP.Server]]</span>
+</span><span data-line="12"><span class="linenos">12</span><span class="c1"># means UDP</span>
+</span><span data-line="13"><span class="linenos">13</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">389</span>
+</span><span data-line="14"><span class="linenos">14</span><span class="n">Connectionless</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></pre></div>
+</div>
+</div>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id4" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>,<a role="doc-backlink" href="#id3">3</a>)</span>
+<p>MS-ADTS LDAP Capabilities: <a class="reference external" href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3ed61e6c-cfdc-487d-9f02-5a3397be3772">[MS-ADTS]</a></p>
+</aside>
+</aside>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="quic.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">QUIC</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="logging.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Logging</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=2caa9db7"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>

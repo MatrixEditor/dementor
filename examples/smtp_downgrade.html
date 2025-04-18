@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMTP Downgrade Attack - Dementor 0.1.0 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Main" href="../config/main.html" /><link rel="prev" title="Rogue Kerberos KDC" href="kdc.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="SMTP Downgrade Attack"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="#">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="../config/index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../config/main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="../config/database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="../config/globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="../config/protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SMTP Downgrade Attack</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/globals.html">Globals</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/protocols.html">Protocols</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../config/mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/ldap.html">LDAP &#9881;&#65039;</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#tricking-smtpclient-into-revealing-cleartext-passwords">Tricking <code class="docutils literal notranslate"><span class="pre">SmtpClient</span></code> into Revealing Cleartext Passwords</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">SMTP Downgrade Attack</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="smtp-downgrade-attack">
+<span id="example-smtp-downgrade"></span><h1>SMTP Downgrade Attack<a class="headerlink" href="#smtp-downgrade-attack" title="Link to this heading">¶</a></h1>
+<p>The SMTP server in <em>Dementor</em> supports a mechanism to attempt a <em>“downgrade”</em> of an authentication attempt
+initiated by a target host. This behavior is controlled by the <a class="reference internal" href="../config/smtp.html#SMTP.Server.Downgrade" title="SMTP.Server.Downgrade"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Downgrade</span></code></a> setting.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This attack specifically targets the <a class="reference external" href="https://learn.microsoft.com/en-us/dotnet/api/system.net.mail.smtpclient?view=net-9.0">SmtpClient</a>
+component of the .NET Core platform. Although <a class="reference external" href="https://github.com/dotnet/platform-compat/blob/master/docs/DE0005.md">DE0005</a> marks this component
+as deprecated and advises against its use, this example demonstrates how <em>Dementor</em> can be configured to simulate various attack scenarios.</p>
+</div>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
+<p>First, let’s understand how a simple email can be sent using PowerShell on Windows. Some tutorials recommend the standard <code class="docutils literal notranslate"><span class="pre">SmtpClient</span></code>,
+which, while deprecated, is still functional in many environments. Here’s a typical example:</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">$EmailTo</span> <span class="p">=</span> <span class="s2">&quot;darth.vader@contoso.local&quot;</span>
+</span><span data-line="2"><span class="nv">$EmailFrom</span> <span class="p">=</span> <span class="s2">&quot;luke@contoso.local&quot;</span>
+</span><span data-line="3"><span class="nv">$Subject</span> <span class="p">=</span> <span class="s2">&quot;Revelation&quot;</span>
+</span><span data-line="4"><span class="nv">$Body</span> <span class="p">=</span> <span class="s2">&quot;I am your father&quot;</span>
+</span><span data-line="5"><span class="nv">$Server</span> <span class="p">=</span> <span class="s2">&quot;MAILSRV&quot;</span>
+</span><span data-line="6"><span class="nv">$ServerPort</span> <span class="p">=</span> <span class="n">22</span>
+</span><span data-line="7"><span class="nv">$Username</span> <span class="p">=</span> <span class="s2">&quot;darth.vader&quot;</span>
+</span><span data-line="8"><span class="nv">$Password</span> <span class="p">=</span> <span class="s2">&quot;Anakin123!&quot;</span>
+</span><span data-line="9"><span class="nv">$Message</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">Mail</span><span class="p">.</span><span class="n">MailMessage</span><span class="p">(</span><span class="nv">$EmailFrom</span><span class="p">,</span> <span class="nv">$EmailTo</span><span class="p">,</span> <span class="nv">$Subject</span><span class="p">,</span> <span class="nv">$Body</span><span class="p">)</span>
+</span><span data-line="10"><span class="nv">$Client</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">Mail</span><span class="p">.</span><span class="n">SmtpClient</span><span class="p">(</span><span class="nv">$Server</span><span class="p">,</span> <span class="nv">$ServerPort</span><span class="p">)</span>
+</span><span data-line="11"><span class="nv">$Client</span><span class="p">.</span><span class="n">UseDefaultCredentials</span> <span class="p">=</span> <span class="nv">$false</span>
+</span><span data-line="12"><span class="nv">$Client</span><span class="p">.</span><span class="n">Credentials</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">NetworkCredential</span><span class="p">(</span><span class="nv">$Username</span><span class="p">,</span> <span class="nv">$Password</span><span class="p">)</span>
+</span><span data-line="13"><span class="nv">$Client</span><span class="p">.</span><span class="n">Send</span><span class="p">(</span><span class="nv">$Message</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>By default, the client won’t require secure connections unless <code class="docutils literal notranslate"><span class="pre">EnableSsl</span></code> is explicitly set.
+If NTLM authentication is available, it will be used <strong>but the client may fall back to weaker mechanisms</strong> such as
+<code class="docutils literal notranslate"><span class="pre">PLAIN</span></code> or <code class="docutils literal notranslate"><span class="pre">LOGIN</span></code> if the server offers them or NTLM authentication wasn’t successful.</p>
+</section>
+<section id="tricking-smtpclient-into-revealing-cleartext-passwords">
+<h2>Tricking <code class="docutils literal notranslate"><span class="pre">SmtpClient</span></code> into Revealing Cleartext Passwords<a class="headerlink" href="#tricking-smtpclient-into-revealing-cleartext-passwords" title="Link to this heading">¶</a></h2>
+<p>You can exploit this fallback behavior by configuring <em>Dementor</em>’s SMTP server to either accept only plain-text authentication
+or simulate a failure after NTLM auth to force the client to downgrade.</p>
+<ol class="arabic">
+<li><p><strong>Accept only plain authentication (not recommended):</strong></p>
+<p>Modify the <a class="reference internal" href="../config/smtp.html#SMTP.Server.AuthMechanisms" title="SMTP.Server.AuthMechanisms"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.AuthMechanisms</span></code></a> setting to exclude <code class="docutils literal notranslate"><span class="pre">NTLM</span></code>:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[SMTP.Server]</span>
+</span><span data-line="2"><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">22</span>
+</span><span data-line="3"><span class="n">AuthMechanisms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;PLAIN&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;LOGIN&quot;</span><span class="w"> </span><span class="p">]</span>
+</span></pre></div>
+</div>
+<p>Sample output from <em>Dementor</em> after capturing cleartext credentials:</p>
+<div class="demo docutils container">
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="go">SMTP       192.168.56.115            25     [+] Captured Cleartext Password for darth.vader from 192.168.56.115:</span>
+</span><span data-line="2"><span class="go">SMTP       192.168.56.115            25     Cleartext Username: darth.vader</span>
+</span><span data-line="3"><span class="go">SMTP       192.168.56.115            25     Cleartext Password: Anakin123!</span>
+</span></pre></div>
+</div>
+</div>
+</li>
+<li><p><strong>Downgrade after failed NTLM authentication:</strong></p>
+<p>In environments where clients try NTLM first, you can simulate a failed NTLM attempt and force the client to
+retry using plain-text credentials.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This only works if the client has the cleartext password available locally. If the credentials are
+provided as NTLM hashes or tokens, the downgrade will fail.</p>
+</div>
+<p><em>Dementor</em> sends the following response to trigger the fallback:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="mi">535</span> <span class="mf">5.7.3</span> <span class="n">Authentication</span> <span class="n">unsuccessful</span>
+</span></pre></div>
+</div>
+<p>The default Windows SMTP client will retry using cleartext credentials — if they are present.</p>
+<figure class="align-center" id="id1">
+<img alt="Wireshark trace showing SMTP fallback to cleartext auth" src="../_images/smtp-downgrade_wireshark.png" />
+<figcaption>
+<p><span class="caption-text">The client reattempts authentication with cleartext credentials after an NTLM failure.</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</li>
+</ol>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="kdc.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Rogue Kerberos  KDC</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="../config/main.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Main</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=2caa9db7"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>

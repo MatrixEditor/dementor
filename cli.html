@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CLI - Dementor 0.1.0 documentation</title><link rel="shortcut icon" href="_static/favicon.ico"/><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Custom Protocols ⚙️" href="proto.html" /><link rel="prev" title="Configuration" href="config/index.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="CLI"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="/">
+      <img class="light-logo" src="_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="examples/multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="examples/multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="examples/kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="examples/smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="config/index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="config/main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="config/database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="config/globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="config/protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="config/index.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="examples/kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="examples/smtp_downgrade.html">SMTP Downgrade Attack</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="config/main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="config/database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="config/globals.html">Globals</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="config/protocols.html">Protocols</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config/mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/ldap.html">LDAP &#9881;&#65039;</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="config/logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#command-line-options">Command-Line Options</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">CLI</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="cli">
+<span id="id1"></span><h1>CLI<a class="headerlink" href="#cli" title="Link to this heading">¶</a></h1>
+<p><em>Dementor</em> provides a relatively simple CLI interface that encapsulates all
+implemented protocols. Because multicast poisoning requires specific return
+addresses, specifying a network interface is always mandatory.</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text"><em>Dementor</em> does not require root privileges unless protocol servers need to bind to privileged ports</span><a class="headerlink" href="#id2" title="Link to this code">¶</a></div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span>&lt;INTERFACE_NAME&gt;
+</span></pre></div>
+</div>
+</div>
+<section id="command-line-options">
+<h2>Command-Line Options<a class="headerlink" href="#command-line-options" title="Link to this heading">¶</a></h2>
+<dl class="option-list">
+<dt><kbd><span class="option">-I</span>, <span class="option">--interface <var>NAME</var></span></kbd></dt>
+<dd><p>Specifies the network interface to use. Internally, both IPv4 and IPv6 addresses
+associated with the interface will be queried and used throughout the session.</p>
+</dd>
+<dt><kbd><span class="option">-A</span>, <span class="option">--analyze</span></kbd></dt>
+<dd><p>Starts <em>Dementor</em> in <em>analyze mode</em>, where no responses will be sent. Services
+will still listen passively and can be used to capture credentials.</p>
+</dd>
+<dt><kbd><span class="option">-c</span>, <span class="option">--config <var>PATH</var></span></kbd></dt>
+<dd><p>Path to a custom configuration file. If not provided, the default configuration
+will be used from the package installation path (typically <code class="docutils literal notranslate"><span class="pre">assets/Dementor.toml</span></code>).</p>
+</dd>
+<dt><kbd><span class="option">-O</span>, <span class="option">--option <var>OPTION</var></span></kbd></dt>
+<dd><p>Additional option to add on top of the configuration file. This action will overwrite
+any existing setting.The structure of this override follows the format:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">[Section.]KEY=VALUE
+</span></pre></div>
+</div>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">KEY</span></code>:</dt><dd><p>May refer to a top-level configuration key in the <code class="docutils literal notranslate"><span class="pre">[Dementor]</span></code> configuration section (e.g., <code class="docutils literal notranslate"><span class="pre">mDNS</span></code>), or include a section (e.g., <code class="docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code>).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">VALUE</span></code>:</dt><dd><p>Will be automatically parsed into the appropriate type based on the following rules:</p>
+<ul>
+<li><p><strong>Boolean</strong>: <code class="docutils literal notranslate"><span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">yes</span></code>, <code class="docutils literal notranslate"><span class="pre">true</span></code> → <cite>True</cite>; <code class="docutils literal notranslate"><span class="pre">off</span></code>, <code class="docutils literal notranslate"><span class="pre">no</span></code>, <code class="docutils literal notranslate"><span class="pre">false</span></code> → <cite>False</cite></p></li>
+<li><p><strong>Lists</strong>: Values enclosed in brackets (e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;foo&quot;,</span> <span class="pre">&quot;bar&quot;]</span></code>) will be parsed as JSON strings.</p></li>
+<li><p><strong>Numbers</strong>: Numeric values will be automatically converted to integers or floats where applicable.</p></li>
+<li><p><strong>Strings</strong>: All other values will be treated as plain strings.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-OLLMNR.AnswerName=pki-srv</span></code> → Maps to <a class="reference internal" href="config/llmnr.html#LLMNR.AnswerName" title="LLMNR.AnswerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code></a>, value parsed as string.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--option</span> <span class="pre">mDNS.TTL=340</span></code> → Maps to <a class="reference internal" href="config/mdns.html#mDNS.TTL" title="mDNS.TTL"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.TTL</span></code></a>, value parsed as integer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--option</span> <span class="pre">SMB.SMB2Support=off</span></code> → Maps to <a class="reference internal" href="config/smb.html#SMB.Server.SMB2Support" title="SMB.Server.SMB2Support"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.SMB2Support</span></code></a>, value parsed as boolean.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--option</span> <span class="pre">Log.DebugLoggers='[&quot;asyncio&quot;,</span> <span class="pre">&quot;quic&quot;]'</span></code> → Maps to <a class="reference internal" href="config/logging.html#Log.DebugLoggers" title="Log.DebugLoggers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Log.DebugLoggers</span></code></a>, value parsed as list.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Overrides made via the <code class="docutils literal notranslate"><span class="pre">--option</span></code> flag will <strong>always take precedence</strong> over the values
+defined in the configuration file.</p>
+</div>
+</dd>
+<dt><kbd><span class="option">--verbose</span></kbd></dt>
+<dd><p>Enables verbose output for protocol-specific loggers, including debug-level messages.</p>
+</dd>
+<dt><kbd><span class="option">--debug</span></kbd></dt>
+<dd><p>Activates debug logging for all loggers listed in <a class="reference internal" href="config/logging.html#Log.DebugLoggers" title="Log.DebugLoggers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Log.DebugLoggers</span></code></a>.</p>
+</dd>
+<dt><kbd><span class="option">-q</span>, <span class="option">--quiet</span></kbd></dt>
+<dd><p>Don’t print huge banner at startup.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="config/index.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Configuration</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="proto.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Custom Protocols ⚙️</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=2caa9db7"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script src="_static/shibuya.js?v=e2230717"></script></body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rogue Kerberos KDC - Dementor 0.1.0 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="SMTP Downgrade Attack" href="smtp_downgrade.html" /><link rel="prev" title="Multicast Poisoning ⚙️" href="multicast.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Rogue Kerberos KDC"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="#">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="../config/index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../config/main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="../config/database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="../config/globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="../config/protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="smtp_downgrade.html">SMTP Downgrade Attack</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/globals.html">Globals</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/protocols.html">Protocols</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../config/mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/ldap.html">LDAP &#9881;&#65039;</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#how-it-works">How it Works</a></li>
+<li><a class="reference internal" href="#as-req-roasting-via-rogue-key-distribution-center-kdc">AS-REQ Roasting via Rogue Key Distribution Center (KDC)</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Rogue Kerberos  KDC</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="rogue-kerberos-kdc">
+<span id="example-kerberos"></span><h1>Rogue Kerberos  KDC<a class="headerlink" href="#rogue-kerberos-kdc" title="Link to this heading">¶</a></h1>
+<p><em>Kerberos Spec</em> <span class="sd-sphinx-override sd-badge sd-outline-secondary sd-text-secondary">RFC-4120</span></p>
+<p><a class="reference external" href="https://tools.ietf.org/html/rfc4120">Kerberos</a> is a network authentication protocol designed to provide
+secure identity verification using secret-key cryptography. It is the preferred authentication protocol
+in Active Directory environments for domain accounts and is incompatible with workgroups. Unlike NTLM,
+which uses challenge-response authentication, Kerberos utilizes a ticket-based system, mitigating the
+risk of credential relay attacks (however still possible).</p>
+<section id="how-it-works">
+<h2>How it Works<a class="headerlink" href="#how-it-works" title="Link to this heading">¶</a></h2>
+<p>Kerberos follows a three-party authentication model, involving:</p>
+<ul class="simple">
+<li><p>A <strong>Client</strong> (either a user or service) that seeks authentication.</p></li>
+<li><p>A <strong>Key Distribution Center (KDC)</strong> that validates the identity and issues tickets.</p></li>
+<li><p>A <strong>Service</strong> that the client wants to access, requiring authentication.</p></li>
+</ul>
+<p>When a user attempts to access a service, the Kerberos authentication process ensures that credentials are
+exchanged securely without exposing passwords over the network.</p>
+<figure class="align-center" id="id2">
+<img alt="../_images/kerberos-flow_dark.png" src="../_images/kerberos-flow_dark.png" />
+<figcaption>
+<p><span class="caption-text">Kerberos protocol flow</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<ol class="arabic simple">
+<li><p>The client requests a Ticket Granting Ticket (TGT) from the Authentication Server (AS) within the Key Distribution Center (KDC) by sending an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.1">AS-REQ</a> message. This request may include a timestamp encrypted with the user’s Kerberos key, a process known as <a class="reference external" href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc961961(v=technet.10)?redirectedfrom=MSDN">Preauthentication</a>.</p></li>
+<li><p>The AS verifies the timestamp (if present) and responds with an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.2">AS-REP</a> message. This response contains two encrypted parts: a TGT encrypted with the KDC’s key and client-specific data encrypted with the client’s key. Key information, such as the session key, is embedded in both parts to ensure shared access between the client and the KDC.</p></li>
+<li><p>When the client attempts to access a service, it negotiates the authentication protocol using SPNEGO. If Kerberos is chosen, the client must obtain a Service Ticket (ST) for the target service.</p></li>
+<li><p>The client sends a <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.1">TGS-REQ</a> message to the KDC requesting the ST. This message includes the TGT, the Service Principal Name ([SPN](#service-principal-name-spn)) of the target service, and additional encrypted data (such as the client’s username and timestamp) to verify authenticity.</p></li>
+<li><p>The KDC decrypts the TGT using its key, extracts the session key, and verifies the client’s username. Upon validation, the KDC issues a <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.2">TGS-REP</a> message containing two encrypted sections: an ST encrypted with the service’s key and client-related data encrypted with the session key. Shared data, such as the service session key, is embedded in both sections to facilitate communication between the client and the service.</p></li>
+<li><p>The client forwards the ST to the service within an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.5.1">AP-REQ</a> message, which is encapsulated in the application protocol. The service decrypts the ST, retrieves the session key, and accesses the Privilege Attribute Certificate (PAC), which contains security information about the client.</p></li>
+<li><p>(Optional) If the service needs to validate the PAC, it can use the Netlogon protocol to request the domain controller (DC) to <a class="reference external" href="https://learn.microsoft.com/en-us/archive/blogs/openspecification/understanding-microsoft-kerberos-pac-validation">verify the PAC</a> signature through a <a class="reference external" href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-apds/b27be921-39b3-4dff-af4a-b7b74deb33b5">KERB_VERIFY_PAC_REQUEST</a>.</p></li>
+<li><p>(Optional) The domain controller verifies the PAC and responds with a code indicating whether the PAC is valid.</p></li>
+<li><p>(Optional) If mutual authentication is required, the service must authenticate itself to the client. This is done by responding to the AP-REQ message with an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.5.2">AP-REP</a> message, proving its identity by encrypting a response with the session key. This ensures the service is legitimate and not a malicious impersonator.</p></li>
+</ol>
+</section>
+<section id="as-req-roasting-via-rogue-key-distribution-center-kdc">
+<h2>AS-REQ Roasting via Rogue Key Distribution Center (KDC)<a class="headerlink" href="#as-req-roasting-via-rogue-key-distribution-center-kdc" title="Link to this heading">¶</a></h2>
+<p>A rogue KDC is an attacker-controlled KDC that impersonates the legitimate KDC, manipulating the Kerberos authentication process. <em>Dementor</em> offers configuration options to start a KDC service on port <cite>88</cite> (both TCP and UDP).</p>
+<figure class="align-center" id="id3">
+<img alt="../_images/asreqroast-kdc_dark.png" src="../_images/asreqroast-kdc_dark.png" />
+<figcaption>
+<p><span class="caption-text">AS-REQ roasting flow using a rogue KDC</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<ol class="arabic simple">
+<li><p>(step 3. from earlier): When the client attempts to access a service, it first negotiates the authentication protocol using SPNEGO. If Kerberos is selected, the client must obtain a Service Ticket (ST) for the target service.</p></li>
+<li><p>The client sends an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.1">AS-REQ</a> message, which includes a pre-authentication timestamp encrypted with their Kerberos key.</p></li>
+</ol>
+<p><em>Dementor</em> can generate hashes from that timestamp, which can be cracked using <a class="reference external" href="https://hashcat.net/hashcat/">hashcat</a>. For example, the following hash was generated using the <a class="reference external" href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/network-security-configure-encryption-types-allowed-for-kerberos">Encryption Type</a>
+<code class="docutils literal notranslate"><span class="pre">23</span></code>, which points to <code class="docutils literal notranslate"><span class="pre">RC4_HMAC_MD5</span></code> (Hashcat mode <code class="docutils literal notranslate"><span class="pre">7500</span></code>). It can be enabled using the <a class="reference internal" href="../config/kerberos.html#Kerberos.EncType" title="Kerberos.EncType"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Kerberos.EncType</span></code></a> attribute.</p>
+<div class="demo docutils container">
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>sudo<span class="w"> </span>Dementor<span class="w"> </span>-I<span class="w"> </span>&lt;IFACE&gt;
+</span><span data-line="2"><span class="go">[...]</span>
+</span><span data-line="3"><span class="go">Kerberos   192.168.56.1  88     [+] Captured KRB5-PA Hash for droid/CONTOSO.LOCAL from 192.168.56.1:</span>
+</span><span data-line="4"><span class="go">Kerberos   192.168.56.1  88     KRB5-PA Username: droid</span>
+</span><span data-line="5"><span class="go">Kerberos   192.168.56.1  88     KRB5-PA Hash: $krb5pa$23$droid$CONTOSO.LOCAL$434f4e544f534f2e4c4f43414c64726f6964$f5b47b6b69f11c6eca9e494c6ba3512456c52bd2bf3dcd9fb6b381a34cf571d94c61e3c459adcae50f5f98b0c65be7951ddd3eb4</span>
+</span><span data-line="6"><span class="go">[...]</span>
+</span></pre></div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="multicast.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Multicast Poisoning ⚙️</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="smtp_downgrade.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">SMTP Downgrade Attack</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=2caa9db7"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>
