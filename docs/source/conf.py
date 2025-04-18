@@ -41,6 +41,7 @@ html_favicon = "_static/favicon.ico"
 html_css_files = [
     "theme.css",
 ]
+html_baseurl = "https://matrixeditor.github.io/dementor/"
 
 html_theme_options = {
     "accent_color": "cyan",

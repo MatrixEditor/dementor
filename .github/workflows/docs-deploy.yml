@@ -1,9 +1,8 @@
 name: Deploy Documentation to Pages
 
 on:
-  # Disabled for now
-  # push:
-  #   branches: [master]
+  push:
+    branches: [master]
 
   workflow_dispatch:
 
