@@ -15,7 +15,7 @@
 
 .. container:: buttons
 
-    `Docs </intro.html>`_
+    `Docs <intro.html>`_
     `GitHub <https://github.com/MatrixEditor/Dementor>`_
 
 
@@ -31,12 +31,12 @@
       Example attacks that can be carried out using *Dementor*.
 
    .. grid-item-card:: :octicon:`zap` Feature-rich Toolbox
-      :link: /config/protocols.html
+      :link: config/protocols.html
 
       Basic implementation of common network servers including SMB, SMTP, FTP and many more.
 
    .. grid-item-card:: :octicon:`beaker` Highly Configurable
-      :link: /config/
+      :link: config/
 
       Configuration can be changed for each service individually
 
