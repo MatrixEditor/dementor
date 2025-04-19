@@ -55,11 +55,11 @@ Section ``[HTTP]``
 
         *Maps to* :attr:`http.HTTPServerConfig.http_extra_headers`. *May also be set in* ``[HTTP]``
 
-        A list of headers to include in all server responses (excluding ``OPTIONS``). Each entry must be
+        A list of headers to include in all server responses. Each entry must be
         a fully qualified HTTP header line without CRLF at the end.
 
 
-    .. py:attribute:: Server.TemplatesDir
+    .. py:attribute:: Server.TemplatesPath
         :type: List[str]
 
         *Maps to* :attr:`http.HTTPServerConfig.http_templates`. *May also be set in* ``[HTTP]``

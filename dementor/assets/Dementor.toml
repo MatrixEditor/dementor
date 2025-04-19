@@ -374,6 +374,84 @@ Key = "default.key"
 # TargetSMBHost =
 
 # =============================================================================
+# Proxy
+# =============================================================================
+[Proxy]
+
+# Specifies a custom WPAD (Web Proxy Auto-Discovery) script in PAC (Proxy
+# Auto-Configuration) format used to define proxy behavior. This field supports
+# Jinja2 template syntax.
+#
+# The default WPAD script is bundled with the installed package and located in
+# the assets/www directory. You may override it using one of the following formats:
+#   1. A file path string referencing the external PAC script.
+#   2. An inline string containing the PAC script itself.
+#   3. A dictionary with the 'file' key pointing to the external script.
+
+# Script = { file = "dementor/assets/wpad.dat" }
+
+# Additional proxy configuration options may be introduced in future updates.
+
+# =============================================================================
+# HTTP
+# =============================================================================
+[HTTP]
+
+# Specifies the HTTP server software identifier returned in responses. This value
+# appears in the 'Server' HTTP response header.
+# Default: "Microsoft-IIS/10.0"
+
+# ServerType =
+
+# Defines additional HTTP headers to include in all HTTP responses. Each entry must
+# be a valid header string.
+
+# ExtraHeaders = [ "X-Powered-By: Dementor" ]
+
+# Specifies the authentication schemes supported by the HTTP server. Supported schemes
+# include:
+#   - Basic
+#   - Negotiate
+#   - NTLM
+#   - Bearer
+
+AuthSchemes = [ "Basic", "Negotiate", "NTLM", "Bearer" ]
+
+# Enables or disables WebDAV protocol support. This setting is enabled by default and
+# should only be disabled if WebDAV functionality is not required.
+
+WebDAV = true
+
+# Challenge and ExtendedSessionSecurity are defined in the NTLM section and can
+# be applied here too.
+
+
+# Indicates whether WPAD/PAC file serving is enabled. This setting is enabled by
+# default.Refer to the [Proxy] section for configuring the WPAD script source.
+
+WPAD = true
+
+# Determines whether authentication is required to access the WPAD script. When set
+# to `true`, clients must authenticate before retrieving the PAC file. Disabling this
+# may prevent the server from capturing authentication headers for requests to WPAD
+# files.
+
+WPADAuthRequired = true
+
+# Defines the list of supported HTTP request methods. The following methods are
+# NOT allowed: OPTIONS, PROPFIND.
+
+# Methods = [ "GET", "POST" ]
+
+# Specifies additional directories to search for template files. Paths defined here
+# take precedence over the default template location.
+
+# TemplatesPath = [ "/path/to/templates" ]
+
+[[HTTP.Server]]
+Port = 80
+
+# =============================================================================
 # Logging
 # =============================================================================
 [Log]
