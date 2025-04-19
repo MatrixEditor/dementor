@@ -1,12 +1,12 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev0"
+version = "1.0.0.dev1"
 license = { file = "LICENSE" }
 
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
 authors = [{ name = "MatrixEditor" }]
 maintainers = [{ name = "MatrixEditor" }]
-readme = "README.md"
+readme = "docs/README.pypi.md"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

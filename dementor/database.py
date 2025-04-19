@@ -18,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import threading
-import os
 import sqlite3
 import pathlib
 
 from datetime import datetime
 from typing import Any, Tuple
+from rich import markup
 
 from sqlalchemy.engine import Engine, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -86,6 +86,7 @@ def normalize_client_address(client: str) -> str:
 
 
 _CLEARTEXT = "Cleartext"
+_NO_USER = "<missing-user>"
 
 
 class DementorDB:
@@ -165,6 +166,7 @@ class DementorDB:
         protocol: str | None = None,
         domain: str | None = None,
         hostname: str | None = None,
+        extras: dict | None = None,
     ) -> None:
         if not logger and not protocol:
             dm_logger.error(
@@ -196,7 +198,9 @@ class DementorDB:
         results = self.db_exec(q).all()
         text = "Password" if credtype == _CLEARTEXT else "Hash"
         full_name = (
-            f"[b]{username}[/]/[b]{domain}[/]" if domain else f"[b]{username}[/]"
+            f"[b]{markup.escape(username)}[/]/[b]{markup.escape(domain)}[/]"
+            if domain
+            else f"[b]{markup.escape(username)}[/]"
         )
         if not results or self.config.db_config.db_duplicate_creds:
             # just insert a new row
@@ -219,17 +223,31 @@ class DementorDB:
                     host=hostname or client_address,
                     locked=True,
                 )
-                target_logger.highlight(
-                    f"{credtype} Username: {username}",
-                    host=hostname or client_address,
-                    locked=True,
-                )
+                if username != _NO_USER:
+                    target_logger.highlight(
+                        f"{credtype} Username: {markup.escape(username)}",
+                        host=hostname or client_address,
+                        locked=True,
+                    )
 
                 target_logger.highlight(
-                    f"{credtype} {text}: {password}",
+                    f"{credtype} {text}: {markup.escape(password)}",
                     host=hostname or client_address,
                     locked=True,
                 )
+                if extras:
+                    target_logger.highlight(
+                        f"{credtype} Extras:",
+                        host=hostname or client_address,
+                        locked=True,
+                    )
+
+                for name, value in (extras or {}).items():
+                    target_logger.highlight(
+                        f"  {name}: {markup.escape(value)}",
+                        host=hostname or client_address,
+                        locked=True,
+                    )
 
         else:
             target_logger.highlight(

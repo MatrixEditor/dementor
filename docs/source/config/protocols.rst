@@ -17,3 +17,4 @@ Protocols
     smb
     quic
     ldap
+    http

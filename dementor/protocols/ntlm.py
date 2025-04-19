@@ -127,6 +127,10 @@ def NTLM_new_timestamp() -> int:
     return 116444736000000000 + calendar.timegm(time.gmtime()) * 10000000
 
 
+def NTLM_split_fqdn(fqdn: str):
+    return fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
+
+
 def NTLM_AUTH_CreateChallenge(
     token: ntlm.NTLMAuthNegotiate,
     name: str,

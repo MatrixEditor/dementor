@@ -5,6 +5,9 @@
 LDAP ⚙️
 =======
 
+Section ``[LDAP]``
+------------------
+
 .. py:currentmodule:: LDAP
 
 .. py:attribute:: Server
@@ -21,7 +24,7 @@ LDAP ⚙️
         *Maps to* :attr:`ldap.LDAPServerConfig.ldap_port`
 
         Specifies the port on which the LDAP server instance listens. **This option is required and must be
-        defined within each individual ``[[LDAP.Server]]`` section.**
+        defined within each individual **``[[LDAP.Server]]`` **section.**
 
 
     .. py:attribute:: Server.Connectionless

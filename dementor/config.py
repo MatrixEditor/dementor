@@ -149,7 +149,8 @@ class SessionConfig(TomlConfig):
         Attribute("kdc_enabled", "KDC", True, factory=is_true),
         Attribute("ldap_enabled", "LDAP", True, factory=is_true),
         Attribute("quic_enabled", "QUIC", True, factory=is_true),
-        Attribute("mdns_enabled", "QUIC", True, factory=is_true),
+        Attribute("mdns_enabled", "mDNS", True, factory=is_true),
+        Attribute("http_enabled", "HTTP", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]

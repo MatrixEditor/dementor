@@ -50,6 +50,24 @@ by setting a custom :attr:`LLMNR.AnswerName`.
     `Abusing multicast poisoning for pre-authenticated Kerberos relay over HTTP with Responder and krbrelayx <https://www.synacktiv.com/publications/abusing-multicast-poisoning-for-pre-authenticated-kerberos-relay-over-http-with>`_
 
 
+.. tabs::
+
+    .. tab:: Dementor.toml
+
+        .. code-block:: toml
+            :emphasize-lines: 2
+
+            [LLMNR]
+            AnswerName = "other-srv"
+
+
+    .. tab:: CLI
+
+        .. code-block:: console
+
+            $ Dementor -I "$INTERFACE" -O LLMNR.AnswerName="other-srv"
+
+
 .. container:: demo
 
     .. code-block:: console
