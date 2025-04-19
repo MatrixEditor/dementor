@@ -21,6 +21,7 @@ import socket
 import struct
 
 from scapy.layers import dns
+from rich import markup
 
 from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scope
 from dementor.logger import ProtocolLogger
@@ -136,8 +137,9 @@ class MDNSPoisoner(BaseProtoHandler):
                     continue
 
                 if self.should_answer_request(question):
+                    name = markup.escape(normalized_name(qname))
                     self.logger.display(
-                        f"Request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
+                        f"Request for [i]{name}[/i] (class: {qclass}, "
                         f"type: {qtype})"
                     )
                     if self.config.analysis:

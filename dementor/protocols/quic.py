@@ -57,11 +57,8 @@ def apply_config(session):
 def create_server_threads(session):
     servers = []
     if session.quic_enabled:
-        if session.ipv4:
-            servers.append(QuicServerThread(session, session.ipv4))
-
-        if session.ipv6:
-            servers.append(QuicServerThread(session, session.ipv6))
+        address = "::" if session.ipv6 else session.ipv4 or ""
+        servers.append(QuicServerThread(session, address, ipv6=bool(session.ipv6)))
 
     return servers
 
@@ -159,10 +156,11 @@ class QuicHandler(QuicConnectionProtocol, ProtocolLoggerMixin):
 
 
 class QuicServerThread(Thread):
-    def __init__(self, config: SessionConfig, host: str):
+    def __init__(self, config: SessionConfig, host: str, ipv6=False):
         super().__init__()
         self.config = config
         self.host = host
+        self.is_ipv6 = ipv6
 
     def run(self) -> None:
         self.config.loop.create_task(self.arun())

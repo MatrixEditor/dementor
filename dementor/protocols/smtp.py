@@ -271,8 +271,6 @@ class SMTPServerHandler:
         )
         self.logger.debug(
             f"Captured NTLM AUTH response for {domain_name}/{user_name}:",
-            # host=server.session.peer[0],
-            # port=server.session.peer[1],
         )
 
         hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
@@ -336,7 +334,7 @@ class SMTPServerThread(threading.Thread):
 
         # NOTE: hostname on the controller points to the local address that will be
         # bound and the SMTP hostname is just a string that will be sent to the client,
-        controller.hostname = self.config.ipv4
+        controller.hostname = "::" if self.config.ipv6 else self.config.ipv4
 
         # alter the server hostname
         controller.SMTP_kwargs["hostname"] = smtp_config.smtp_fqdn.split(".", 1)[0]
@@ -344,7 +342,7 @@ class SMTPServerThread(threading.Thread):
         label = "SMTP" if not smtp_config.smtp_tls else "SMTPS"
         try:
             dm_logger.debug(
-                f"Starting {label} server on {self.config.ipv4}:{smtp_config.smtp_port}"
+                f"Starting {label} server on {controller.hostname}:{smtp_config.smtp_port}"
             )
             controller.start()
         except OSError as e:

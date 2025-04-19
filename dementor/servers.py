@@ -58,7 +58,7 @@ class ServerThread(threading.Thread):
                 dm_logger.error(
                     f"Failed to start server for {self.service_name}: Permission Denied!"
                 )
-
+            print(e)
         except Exception as e:
             print(e)
 
@@ -134,21 +134,25 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
         self.ipv4_only = getattr(config, "ipv4_only", False)
         if config.ipv6 and not self.ipv4_only:
             self.address_family = socket.AF_INET6
+
         super().__init__(
             server_address or ("", self.default_port),
             RequestHandlerClass or self.default_handler_class,
         )
 
     def server_bind(self) -> None:
-        interface = self.config.interface.encode("ascii") + b"\x00"
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, interface)
-        if self.config.ipv6 and not self.ipv4_only:
-            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-
+        bind_server(self, self.config)
         socketserver.UDPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:
         self.RequestHandlerClass(self.config, request, client_address, self)
+
+
+def bind_server(server, session):
+    interface = session.interface.encode("ascii") + b"\x00"
+    server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, interface)
+    if session.ipv6 and not getattr(session, "ipv4_only", False):
+        server.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
 
 
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -174,11 +178,7 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         )
 
     def server_bind(self) -> None:
-        interface = self.config.interface.encode("ascii") + b"\x00"
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, interface)
-        if self.config.ipv6 and not self.ipv4_only:
-            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-
+        bind_server(self, self.config)
         socketserver.TCPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:

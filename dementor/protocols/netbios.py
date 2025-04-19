@@ -18,7 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from typing import List
+
 from scapy.layers import netbios, smb
+from rich import markup
 
 from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
 from dementor.logger import ProtocolLogger
@@ -106,7 +108,9 @@ class NetBiosNSPoisoner(BaseProtoHandler):
             )
             name = request.QUESTION_NAME.decode("utf-8", errors="replace")
 
-            self.logger.display(f"Name Query: \\\\{name} ({suffix}) (qtype: {qrtype})")
+            self.logger.display(
+                f"Name Query: \\\\{markup.escape(name)} ({suffix}) (qtype: {qrtype})"
+            )
             if self.config.analysis:
                 # Analyze-only mode
                 return
@@ -224,7 +228,8 @@ class NetBiosDSPoisoner(BaseProtoHandler):
         fmt_source_types = ", ".join([f"[b]{t}[/b]" for t in source_types])
         source_version = f"{brws.OSVersionMajor}.{brws.OSVersionMinor}"
         self.logger.display(
-            f"HostAnnouncement: [i]{source_name}[/i] (Version: [bold blue]{source_version}[/bold blue]) "
+            f"HostAnnouncement: [i]{markup.escape(source_name)}[/i] (Version: "
+            f"[bold blue]{source_version}[/bold blue]) "
             f"({fmt_source_types})"
         )
 

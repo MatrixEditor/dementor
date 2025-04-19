@@ -21,6 +21,7 @@ import socket
 import struct
 
 from scapy.layers import llmnr, dns
+from rich import markup
 
 from dementor.protocols.mdns import build_dns_answer
 from dementor.servers import ThreadingUDPServer, ServerThread, BaseProtoHandler
@@ -82,7 +83,7 @@ class LLMNRPoisoner(BaseProtoHandler):
                     # REVISIT: maybe log ignored requests via option
                     continue
 
-                self.logger.display(f"Query for [i]{qname}[/i] (type: {qtype})")
+                self.logger.display(f"Query for [i]{markup.escape(qname)}[/i] (type: {qtype})")
                 if self.config.analysis:
                     continue
 
