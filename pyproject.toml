@@ -6,7 +6,7 @@ license = { file = "LICENSE" }
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
 authors = [{ name = "MatrixEditor" }]
 maintainers = [{ name = "MatrixEditor" }]
-readme = "README.md"
+readme = "docs/README.pypi.md"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
