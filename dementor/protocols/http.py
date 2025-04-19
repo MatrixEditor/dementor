@@ -135,7 +135,7 @@ class HTTPServerConfig(TomlConfig):
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),
         A("http_wpad_auth", "WPADAuthRequired", True, factory=is_true),
-        A("http_templates", "TemplatesDir", [HTTP_TEMPLATES_PATH]),
+        A("http_templates", "TemplatesPath", [HTTP_TEMPLATES_PATH]),
         A("http_webdav_enabled", "WebDAV", True, factory=is_true),
         A("http_methods", "Methods", ["GET", "POST"]),
     ]

@@ -341,8 +341,6 @@ def main(
             dm_logger.error(f"Failed to load configuration file: {e}")
             return
 
-    session = SessionConfig()
-    session.analysis = analyze
     logger.init()
 
     if extras:
@@ -354,6 +352,8 @@ def main(
                 config.dm_config[section][key] = value
 
     loader = ProtocolLoader()
+    session = SessionConfig()
+    session.analysis = analyze
     session.protocols = loader.get_protocols(session)
 
     if not quiet:

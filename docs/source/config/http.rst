@@ -167,16 +167,14 @@ Default Configuration
     ExtraHeaders = [
         "X-Powered-By: Dementor",
     ]
-
-    [[HTTP.Server]]
-    Port = 80
     WebDAV = true
     WPAD = true
     WPADAuthRequired = true
     AuthSchemes = [ "Basic", "Negotiate", "NTLM" ]
     HTTPMethods = [ "GET", "POST", "PUT", "DELETE" ]
 
-
+    [[HTTP.Server]]
+    Port = 80
 
 
 .. _aiosmtpd: https://github.com/aio-libs/aiosmtpd
