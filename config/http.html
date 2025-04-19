@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev1 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Logging" href="logging.html" /><link rel="prev" title="LDAP ⚙️" href="ldap.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/http.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/config/http.html"/>
+<meta property="og:title" content="HTTP"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="https://matrixeditor.github.io/dementor/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="../examples/multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../examples/multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="../examples/kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="../examples/smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP Downgrade Attack</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="protocols.html">Protocols</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HTTP</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#section-http">Section <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></a><ul>
+<li><a class="reference internal" href="#HTTP.Server"><code class="docutils literal notranslate"><span class="pre">Server</span></code></a><ul>
+<li><a class="reference internal" href="#HTTP.Server.Port"><code class="docutils literal notranslate">Port</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.ServerType"><code class="docutils literal notranslate">ServerType</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.ExtraHeaders"><code class="docutils literal notranslate">ExtraHeaders</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.TemplatesPath"><code class="docutils literal notranslate">TemplatesPath</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.Methods"><code class="docutils literal notranslate">Methods</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.AuthSchemes"><code class="docutils literal notranslate">AuthSchemes</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.WebDAV"><code class="docutils literal notranslate">WebDAV</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.WPAD"><code class="docutils literal notranslate">WPAD</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.WPADAuthRequired"><code class="docutils literal notranslate">WPADAuthRequired</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.ExtendedSessionSecurity"><code class="docutils literal notranslate">ExtendedSessionSecurity</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.Challenge"><code class="docutils literal notranslate">Challenge</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="protocols.html"><span itemprop="name">Protocols</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">HTTP</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="http">
+<span id="config-http"></span><h1>HTTP<a class="headerlink" href="#http" title="Link to this heading">¶</a></h1>
+<p>The HTTP server is somewhat more complex than other servers due to its wide
+range of configuration options.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>The current HTTP server implementation does not support custom error codes after successful
+authentication. The default returned code is <a class="reference external" href="https://http.cat/status/418">418</a>.</p>
+</div>
+<section id="section-http">
+<h2>Section <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code><a class="headerlink" href="#section-http" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev1.</span></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server">
+<span class="sig-prename descclassname"><span class="pre">HTTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#HTTP.Server" title="Link to this definition">¶</a></dt>
+<dd><p><em>Each entry maps to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">http.HTTPServerConfig</span></code></p>
+<p>Defines a list of HTTP servers. For details on configuring section lists,
+see the general configuration guide on <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a>
+for TOML.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.Port">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#HTTP.Server.Port" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_port</span></code></p>
+<p>Specifies the port on which the HTTP server instance listens. <strong>This option is required and must be
+defined within each individual</strong> <code class="docutils literal notranslate"><span class="pre">[[HTTP.Server]]</span></code> <strong>section.</strong></p>
+</dd></dl>
+
+<p>The attributes described below may also be specified in the global <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> section, where they will serve
+as default values for all individual server entries — unless explicitly overridden.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.ServerType">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerType</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Microsoft-IIS/10.0&quot;</span></em><a class="headerlink" href="#HTTP.Server.ServerType" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_server_type</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Specifies the server name returned in the <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server">Server</a>
+header.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.ExtraHeaders">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HTTP.Server.ExtraHeaders" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_extra_headers</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>A list of headers to include in all server responses. Each entry must be
+a fully qualified HTTP header line without CRLF at the end.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.TemplatesPath">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TemplatesPath</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HTTP.Server.TemplatesPath" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_templates</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>A list of directories containing templates for custom web pages. You can override the default
+error page template <code class="docutils literal notranslate"><span class="pre">error_page.html</span></code> with your own. The default template mimics an IIS error page.</p>
+<figure class="align-center" id="id2">
+<img alt="../_images/http-server_page-style.png" src="../_images/http-server_page-style.png" />
+<figcaption>
+<p><span class="caption-text">Page style matching Microsoft IIS defaults.</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.Methods">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Methods</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;GET&quot;,</span> <span class="pre">&quot;POST&quot;,</span> <span class="pre">&quot;PUT&quot;,</span> <span class="pre">&quot;DELETE&quot;]</span></em><a class="headerlink" href="#HTTP.Server.Methods" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_methods</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Defines which HTTP methods are supported. Note: <code class="docutils literal notranslate"><span class="pre">OPTIONS</span></code> and <code class="docutils literal notranslate"><span class="pre">PROPFIND</span></code> are reserved for internal use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.AuthSchemes">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthSchemes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;Basic&quot;,</span> <span class="pre">&quot;Negotiate&quot;,</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;Bearer&quot;]</span></em><a class="headerlink" href="#HTTP.Server.AuthSchemes" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_auth_schemes</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>A list of supported authentication schemes. These are returned via the
+<a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate">WWW-Authenticate</a> header.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.WebDAV">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WebDAV</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.WebDAV" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_webdav_enabled</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Enables WebDAV protocol support. If disabled, requests using <code class="docutils literal notranslate"><span class="pre">PROPFIND</span></code> will result in an error page.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.WPAD">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WPAD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.WPAD" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_wpad_enabled</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Enables hosting of a WPAD configuration file. You can control whether this file requires authentication
+using <a class="reference internal" href="#HTTP.Server.WPADAuthRequired" title="HTTP.Server.WPADAuthRequired"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.WPADAuthRequired</span></code></a>. The actual WPAD script content is controlled by <code class="xref py py-attr docutils literal notranslate"><span class="pre">Proxy.Script</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.WPADAuthRequired">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WPADAuthRequired</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.WPADAuthRequired" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_wpad_auth</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Determines whether access to the WPAD script requires authentication.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.ExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_ess</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NTLMv1/v2-SSP hashes
+are captured instead of raw NTLM hashes. Resolution precedence:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#HTTP.Server.ExtendedSessionSecurity" title="HTTP.Server.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.ExtendedSessionSecurity</span></code></a> (per-instance)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.ExtendedSessionSecurity</span></code> (global HTTP fallback)</p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a> (final fallback)</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.Challenge">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#HTTP.Server.Challenge" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_challenge</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Sets the NTLM challenge value used during authentication. Resolution order:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#HTTP.Server.Challenge" title="HTTP.Server.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.Challenge</span></code></a></p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Challenge</span></code></p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a></p></li>
+</ol>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.FQDN">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#HTTP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_fqdn</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion is
+used in NTLM responses. The domain portion is optional.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="default-configuration">
+<h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">HTTP configuration section (default values)</span><a class="headerlink" href="#id3" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos"> 1</span><span class="k">[SMTP]</span>
+</span><span data-line="2"><span class="linenos"> 2</span><span class="c1"># Global settings for all HTTP servers</span>
+</span><span data-line="3"><span class="linenos"> 3</span><span class="n">ServerType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Microsoft-IIS/10.0&quot;</span>
+</span><span data-line="4"><span class="linenos"> 4</span><span class="n">FQDN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEMENTOR&quot;</span>
+</span><span data-line="5"><span class="linenos"> 5</span><span class="n">ExtraHeaders</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span data-line="6"><span class="linenos"> 6</span><span class="w">    </span><span class="s2">&quot;X-Powered-By: Dementor&quot;</span><span class="p">,</span>
+</span><span data-line="7"><span class="linenos"> 7</span><span class="p">]</span>
+</span><span data-line="8"><span class="linenos"> 8</span><span class="n">WebDAV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span data-line="9"><span class="linenos"> 9</span><span class="n">WPAD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span data-line="10"><span class="linenos">10</span><span class="n">WPADAuthRequired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span data-line="11"><span class="linenos">11</span><span class="n">AuthSchemes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;Basic&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Negotiate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;NTLM&quot;</span><span class="w"> </span><span class="p">]</span>
+</span><span data-line="12"><span class="linenos">12</span><span class="n">HTTPMethods</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PUT&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DELETE&quot;</span><span class="w"> </span><span class="p">]</span>
+</span><span data-line="13"><span class="linenos">13</span>
+</span><span data-line="14"><span class="linenos">14</span><span class="k">[[HTTP.Server]]</span>
+</span><span data-line="15"><span class="linenos">15</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">80</span>
+</span></pre></div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="ldap.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">LDAP ⚙️</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="logging.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Logging</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=9a09b0f8"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>
