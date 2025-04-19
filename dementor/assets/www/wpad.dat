@@ -1,0 +1,7 @@
+function FindProxyForURL(url, host) {
+    // DEFAULT RULE: All other traffic, use below proxies, in fail-over order.
+    if ((host == "localhost") || shExpMatch(host, "localhost.*") || (host == "127.0.0.1") || isPlainHostName(host)) {
+        return "DIRECT";
+    }
+    return "PROXY {{session.ipv4}}:3128; PROXY [{{session.ipv6}}]:3128; DIRECT";
+}

@@ -6,3 +6,4 @@ sqlalchemy
 pyasn1
 aioquic
 typer
+jinja2
