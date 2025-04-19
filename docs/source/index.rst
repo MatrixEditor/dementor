@@ -86,6 +86,7 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    examples/multicast
    examples/kdc
    examples/smtp_downgrade
+   examples/webdav_fallback
 
 .. toctree::
    :caption: Configuration ⚙️
