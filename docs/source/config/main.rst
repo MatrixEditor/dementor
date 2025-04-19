@@ -86,3 +86,14 @@ attacks, but instead passively capture credentials:
     Enables or disables the specified protocol service. For details on each protocol,
     refer to the respective documentation section. (Note: ``KDC`` corresponds to the
     Kerberos service).
+
+
+.. py:attribute:: HTTP
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.http_enbled`
+
+    .. versionadded:: 1.0.0.dev1
+
+    Enables or disables configured HTTP servers. For more details, refer to :ref:`config_http`.

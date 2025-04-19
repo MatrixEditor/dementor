@@ -128,7 +128,7 @@ class HTTPServerConfig(TomlConfig):
     _fields_ = [
         A("http_port", "Port"),
         A("http_server_type", "ServerType", "Microsoft-IIS/10.0"),
-        A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic"]),
+        A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic", "Bearer"]),
         A("http_ntlm_challenge", "NTLM.Challenge", b"A" * 8),
         A("http_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
         A("http_fqdn", "FQDN", "DEMENTOR", section_local=False),
