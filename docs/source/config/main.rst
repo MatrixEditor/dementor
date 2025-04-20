@@ -97,3 +97,14 @@ attacks, but instead passively capture credentials:
     .. versionadded:: 1.0.0.dev1
 
     Enables or disables configured HTTP servers. For more details, refer to :ref:`config_http`.
+
+
+.. py:attribute:: RPC
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.msrpc_enabled`
+
+    .. versionadded:: 1.0.0.dev2
+
+    Enables or disables the DCE/RPC service. For more details, refer to :ref:`config_dcerpc`.
