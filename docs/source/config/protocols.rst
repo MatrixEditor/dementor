@@ -18,3 +18,4 @@ Protocols
     quic
     ldap
     http
+    dcerpc

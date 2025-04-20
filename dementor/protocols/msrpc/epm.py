@@ -7,7 +7,7 @@ from dementor.protocols.msrpc.rpc import uuid_name, rev_rpc_status_codes
 __uuid__ = epm.MSRPC_UUID_PORTMAP
 
 
-def handle_request(rpc, request: rpcrt.MSRPCRequestHeader) -> int | str:
+def handle_request(rpc, request: rpcrt.MSRPCRequestHeader, _data) -> int | str:
     op_num = request["op_num"]
     if op_num == 0x03:
         # Operation: Map (3)

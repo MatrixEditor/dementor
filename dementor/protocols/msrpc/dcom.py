@@ -16,7 +16,7 @@ __uuid__ = [
 ]
 
 
-def handle_request(rpc, request: rpcrt.MSRPCRequestHeader) -> int | str:
+def handle_request(rpc, request: rpcrt.MSRPCRequestHeader, _data) -> int | str:
     op_num = request["op_num"]
 
     if op_num == dcomrt.ServerAlive2.opnum:
@@ -31,20 +31,19 @@ def handle_request(rpc, request: rpcrt.MSRPCRequestHeader) -> int | str:
         # StringBinding: current IPv4 (we could also use hostname here)
         binding = dcomrt.STRINGBINDING()
         binding["wTowerId"] = 0x07  # ncacn_ip_tcp
-        binding["aNetworkAddr"] = rpc.config.ipv4
+        binding["aNetworkAddr"] = f"{rpc.config.ipv4}\x00"
         data_buf.extend(array("H", binding.getData()))
 
+        data_buf.append(0x00) # end of string bindings
         sec_offset = len(data_buf)
-        if sec_offset % 2 != 0:
-            data_buf.append(0x00)
-            sec_offset += 1
 
         # We only support NTLM Authentication
         binding = dcomrt.SECURITYBINDING()
         binding["wAuthnSvc"] = rpcrt.RPC_C_AUTHN_WINNT
-        binding["aPrincName"] = ""
+        binding["aPrincName"] = "\x00"
         binding["Reserved"] = 0xFFFF
         data_buf.extend(array("H", binding.getData()))
+        data_buf.append(0x00) # end of security bindings
 
         bindings["wNumEntries"] = len(data_buf)
         bindings["wSecurityOffset"] = sec_offset

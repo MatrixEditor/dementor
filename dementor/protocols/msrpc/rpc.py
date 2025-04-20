@@ -39,18 +39,12 @@ def uuid_name(uuid_bin: bytes) -> str:
 class RPCConfig(TomlConfig):
     _section_ = "RPC"
     _fields_ = [
-        A("rpc_ntlm_challenge", "NTLM.Challenge", b"A" * 8, section_local=False),
+        A("rpc_ntlm_challenge", "NTLM.Challenge", b"A" * 8),
         A("rpc_fqdn", "FQDN", "DEMENTOR", section_local=False),
-        A(
-            "rpc_ntlm_ess",
-            "NTLM.ExtendedSessionSecurity",
-            True,
-            factory=is_true,
-            section_local=False,
-        ),
+        A("rpc_ntlm_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
         A("epm_port", "EPM.TargetPort", 49000),
         A("epm_port_range", "EPM.TargetPortRange", None),
-        A("rpc_modules", "Modules", list),
+        A("rpc_modules", "Interfaces", list),
         A("rpc_error_code", "ErrorCode", "rpc_s_access_denied"),
     ]
 
@@ -71,8 +65,8 @@ class RPCConfig(TomlConfig):
         match value:
             case dict():
                 # must store START and END
-                start = value.get("start")
-                end = value.get("end")
+                start = value.get("start", 45000)
+                end = value.get("end", 49999)
 
             case str():
                 # format [START]-END or START-[END]
@@ -264,7 +258,7 @@ class RPCHandler(BaseProtoHandler):
         else:
             if endpoints_fmt:
                 self.logger.display(
-                    f"Bind request for {endpoints_fmt} (Transfer Syntax Negotiation)"
+                    f"Bind request for {endpoints_fmt} (TransferSyntax Negotiation)"
                 )
 
         bind_ack["frag_len"] = len(bind_ack.getData())
@@ -319,7 +313,7 @@ class RPCHandler(BaseProtoHandler):
             # Interface not set, we can't handle this
             return rev_rpc_status_codes["nca_s_unk_if"]
 
-        return conn.target(self, request)
+        return conn.target(self, request, data)
 
 
 RPCEndpointHandler = Callable[[RPCHandler, rpcrt.MSRPCHeader, bytes], int]
