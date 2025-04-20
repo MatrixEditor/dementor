@@ -151,6 +151,7 @@ class SessionConfig(TomlConfig):
         Attribute("quic_enabled", "QUIC", True, factory=is_true),
         Attribute("mdns_enabled", "mDNS", True, factory=is_true),
         Attribute("http_enabled", "HTTP", True, factory=is_true),
+        Attribute("msrpc_enabled", "RPC", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]
