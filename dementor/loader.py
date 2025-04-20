@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import argparse
+from ntpath import isfile
 import types
 import os
 import dementor
@@ -30,6 +31,10 @@ from dementor.paths import DEMENTOR_PATH
 class ProtocolLoader:
     def __init__(self) -> None:
         self.rs_path = os.path.join(DEMENTOR_PATH, "protocols")
+        self.search_path = [
+            os.path.join(os.path.dirname(dementor.__file__), "protocols"),
+            self.rs_path,
+        ]
 
     def load_protocol(self, protocol_path: str) -> types.ModuleType:
         loader = SourceFileLoader("protocol", protocol_path)
@@ -39,10 +44,7 @@ class ProtocolLoader:
 
     def get_protocols(self, session=None):
         protocols = {}
-        protocol_paths = [
-            os.path.join(os.path.dirname(dementor.__file__), "protocols"),
-            self.rs_path,
-        ]
+        protocol_paths = list(self.search_path)
 
         if session is not None:
             protocol_paths.extend(session.extra_modules)
@@ -51,8 +53,16 @@ class ProtocolLoader:
             if not os.path.exists(path):
                 continue
 
-            # TODO: check for directory
+            if os.path.isfile(path):
+                if not path.endswith(".py"):
+                    continue
 
+                protocol_path = path
+                name = os.path.basename(path)[:-3]
+                protocols[name] = protocol_path
+                continue
+
+            # TODO: check for directory
             for filename in os.listdir(path):
                 if not filename.endswith(".py") or filename == "__init__.py":
                     continue
@@ -87,4 +97,3 @@ class ProtocolLoader:
             return protocol.create_server_threads(session)
 
         return []
-
