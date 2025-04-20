@@ -97,6 +97,10 @@ class NetBiosNSPoisoner(BaseProtoHandler):
 
         if header.OPCODE == 0x0:
             # name query --> this is what we are looking for
+            if header.haslayer(netbios.NBNSNodeStatusRequest):
+                # we should  handle those too
+                return
+
             request = header[netbios.NBNSQueryRequest]
             suffix = netbios._NETBIOS_SUFFIXES.get(
                 request.SUFFIX,
