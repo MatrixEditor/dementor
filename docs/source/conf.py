@@ -9,7 +9,7 @@
 project = "Dementor"
 copyright = "2025-Present, MatrixEditor"
 author = "MatrixEditor"
-release = "1.0.0.dev1"
+release = "1.0.0.dev2"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -43,10 +43,24 @@ html_css_files = [
 ]
 html_baseurl = "https://matrixeditor.github.io/dementor/"
 
+html_sidebars = {
+    "**": [
+        "sidebars/localtoc.html",
+        "sidebars/edit-this-page.html",
+    ]
+}
+
+html_context = {
+    "source_type": "github",
+    "source_user": "MatrixEditor",
+    "source_repo": "dementor",
+}
+
 html_theme_options = {
     "accent_color": "cyan",
-    "github_url": "https://github.com/MatrixEditor/Dementor",
     "color_mode": "dark",
+
+    "github_url": "https://github.com/MatrixEditor/Dementor",
     # Logo configuration
     "light_logo": "_static/logo-new-big-transparent.png",
     "dark_logo": "_static/logo-new-circle.ico",

@@ -357,9 +357,54 @@ in development. The legend for each symbol is as follows:
             <td><i class="i-lucide x sd-text-danger l"></i></td>
         </tr>
         <tr>
-            <td>RPC</td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
+            <td>
+                <a href="./config/dcerpc.html">DCE/RPC</a>
+                <table>
+                <tbody>
+                    <tr>
+                        <td>NTLM</td>
+                    </tr>
+                    <tr>
+                        <td>DCOM <i>(interface)</i></td>
+                    </tr>
+                    <tr>
+                        <td>EPMv4 <i>(interface)</i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
         </tr>
     </tbody>
     </table>

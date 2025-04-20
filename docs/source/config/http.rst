@@ -79,8 +79,11 @@ Section ``[HTTP]``
 
         *Maps to* :attr:`http.HTTPServerConfig.http_methods`. *May also be set in* ``[HTTP]``
 
-        Defines which HTTP methods are supported. Note: ``OPTIONS`` and ``PROPFIND`` are reserved for internal use.
+        Defines which HTTP methods are supported. Note: ``OPTIONS``, ``HEAD`` and ``PROPFIND`` are reserved for internal use.
 
+        .. versionchanged:: 1.0.0.dev2
+
+            HTTP method ``HEAD`` will be excluded too.
 
     .. py:attribute:: Server.AuthSchemes
         :type: List[str]
@@ -147,7 +150,7 @@ Section ``[HTTP]``
         :type: str
         :value: "DEMENTOR"
 
-        *Linked to* :attr:`smtp.SMTPServerConfig.smtp_fqdn`. *May also be set in* ``[HTTP]`` or ``[Globals]``
+        *Linked to* :attr:`http.HTTPServerConfig.http_fqdn`. *May also be set in* ``[HTTP]`` or ``[Globals]``
 
         Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion is
         used in NTLM responses. The domain portion is optional.

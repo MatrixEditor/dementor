@@ -229,6 +229,7 @@ Port = 445
 # e.g.
 # ExtendedSessionSecurity = false
 
+
 # =============================================================================
 # SMTP (Simple Mail Transfer Protocol)
 # =============================================================================
@@ -290,11 +291,13 @@ Challenge = "1337LEET"
 
 ExtendedSessionSecurity = true
 
+
 # =============================================================================
 # FTP Server(s)
 # =============================================================================
 [[FTP.Server]]
 Port = 21
+
 
 # =============================================================================
 # Kerberos KDC
@@ -312,6 +315,7 @@ EncType = "aes256_cts_hmac_sha1_96"
 
 # default configuration
 # ErrorCode = "KDC_ERR_C_PRINCIPAL_UNKNOWN"
+
 
 # =============================================================================
 # LDAP
@@ -361,6 +365,7 @@ Port = 389
 Port = 389
 Connectionless = true
 
+
 # =============================================================================
 # QUIC
 # =============================================================================
@@ -372,6 +377,7 @@ Key = "default.key"
 # Control the target smb server to connect to.
 # TargetSMBPort = 445
 # TargetSMBHost =
+
 
 # =============================================================================
 # Proxy
@@ -391,6 +397,7 @@ Key = "default.key"
 # Script = { file = "dementor/assets/wpad.dat" }
 
 # Additional proxy configuration options may be introduced in future updates.
+
 
 # =============================================================================
 # HTTP
@@ -451,10 +458,56 @@ WPADAuthRequired = true
 [[HTTP.Server]]
 Port = 80
 
+
+# =============================================================================
+# RPC
+# =============================================================================
+[RPC]
+
+# Similar to HTTP, SMTP, and SMB services, the RPC service also utilizes
+# the FQDN, Challenge, and ExtendedSessionSecurity settings defined in the
+# [NTLM] section.
+
+# Specifies the RPC error code to be returned upon successful authentication.
+
+ErrorCode = "rpc_s_access_denied"
+
+# Specifies a list of interface handler definitions used by the RPC server.
+# These can be either:
+#   - Python modules defining RPC interfaces (files ending in `.py`), or
+#   - Directories containing multiple interface definitions.
+#
+# This allows extension of the server with custom protocol handling logic for
+# different interface UUIDs and operation numbers.
+
+# Interfaces = [ "/path/to/proto.py", "/path/to/directory/"]
+
+
+# =============================================================================
+# EMP
+# =============================================================================
+[EPM]
+
+# Specifies the target port to which incoming EPMv4 map requests should be
+# redirected.The port must correspond to an open service on the local machine.
+
+TargetPort = 49000
+
+# Defines a range of target ports to use when mapping EPMv4 requests.
+# This setting overrides `TargetPort` if both are specified.
+#
+# The value can be provided as:
+#   - A string in the format "start-end"
+#   - A dictionary with keys 'start' and 'end'
+
+# TargetPortRange = "45000-49999"
+
+
 # =============================================================================
 # Logging
 # =============================================================================
 [Log]
+
 # Enable logging output to a file
 
 Enabled = false

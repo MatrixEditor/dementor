@@ -208,7 +208,12 @@ class HTTPHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         # always support everything
         self.send_response(HTTPStatus.OK)
-        self.send_header("Allow", "OPTIONS,GET,HEAD,POST,TRACE")
+        self.send_header("Allow", "OPTIONS,GET,HEAD,POST,TRACE,PROPFIND")
+        self.end_headers()
+
+    def do_HEAD(self):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     def version_string(self) -> str:
