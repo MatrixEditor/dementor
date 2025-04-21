@@ -2,8 +2,8 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NBTNS - Dementor 1.0.0.dev3 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="NTLM" href="ntlm.html" /><link rel="prev" title="mDNS" href="mdns.html" />
-      <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/netbios.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>WinRM - Dementor 1.0.0.dev3 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Logging" href="logging.html" /><link rel="prev" title="SMTP" href="smtp.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/winrm.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
@@ -22,8 +22,8 @@
 }
 </style>
     <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://matrixeditor.github.io/dementor/config/netbios.html"/>
-<meta property="og:title" content="NBTNS"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/config/winrm.html"/>
+<meta property="og:title" content="WinRM"/>
 <meta name="twitter:card" content="summary"/>
   </head>
 <body><div class="sy-head">
@@ -126,12 +126,12 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="winrm.html">WinRM</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">WinRM</a></li>
 </ul>
 </li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
@@ -145,19 +145,8 @@ data-aria-dark="Switch to auto color mode">
     <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
       <i class="i-lucide close"></i>
     </button>
-    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#section-netbios">Section <code class="docutils literal notranslate"><span class="pre">[NetBIOS]</span></code></a><ul>
-<li><a class="reference internal" href="#NetBIOS.Ignore"><code class="docutils literal notranslate"><span class="pre">Ignore</span></code></a></li>
-<li><a class="reference internal" href="#NetBIOS.AnswerTo"><code class="docutils literal notranslate"><span class="pre">AnswerTo</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#python-config">Python Config</a><ul>
-<li><a class="reference internal" href="#NetBIOS.netbios.NBTNSConfig"><code class="docutils literal notranslate">NBTNSConfig</span></code></a></li>
-</ul>
-</li>
-</ul>
-</div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/netbios.rst">Edit this page</a>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="edit-this-page">
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/winrm.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -177,7 +166,7 @@ data-aria-dark="Switch to auto color mode">
         <span>/</span>
         <meta itemprop="position" content="2" />
       </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <strong itemprop="name">NBTNS</strong>
+        <strong itemprop="name">WinRM</strong>
         <meta itemprop="position" content="3" />
       </li></ol>
     <div class="xl:hidden ml-1">
@@ -190,43 +179,43 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
         <article class="yue" role="main">
-          <section id="nbtns">
-<span id="config-netbios"></span><h1>NBTNS<a class="headerlink" href="#nbtns" title="Link to this heading">¶</a></h1>
-<section id="section-netbios">
-<span id="config-netbios-sectioncfg"></span><h2>Section <code class="docutils literal notranslate"><span class="pre">[NetBIOS]</span></code><a class="headerlink" href="#section-netbios" title="Link to this heading">¶</a></h2>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NetBIOS.Ignore">
-<span class="sig-prename descclassname"><span class="pre">NetBIOS.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#NetBIOS.Ignore" title="Link to this definition">¶</a></dt>
-<dd><p>Specifies a list of hosts to be blacklisted. For further context, refer to <a class="reference internal" href="globals.html#Globals.Ignore" title="Globals.Ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Ignore</span></code></a>.
-When defined, this attribute overrides the global blacklist configuration.
-If not set, it has no effect.
-For a detailed explanation of how blacklist rules are applied, see <code class="xref py py-class docutils literal notranslate"><span class="pre">BlacklistConfigMixin</span></code>.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NetBIOS.AnswerTo">
-<span class="sig-prename descclassname"><span class="pre">NetBIOS.</span></span><span class="sig-name descname"><span class="pre">AnswerTo</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#NetBIOS.AnswerTo" title="Link to this definition">¶</a></dt>
-<dd><p>Defines a list of hosts to which responses should be sent.
-Refer to <a class="reference internal" href="globals.html#Globals.AnswerTo" title="Globals.AnswerTo"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.AnswerTo</span></code></a> for more information.
-When specified, this setting takes precedence over the global whitelist configuration.
-If omitted, the global configuration remains effective.
-For details on how these rules are applied, see <code class="xref py py-class docutils literal notranslate"><span class="pre">WhitelistConfigMixin</span></code>.</p>
-</dd></dl>
-
-</section>
-<section id="python-config">
-<h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="NetBIOS.netbios.NBTNSConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">netbios.</span></span><span class="sig-name descname"><span class="pre">NBTNSConfig</span></span><a class="headerlink" href="#NetBIOS.netbios.NBTNSConfig" title="Link to this definition">¶</a></dt>
-<dd><p>Represents the configuration for the <code class="docutils literal notranslate"><span class="pre">[NetBIOS]</span></code> section in the TOML file.
-This class incorporates both <code class="xref py py-class docutils literal notranslate"><span class="pre">WhitelistConfigMixin</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">BlacklistConfigMixin</span></code>,
-adding two additional configuration fields.
-For detailed behavior and usage, refer to the respective mixin documentation.</p>
-<p>Currently, there are no additional configuration parameters specific to this class.</p>
-</dd></dl>
-
-</section>
+          <section id="winrm">
+<span id="config-winrm"></span><h1>WinRM<a class="headerlink" href="#winrm" title="Link to this heading">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev3.</span></p>
+</div>
+<p>Since WinRM operates over HTTP, all configuration values from the <a class="reference internal" href="http.html#config-http"><span class="std std-ref">HTTP</span></a> section also apply here.
+<em>WinRM</em> does not have its own dedicated section; instead, it inherits its configuration settings directly
+from the HTTP section.</p>
+<p>To configure a custom WinRM server, you can use the following example:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Dementor.toml</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[[HTTP.Server]]</span>
+</span><span data-line="2"><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5985</span>
+</span><span data-line="3"><span class="n">WebDAV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span data-line="4"><span class="n">WPAD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span></pre></div>
+</div>
+</div>
+<p>By default, the service listens on port <code class="docutils literal notranslate"><span class="pre">5985</span></code>. It can be enabled easily via the <a class="reference internal" href="main.html#Dementor.WinRM" title="Dementor.WinRM"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.WinRM</span></code></a> shortcut.</p>
+<p>If the HTTP configuration (or the <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code> section) specifies a certificate and private key, an additional
+WinRM service over HTTPS will automatically start on port <code class="docutils literal notranslate"><span class="pre">5986</span></code>. You can also configure it manually as shown below:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">Dementor.toml</span><a class="headerlink" href="#id2" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[[HTTP.Server]]</span>
+</span><span data-line="2"><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5986</span>
+</span><span data-line="3"><span class="n">WebDAV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span data-line="4"><span class="n">WPAD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</span><span data-line="5"><span class="n">TLS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span data-line="6"><span class="n">Cert</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/path/to/certfile&quot;</span>
+</span><span data-line="7"><span class="n">Key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/path/to/keyfile&quot;</span>
+</span></pre></div>
+</div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>See the <a class="reference internal" href="http.html#config-http"><span class="std std-ref">HTTP</span></a> section for full details on HTTP service configuration.</p>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">
@@ -235,16 +224,16 @@ For detailed behavior and usage, refer to the respective mixin documentation.</p
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="mdns.html">
+    <a href="smtp.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">mDNS</div></div>
+        <span>Previous</span><div class="title">SMTP</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="ntlm.html">
+    <a href="logging.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">NTLM</div>
+        <div class="title">Logging</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>

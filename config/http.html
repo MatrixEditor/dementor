@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev2 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="DCE/RPC" href="dcerpc.html" /><link rel="prev" title="LDAP ⚙️" href="ldap.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev3 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Kerberos" href="kerberos.html" /><link rel="prev" title="FTP ⚙️" href="ftp.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/http.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -119,18 +119,19 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="protocols.html">Protocols</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
-<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">HTTP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HTTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="winrm.html">WinRM</a></li>
 </ul>
 </li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
@@ -159,6 +160,9 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#HTTP.Server.ExtendedSessionSecurity"><code class="docutils literal notranslate">ExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.Challenge"><code class="docutils literal notranslate">Challenge</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.TLS"><code class="docutils literal notranslate">TLS</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.Cert"><code class="docutils literal notranslate">Cert</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.Key"><code class="docutils literal notranslate">Key</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -333,6 +337,36 @@ are captured instead of raw NTLM hashes. Resolution precedence:</p>
 used in NTLM responses. The domain portion is optional.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.TLS">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#HTTP.Server.TLS" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_use_ssl</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<p>Enables SSL/TLS support using a custom certificate.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev3.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.Cert">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#HTTP.Server.Cert" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_cert</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Specifies the path to the certificate used when TLS is enabled.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev3.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.Key">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#HTTP.Server.Key" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_cert_key</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Specifies the private key file corresponding to the certificate used for TLS.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev3.</span></p>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -367,16 +401,16 @@ used in NTLM responses. The domain portion is optional.</p>
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="ldap.html">
+    <a href="ftp.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">LDAP ⚙️</div></div>
+        <span>Previous</span><div class="title">FTP ⚙️</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="dcerpc.html">
+    <a href="kerberos.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">DCE/RPC</div>
+        <div class="title">Kerberos</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>
@@ -404,7 +438,7 @@ used in NTLM responses. The domain portion is optional.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=3759c034"></script>
+      <script src="../_static/documentation_options.js?v=53961070"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
