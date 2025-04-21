@@ -207,5 +207,3 @@ Default Configuration
     [[HTTP.Server]]
     Port = 80
 
-
-.. _aiosmtpd: https://github.com/aio-libs/aiosmtpd

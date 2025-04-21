@@ -68,6 +68,17 @@ The following options control servers that perform poisoning in the local networ
     Enables or disables NetBIOS Name Service (NBT-NS) poisoning. For further
     configuration options, see :ref:`config_netbios_sectioncfg`.
 
+.. py:attribute:: SSRP
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.ssrp_enabled`
+
+    .. versionadded:: 1.0.0.dev4
+
+    Enables or disables the SSRP (MSSQL Browser) poisoner. For more details, refer to :ref:`config_ssrp`.
+
+
 The following settings apply to protocol-specific servers that do not perform active
 attacks, but instead passively capture credentials:
 
@@ -120,3 +131,15 @@ attacks, but instead passively capture credentials:
 
     Enables or disables the WinRM service. For more details, refer to :ref:`config_winrm`.
     Configuration is the same as described in :ref:`config_http`.
+
+
+.. py:attribute:: MSSQL
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.msrpc_enabled`
+
+    .. versionadded:: 1.0.0.dev4
+
+    Enables or disables the MSSQL service. For more details, refer to :ref:`config_mssql`.
+

@@ -26,7 +26,6 @@ from impacket import tds, ntlm
 from rich.markup import escape
 
 from caterpillar.py import (
-    Bytes,
     FieldStruct,
     pack,
     struct,
@@ -135,7 +134,7 @@ class SSRPConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
     _fields_ = (
         [
             A("ssrp_server_name", "MSSQL.FQDN", "DEMENTOR"),
-            A("ssrp_server_version", "MSSQL.ServerVersion", "9.00.1399.06"),
+            A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
             A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
             A("ssrp_instance_config", "InstanceConfig", ""),
         ]
@@ -214,7 +213,7 @@ class MSSQLConfig(TomlConfig):
         A("mssql_port", "Port", 1433),
         A("mssql_server_version", "Version", "9.00.1399.06"),
         A("mssql_fqdn", "FQDN", "DEMENTOR", section_local=False),
-        A("mssql_instance", "InstanceName", "SQLSrv"),
+        A("mssql_instance", "InstanceName", "MSSQLSerevr"),
         A("mssql_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
         A("mssql_challenge", "NTLM.Challenge", b"A" * 8),
         A("mssql_error_code", "ErrorCode", 1205),  # LK_VICTIM
@@ -337,10 +336,9 @@ class MSSQLHandler(BaseProtoHandler):
 
     def handle_pre_login(self, packet: tds.TDSPacket) -> int:
         pre_login = tds.TDS_PRELOGIN(packet["Data"])
-        instance = pre_login["Instance"].decode(errors="replace")
+        instance = pre_login["Instance"].decode(errors="replace") or "(blank)"
         version = pre_login["Version"]
-        encryption = pre_login["Encryption"]
-        if encryption in (tds.TDS_ENCRYPT_REQ, tds.TDS_ENCRYPT_ON):
+        if packet["Data"][pre_login["EncryptionOffset"]] in (tds.TDS_ENCRYPT_REQ, tds.TDS_ENCRYPT_ON):
             self.logger.display(
                 f"Pre-Login request for [i]{escape(instance)}[/] "
                 "([bold red]Encryption requested[/])"
