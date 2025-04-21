@@ -334,7 +334,7 @@ class SMTPServerThread(threading.Thread):
 
         # NOTE: hostname on the controller points to the local address that will be
         # bound and the SMTP hostname is just a string that will be sent to the client,
-        controller.hostname = "::" if self.config.ipv6 else self.config.ipv4
+        controller.hostname = config.bind_address
 
         # alter the server hostname
         controller.SMTP_kwargs["hostname"] = smtp_config.smtp_fqdn.split(".", 1)[0]

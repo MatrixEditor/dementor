@@ -148,13 +148,9 @@ class SMBServerThread(threading.Thread):
         # always disconnect
 
         # Change address_family to IPv6 if this is configured
-        address = self.config.ipv4
+        address = self.config.bind_address
         if self.config.ipv6:
             SMBSERVER.address_family = socket.AF_INET6
-            # empty string means all interfaces even though IPv6 can be bound to a specific
-            # interface. Unfortunately, impacket's SMBSERVER does not support binding to
-            # specific IPv6 addresses.
-            address = ""
 
         self.server = SMBSERVER(
             (address, self.server_config.smb_port),

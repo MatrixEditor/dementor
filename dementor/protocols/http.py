@@ -54,12 +54,18 @@ def apply_config(session):
         servers.append(HTTPServerConfig(server_config))
     session.http_config = servers
 
+    winrm_config = HTTPServerConfig({"Port": 5985})
+    winrm_config.http_wpad_enabled = False
+    winrm_config.http_webdav_enabled = False
+    if session.winrm_enabled:
+        session.winrm_config = winrm_config
+
 
 def create_server_threads(session):
     servers = []
     for server_config in session.http_config if session.http_enabled else []:
         address = (
-            "::" if session.ipv6 else session.ipv4 or "",
+            session.bind_address,
             server_config.http_port,
         )
         servers.append(
@@ -68,6 +74,18 @@ def create_server_threads(session):
                 HTTPServer,
                 server_config,
                 server_address=address,
+                ipv6=bool(session.ipv6),
+            )
+        )
+
+    if session.winrm_enabled:
+        servers.append(
+            ServerThread(
+                session,
+                HTTPServer,
+                session.winrm_config,
+                RequestHandlerClass=WinRMHandler,
+                server_address=(session.bind_address, session.winrm_config.http_port),
                 ipv6=bool(session.ipv6),
             )
         )
@@ -173,23 +191,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
     def __init__(self, session, config, request, client_address, server) -> None:
         self.config = config
         self.session = session
-        self.logger = ProtocolLogger(
-            extra={
-                "protocol": "HTTP",
-                "protocol_color": "chartreuse3",
-                "host": normalize_client_address(client_address[0]),
-                "port": config.http_port,
-            }
-        )
-        self.webdav_logger = ProtocolLogger(
-            extra={
-                "protocol": "WebDAV",
-                "protocol_color": "sea_green3",
-                "host": normalize_client_address(client_address[0]),
-                "port": config.http_port,
-            }
-        )
+        self.client_address = client_address
         self.challenge = None
+        self.setup_proto_logger()
         for http_method in config.http_methods:
             if http_method in ("OPTIONS", "PROPFIND"):
                 # reserved options
@@ -198,6 +202,24 @@ class HTTPHandler(BaseHTTPRequestHandler):
             setattr(self, f"do_{http_method}", lambda: self.handle_request(self.logger))
 
         super().__init__(request, client_address, server)
+
+    def setup_proto_logger(self):
+        self.logger = ProtocolLogger(
+            extra={
+                "protocol": "HTTP",
+                "protocol_color": "chartreuse3",
+                "host": normalize_client_address(self.client_address[0]),
+                "port": self.config.http_port,
+            }
+        )
+        self.webdav_logger = ProtocolLogger(
+            extra={
+                "protocol": "WebDAV",
+                "protocol_color": "sea_green3",
+                "host": normalize_client_address(self.client_address[0]),
+                "port": self.config.http_port,
+            }
+        )
 
     def do_PROPFIND(self):
         if self.config.http_webdav_enabled:
@@ -267,6 +289,12 @@ class HTTPHandler(BaseHTTPRequestHandler):
         path = pathlib.Path(self.path)
         return path.suffix == ".pac" or path.stem == "wpad"
 
+    def display_request(self, req_type: str | None = None):
+        line = f"{self.command} request for {markup.escape(self.path)}"
+        if req_type:
+            line = f"{line} ({req_type})"
+        self.logger.display(line)
+
     def send_wpad_script(self):
         if self.config.proxy_config.proxy_script:
             # try to render the custom script
@@ -291,7 +319,6 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def handle_request(self, logger):
-        logger.display(f"{self.command} request for {markup.escape(self.path)}")
         if HTTPHeaders.AUTHORIZATION not in self.headers:
             # make sure the client authenticates to us
             if (
@@ -301,6 +328,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             ):
                 return self.send_wpad_script()
 
+            self.display_request("Unauthorized")
             self.send_error(
                 HTTPStatus.UNAUTHORIZED,
                 "Unauthorized",
@@ -315,6 +343,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             if method:
                 method(token, logger)
             else:
+                logger.debug(f"Unknown authentication scheme: {name}")
                 self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
 
     def auth_negotiate(self, token, logger):
@@ -336,6 +365,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         match message:
             case ntlm.NTLM_HTTP_AuthNegotiate():
+                self.display_request("NTLMSSP_NEGOTIATE")
                 challenge = NTLM_AUTH_CreateChallenge(
                     message,
                     *NTLM_split_fqdn(self.config.http_fqdn),
@@ -350,6 +380,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
             case ntlm.NTLM_HTTP_AuthChallengeResponse():
+                self.display_request("NTLMSSP_AUTH")
                 # try to decode auth message
                 auth_message = message
                 hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
@@ -383,7 +414,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
                     HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"
                 )
 
+
     def auth_bearer(self, token, logger):
+        self.display_request("Bearer")
         self.session.db.add_auth(
             client=self.client_address,
             credtype="BearerToken",
@@ -395,6 +428,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.finish_request(logger)
 
     def auth_basic(self, token, logger):
+        self.display_request("Basic")
         try:
             username, password = base64.b64decode(token).decode().split(":", 1)
         except ValueError:
@@ -433,6 +467,18 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 extras["Data"] = f"(hex) {self.rfile.read(length).hex()}"
 
         return extras
+
+
+class WinRMHandler(HTTPHandler):
+    def setup_proto_logger(self):
+        self.logger = ProtocolLogger(
+            extra={
+                "protocol": "WinRM",
+                "protocol_color": "spring_green1",
+                "host": normalize_client_address(self.client_address[0]),
+                "port": self.config.http_port,
+            }
+        )
 
 
 class HTTPServer(ThreadingHTTPServer):
@@ -492,3 +538,7 @@ class HTTPServer(ThreadingHTTPServer):
             print(e)
             dm_logger.error("Error rendering page: Could not find template")
             return
+
+
+class WinRMServer(HTTPServer):
+    service_name = "WinRM"

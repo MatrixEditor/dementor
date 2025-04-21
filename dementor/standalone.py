@@ -259,7 +259,7 @@ def main_print_options(session: SessionConfig, interface):
     poisoners_lines.append(main_format_config("Interface", interface))
 
     protocols_lines = ["", "[bold]Servers:[/bold]"]
-    additional_protocols = ["KDC", "NBTDS"]
+    additional_protocols = ["KDC", "NBTDS", "WinRM"]
     for name in (list(session.protocols) or []) + additional_protocols:
         attr_name = f"{name.lower()}_enabled"
         value = getattr(session, attr_name, None)
