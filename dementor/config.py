@@ -41,10 +41,10 @@ class TomlConfig:
     _section_: str | None
     _fields_: list[Attribute]
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict | None = None) -> None:
         for field in self._fields_:
             self._set_field(
-                config,
+                config or {},
                 field.attr_name,
                 field.qname,
                 field.default_val,
@@ -152,6 +152,7 @@ class SessionConfig(TomlConfig):
         Attribute("mdns_enabled", "mDNS", True, factory=is_true),
         Attribute("http_enabled", "HTTP", True, factory=is_true),
         Attribute("msrpc_enabled", "RPC", True, factory=is_true),
+        Attribute("winrm_enabled", "WinRM", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]
@@ -169,8 +170,8 @@ class SessionConfig(TomlConfig):
     def __init__(self) -> None:
         super().__init__(dm_config.get("Dementor", {}))
         # global options that are not loaded from configuration
-        self.ipv6: Optional[str] = None
-        self.ipv4: Optional[str] = None
+        self.ipv6 = None
+        self.ipv4 = None
         self.interface = None
         self.analysis = False
         self.loop = asyncio.get_event_loop()
@@ -189,6 +190,10 @@ class SessionConfig(TomlConfig):
     def is_bound_to_all(self) -> bool:
         # REVISIT: this should raise an exception
         return self.interface == "ALL"
+
+    @property
+    def bind_address(self) -> str:
+        return "::" if self.ipv6 else str(self.ipv4)
 
 
 def _read(path: str):

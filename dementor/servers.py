@@ -136,7 +136,7 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
             self.address_family = socket.AF_INET6
 
         super().__init__(
-            server_address or ("", self.default_port),
+            server_address or (self.config.bind_address, self.default_port),
             RequestHandlerClass or self.default_handler_class,
         )
 
@@ -173,7 +173,7 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         if config.ipv6 and not self.ipv4_only:
             self.address_family = socket.AF_INET6
         super().__init__(
-            server_address or ("", self.default_port),
+            server_address or (self.config.bind_address, self.default_port),
             RequestHandlerClass or self.default_handler_class,
         )
 

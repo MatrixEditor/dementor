@@ -354,7 +354,7 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>WinRM</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
             <td>

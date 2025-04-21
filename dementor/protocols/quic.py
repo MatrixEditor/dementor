@@ -57,8 +57,7 @@ def apply_config(session):
 def create_server_threads(session):
     servers = []
     if session.quic_enabled:
-        address = "::" if session.ipv6 else session.ipv4 or ""
-        servers.append(QuicServerThread(session, address, ipv6=bool(session.ipv6)))
+        servers.append(QuicServerThread(session, session.bind_address, ipv6=bool(session.ipv6)))
 
     return servers
 

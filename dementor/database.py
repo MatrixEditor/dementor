@@ -197,11 +197,19 @@ class DementorDB:
         )
         results = self.db_exec(q).all()
         text = "Password" if credtype == _CLEARTEXT else "Hash"
+        username_text = markup.escape(username)
+        is_blank = len(str(username).strip()) == 0
+        if is_blank:
+            username_text = "(blank)"
+
         full_name = (
-            f"[b]{markup.escape(username)}[/]/[b]{markup.escape(domain)}[/]"
+            f" for [b]{username_text}[/]/[b]{markup.escape(domain)}[/]"
             if domain
-            else f"[b]{markup.escape(username)}[/]"
+            else f" for [b]{username_text}[/]"
         )
+        if is_blank:
+            full_name = ""
+
         if not results or self.config.db_config.db_duplicate_creds:
             # just insert a new row
             q = sql.insert(self.CredentialsTable).values(
@@ -219,13 +227,13 @@ class DementorDB:
             self.db_exec(q)
             with dm_console_lock:
                 target_logger.success(
-                    f"Captured {credtype} {text} for {full_name} from {client_address}:",
+                    f"Captured {credtype} {text}{full_name} from {client_address}:",
                     host=hostname or client_address,
                     locked=True,
                 )
                 if username != _NO_USER:
                     target_logger.highlight(
-                        f"{credtype} Username: {markup.escape(username)}",
+                        f"{credtype} Username: {username_text}",
                         host=hostname or client_address,
                         locked=True,
                     )

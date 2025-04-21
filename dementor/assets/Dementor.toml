@@ -100,6 +100,13 @@ LDAP = true
 
 QUIC = true
 
+# Enables the WinRM server on port 5985. This setting is a shortcut for defining
+# an extra HTTP server. Note that if a global of HTTP local certificate and key
+# are configured, another WinRM server on port 5986 will be created.
+# The default value is: true
+
+WinRM = true
+
 
 # =============================================================================
 # Globals
@@ -457,6 +464,19 @@ WPADAuthRequired = true
 
 [[HTTP.Server]]
 Port = 80
+
+# To build an HTTPS server, you need to enable TLS, and configure a certificate
+# [[HTTP.Server]]
+# Port = 443
+# TLS = true
+# Cert = "default.cert"
+# Key = "default.key"
+
+# To build a WinRM server, you just need to disable WPAD and WebDAV
+# [[HTTP.Server]]
+# Port = 5985
+# WPAD = false
+# WebDAV = false
 
 
 # =============================================================================

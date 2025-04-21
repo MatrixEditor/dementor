@@ -7,15 +7,16 @@ Protocols
 .. toctree::
     :caption: Available Protocols
 
-    mdns
-    llmnr
-    netbios
-    ftp
-    kerberos
-    ntlm
-    smtp
-    smb
-    quic
-    ldap
-    http
     dcerpc
+    ftp
+    http
+    kerberos
+    ldap
+    llmnr
+    mdns
+    netbios
+    ntlm
+    quic
+    smb
+    smtp
+    winrm
