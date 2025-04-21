@@ -289,11 +289,11 @@ class HTTPHandler(BaseHTTPRequestHandler):
         path = pathlib.Path(self.path)
         return path.suffix == ".pac" or path.stem == "wpad"
 
-    def display_request(self, req_type: str | None = None):
+    def display_request(self, req_type: str | None = None, logger=None):
         line = f"{self.command} request for {markup.escape(self.path)}"
         if req_type:
             line = f"{line} ({req_type})"
-        self.logger.display(line)
+        (logger or self.logger).display(line)
 
     def send_wpad_script(self):
         if self.config.proxy_config.proxy_script:
@@ -328,7 +328,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             ):
                 return self.send_wpad_script()
 
-            self.display_request("Unauthorized")
+            self.display_request("Unauthorized", logger)
             self.send_error(
                 HTTPStatus.UNAUTHORIZED,
                 "Unauthorized",
@@ -365,7 +365,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         match message:
             case ntlm.NTLM_HTTP_AuthNegotiate():
-                self.display_request("NTLMSSP_NEGOTIATE")
+                self.display_request("NTLMSSP_NEGOTIATE", logger)
                 challenge = NTLM_AUTH_CreateChallenge(
                     message,
                     *NTLM_split_fqdn(self.config.http_fqdn),
@@ -380,7 +380,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
             case ntlm.NTLM_HTTP_AuthChallengeResponse():
-                self.display_request("NTLMSSP_AUTH")
+                self.display_request("NTLMSSP_AUTH", logger)
                 # try to decode auth message
                 auth_message = message
                 hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
@@ -416,7 +416,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
 
     def auth_bearer(self, token, logger):
-        self.display_request("Bearer")
+        self.display_request("Bearer", logger)
         self.session.db.add_auth(
             client=self.client_address,
             credtype="BearerToken",
@@ -428,7 +428,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.finish_request(logger)
 
     def auth_basic(self, token, logger):
-        self.display_request("Basic")
+        self.display_request("Basic", logger)
         try:
             username, password = base64.b64decode(token).decode().split(":", 1)
         except ValueError:
