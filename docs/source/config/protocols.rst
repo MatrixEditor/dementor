@@ -14,6 +14,7 @@ Protocols
     ldap
     llmnr
     mdns
+    mssql
     netbios
     ntlm
     quic

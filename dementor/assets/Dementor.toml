@@ -55,10 +55,15 @@ mDNS = true
 
 LLMNR = true
 
-# Enables NBT-NS multicast poisoning. Does not require superuser privileges.
+# Enables NBT-NS multicast poisoning. Requires superuser privileges.
 # The default value is: true
 
 NBTNS = true
+
+# Enables theMSSQL Browser service. Does not require superuser privileges.
+# The default value is: true
+
+SSRP = true
 
 # Enables the SMTP service. Uses privileged ports and requires root privileges.
 # The default value is: true
@@ -106,6 +111,11 @@ QUIC = true
 # The default value is: true
 
 WinRM = true
+
+# Enables a simple MSSQL server on its configured port. This setting does not
+# require root privileges by default.
+
+MSSQL = true
 
 
 # =============================================================================
@@ -521,6 +531,61 @@ TargetPort = 49000
 #   - A dictionary with keys 'start' and 'end'
 
 # TargetPortRange = "45000-49999"
+
+
+# =============================================================================
+# MSSQL
+# =============================================================================
+[MSSQL]
+
+# The following NTLM-related settings can be inherited from the [NTLM] section:
+#   - FQDN
+#   - Challenge
+#   - ExtendedSessionSecurity
+
+# Defines the error response configuration used to simulate MSSQL authentication
+# failure or control behavior.
+
+# Numeric error code returned to the client.
+ErrorCode = 1205
+
+# Optional custom error message returned with the error code.
+# ErrorMessage = "Access Denied"
+
+# Optional error state value to be included in the MSSQL response.
+# ErrorState = 2
+
+# Optional error class value to be included in the MSSQL response.
+# ErrorClass = 14
+
+# Specifies the reported version of the MSSQL server. This version string is returned
+# in responses and may influence client behavior.
+Version = "9.00.1399.06"
+
+# Specifies the name of the MSSQL instance. This value is included in SSRP responses
+#and may be used to identify the server instance.
+InstanceName = "MSSQLServer"
+
+
+# =============================================================================
+# SSRP
+# =============================================================================
+[SSRP]
+
+# The following values can be defined here or inherited from the [MSSQL] section:
+#   - FQDN
+#   - ServerVersion
+#   - InstanceName
+
+# The following values can be defined here or inherited from the [Globals] section:
+#   - Ignore
+#   - AnswerTo
+
+# Specifies the instance-specific response used for SSRP (SQL Server Resolution Protocol).
+# This can be used to emulate specific server instance behaviors or service identifiers.
+#
+# Example:
+# InstanceConfig = ";rpc;DEMENTOR"
 
 
 # =============================================================================

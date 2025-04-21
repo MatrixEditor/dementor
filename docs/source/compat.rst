@@ -61,6 +61,11 @@ in development. The legend for each symbol is as follows:
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
+            <td><a href="./config/mdns.html">SSRP</a></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
             <td><a href="./config/quic.html">QUIC</a></td>
             <td><i class="i-lucide x sd-text-danger l"></i></td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -300,7 +305,7 @@ in development. The legend for each symbol is as follows:
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#confusion">[1]</a></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
@@ -347,9 +352,45 @@ in development. The legend for each symbol is as follows:
             <td><i class="i-lucide x sd-text-danger l"></i></td>
         </tr>
         <tr>
-            <td>MSSQL</td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td>
+                <a href="./config/mssql.html">MSSQL</a>
+                <table>
+                <tbody>
+                    <tr>
+                        <td>Cleartext</td>
+                    </tr>
+                    <tr>
+                        <td>NTLM</td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#confusion">[1]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
             <td>WinRM</td>
@@ -378,7 +419,7 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#confusion">[1]</a></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
@@ -408,3 +449,5 @@ in development. The legend for each symbol is as follows:
         </tr>
     </tbody>
     </table>
+
+    <p id="confusion">[1]: Responder is not able to distinguish between NTLMv1/v2-SSP and NTLMv1/v2</p>

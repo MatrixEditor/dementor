@@ -241,7 +241,7 @@ def main_print_options(session: SessionConfig, interface):
     off = r"[bold red]\[OFF][/bold red]"
 
     poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
-    for name in ("LLMNR", "mDNS", "NBTNS"):
+    for name in ("LLMNR", "mDNS", "NBTNS", "SSRP"):
         attr_name = f"{name.lower()}_enabled"
         status = on if getattr(session, attr_name, False) else off
         if session.analysis:
@@ -260,7 +260,8 @@ def main_print_options(session: SessionConfig, interface):
 
     protocols_lines = ["", "[bold]Servers:[/bold]"]
     additional_protocols = ["KDC", "NBTDS", "WinRM"]
-    for name in (list(session.protocols) or []) + additional_protocols:
+    protos = (list(session.protocols) or []) + additional_protocols
+    for name in sorted(protos):
         attr_name = f"{name.lower()}_enabled"
         value = getattr(session, attr_name, None)
         if value is None:

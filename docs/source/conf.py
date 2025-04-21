@@ -9,7 +9,7 @@
 project = "Dementor"
 copyright = "2025-Present, MatrixEditor"
 author = "MatrixEditor"
-release = "1.0.0.dev3"
+release = "1.0.0.dev4"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
