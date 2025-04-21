@@ -153,6 +153,8 @@ class SessionConfig(TomlConfig):
         Attribute("http_enabled", "HTTP", True, factory=is_true),
         Attribute("msrpc_enabled", "RPC", True, factory=is_true),
         Attribute("winrm_enabled", "WinRM", True, factory=is_true),
+        Attribute("mssql_enabled", "MSSQL", True, factory=is_true),
+        Attribute("ssrp_enabled", "SSRP", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]
