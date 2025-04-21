@@ -20,7 +20,6 @@
 import socket
 import base64
 import pathlib
-from sre_constants import FAILURE
 import ssl
 
 from http import HTTPStatus
@@ -34,7 +33,7 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
-from dementor.config import Attribute as A, TomlConfig, get_value, is_true, dm_config
+from dementor.config import Attribute as A, TomlConfig, get_value, is_true
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER
@@ -266,6 +265,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.logger.debug(f"- - {msg}")
 
     def send_response(self, code: int, message: str | None = None) -> None:
+        if not hasattr(self, "_headers_buffer"):
+            self._headers_buffer = []
+
         super().send_response(code, message)
         for header in self.config.http_extra_headers:
             self._headers_buffer.append(f"{header}\r\n".encode("latin-1", "strict"))
