@@ -26,9 +26,12 @@ from impacket import tds, ntlm
 from rich.markup import escape
 
 from caterpillar.py import (
+    Bytes,
+    FieldStruct,
     pack,
     struct,
     Const,
+    uint32,
     uint8,
     CString,
     LittleEndian,
@@ -217,6 +220,11 @@ class MSSQLConfig(TomlConfig):
         A("mssql_error_code", "ErrorCode", 1205),  # LK_VICTIM
         A("mssql_error_state", "ErrorState", 1),
         A("mssql_error_class", "ErrorClass", 14),
+        A(
+            "mssql_error_msg",
+            "ErrorMessage",
+            "You have been chosen as the deadlock victim",
+        ),
     ]
 
 
@@ -238,6 +246,50 @@ class PL_OPTION_TOKEN_VERSION:
 class SSPI:
     token_type: uint8 = 0xED
     buffer: Prefixed(uint16)
+
+
+class VARCHAR(FieldStruct):
+    def __init__(self, sub) -> None:
+        super().__init__()
+        self.struct = sub
+
+    def __size__(self, context) -> int:
+        raise NotImplementedError
+
+    def __type__(self) -> type:
+        return str
+
+    def unpack_single(self, context) -> str:
+        size = self.struct.__unpack__(context)
+        return context._io.read(size * 2).decode("utf-16le")
+
+    def pack_single(self, obj, context) -> None:
+        length = len(obj)
+        self.struct.__pack__(length, context)
+        context._io.write(obj.encode("utf-16le"))
+
+
+# Even though, this gets packed successfully, the server won't be able
+# to parse it
+@struct(order=LittleEndian)
+class TDS_ERROR:
+    token_type: uint8 = tds.TDS_ERROR_TOKEN
+    length: uint16 = 0
+    number: uint32
+    state: uint8
+    class_: uint8
+    msg: VARCHAR(uint16)
+    server_name: VARCHAR(uint8)
+    process_name: VARCHAR(uint8)
+    line_number: uint16
+
+    def length_hint(self) -> int:
+        return (
+            12
+            + len(self.msg) * 2
+            + len(self.server_name) * 2
+            + len(self.process_name) * 2
+        )
 
 
 class MSSQLHandler(BaseProtoHandler):
@@ -287,10 +339,17 @@ class MSSQLHandler(BaseProtoHandler):
         pre_login = tds.TDS_PRELOGIN(packet["Data"])
         instance = pre_login["Instance"].decode(errors="replace")
         version = pre_login["Version"]
-        self.logger.display(
-            f"PreLogin request for [i]{escape(instance)}[/] "
-            f"(version: {unpack(PL_OPTION_TOKEN_VERSION, version)})"
-        )
+        encryption = pre_login["Encryption"]
+        if encryption in (tds.TDS_ENCRYPT_REQ, tds.TDS_ENCRYPT_ON):
+            self.logger.display(
+                f"Pre-Login request for [i]{escape(instance)}[/] "
+                "([bold red]Encryption requested[/])"
+            )
+        else:
+            self.logger.display(
+                f"PreLogin request for [i]{escape(instance)}[/] "
+                f"(version: {unpack(PL_OPTION_TOKEN_VERSION, version)})"
+            )
 
         pre_login = tds.TDS_PRELOGIN()
         version = self.config.mssql_config.mssql_server_version.split(".")
@@ -401,7 +460,7 @@ class MSSQLHandler(BaseProtoHandler):
             logger=self.logger,
         )
         self.send_error(packet)
-        return 0
+        return 1
 
     def decode_password(self, password: bytes) -> str:
         return bytes(
@@ -421,23 +480,29 @@ class MSSQLHandler(BaseProtoHandler):
         self.send(packet.getData())
 
     def send_error(self, prev_pkt) -> None:
-        error = tds.TDS_INFO_ERROR()
         name = NTLM_split_fqdn(self.config.mssql_config.mssql_fqdn)[0]
-        error["TokenType"] = tds.TDS_ERROR_TOKEN
-        error["Number"] = self.config.mssql_config.mssql_error_code
-        error["State"] = self.config.mssql_config.mssql_error_state
-        error["Class"] = self.config.mssql_config.mssql_error_class
-        error["MsgText"] = ""
-        error["MsgTextLen"] = 0
-        error["ServerName"] = name
-        error["ServerNameLen"] = len(error["ServerName"])
-        error["ProcName"] = ""
-        error["ProcNameLen"] = 0
-        error["LineNumber"] = 1
-        error["Length"] = 0
-        error["Length"] = len(error.getData())
+        error = TDS_ERROR(
+            number=self.config.mssql_config.mssql_error_code,
+            state=self.config.mssql_config.mssql_error_state,
+            class_=self.config.mssql_config.mssql_error_class,
+            msg=self.config.mssql_config.mssql_error_msg,
+            server_name=name,
+            process_name="",
+            line_number=1,
+        )
+        # currently, there is no better way to get the length
+        error.length = error.length_hint()
+
+        token_done = tds.TDS_DONE()
+        token_done["TokenType"] = tds.TDS_DONE_TOKEN
+        token_done["Status"] = 0x02  # Error
+        token_done["CurCmd"] = 0
+        token_done["DoneRowCount"] = 0
         self.send_response(
-            tds.TDS_TABULAR, tds.TDS_STATUS_EOM, error.getData(), prev_pkt
+            tds.TDS_TABULAR,
+            tds.TDS_STATUS_EOM,
+            pack(error) + token_done.getData(),
+            prev_pkt,
         )
 
 
