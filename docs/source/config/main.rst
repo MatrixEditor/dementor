@@ -108,3 +108,15 @@ attacks, but instead passively capture credentials:
     .. versionadded:: 1.0.0.dev2
 
     Enables or disables the DCE/RPC service. For more details, refer to :ref:`config_dcerpc`.
+
+
+.. py:attribute:: WinRM
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.winrm_enabled`
+
+    .. versionadded:: 1.0.0.dev3
+
+    Enables or disables the WinRM service. For more details, refer to :ref:`config_winrm`.
+    Configuration is the same as described in :ref:`config_http`.

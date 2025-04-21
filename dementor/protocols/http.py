@@ -20,7 +20,8 @@
 import socket
 import base64
 import pathlib
-
+from sre_constants import FAILURE
+import ssl
 
 from http import HTTPStatus
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -33,7 +34,7 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
-from dementor.config import Attribute as A, TomlConfig, get_value, is_true
+from dementor.config import Attribute as A, TomlConfig, get_value, is_true, dm_config
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER
@@ -54,9 +55,22 @@ def apply_config(session):
         servers.append(HTTPServerConfig(server_config))
     session.http_config = servers
 
-    winrm_config = HTTPServerConfig({"Port": 5985})
-    winrm_config.http_wpad_enabled = False
-    winrm_config.http_webdav_enabled = False
+    winrm_config = []
+    config = HTTPServerConfig({"Port": 5985})
+    config.http_wpad_enabled = False
+    config.http_webdav_enabled = False
+
+    ssl_enabled = bool(config.http_cert)
+    config.http_cert = None
+    config.http_cert_key = None
+    winrm_config.append(config)
+    if ssl_enabled:
+        ssl_config = HTTPServerConfig({"Port": 5986})
+        ssl_config.http_wpad_enabled = False
+        ssl_config.http_webdav_enabled = False
+        ssl_config.http_use_ssl = True
+        winrm_config.append(ssl_config)
+
     if session.winrm_enabled:
         session.winrm_config = winrm_config
 
@@ -79,16 +93,17 @@ def create_server_threads(session):
         )
 
     if session.winrm_enabled:
-        servers.append(
-            ServerThread(
-                session,
-                HTTPServer,
-                session.winrm_config,
-                RequestHandlerClass=WinRMHandler,
-                server_address=(session.bind_address, session.winrm_config.http_port),
-                ipv6=bool(session.ipv6),
+        for winrm_config in session.winrm_config:
+            servers.append(
+                ServerThread(
+                    session,
+                    HTTPServer,
+                    winrm_config,
+                    RequestHandlerClass=WinRMHandler,
+                    server_address=(session.bind_address, winrm_config.http_port),
+                    ipv6=bool(session.ipv6),
+                )
             )
-        )
 
     return servers
 
@@ -156,6 +171,9 @@ class HTTPServerConfig(TomlConfig):
         A("http_templates", "TemplatesPath", [HTTP_TEMPLATES_PATH]),
         A("http_webdav_enabled", "WebDAV", True, factory=is_true),
         A("http_methods", "Methods", ["GET", "POST"]),
+        A("http_cert", "Cert", None, section_local=False),
+        A("http_cert_key", "Key", None, section_local=False),
+        A("http_use_ssl", "TLS", False, factory=is_true),
     ]
 
     def set_http_ntlm_challenge(self, challenge):
@@ -414,7 +432,6 @@ class HTTPHandler(BaseHTTPRequestHandler):
                     HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"
                 )
 
-
     def auth_bearer(self, token, logger):
         self.display_request("Bearer", logger)
         self.session.db.add_auth(
@@ -504,9 +521,23 @@ class HTTPServer(ThreadingHTTPServer):
         )
 
         super().__init__(
-            server_address or ("", 80),
+            server_address or (self.config.bind_address, 80),
             RequestHandlerClass or HTTPHandler,
         )
+        if self.server_config.http_use_ssl:
+            # if defined use ssl
+            cert_path = pathlib.Path(str(self.server_config.http_cert))
+            key_path = pathlib.Path(str(self.server_config.http_cert_key))
+            if not cert_path.exists() or not key_path.exists():
+                dm_logger.error(
+                    f"({self.service_name}, {self.server_address[:2]}) Certificate or key file not found: "
+                    f"Cert={self.server_config.http_cert} "
+                    f"Key={self.server_config.http_cert_key}"
+                )
+                return
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            self.ssl_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
+            self.socket = self.ssl_context.wrap_socket(self.socket, server_side=True)
 
     def server_bind(self):
         bind_server(self, self.config)

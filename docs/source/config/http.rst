@@ -155,6 +155,34 @@ Section ``[HTTP]``
         Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion is
         used in NTLM responses. The domain portion is optional.
 
+    .. py:attribute:: Server.TLS
+        :type: bool
+        :value: false
+
+        *Linked to* :attr:`http.HTTPServerConfig.http_use_ssl`. *Can also be set in* ``[HTTP]``
+
+        Enables SSL/TLS support using a custom certificate.
+
+        .. versionadded:: 1.0.0.dev3
+
+    .. py:attribute:: Server.Cert
+        :type: str
+
+        *Linked to* :attr:`http.HTTPServerConfig.http_cert`. *Can also be set in* ``[HTTP]`` *or* ``[Globals]``
+
+        Specifies the path to the certificate used when TLS is enabled.
+
+        .. versionadded:: 1.0.0.dev3
+
+    .. py:attribute:: Server.Key
+        :type: str
+
+        *Linked to* :attr:`http.HTTPServerConfig.http_cert_key`. *Can also be set in* ``[HTTP]`` *or* ``[Globals]``
+
+        Specifies the private key file corresponding to the certificate used for TLS.
+
+        .. versionadded:: 1.0.0.dev3
+
 
 Default Configuration
 ---------------------
