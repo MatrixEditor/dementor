@@ -131,6 +131,10 @@ def NTLM_split_fqdn(fqdn: str):
     return fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
 
 
+def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
+    return token["flags"] & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS or not token["user_name"]
+
+
 def NTLM_AUTH_CreateChallenge(
     token: ntlm.NTLMAuthNegotiate,
     name: str,
