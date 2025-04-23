@@ -48,6 +48,7 @@ from dementor.protocols.ntlm import (
     NTLM_AUTH_decode_string,
     NTLM_AUTH_is_anonymous,
     NTLM_AUTH_to_hashcat_format,
+    NTLM_report_auth,
     NTLM_split_fqdn,
 )
 from dementor.servers import (
@@ -240,7 +241,6 @@ class PL_OPTION_TOKEN_VERSION:
         return version_str if not self.sub_build else f"{version_str}.{self.sub_build}"
 
 
-# 2.2.7.22 SSPI
 @struct(order=LittleEndian)
 class SSPI:
     token_type: uint8 = 0xED
@@ -338,7 +338,10 @@ class MSSQLHandler(BaseProtoHandler):
         pre_login = tds.TDS_PRELOGIN(packet["Data"])
         instance = pre_login["Instance"].decode(errors="replace") or "(blank)"
         version = pre_login["Version"]
-        if packet["Data"][pre_login["EncryptionOffset"]] in (tds.TDS_ENCRYPT_REQ, tds.TDS_ENCRYPT_ON):
+        if packet["Data"][pre_login["EncryptionOffset"]] in (
+            tds.TDS_ENCRYPT_REQ,
+            tds.TDS_ENCRYPT_ON,
+        ):
             self.logger.display(
                 f"Pre-Login request for [i]{escape(instance)}[/] "
                 "([bold red]Encryption requested[/])"
@@ -434,28 +437,12 @@ class MSSQLHandler(BaseProtoHandler):
             self.send_error(packet)
             return 1
 
-        if NTLM_AUTH_is_anonymous(auth_message):
-            self.logger.display("Rejecting anonymous login (NTLMSSP)")
-            self.send_error(packet)
-            return 1
-
-        flags = auth_message["flags"]
-        hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
-            self.challenge["challenge"].encode(),
-            auth_message["user_name"],
-            auth_message["domain_name"],
-            auth_message["lanman"],
-            auth_message["ntlm"],
-            flags,
-        )
-
-        self.config.db.add_auth(
+        NTLM_report_auth(
+            auth_message,
+            challenge=self.challenge["challenge"].encode(),
             client=self.client_address,
-            credtype=hashversion,
-            username=NTLM_AUTH_decode_string(auth_message["user_name"], flags),
-            domain=NTLM_AUTH_decode_string(auth_message["domain_name"], flags),
-            password=hashvalue,
             logger=self.logger,
+            session=self.config,
         )
         self.send_error(packet)
         return 1

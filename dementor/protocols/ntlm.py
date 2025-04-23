@@ -206,3 +206,32 @@ def NTLM_AUTH_CreateChallenge(
     ntlm_challenge["Version"] = b"\xff" * 8  # must be blank here
     ntlm_challenge["VersionLen"] = 8
     return ntlm_challenge
+
+
+def NTLM_report_auth(
+    auth_token: ntlm.NTLMAuthChallengeResponse,
+    challenge: bytes,
+    client,
+    session,
+    logger=None,
+    extras=None,
+) -> None:
+    flags = auth_token["flags"]
+    hversion, hstring = NTLM_AUTH_to_hashcat_format(
+        challenge,
+        auth_token["user_name"],
+        auth_token["domain_name"],
+        auth_token["lanman"],
+        auth_token["ntlm"],
+        flags,
+    )
+    if not NTLM_AUTH_is_anonymous(auth_token):
+        session.db.add_auth(
+            client=client,
+            credtype=hversion,
+            username=NTLM_AUTH_decode_string(auth_token["user_name"], flags),
+            domain=NTLM_AUTH_decode_string(auth_token["domain_name"], flags),
+            password=hstring,
+            logger=logger,
+            extras=extras,
+        )
