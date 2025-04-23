@@ -25,7 +25,42 @@ import secrets
 from typing import Tuple
 from impacket import ntlm
 
-from dementor.config import SessionConfig, get_value
+from dementor.config import SessionConfig, get_value, Attribute, is_true
+
+
+def ntlm_config_get_challenge(value: str | bytes | None) -> bytes:
+    match value:
+        case None:
+            return secrets.token_bytes(8)
+
+        case str():
+            try:
+                return bytes.fromhex(value)
+            except ValueError:
+                return value.encode()
+
+        case bytes():
+            return value
+
+        case _:
+            return str(value).encode()
+
+
+ATTR_NTLM_CHALLENGE = Attribute(
+    "ntlm_challenge",
+    "NTLM.Challenge",
+    b"1337LEET",
+    section_local=False,
+    factory=ntlm_config_get_challenge,
+)
+
+ATTR_NTLM_ESS = Attribute(
+    "ntlm_ess",
+    "NTLM.ExtendedSessionSecurity",
+    True,
+    section_local=False,
+    factory=is_true,
+)
 
 
 def apply_config(session: SessionConfig) -> None:

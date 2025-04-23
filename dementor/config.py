@@ -140,6 +140,7 @@ def is_true(value) -> bool:
 class SessionConfig(TomlConfig):
     _section_ = "Dementor"
     _fields_ = [
+        # TODO: place this somewhere else
         Attribute("llmnr_enabled", "LLMNR", True, factory=is_true),
         Attribute("nbtns_enabled", "NBTNS", True, factory=is_true),
         Attribute("nbtds_enabled", "NBTDS", True, factory=is_true),
@@ -155,6 +156,7 @@ class SessionConfig(TomlConfig):
         Attribute("winrm_enabled", "WinRM", True, factory=is_true),
         Attribute("mssql_enabled", "MSSQL", True, factory=is_true),
         Attribute("ssrp_enabled", "SSRP", True, factory=is_true),
+        Attribute("imap_enabled", "IMAP", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ]
@@ -196,6 +198,10 @@ class SessionConfig(TomlConfig):
     @property
     def bind_address(self) -> str:
         return "::" if self.ipv6 else str(self.ipv4)
+
+    @property
+    def ipv6_support(self) -> bool:
+        return bool(self.ipv6) and not getattr(self, "ipv4_only", False)
 
 
 def _read(path: str):

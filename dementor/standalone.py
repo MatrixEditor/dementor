@@ -212,8 +212,8 @@ def main_print_banner(quiet_mode: bool) -> None:
     if quiet_mode:
         # only print out scapy and impacket versions
         print(
-            f"[bold]Dementor[/bold] - [white]Running with Scapy v{ScapyVersion} "
-            f"and Impacket v{ImpacketVersion}[/white]\n",
+            f"[bold]Dementor[/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
+            f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
         return
 

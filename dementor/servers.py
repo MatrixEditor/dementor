@@ -86,6 +86,11 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
             self.handle_data(data, transport)
         except BrokenPipeError:
             pass  # connection closed, maybe log that
+        except TimeoutError:
+            pass
+        except OSError as e:
+            if e.errno not in (32, 104): # EPIPE, ECONNRESET
+                self.logger.exception(e)
         except Exception as e:
             self.logger.exception(e)
 
