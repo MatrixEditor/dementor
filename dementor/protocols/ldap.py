@@ -47,9 +47,7 @@ from dementor.servers import (
 from dementor.database import _CLEARTEXT
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
     NTLM_AUTH_format_host,
-    NTLM_AUTH_to_hashcat_format,
     NTLM_report_auth,
 )
 

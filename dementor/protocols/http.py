@@ -40,8 +40,8 @@ from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
-    NTLM_AUTH_to_hashcat_format,
+    ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_ESS,
     NTLM_report_auth,
     NTLM_split_fqdn,
 )
@@ -162,8 +162,6 @@ class HTTPServerConfig(TomlConfig):
         A("http_port", "Port"),
         A("http_server_type", "ServerType", "Microsoft-IIS/10.0"),
         A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic", "Bearer"]),
-        A("http_ntlm_challenge", "NTLM.Challenge", b"A" * 8),
-        A("http_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
         A("http_fqdn", "FQDN", "DEMENTOR", section_local=False),
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),
@@ -174,6 +172,8 @@ class HTTPServerConfig(TomlConfig):
         A("http_cert", "Cert", None, section_local=False),
         A("http_cert_key", "Key", None, section_local=False),
         A("http_use_ssl", "TLS", False, factory=is_true),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_ESS,
     ]
 
     def set_http_ntlm_challenge(self, challenge):
@@ -207,7 +207,7 @@ class HTTPHeaders:
 
 class HTTPHandler(BaseHTTPRequestHandler):
     def __init__(self, session, config, request, client_address, server) -> None:
-        self.config = config
+        self.config = config  # REVISIT: this is confusing
         self.session = session
         self.client_address = client_address
         self.challenge = None
@@ -390,8 +390,8 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 challenge = NTLM_AUTH_CreateChallenge(
                     message,
                     *NTLM_split_fqdn(self.config.http_fqdn),
-                    challenge=self.config.http_ntlm_challenge,
-                    disable_ess=not self.config.http_ess,
+                    challenge=self.config.ntlm_challenge,
+                    disable_ess=not self.config.ntlm_ess,
                 )
                 self.send_response(HTTPStatus.UNAUTHORIZED, "Unauthorized")
                 data = base64.b64encode(challenge.getData()).decode()
@@ -404,7 +404,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 self.display_request("NTLMSSP_AUTH", logger)
                 NTLM_report_auth(
                     message,
-                    challenge=self.config.http_ntlm_challenge,
+                    challenge=self.config.ntlm_challenge,
                     client=self.client_address,
                     session=self.session,
                     logger=logger,

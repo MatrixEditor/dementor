@@ -45,9 +45,8 @@ from dementor.config import Attribute as A, TomlConfig, is_true
 from dementor.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
-    NTLM_AUTH_is_anonymous,
-    NTLM_AUTH_to_hashcat_format,
+    ATTR_NTLM_ESS,
+    ATTR_NTLM_CHALLENGE,
     NTLM_report_auth,
     NTLM_split_fqdn,
 )
@@ -215,8 +214,6 @@ class MSSQLConfig(TomlConfig):
         A("mssql_server_version", "Version", "9.00.1399.06"),
         A("mssql_fqdn", "FQDN", "DEMENTOR", section_local=False),
         A("mssql_instance", "InstanceName", "MSSQLSerevr"),
-        A("mssql_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
-        A("mssql_challenge", "NTLM.Challenge", b"A" * 8),
         A("mssql_error_code", "ErrorCode", 1205),  # LK_VICTIM
         A("mssql_error_state", "ErrorState", 1),
         A("mssql_error_class", "ErrorClass", 14),
@@ -225,6 +222,8 @@ class MSSQLConfig(TomlConfig):
             "ErrorMessage",
             "You have been chosen as the deadlock victim",
         ),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_ESS,
     ]
 
 
@@ -411,8 +410,8 @@ class MSSQLHandler(BaseProtoHandler):
             self.challenge = NTLM_AUTH_CreateChallenge(
                 negotiate,
                 *NTLM_split_fqdn(self.config.mssql_config.mssql_fqdn),
-                challenge=self.config.mssql_config.mssql_challenge,
-                disable_ess=not self.config.mssql_config.mssql_ess,
+                challenge=self.config.mssql_config.ntlm_challenge,
+                disable_ess=not self.config.mssql_config.ntlm_ess,
             )
 
             sspi = SSPI(buffer=self.challenge.getData())
@@ -439,7 +438,7 @@ class MSSQLHandler(BaseProtoHandler):
 
         NTLM_report_auth(
             auth_message,
-            challenge=self.challenge["challenge"].encode(),
+            challenge=self.challenge["challenge"],
             client=self.client_address,
             logger=self.logger,
             session=self.config,

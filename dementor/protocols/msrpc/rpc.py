@@ -33,8 +33,8 @@ from dementor.config import Attribute as A, TomlConfig, is_true
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
-    NTLM_AUTH_to_hashcat_format,
+    ATTR_NTLM_ESS,
+    ATTR_NTLM_CHALLENGE,
     NTLM_report_auth,
     NTLM_split_fqdn,
 )
@@ -59,13 +59,13 @@ def uuid_name(uuid_bin: bytes) -> str:
 class RPCConfig(TomlConfig):
     _section_ = "RPC"
     _fields_ = [
-        A("rpc_ntlm_challenge", "NTLM.Challenge", b"A" * 8),
         A("rpc_fqdn", "FQDN", "DEMENTOR", section_local=False),
-        A("rpc_ntlm_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
         A("epm_port", "EPM.TargetPort", 49000),
         A("epm_port_range", "EPM.TargetPortRange", None),
         A("rpc_modules", "Interfaces", list),
         A("rpc_error_code", "ErrorCode", "rpc_s_access_denied"),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_ESS
     ]
 
     def set_rcp_error_code(self, value: str | int):
@@ -262,8 +262,8 @@ class RPCHandler(BaseProtoHandler):
                 challenge = NTLM_AUTH_CreateChallenge(
                     negotiate,
                     *NTLM_split_fqdn(self.rpc_config.rpc_fqdn),
-                    challenge=self.rpc_config.rpc_ntlm_challenge,
-                    disable_ess=not self.rpc_config.rpc_ntlm_ess,
+                    challenge=self.rpc_config.ntlm_challenge,
+                    disable_ess=not self.rpc_config.ntlm_ess,
                 )
                 bind_ack["auth_data"] = challenge.getData()
                 bind_ack["auth_len"] = len(bind_ack["auth_data"])
@@ -308,7 +308,7 @@ class RPCHandler(BaseProtoHandler):
         auth_resp.fromString(token)
         NTLM_report_auth(
             auth_token=auth_resp,
-            challenge=conn.challenge["challenge"].encode(),
+            challenge=conn.challenge["challenge"],
             client=self.client_address,
             logger=self.logger,
             session=self.config,
