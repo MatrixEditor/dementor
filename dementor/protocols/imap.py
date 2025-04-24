@@ -23,8 +23,6 @@
 # - RFC-9501:
 #    https://www.ietf.org/rfc/rfc9051.htm
 import base64
-import pathlib
-import ssl
 
 from impacket import ntlm
 

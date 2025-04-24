@@ -30,25 +30,30 @@ from dementor import config
 class SessionConfig(TomlConfig):
     _section_ = "Dementor"
     _fields_ = [
-        # TODO: place this somewhere else
-        Attribute("llmnr_enabled", "LLMNR", True, factory=is_true),
-        Attribute("nbtns_enabled", "NBTNS", True, factory=is_true),
-        Attribute("nbtds_enabled", "NBTDS", True, factory=is_true),
-        Attribute("smtp_enabled", "SMTP", True, factory=is_true),
-        Attribute("smb_enabled", "SMB", True, factory=is_true),
-        Attribute("ftp_enabled", "FTP", True, factory=is_true),
-        Attribute("kdc_enabled", "KDC", True, factory=is_true),
-        Attribute("ldap_enabled", "LDAP", True, factory=is_true),
-        Attribute("quic_enabled", "QUIC", True, factory=is_true),
-        Attribute("mdns_enabled", "mDNS", True, factory=is_true),
-        Attribute("http_enabled", "HTTP", True, factory=is_true),
-        Attribute("msrpc_enabled", "RPC", True, factory=is_true),
-        Attribute("winrm_enabled", "WinRM", True, factory=is_true),
-        Attribute("mssql_enabled", "MSSQL", True, factory=is_true),
-        Attribute("ssrp_enabled", "SSRP", True, factory=is_true),
-        Attribute("imap_enabled", "IMAP", True, factory=is_true),
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
+    ] + [
+        # TODO: place this somewhere else
+        Attribute(f"{name.lower()}_enabled", name, True, factory=is_true)
+        for name in (
+            "LLMNR",
+            "NBTNS",
+            "NBTDS",
+            "SMTP",
+            "SMB",
+            "FTP",
+            "KDC",
+            "LDAP",
+            "QUIC",
+            "mDNS",
+            "HTTP",
+            "RPC",
+            "WinRM",
+            "MSSQL",
+            "SSRP",
+            "IMAP",
+            "POP3",
+        )
     ]
 
     # TODO: move into .pyi
