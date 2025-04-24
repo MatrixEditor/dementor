@@ -17,7 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from dementor.config import Attribute as A, TomlConfig, get_value
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
 from dementor.database import _CLEARTEXT

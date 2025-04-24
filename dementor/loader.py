@@ -24,7 +24,7 @@ import os
 import dementor
 
 from importlib.machinery import SourceFileLoader
-from dementor.config import SessionConfig
+from dementor.config.session import SessionConfig
 from dementor.paths import DEMENTOR_PATH
 
 

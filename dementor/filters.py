@@ -24,7 +24,7 @@ import pathlib
 import warnings
 
 from typing import Any, List
-from dementor.config import Attribute as A
+from dementor.config.toml import Attribute
 
 
 class FilterObj:
@@ -76,39 +76,35 @@ class FilterObj:
         return filters
 
 
-class BlacklistConfigMixin:
-    _extra_fields_ = [
-        A("ignored", "Ignore", None, section_local=False),
-    ]
-
-    def set_ignored(self, value):
-        self.ignored = value if value is None else Filters(value)
-
-    def is_ignored(self, host: str):
-        return host in self.ignored if self.ignored else False
+def _optional_filter(value):
+    return None if value is None else Filters(value)
 
 
-class WhitelistConfigMixin:
-    _extra_fields_ = [
-        # REVISIT: document why section_local is False here
-        A("targets", "Target", None, section_local=False),
-    ]
+ATTR_BLACKLIST = Attribute(
+    "ignored",
+    "Ignore",
+    default_val=None,
+    section_local=False,
+    factory=_optional_filter,
+)
 
-    def set_targets(self, value):
-        self.targets = value if value is None else Filters(value)
-
-    def is_target(self, host: str):
-        # will always be a target if no list has been configured
-        return host in self.targets if self.targets else True
-
+ATTR_WHITELIST = Attribute(
+    "targets",
+    "Target",
+    default_val=None,
+    section_local=False,
+    factory=_optional_filter,
+)
 
 def in_scope(value: str, config: Any) -> bool:
-    if isinstance(config, WhitelistConfigMixin):
-        if not config.is_target(value):
+    if hasattr(config, "targets"):
+        is_target = value in config.targets if config.targets else True
+        if not is_target:
             return False
 
-    if isinstance(config, BlacklistConfigMixin):
-        if config.is_ignored(value):
+    if hasattr(config, "ignored"):
+        is_ignored = value in config.ignored if config.ignored else False
+        if is_ignored:
             return False
 
     return True

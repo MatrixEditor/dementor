@@ -32,7 +32,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.markup import render
 
-from dementor.config import TomlConfig, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
 
 dm_console = Console(
     soft_wrap=True,

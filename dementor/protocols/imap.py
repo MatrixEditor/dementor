@@ -37,7 +37,8 @@ from dementor.protocols.ntlm import (
 from dementor.servers import ServerThread, ThreadingTCPServer, BaseProtoHandler
 from dementor.logger import ProtocolLogger
 from dementor.database import _CLEARTEXT
-from dementor.config import Attribute as A, TomlConfig, get_value
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import get_value
 
 
 def apply_config(session):
@@ -59,7 +60,7 @@ def create_server_threads(session):
 
 
 IMAP_CAPABILITIES = [
-    # "STARTTLS",
+    "STARTTLS",
 ]
 
 IMAP_AUTH_MECHS = ["PLAIN", "LOGIN", "NTLM", "GSSAPI"]

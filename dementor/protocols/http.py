@@ -33,7 +33,8 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
-from dementor.config import Attribute as A, TomlConfig, get_value, is_true
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import get_value, is_true
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER

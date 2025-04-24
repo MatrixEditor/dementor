@@ -38,7 +38,8 @@ from rich.columns import Columns
 
 from dementor import __version__ as DementorVersion
 from dementor import logger, database, config
-from dementor.config import SessionConfig, TomlConfig
+from dementor.config.session import SessionConfig
+from dementor.config.toml import TomlConfig
 from dementor.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH

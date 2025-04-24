@@ -45,7 +45,9 @@ from impacket.ntlm import (
     NTLMAuthNegotiate,
 )
 
-from dementor.config import TomlConfig, SessionConfig, get_value, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -167,8 +169,8 @@ class SMTPDefaultAuthenticator:
                     username=username,
                 )
 
-        # always return true
-        return AuthResult(success=True)
+        # always return false - we don't support authentication
+        return AuthResult(success=False)
 
 
 class SMTPServerHandler:

@@ -25,7 +25,9 @@ import secrets
 from typing import Tuple
 from impacket import ntlm
 
-from dementor.config import SessionConfig, get_value, Attribute, is_true
+from dementor.config.toml import Attribute
+from dementor.config.session import SessionConfig
+from dementor.config.util import is_true, get_value
 
 
 def ntlm_config_get_challenge(value: str | bytes | None) -> bytes:

@@ -23,10 +23,11 @@ import struct
 from scapy.layers import dns
 from rich import markup
 
-from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scope
+from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 from dementor.logger import ProtocolLogger
 from dementor.servers import ThreadingUDPServer, BaseProtoHandler, ServerThread
-from dementor.config import TomlConfig, SessionConfig, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
 
 MDNS_IPV4_ADDR = "224.0.0.251"
 MDNS_IPV6_ADDR = "ff02::fb"
@@ -52,7 +53,7 @@ def normalized_name(host: str | bytes) -> str:
     return str(host).strip().removesuffix(".")
 
 
-class MDNSConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
+class MDNSConfig(TomlConfig):
     _section_ = "mDNS"
     _fields_ = (
         [
@@ -60,9 +61,9 @@ class MDNSConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
             A("mdns_ttl", "TTL", 120),
             A("mdns_max_labels", "MaxLabels", 1),
             A("mdns_qtypes", "AllowedQueryTypes", [1, 28, 255]),  # A, AAAA, ANY
+            ATTR_WHITELIST,
+            ATTR_BLACKLIST
         ]
-        + BlacklistConfigMixin._extra_fields_
-        + WhitelistConfigMixin._extra_fields_
     )
 
     def set_mdns_qtypes(self, value: list):

@@ -24,13 +24,16 @@ from rich import markup
 
 from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
 from dementor.logger import ProtocolLogger
-from dementor.config import SessionConfig, TomlConfig
-from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scope
+from dementor.config.session import SessionConfig, TomlConfig
+from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 
 
-class NBTNSConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
+class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
-    _fields_ = BlacklistConfigMixin._extra_fields_ + WhitelistConfigMixin._extra_fields_
+    _fields_ = [
+        ATTR_WHITELIST,
+        ATTR_BLACKLIST
+    ]
 
 
 def apply_config(session: SessionConfig) -> None:

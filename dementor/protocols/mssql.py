@@ -41,7 +41,7 @@ from caterpillar.py import (
 )
 
 from dementor.database import _CLEARTEXT
-from dementor.config import Attribute as A, TomlConfig, is_true
+from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -56,7 +56,7 @@ from dementor.servers import (
     ThreadingTCPServer,
     ThreadingUDPServer,
 )
-from dementor.filters import in_scope, BlacklistConfigMixin, WhitelistConfigMixin
+from dementor.filters import in_scope, ATTR_BLACKLIST, ATTR_WHITELIST
 
 
 def apply_config(session):
@@ -129,7 +129,7 @@ class SVR_RESP_DAC:
     tcp_dac_port: uint16
 
 
-class SSRPConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
+class SSRPConfig(TomlConfig):
     _section_ = "SSRP"
     _fields_ = (
         [
@@ -137,9 +137,9 @@ class SSRPConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
             A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
             A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
             A("ssrp_instance_config", "InstanceConfig", ""),
+            ATTR_WHITELIST,
+            ATTR_BLACKLIST,
         ]
-        + BlacklistConfigMixin._extra_fields_
-        + WhitelistConfigMixin._extra_fields_
     )
 
 

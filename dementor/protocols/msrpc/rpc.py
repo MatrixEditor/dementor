@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from impacket.dcerpc.v5 import rpcrt, epm
 from impacket import ntlm
 
-from dementor.config import Attribute as A, TomlConfig, is_true
+from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -65,7 +65,7 @@ class RPCConfig(TomlConfig):
         A("rpc_modules", "Interfaces", list),
         A("rpc_error_code", "ErrorCode", "rpc_s_access_denied"),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS
+        ATTR_NTLM_ESS,
     ]
 
     def set_rcp_error_code(self, value: str | int):

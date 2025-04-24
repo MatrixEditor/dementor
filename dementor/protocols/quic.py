@@ -34,7 +34,8 @@ from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.connection import QuicConnection
 
 
-from dementor.config import SessionConfig, TomlConfig, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
 from dementor.logger import ProtocolLogger, ProtocolLoggerMixin, dm_logger
 
 

@@ -17,12 +17,29 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
-import dementor
 
-DEMENTOR_PATH = os.path.expanduser("~/.dementor")
-ASSETS_PATH = os.path.join(os.path.dirname(dementor.__file__), "assets")
-CONFIG_PATH = os.path.join(DEMENTOR_PATH, "Dementor.toml")
-DEFAULT_CONFIG_PATH = os.path.join(ASSETS_PATH, "Dementor.toml")
-BANNER_PATH = os.path.join(ASSETS_PATH, "banner.txt")
-HTTP_TEMPLATES_PATH = os.path.join(ASSETS_PATH, "www")
+from typing import Any
+
+from dementor.config import _get_global_config
+
+
+def get_value(section: str, key: str | None, default=None) -> Any:
+    sections = section.split(".")
+    config = _get_global_config()
+    if len(sections) == 1:
+        target = config.get(sections[0], {})
+    else:
+        target = config
+        for section in sections:
+            target = target[section]
+
+    if key is None:
+        return target
+
+    return target.get(key, default)
+
+
+# --- factory methods for attributes ---
+def is_true(value: str) -> bool:
+    return str(value).lower() in ("true", "1", "on", "yes")
+

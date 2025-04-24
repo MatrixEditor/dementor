@@ -17,14 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import tomllib
-import os
-import asyncio
+from typing import NamedTuple, Callable, Any
 
-from typing import Any, List, Optional, NamedTuple, Callable
-
-from dementor.paths import ASSETS_PATH, CONFIG_PATH, DEMENTOR_PATH
-
+from dementor.config.util import get_value
 
 _LOCAL = object()
 
@@ -132,117 +127,3 @@ class TomlConfig:
         else:
             setattr(self, field_name, value)
 
-
-def is_true(value) -> bool:
-    return str(value).lower() in ("true", "1", "yes", "on")
-
-
-class SessionConfig(TomlConfig):
-    _section_ = "Dementor"
-    _fields_ = [
-        # TODO: place this somewhere else
-        Attribute("llmnr_enabled", "LLMNR", True, factory=is_true),
-        Attribute("nbtns_enabled", "NBTNS", True, factory=is_true),
-        Attribute("nbtds_enabled", "NBTDS", True, factory=is_true),
-        Attribute("smtp_enabled", "SMTP", True, factory=is_true),
-        Attribute("smb_enabled", "SMB", True, factory=is_true),
-        Attribute("ftp_enabled", "FTP", True, factory=is_true),
-        Attribute("kdc_enabled", "KDC", True, factory=is_true),
-        Attribute("ldap_enabled", "LDAP", True, factory=is_true),
-        Attribute("quic_enabled", "QUIC", True, factory=is_true),
-        Attribute("mdns_enabled", "mDNS", True, factory=is_true),
-        Attribute("http_enabled", "HTTP", True, factory=is_true),
-        Attribute("msrpc_enabled", "RPC", True, factory=is_true),
-        Attribute("winrm_enabled", "WinRM", True, factory=is_true),
-        Attribute("mssql_enabled", "MSSQL", True, factory=is_true),
-        Attribute("ssrp_enabled", "SSRP", True, factory=is_true),
-        Attribute("imap_enabled", "IMAP", True, factory=is_true),
-        Attribute("extra_modules", "ExtraModules", list),
-        Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
-    ]
-
-    # TODO: move into .pyi
-    db: Any
-    db_config: Any
-    krb5_config: Any
-    mdns_config: Any
-    llmnr_config: Any
-    quic_config: Any
-    netbiosns_config: Any
-    ldap_config: List[Any]
-
-    def __init__(self) -> None:
-        super().__init__(dm_config.get("Dementor", {}))
-        # global options that are not loaded from configuration
-        self.ipv6 = None
-        self.ipv4 = None
-        self.interface = None
-        self.analysis = False
-        self.loop = asyncio.get_event_loop()
-        self.protocols = {}
-
-        # SMTP configuration
-        self.smtp_servers = []
-
-        # NTLM configuration
-        self.ntlm_challange = b"1337LEET"
-        self.ntlm_ess = True
-
-        # SMB configuration
-        self.smb_server_config = []
-
-    def is_bound_to_all(self) -> bool:
-        # REVISIT: this should raise an exception
-        return self.interface == "ALL"
-
-    @property
-    def bind_address(self) -> str:
-        return "::" if self.ipv6 else str(self.ipv4)
-
-    @property
-    def ipv6_support(self) -> bool:
-        return bool(self.ipv6) and not getattr(self, "ipv4_only", False)
-
-
-def _read(path: str):
-    with open(path, "rb") as f:
-        return tomllib.load(f)
-
-
-dm_default_config = _read(os.path.join(ASSETS_PATH, "Dementor.toml"))
-
-if os.path.exists(CONFIG_PATH):
-    dm_config = _read(CONFIG_PATH)
-else:
-    dm_config = {}
-
-if not dm_config or "Dementor" not in dm_config:
-    # TODO: do first run
-    dm_config = dm_default_config
-
-
-def get_bool(section: str, key: str, default=False) -> bool:
-    value = str(get_value(section, key=key, default=str(default)))
-    return is_true(value)
-
-
-def get_value(section: str, key: str | None, default=None) -> Any:
-    sections = section.split(".")
-    if len(sections) == 1:
-        target = dm_config.get(sections[0], {})
-    else:
-        target = dm_config
-        for section in sections:
-            target = target[section]
-
-    if key is None:
-        return target
-
-    return target.get(key, default)
-
-
-def init_from_file(path: str):
-    global dm_config
-
-    if os.path.exists(path):
-        dm_config = _read(path)

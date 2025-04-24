@@ -27,7 +27,7 @@ from socketserver import BaseRequestHandler
 
 from dementor import database
 from dementor.logger import ProtocolLoggerMixin, dm_logger
-from dementor.config import SessionConfig
+from dementor.config.session import SessionConfig
 
 
 class ServerThread(threading.Thread):

@@ -32,7 +32,9 @@ from impacket.spnego import (
     TypesMech,
 )
 
-from dementor.config import TomlConfig, SessionConfig, get_value, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_decode_string,
