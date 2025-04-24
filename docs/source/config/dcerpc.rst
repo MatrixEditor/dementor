@@ -90,7 +90,10 @@ Section ``[RPC]``
     :type: bool
     :value: true
 
-    *Maps to* :attr:`rpc.RPCConfig.rpc_ntlm_ess`.
+    *Maps to* :attr:`rpc.RPCConfig.ntlm_ess`.
+
+    .. versionchanged:: 1.0.0.dev5
+        Internal mapping changed from ``rpc_ntlm_ess`` to ``ntlm_ess``
 
     Enables Extended Session Security (ESS) during NTLM authentication. With ESS enabled,
     NTLMv1/v2-SSP hashes are captured instead of standard NTLM hashes.
@@ -105,7 +108,10 @@ Section ``[RPC]``
     :type: str
     :value: NTLM.Challenge
 
-    *Maps to* :attr:`rpc.RPCConfig.rpc_ntlm_challenge`.
+    *Maps to* :attr:`rpc.RPCConfig.ntlm_challenge`.
+
+    .. versionchanged:: 1.0.0.dev5
+        Internal mapping changed from ``rpc_ntlm_challenge`` to ``ntlm_challenge``
 
     Sets the NTLM challenge value used during authentication. Resolution precedence:
 

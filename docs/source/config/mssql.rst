@@ -55,7 +55,10 @@ Section ``[MSSQL]``
     :type: bool
     :value: true
 
-    *Maps to* :attr:`mssql.MSSQLConfig.mssql_ess`
+    *Maps to* :attr:`mssql.MSSQLConfig.ntlm_ess`
+
+    .. versionchanged:: 1.0.0.dev5
+        Internal mapping changed frmo ``mssql_ess`` to ``ntlm_ess``
 
     Enables NTLM Extended Session Security (ESS). When enabled, NTLMv1/NTLMv2-SSP hashes are
     captured instead of raw NTLM hashes. Resolution precedence:
@@ -67,7 +70,10 @@ Section ``[MSSQL]``
     :type: str
     :value: NTLM.Challenge
 
-    *Maps to* :attr:`mssql.MSSQLServerConfig.mssql_challenge`
+    *Maps to* :attr:`mssql.MSSQLServerConfig.ntlm_challenge`
+
+    .. versionchanged:: 1.0.0.dev5
+        Internal mapping changed frmo ``mssql_challenge`` to ``ntlm_challenge``
 
     Sets the NTLM challenge value. Resolution order:
 
