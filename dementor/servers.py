@@ -17,10 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import pathlib
 import socket
 import socketserver
 import threading
 import abc
+import ssl
 
 from typing import Tuple
 from socketserver import BaseRequestHandler
@@ -89,7 +91,7 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
         except TimeoutError:
             pass
         except OSError as e:
-            if e.errno not in (32, 104): # EPIPE, ECONNRESET
+            if e.errno not in (32, 104):  # EPIPE, ECONNRESET
                 self.logger.exception(e)
         except Exception as e:
             self.logger.exception(e)
@@ -188,3 +190,21 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
     def finish_request(self, request, client_address) -> None:
         self.RequestHandlerClass(self.config, request, client_address, self)
+
+
+def create_tls_context(server_config, server=None, force=False) -> ssl.SSLContext | None:
+    if getattr(server_config, "use_ssl", False) or force:
+        # if defined use ssl
+        cert_path = pathlib.Path(str(getattr(server_config, "certfile", None)))
+        key_path = pathlib.Path(str(getattr(server_config, "keyfile", None)))
+        if not cert_path.exists() or not key_path.exists():
+            service_name = getattr(server, "service_name", "<unser>")
+            dm_logger.error(
+                f"({service_name}) Certificate or key file not found: "
+                f"Cert={cert_path} "
+                f"Key={key_path}"
+            )
+            return
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
+        return ssl_context

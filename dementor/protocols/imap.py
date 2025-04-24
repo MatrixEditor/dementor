@@ -23,9 +23,10 @@
 # - RFC-9501:
 #    https://www.ietf.org/rfc/rfc9051.htm
 import base64
+import pathlib
+import ssl
 
 from impacket import ntlm
-from sqlalchemy import exc
 
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -34,10 +35,19 @@ from dementor.protocols.ntlm import (
     ATTR_NTLM_CHALLENGE,
     ATTR_NTLM_ESS,
 )
-from dementor.servers import ServerThread, ThreadingTCPServer, BaseProtoHandler
+from dementor.servers import (
+    ServerThread,
+    ThreadingTCPServer,
+    BaseProtoHandler,
+    create_tls_context,
+)
 from dementor.logger import ProtocolLogger
 from dementor.database import _CLEARTEXT
-from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.toml import (
+    TomlConfig,
+    Attribute as A,
+)
+from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.util import get_value
 
 
@@ -60,10 +70,11 @@ def create_server_threads(session):
 
 
 IMAP_CAPABILITIES = [
-    "STARTTLS",
+    # NOTE: support STARTTLS is currently not avaialble
+    # "STARTTLS",
 ]
 
-IMAP_AUTH_MECHS = ["PLAIN", "LOGIN", "NTLM", "GSSAPI"]
+IMAP_AUTH_MECHS = ["PLAIN", "LOGIN", "NTLM"]
 
 
 class IMAPServerConfig(TomlConfig):
@@ -77,6 +88,9 @@ class IMAPServerConfig(TomlConfig):
         A("imap_downgrade", "Downgrade", True),
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
+        ATTR_KEY,
+        ATTR_CERT,
+        ATTR_TLS,
     ]
 
 
@@ -205,6 +219,9 @@ class IMAPHandler(BaseProtoHandler):
         else:
             self.push("BAD Invalid authentication mechanism")
 
+    def do_STARTTLS(self, args):
+        self.push("NO STARTTLS not supported")
+
     # [MS-OXIMAP] 2.2.1 IMAP4 NTLM
     def auth_NTLM(self):
         # IMAP4_AUTHENTICATE_NTLM_Supported_Response
@@ -296,6 +313,9 @@ class IMAPServer(ThreadingTCPServer):
     ) -> None:
         self.server_config = server_config
         super().__init__(config, server_address, RequestHandlerClass)
+        self.ssl_context = create_tls_context(self.server_config, self)
+        if self.ssl_context:
+            self.socket = self.ssl_context.wrap_socket(self.socket, server_side=True)
 
     def finish_request(self, request, client_address) -> None:
         self.RequestHandlerClass(

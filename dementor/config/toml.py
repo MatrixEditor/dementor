@@ -126,4 +126,3 @@ class TomlConfig:
             func(value)
         else:
             setattr(self, field_name, value)
-

@@ -17,28 +17,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import Any
+#
+# Shared attributes for all configuration classes
+from dementor.config.toml import Attribute
+from dementor.config.util import is_true
 
-from dementor.config import _get_global_config
+ATTR_CERT = Attribute(
+    attr_name="certfile",
+    qname="Cert",
+    default_val=None,
+    section_local=False,
+)
 
+ATTR_KEY = Attribute(
+    attr_name="keyfile",
+    qname="Key",
+    default_val=None,
+    section_local=False,
+)
 
-def get_value(section: str, key: str | None, default=None) -> Any:
-    sections = section.split(".")
-    config = _get_global_config()
-    if len(sections) == 1:
-        target = config.get(sections[0], {})
-    else:
-        target = config
-        for section in sections:
-            target = target[section]
-
-    if key is None:
-        return target
-
-    return target.get(key, default)
-
-
-# --- factory methods for attributes ---
-def is_true(value: str) -> bool:
-    return str(value).lower() in ("true", "1", "on", "yes")
-
+ATTR_TLS = Attribute(
+    attr_name="use_ssl",
+    qname="TLS",
+    default_val=False,
+    factory=is_true,
+)
