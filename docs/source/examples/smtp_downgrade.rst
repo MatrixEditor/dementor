@@ -1,10 +1,10 @@
 .. _example_smtp_downgrade:
 
-SMTP Downgrade Attack
-=====================
+SMTP/IMAP/POP3 Downgrade
+========================
 
-The SMTP server in *Dementor* supports a mechanism to attempt a *"downgrade"* of an authentication attempt
-initiated by a target host. This behavior is controlled by the :attr:`SMTP.Server.Downgrade` setting.
+The SMTP/POP3/IMAP server in *Dementor* supports a mechanism to attempt a *"downgrade"* of an authentication attempt
+initiated by a target host. This behavior is controlled by the :attr:`SMTP/IMAP/POP3.Server.Downgrade` setting.
 
 .. warning::
 

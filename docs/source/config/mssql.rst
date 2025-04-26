@@ -182,3 +182,11 @@ Default Configuration
 .. code-block:: toml
     :linenos:
     :caption: MSSQL and SSRP configuration section (default values)
+
+    [MSSQL]
+    ErrorCode = 1205
+    Version = "9.00.1399.06"
+    InstanceName = "MSSQLServer"
+
+    [SSRP]
+    # empty by default

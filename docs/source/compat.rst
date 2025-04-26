@@ -246,7 +246,12 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>SNMP</td>
             <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
+        </tr>
+        <tr>
+            <td>RDP</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
         </tr>
         <tr>
             <td>HTTP_PROXY</td>

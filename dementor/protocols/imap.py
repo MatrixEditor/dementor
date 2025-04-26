@@ -86,7 +86,7 @@ class IMAPServerConfig(TomlConfig):
         A("imap_fqdn", "FQDN", "Dementor", section_local=False),
         A("imap_caps", "Capabilities", IMAP_CAPABILITIES),
         A("imap_auth_mechanisms", "AuthMechanisms", IMAP_AUTH_MECHS),
-        A("imap_revision", "Revision", "IMAP4rev2"),
+        A("imap_banner", "Revision", "IMAP4rev2 service ready"),
         A("imap_downgrade", "Downgrade", True),
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
@@ -203,8 +203,7 @@ class IMAPHandler(BaseProtoHandler):
         # 7.1.1.  OK Response
         # An untagged response can be used as a greeting at connection
         # startup.
-        banner = f"{self.server_config.imap_revision} Service Ready"
-        self.ok(banner, seq=False)
+        self.ok(self.server_config.imap_banner, seq=False)
 
     def handle_data(self, data, transport) -> None:
         #  The initial state is identified in the server greeting.
