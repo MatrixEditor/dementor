@@ -26,6 +26,7 @@
 #   - https://datatracker.ietf.org/doc/html/rfc4616
 #   - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-pop3/
 import base64
+import binascii
 
 from impacket import ntlm
 from dementor.protocols.ntlm import (
@@ -201,15 +202,18 @@ class POP3Handler(BaseProtoHandler):
     # [rfc1939] 7. Optional POP3 Commands
     #  PASS
     def do_PASS(self, args):
-        if len(args) != 1:
-            self.err("Invalid number of arguments")
+        if len(args) < 1:
+            return self.err("Invalid number of arguments")
             return
 
         if not hasattr(self, "username"):
-            self.err("Username not set")
-            return
+            return self.err("Username not set")
 
-        self.password = args[0]
+        # rfc1939]
+        # Since the PASS command has exactly one argument, a POP3
+        # server may treat spaces in the argument as part of the
+        # password, instead of as argument separators.
+        self.password = " ".join(args)
         self.config.db.add_auth(
             client=self.client_address,
             username=self.username,
@@ -257,13 +261,13 @@ class POP3Handler(BaseProtoHandler):
 
         method = getattr(self, f"auth_{auth_mechanism.upper()}", None)
         if method:
-            return method(args[1:])
+            return method(*args[1:])
 
         self.err("Unrecognized authentication type")
 
     # [rfc4616] 2.  PLAIN SASL Mechanism
     #   PLAIN
-    def auth_PLAIN(self, initial_response):
+    def auth_PLAIN(self, initial_response=None):
         if not initial_response:
             initial_response = self.challenge_auth(decode=True)
 
@@ -289,13 +293,18 @@ class POP3Handler(BaseProtoHandler):
 
     # https://datatracker.ietf.org/doc/html/draft-murchison-sasl-login-00
     #   LOGIN
-    def auth_LOGIN(self, username: str):
+    def auth_LOGIN(self, username: bytes | None = None):
         if not username:
             # The server issues the string "User Name" in challenge, and receives a
             # client response.  This response is recorded as the authorization
             # identity.
             token = base64.b64encode(b"User Name\x00")
             username = self.challenge_auth(token, decode=True)
+        else:
+            try:
+                username = base64.b64decode(username).decode(errors="replace")
+            except binascii.Error:
+                return self.err("Invalid username")
 
         # The server then issues the string "Password" in challenge,
         # and receives a client response.  This response is recorded as the
@@ -314,10 +323,13 @@ class POP3Handler(BaseProtoHandler):
 
     # [MS-POP3]: NT LAN Manager (NTLM) Authentication
     #   NTLM
-    def auth_NTLM(self, args) -> None:
+    def auth_NTLM(self, initial_response=None) -> None:
         # 2. The server sends the POP3_NTLM_Supported_Response message,
         # indicating that it can perform NTLM authentication.
-        token = self.challenge_auth()
+        if not initial_response:
+            token = self.challenge_auth()
+        else:
+            token = base64.b64decode(initial_response)
 
         # 3. The client sends a POP3_AUTH_NTLM_Blob_Command message containing
         # a base64-encoded NTLM NEGOTIATE_MESSAGE.
