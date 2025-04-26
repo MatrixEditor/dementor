@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>IMAP - Dementor 1.0.0.dev5 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Kerberos" href="kerberos.html" /><link rel="prev" title="HTTP" href="http.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/imap.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=8c99d71b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/config/imap.html"/>
+<meta property="og:title" content="IMAP"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="https://matrixeditor.github.io/dementor/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="../examples/multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../examples/multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="../examples/kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="../examples/smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="protocols.html">Protocols</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="http.html">HTTP</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">IMAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mssql.html">MSSQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pop3.html">POP3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="winrm.html">WinRM</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#section-imap">Section <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code></a><ul>
+<li><a class="reference internal" href="#IMAP.Server"><code class="docutils literal notranslate"><span class="pre">Server</span></code></a><ul>
+<li><a class="reference internal" href="#IMAP.Server.Port"><code class="docutils literal notranslate">Port</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.Capabilities"><code class="docutils literal notranslate">Capabilities</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.Banner"><code class="docutils literal notranslate">Banner</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.AuthMechanisms"><code class="docutils literal notranslate">AuthMechanisms</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.Downgrade"><code class="docutils literal notranslate">Downgrade</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.TLS"><code class="docutils literal notranslate">TLS</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.Cert"><code class="docutils literal notranslate">Cert</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Server.Key"><code class="docutils literal notranslate">Key</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.ExtendedSessionSecurity"><code class="docutils literal notranslate"><span class="pre">ExtendedSessionSecurity</span></code></a></li>
+<li><a class="reference internal" href="#IMAP.Challenge"><code class="docutils literal notranslate"><span class="pre">Challenge</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
+</ul>
+</div><div class="edit-this-page">
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/imap.rst">Edit this page</a>
+</div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="protocols.html"><span itemprop="name">Protocols</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">IMAP</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="imap">
+<span id="config-imap"></span><h1>IMAP<a class="headerlink" href="#imap" title="Link to this heading">¶</a></h1>
+<section id="section-imap">
+<h2>Section <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code><a class="headerlink" href="#section-imap" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev5.</span></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server">
+<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#IMAP.Server" title="Link to this definition">¶</a></dt>
+<dd><p><em>Each server entry is mapped to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">imap.IMAPServerConfig</span></code>.</p>
+<p>Represents a list of IMAP server configuration sections. For general guidance on defining
+section lists, refer to the TOML documentation for <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.Port">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#IMAP.Server.Port" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_port</span></code></p>
+<p>Defines the port used by the IMAP server instance. <strong>This option is mandatory.</strong></p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This value must be specified within a <code class="docutils literal notranslate"><span class="pre">[[IMAP.Server]]</span></code> section.</p>
+</div>
+</dd></dl>
+
+<p>The attributes described below may also be specified in the global <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> section, where they act
+as defaults for all individual server entries — unless explicitly overridden.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.Capabilities">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Capabilities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;IMAP4rev1&quot;,</span> <span class="pre">&quot;IMAP4rev2&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#IMAP.Server.Capabilities" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_caps</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
+<p>Defines the server capabilities to advertise to the client. According to the IMAP specification, the revision
+(such as <cite>IMAP4rev1</cite>) <strong>must</strong> be returned.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.FQDN">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></em><a class="headerlink" href="#IMAP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_fqdn</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code>.</p>
+<p>Specifies the Fully Qualified Domain Name (FQDN) hostname used by the IMAP server.
+The hostname portion appears in server responses; the domain part is optional.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.Banner">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Banner</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;IMAP</span> <span class="pre">Server</span> <span class="pre">ready&quot;</span></em><a class="headerlink" href="#IMAP.Server.Banner" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_banner</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
+<p>Defines a custom banner message sent in the server’s greeting upon client connection.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.AuthMechanisms">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#IMAP.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_auth_mechs</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
+<p>Lists the authentication mechanisms supported by the server. Currently implemented options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LOGIN</span></code> — Base64-encoded challenge-based login.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PLAIN</span></code> — Sends credentials in cleartext.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NTLM</span></code> — Implements NTLM authentication per <a class="reference external" href="https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf">[MS-SMTPNTLM]</a>.</p></li>
+</ul>
+<p>To enforce NTLM-only authentication, remove <code class="docutils literal notranslate"><span class="pre">LOGIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PLAIN</span></code>.
+For downgrade attacks, refer to <a class="reference internal" href="smtp.html#SMTP.Server.Downgrade" title="SMTP.Server.Downgrade"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Downgrade</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.Downgrade">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#IMAP.Server.Downgrade" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_downgrade</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
+<p>Attempts to downgrade authentication from NTLM to weaker methods like <code class="docutils literal notranslate"><span class="pre">LOGIN</span></code>.
+Effective only if the client permits plaintext authentication. See <a class="reference internal" href="../examples/smtp_downgrade.html#example-smtp-downgrade"><span class="std std-ref">SMTP/IMAP/POP3 Downgrade</span></a> for
+usage examples.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.TLS">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#IMAP.Server.TLS" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.use_ssl</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
+<p>Enables SSL/TLS for the IMAP server using a custom certificate.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.Cert">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#IMAP.Server.Cert" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.certfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code>.</p>
+<p>Specifies the path to the TLS certificate file.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Server.Key">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#IMAP.Server.Key" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.keyfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code>.</p>
+<p>Specifies the path to the private key file associated with the TLS certificate.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.ExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#IMAP.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.ntlm_ess</span></code>.</p>
+<p>Enables NTLM Extended Session Security (ESS).
+When enabled, NTLMv1/NTLMv2-SSP hashes are captured instead of raw NTLM hashes.
+Resolution precedence:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#IMAP.ExtendedSessionSecurity" title="IMAP.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IMAP.ExtendedSessionSecurity</span></code></a></p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a> (fallback)</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="IMAP.Challenge">
+<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#IMAP.Challenge" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.ntlm_challenge</span></code>.</p>
+<p>Sets the NTLM challenge value used during authentication.
+Resolution order:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#IMAP.Challenge" title="IMAP.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IMAP.Challenge</span></code></a></p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a></p></li>
+</ol>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="default-configuration">
+<h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">IMAP configuration section (default values)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos">1</span><span class="k">[IMAP]</span>
+</span><span data-line="2"><span class="linenos">2</span><span class="n">Banner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;IMAP Server ready&quot;</span>
+</span><span data-line="3"><span class="linenos">3</span><span class="n">AuthMechanisms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;NTLM&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PLAIN&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;LOGIN&quot;</span><span class="p">]</span>
+</span><span data-line="4"><span class="linenos">4</span><span class="n">Downgrade</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span data-line="5"><span class="linenos">5</span>
+</span><span data-line="6"><span class="linenos">6</span><span class="k">[[IMAP.Server]]</span>
+</span><span data-line="7"><span class="linenos">7</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">110</span>
+</span></pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default configuration does <strong>NOT</strong> include an IMAP server wrapped in an <code class="docutils literal notranslate"><span class="pre">SSLContext</span></code>.
+To configure a server with TLS enabled, use:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">Dementor.toml</span><a class="headerlink" href="#id2" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[IMAP]</span>
+</span><span data-line="2"><span class="c1"># ...</span>
+</span><span data-line="3">
+</span><span data-line="4"><span class="k">[[IMAP.Server]]</span>
+</span><span data-line="5"><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">993</span>
+</span><span data-line="6"><span class="n">TLS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1"># must be explicitly set</span>
+</span><span data-line="7"><span class="n">Cert</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/path/to/certificate&quot;</span>
+</span><span data-line="8"><span class="n">Key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/path/to/key&quot;</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="http.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">HTTP</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="kerberos.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Kerberos</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=d247f7a9"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>

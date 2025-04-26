@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MSSQL - Dementor 1.0.0.dev4 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="NBTNS" href="netbios.html" /><link rel="prev" title="mDNS" href="mdns.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MSSQL - Dementor 1.0.0.dev5 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="NBTNS" href="netbios.html" /><link rel="prev" title="mDNS" href="mdns.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/mssql.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -110,7 +110,7 @@ data-aria-dark="Switch to auto color mode">
 <ul>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/kdc.html">Rogue Kerberos  KDC</a></li>
-<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP Downgrade Attack</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
@@ -122,6 +122,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="http.html">HTTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="imap.html">IMAP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
@@ -129,6 +130,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">MSSQL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pop3.html">POP3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
@@ -254,7 +256,10 @@ via <a class="reference internal" href="#SSRP.InstanceName" title="SSRP.Instance
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ExtendedSessionSecurity">
 <span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#MSSQL.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_ess</span></code></p>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.ntlm_ess</span></code></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed frmo <code class="docutils literal notranslate"><span class="pre">mssql_ess</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_ess</span></code></p>
+</div>
 <p>Enables NTLM Extended Session Security (ESS). When enabled, NTLMv1/NTLMv2-SSP hashes are
 captured instead of raw NTLM hashes. Resolution precedence:</p>
 <ol class="arabic simple">
@@ -266,7 +271,10 @@ captured instead of raw NTLM hashes. Resolution precedence:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.Challenge">
 <span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#MSSQL.Challenge" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLServerConfig.mssql_challenge</span></code></p>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLServerConfig.ntlm_challenge</span></code></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed frmo <code class="docutils literal notranslate"><span class="pre">mssql_challenge</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_challenge</span></code></p>
+</div>
 <p>Sets the NTLM challenge value. Resolution order:</p>
 <ol class="arabic simple">
 <li><p><a class="reference internal" href="#MSSQL.Challenge" title="MSSQL.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MSSQL.Challenge</span></code></a></p></li>
@@ -361,7 +369,13 @@ semicolon and MUST NOT end with one</strong>. For example:</p>
 <h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-text">MSSQL and SSRP configuration section (default values)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos">1</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos">1</span><span class="k">[MSSQL]</span>
+</span><span data-line="2"><span class="linenos">2</span><span class="n">ErrorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1205</span>
+</span><span data-line="3"><span class="linenos">3</span><span class="n">Version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;9.00.1399.06&quot;</span>
+</span><span data-line="4"><span class="linenos">4</span><span class="n">InstanceName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MSSQLServer&quot;</span>
+</span><span data-line="5"><span class="linenos">5</span>
+</span><span data-line="6"><span class="linenos">6</span><span class="k">[SSRP]</span>
+</span><span data-line="7"><span class="linenos">7</span><span class="c1"># empty by default</span>
 </span></pre></div>
 </div>
 </div>
@@ -411,7 +425,7 @@ semicolon and MUST NOT end with one</strong>. For example:</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=b68827ed"></script>
+      <script src="../_static/documentation_options.js?v=d247f7a9"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

