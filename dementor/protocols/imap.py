@@ -86,7 +86,7 @@ class IMAPServerConfig(TomlConfig):
         A("imap_fqdn", "FQDN", "Dementor", section_local=False),
         A("imap_caps", "Capabilities", IMAP_CAPABILITIES),
         A("imap_auth_mechanisms", "AuthMechanisms", IMAP_AUTH_MECHS),
-        A("imap_banner", "Revision", "IMAP4rev2 service ready"),
+        A("imap_banner", "Banner", "IMAP4rev2 service ready"),
         A("imap_downgrade", "Downgrade", True),
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
