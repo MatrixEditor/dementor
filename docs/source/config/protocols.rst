@@ -10,6 +10,7 @@ Protocols
     dcerpc
     ftp
     http
+    imap
     kerberos
     ldap
     llmnr
@@ -17,6 +18,7 @@ Protocols
     mssql
     netbios
     ntlm
+    pop3
     quic
     smb
     smtp

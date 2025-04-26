@@ -41,13 +41,13 @@ from caterpillar.py import (
 )
 
 from dementor.database import _CLEARTEXT
-from dementor.config import Attribute as A, TomlConfig, is_true
+from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
-    NTLM_AUTH_is_anonymous,
-    NTLM_AUTH_to_hashcat_format,
+    ATTR_NTLM_ESS,
+    ATTR_NTLM_CHALLENGE,
+    NTLM_report_auth,
     NTLM_split_fqdn,
 )
 from dementor.servers import (
@@ -56,7 +56,7 @@ from dementor.servers import (
     ThreadingTCPServer,
     ThreadingUDPServer,
 )
-from dementor.filters import in_scope, BlacklistConfigMixin, WhitelistConfigMixin
+from dementor.filters import in_scope, ATTR_BLACKLIST, ATTR_WHITELIST
 
 
 def apply_config(session):
@@ -129,7 +129,7 @@ class SVR_RESP_DAC:
     tcp_dac_port: uint16
 
 
-class SSRPConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
+class SSRPConfig(TomlConfig):
     _section_ = "SSRP"
     _fields_ = (
         [
@@ -137,9 +137,9 @@ class SSRPConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
             A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
             A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
             A("ssrp_instance_config", "InstanceConfig", ""),
+            ATTR_WHITELIST,
+            ATTR_BLACKLIST,
         ]
-        + BlacklistConfigMixin._extra_fields_
-        + WhitelistConfigMixin._extra_fields_
     )
 
 
@@ -214,8 +214,6 @@ class MSSQLConfig(TomlConfig):
         A("mssql_server_version", "Version", "9.00.1399.06"),
         A("mssql_fqdn", "FQDN", "DEMENTOR", section_local=False),
         A("mssql_instance", "InstanceName", "MSSQLSerevr"),
-        A("mssql_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
-        A("mssql_challenge", "NTLM.Challenge", b"A" * 8),
         A("mssql_error_code", "ErrorCode", 1205),  # LK_VICTIM
         A("mssql_error_state", "ErrorState", 1),
         A("mssql_error_class", "ErrorClass", 14),
@@ -224,6 +222,8 @@ class MSSQLConfig(TomlConfig):
             "ErrorMessage",
             "You have been chosen as the deadlock victim",
         ),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_ESS,
     ]
 
 
@@ -240,7 +240,6 @@ class PL_OPTION_TOKEN_VERSION:
         return version_str if not self.sub_build else f"{version_str}.{self.sub_build}"
 
 
-# 2.2.7.22 SSPI
 @struct(order=LittleEndian)
 class SSPI:
     token_type: uint8 = 0xED
@@ -338,7 +337,10 @@ class MSSQLHandler(BaseProtoHandler):
         pre_login = tds.TDS_PRELOGIN(packet["Data"])
         instance = pre_login["Instance"].decode(errors="replace") or "(blank)"
         version = pre_login["Version"]
-        if packet["Data"][pre_login["EncryptionOffset"]] in (tds.TDS_ENCRYPT_REQ, tds.TDS_ENCRYPT_ON):
+        if packet["Data"][pre_login["EncryptionOffset"]] in (
+            tds.TDS_ENCRYPT_REQ,
+            tds.TDS_ENCRYPT_ON,
+        ):
             self.logger.display(
                 f"Pre-Login request for [i]{escape(instance)}[/] "
                 "([bold red]Encryption requested[/])"
@@ -408,8 +410,8 @@ class MSSQLHandler(BaseProtoHandler):
             self.challenge = NTLM_AUTH_CreateChallenge(
                 negotiate,
                 *NTLM_split_fqdn(self.config.mssql_config.mssql_fqdn),
-                challenge=self.config.mssql_config.mssql_challenge,
-                disable_ess=not self.config.mssql_config.mssql_ess,
+                challenge=self.config.mssql_config.ntlm_challenge,
+                disable_ess=not self.config.mssql_config.ntlm_ess,
             )
 
             sspi = SSPI(buffer=self.challenge.getData())
@@ -434,28 +436,12 @@ class MSSQLHandler(BaseProtoHandler):
             self.send_error(packet)
             return 1
 
-        if NTLM_AUTH_is_anonymous(auth_message):
-            self.logger.display("Rejecting anonymous login (NTLMSSP)")
-            self.send_error(packet)
-            return 1
-
-        flags = auth_message["flags"]
-        hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
-            self.challenge["challenge"].encode(),
-            auth_message["user_name"],
-            auth_message["domain_name"],
-            auth_message["lanman"],
-            auth_message["ntlm"],
-            flags,
-        )
-
-        self.config.db.add_auth(
+        NTLM_report_auth(
+            auth_message,
+            challenge=self.challenge["challenge"],
             client=self.client_address,
-            credtype=hashversion,
-            username=NTLM_AUTH_decode_string(auth_message["user_name"], flags),
-            domain=NTLM_AUTH_decode_string(auth_message["domain_name"], flags),
-            password=hashvalue,
             logger=self.logger,
+            session=self.config,
         )
         self.send_error(packet)
         return 1

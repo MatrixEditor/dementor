@@ -1,6 +1,6 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev4"
+version = "1.0.0.dev5"
 license = { file = "LICENSE" }
 
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"

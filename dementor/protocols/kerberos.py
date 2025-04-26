@@ -41,7 +41,8 @@ from impacket.krb5.constants import (
 from impacket.krb5.types import KerberosTime
 from pyasn1.codec.der import decoder, encoder
 
-from dementor.config import TomlConfig, get_value, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import get_value
 from dementor.servers import (
     ThreadingTCPServer,
     ThreadingUDPServer,

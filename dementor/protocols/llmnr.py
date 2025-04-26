@@ -25,19 +25,20 @@ from rich import markup
 
 from dementor.protocols.mdns import build_dns_answer
 from dementor.servers import ThreadingUDPServer, ServerThread, BaseProtoHandler
-from dementor.config import SessionConfig, TomlConfig, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
 from dementor.logger import ProtocolLogger
-from dementor.filters import BlacklistConfigMixin, WhitelistConfigMixin, in_scope
+from dementor.filters import ATTR_WHITELIST, ATTR_BLACKLIST, in_scope
 
 
 # --- Protocol Interface ---
-class LLMNRConfig(TomlConfig, BlacklistConfigMixin, WhitelistConfigMixin):
+class LLMNRConfig(TomlConfig):
     _section_ = "LLMNR"
-    _fields_ = (
-        [A("llmnr_answer_name", "AnswerName", None)]
-        + BlacklistConfigMixin._extra_fields_
-        + WhitelistConfigMixin._extra_fields_
-    )
+    _fields_ = [
+        A("llmnr_answer_name", "AnswerName", None),
+        ATTR_WHITELIST,
+        ATTR_BLACKLIST,
+    ]
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -83,7 +84,9 @@ class LLMNRPoisoner(BaseProtoHandler):
                     # REVISIT: maybe log ignored requests via option
                     continue
 
-                self.logger.display(f"Query for [i]{markup.escape(qname)}[/i] (type: {qtype})")
+                self.logger.display(
+                    f"Query for [i]{markup.escape(qname)}[/i] (type: {qtype})"
+                )
                 if self.config.analysis:
                     continue
 

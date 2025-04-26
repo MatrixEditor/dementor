@@ -33,15 +33,17 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
-from dementor.config import Attribute as A, TomlConfig, get_value, is_true
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import get_value, is_true
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
-    NTLM_AUTH_to_hashcat_format,
+    ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_ESS,
+    NTLM_report_auth,
     NTLM_split_fqdn,
 )
 
@@ -161,8 +163,6 @@ class HTTPServerConfig(TomlConfig):
         A("http_port", "Port"),
         A("http_server_type", "ServerType", "Microsoft-IIS/10.0"),
         A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic", "Bearer"]),
-        A("http_ntlm_challenge", "NTLM.Challenge", b"A" * 8),
-        A("http_ess", "NTLM.ExtendedSessionSecurity", True, factory=is_true),
         A("http_fqdn", "FQDN", "DEMENTOR", section_local=False),
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),
@@ -173,6 +173,8 @@ class HTTPServerConfig(TomlConfig):
         A("http_cert", "Cert", None, section_local=False),
         A("http_cert_key", "Key", None, section_local=False),
         A("http_use_ssl", "TLS", False, factory=is_true),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_ESS,
     ]
 
     def set_http_ntlm_challenge(self, challenge):
@@ -206,7 +208,7 @@ class HTTPHeaders:
 
 class HTTPHandler(BaseHTTPRequestHandler):
     def __init__(self, session, config, request, client_address, server) -> None:
-        self.config = config
+        self.config = config  # REVISIT: this is confusing
         self.session = session
         self.client_address = client_address
         self.challenge = None
@@ -262,7 +264,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         # let us log mssages
         text = format % args
         msg = text.translate(self._control_char_table)
-        self.logger.debug(f"- - {msg}")
+        self.logger.debug(f"(http) {msg}")
 
     def send_response(self, code: int, message: str | None = None) -> None:
         if not hasattr(self, "_headers_buffer"):
@@ -389,8 +391,8 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 challenge = NTLM_AUTH_CreateChallenge(
                     message,
                     *NTLM_split_fqdn(self.config.http_fqdn),
-                    challenge=self.config.http_ntlm_challenge,
-                    disable_ess=not self.config.http_ess,
+                    challenge=self.config.ntlm_challenge,
+                    disable_ess=not self.config.ntlm_ess,
                 )
                 self.send_response(HTTPStatus.UNAUTHORIZED, "Unauthorized")
                 data = base64.b64encode(challenge.getData()).decode()
@@ -401,29 +403,12 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             case ntlm.NTLM_HTTP_AuthChallengeResponse():
                 self.display_request("NTLMSSP_AUTH", logger)
-                # try to decode auth message
-                auth_message = message
-                hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
-                    self.config.http_ntlm_challenge,
-                    auth_message["user_name"],
-                    auth_message["domain_name"],
-                    auth_message["lanman"],
-                    auth_message["ntlm"],
-                    auth_message["flags"],
-                )
-                domain = NTLM_AUTH_decode_string(
-                    auth_message["domain_name"], auth_message["flags"]
-                )
-                username = NTLM_AUTH_decode_string(
-                    auth_message["user_name"], auth_message["flags"]
-                )
-                self.session.db.add_auth(
-                    self.client_address,
-                    credtype=hashversion,
-                    username=username,
-                    password=hashvalue,
+                NTLM_report_auth(
+                    message,
+                    challenge=self.config.ntlm_challenge,
+                    client=self.client_address,
+                    session=self.session,
                     logger=logger,
-                    domain=domain,
                     extras=self.get_extras(),
                 )
                 self.finish_request(logger)

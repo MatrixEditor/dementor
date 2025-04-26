@@ -117,6 +117,18 @@ WinRM = true
 
 MSSQL = true
 
+# Enables POP3 servers. Requires root privileges by default (depends on port
+# configuration)
+# The default value is: true
+
+POP3 = true
+
+# Enables IMAP servers. Requires root privileges by default (depends on port
+# configuration)
+# The default value is: true
+
+IMAP = true
+
 
 # =============================================================================
 # Globals
@@ -194,7 +206,7 @@ MaxLabels = 1
 # List of DNS query types that will receive responses. Supported types include: A,
 # AAAA, ALL, CNAME, PTR, etc.
 
-AllowedQueryTypes = [ "A", "AAAA", "ALL" ]
+AllowedQueryTypes = ["A", "AAAA", "ALL"]
 
 
 # =============================================================================
@@ -254,7 +266,7 @@ Port = 445
 
 # List of supported authentication mechanisms for SMTP clients.
 
-AuthMechanisms = [ "NTLM", "PLAIN", "LOGIN" ]
+AuthMechanisms = ["NTLM", "PLAIN", "LOGIN"]
 
 # Fully Qualified Domain Name (FQDN) used by the SMTP server.
 # The first part of the FQDN is used as the hostname in responses.
@@ -439,7 +451,7 @@ Key = "default.key"
 #   - NTLM
 #   - Bearer
 
-AuthSchemes = [ "Basic", "Negotiate", "NTLM", "Bearer" ]
+AuthSchemes = ["Basic", "Negotiate", "NTLM", "Bearer"]
 
 # Enables or disables WebDAV protocol support. This setting is enabled by default and
 # should only be disabled if WebDAV functionality is not required.
@@ -547,23 +559,29 @@ TargetPort = 49000
 # failure or control behavior.
 
 # Numeric error code returned to the client.
+
 ErrorCode = 1205
 
 # Optional custom error message returned with the error code.
+
 # ErrorMessage = "Access Denied"
 
 # Optional error state value to be included in the MSSQL response.
+
 # ErrorState = 2
 
 # Optional error class value to be included in the MSSQL response.
+
 # ErrorClass = 14
 
 # Specifies the reported version of the MSSQL server. This version string is returned
 # in responses and may influence client behavior.
+
 Version = "9.00.1399.06"
 
 # Specifies the name of the MSSQL instance. This value is included in SSRP responses
 #and may be used to identify the server instance.
+
 InstanceName = "MSSQLServer"
 
 
@@ -583,9 +601,97 @@ InstanceName = "MSSQLServer"
 
 # Specifies the instance-specific response used for SSRP (SQL Server Resolution Protocol).
 # This can be used to emulate specific server instance behaviors or service identifiers.
-#
-# Example:
+
 # InstanceConfig = ";rpc;DEMENTOR"
+
+
+# =============================================================================
+# POP3
+# =============================================================================
+[POP3]
+
+# The following NTLM-related settings can be inherited from the [NTLM] section:
+#   - FQDN (global)
+#   - Challenge
+#   - ExtendedSessionSecurity
+
+# TLS configuration is also available and will be applied if TLS is set to true.
+# Therefore, it is recommended to use the TLS setting only within a server block.
+
+# TLS = false
+# Cert = /path/to/cert"
+# Key = "/path/to/key"
+
+# Attempt to downgrade authentication from NTLM to weaker methods like LOGIN.
+# Only effective if the client configured plaintext credentials.
+
+Downgrade = true
+
+# Specifies the banner message to be returned to the client.
+
+Banner = "POP3 Service Ready"
+
+# List of supported authentication mechanisms for POP3 clients.
+
+AuthMechanisms = ["PLAIN", "LOGIN", "NTLM"]
+
+# default plaintext server
+[[POP3.Server]]
+Port = 110
+
+# Example TLS server
+# [[POP3.Server]]
+# Port = 995
+# TLS = true
+# Cert = "/path/to/cert"
+# Key = "/path/to/key"
+
+
+# =============================================================================
+# IMAP
+# =============================================================================
+[IMAP]
+
+# The following NTLM-related settings can be inherited from the [NTLM] section:
+#   - FQDN (global)
+#   - Challenge
+#   - ExtendedSessionSecurity
+
+# TLS configuration is also available and will be applied if TLS is set to true.
+# Therefore, it is recommended to use the TLS setting only within a server block.
+
+# TLS = false
+# Cert = /path/to/cert"
+# Key = "/path/to/key"
+
+# Attempt to downgrade authentication from NTLM to weaker methods like LOGIN.
+# Only effective if the client configured plaintext credentials.
+
+Downgrade = true
+
+# Specifies the banner message to be returned to the client.
+
+Banner = "IMAP4rev2 Service Ready"
+
+# List of supported authentication mechanisms for IMAP clients.
+
+AuthMechanisms = ["PLAIN", "LOGIN", "NTLM"]
+
+# List of supported capabilities for IMAP clients. NOTE that this list MUST include
+# the revision number if specified
+
+# Capabilities = []
+
+# default plaintext server
+[[IMAP.Server]]
+Port = 110
+
+# Example TLS server
+# [[POP3.Server]]
+# Port = 995
+# TLS = true
+# Cert = "/path/to/cert"
+# Key = "/path/to/key"
 
 
 # =============================================================================
@@ -604,5 +710,4 @@ Enabled = false
 # List of debug loggers to enable for troubleshooting. Those won't be visible in
 # file output and only affect the terminal output.
 
-DebugLoggers = [ "asyncio", "mail.log", "impacket.smbserver", "impacket", "quic" ]
-
+DebugLoggers = ["asyncio", "mail.log", "impacket.smbserver", "impacket", "quic"]

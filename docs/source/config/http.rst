@@ -127,6 +127,9 @@ Section ``[HTTP]``
 
         *Maps to* :attr:`http.HTTPServerConfig.http_ess`. *May also be set in* ``[HTTP]``
 
+        .. versionchanged:: 1.0.0.dev5
+            Internal mapping changed from ``http_ess`` to ``ntlm_ess``
+
         Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NTLMv1/v2-SSP hashes
         are captured instead of raw NTLM hashes. Resolution precedence:
 
@@ -138,7 +141,10 @@ Section ``[HTTP]``
         :type: str
         :value: NTLM.Challenge
 
-        *Maps to* :attr:`http.HTTPServerConfig.http_challenge`. *May also be set in* ``[HTTP]``
+        *Maps to* :attr:`http.HTTPServerConfig.ntlm_challenge`. *May also be set in* ``[HTTP]``
+
+        .. versionchanged:: 1.0.0.dev5
+            Internal mapping changed frmo ``http_challenge`` to ``ntlm_challenge``
 
         Sets the NTLM challenge value used during authentication. Resolution order:
 

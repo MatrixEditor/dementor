@@ -36,7 +36,9 @@ from impacket.ldap.ldapasn1 import (
 )
 from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
 
-from dementor.config import SessionConfig, TomlConfig, Attribute as A, get_value
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger
 from dementor.servers import (
     ThreadingTCPServer,
@@ -47,9 +49,8 @@ from dementor.servers import (
 from dementor.database import _CLEARTEXT
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
     NTLM_AUTH_format_host,
-    NTLM_AUTH_to_hashcat_format,
+    NTLM_report_auth,
 )
 
 # Taken from Microsoft's spec:
@@ -171,29 +172,13 @@ class LDAPHandler(BaseProtoHandler):
     def handle_NTLM_Auth(self, req: LDAPMessage, blob: bytes) -> None | bool:
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
-        hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
-            self.config.ntlm_challange,
-            auth_message["user_name"],
-            auth_message["domain_name"],
-            auth_message["lanman"],
-            auth_message["ntlm"],
-            auth_message["flags"],
-        )
-        domain_name = NTLM_AUTH_decode_string(
-            auth_message["domain_name"], auth_message["flags"]
-        )
-        user_name = NTLM_AUTH_decode_string(
-            auth_message["user_name"], auth_message["flags"]
-        )
-        self.config.db.add_auth(
-            self.client_address,
-            credtype=hashversion,
-            username=user_name,
-            password=hashvalue,
+        NTLM_report_auth(
+            auth_token=auth_message,
+            challenge=self.config.ntlm_challange,
+            client=self.client_address,
             logger=self.logger,
-            domain=domain_name,
+            session=self.config,
         )
-
         return self.server.bind_result(
             req,
             reason=self.server.server_config.ldap_error_code,
@@ -280,10 +265,8 @@ class LDAPHandler(BaseProtoHandler):
             if not message:
                 break
 
-            print(message)
             func_name = f"handle_{message['protocolOp'].getName()}"
             response = False
-
             if hasattr(self, func_name):
                 response = getattr(self, func_name)(
                     message, message["protocolOp"].getComponent()

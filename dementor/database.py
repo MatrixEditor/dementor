@@ -33,7 +33,7 @@ from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable
 
 
 from dementor.logger import dm_logger, dm_console_lock
-from dementor.config import TomlConfig, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
 
 
 class DatabaseConfig(TomlConfig):
@@ -52,7 +52,6 @@ def init_dementor_db(session) -> str:
 
     name = session.db_config.db_name
     db_path = pathlib.Path(workspace_path) / name
-
     if not db_path.exists():
         dm_logger.info("Initializing Dementor database")
         # TODO: check for parent dirs

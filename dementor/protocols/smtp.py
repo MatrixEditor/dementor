@@ -45,13 +45,14 @@ from impacket.ntlm import (
     NTLMAuthNegotiate,
 )
 
-from dementor.config import TomlConfig, SessionConfig, get_value, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_decode_string,
     NTLM_AUTH_format_host,
-    NTLM_AUTH_to_hashcat_format,
+    NTLM_report_auth,
 )
 from dementor.database import _CLEARTEXT
 
@@ -146,14 +147,15 @@ class SMTPDefaultAuthenticator:
         match auth_data:
             case NTLMAuth():
                 # successful NTLM authentication
-                self.config.db.add_auth(
-                    client=session.peer,
-                    credtype=auth_data.hash_version,
-                    password=auth_data.hash_string,
-                    logger=self.logger,
-                    username=auth_data.user_name,
-                    domain=auth_data.domain_name,
-                )
+                # self.config.db.add_auth(
+                #     client=session.peer,
+                #     credtype=auth_data.hash_version,
+                #     password=auth_data.hash_string,
+                #     logger=self.logger,
+                #     username=auth_data.user_name,
+                #     domain=auth_data.domain_name,
+                # )
+                pass
 
             case LoginPassword():
                 # plain or LOGIN authentication
@@ -167,8 +169,8 @@ class SMTPDefaultAuthenticator:
                     username=username,
                 )
 
-        # always return true
-        return AuthResult(success=True)
+        # always return false - we don't support authentication
+        return AuthResult(success=False)
 
 
 class SMTPServerHandler:
@@ -263,42 +265,17 @@ class SMTPServerHandler:
         # NTLM AUTHENTICATE_MESSAGE.
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
-        domain_name = NTLM_AUTH_decode_string(
-            auth_message["domain_name"], auth_message["flags"]
-        )
-        user_name = NTLM_AUTH_decode_string(
-            auth_message["user_name"], auth_message["flags"]
-        )
-        self.logger.debug(
-            f"Captured NTLM AUTH response for {domain_name}/{user_name}:",
-        )
-
-        hashversion, hashvalue = NTLM_AUTH_to_hashcat_format(
+        NTLM_report_auth(
+            auth_message,
             self.config.ntlm_challange,
-            auth_message["user_name"],
-            auth_message["domain_name"],
-            auth_message["lanman"],
-            auth_message["ntlm"],
-            auth_message["flags"],
-        )
-        auth = NTLMAuth(
-            domain_name,
-            user_name,
-            hash_version=hashversion,
-            hash_string=hashvalue,
+            server.session.peer,
+            self.config,
+            self.logger,
         )
         if self.server_config.smtp_downgrade:
             # Perform a simple donẃngrade attack by sending failed authentication
             #  - Some clients may choose to use fall back to other login mechanisms
             #    provided by the server
-            if server._authenticator:
-                server._authenticator(
-                    server,
-                    server.session,
-                    server.envelope,
-                    "NTLM",
-                    auth,
-                )
             self.logger.display(
                 f"Performing downgrade attack for target {server.session.peer[0]}",
                 host=server.session.peer[0],
@@ -307,10 +284,7 @@ class SMTPServerHandler:
             return None  # unsuccessful, but handled
 
         # by default, accept this client
-        return server._authenticate(
-            "NTLM",
-            auth_data=auth,
-        )
+        return AuthResult(success=True, handled=False)
 
 
 class SMTPServerThread(threading.Thread):
@@ -334,7 +308,8 @@ class SMTPServerThread(threading.Thread):
 
         # NOTE: hostname on the controller points to the local address that will be
         # bound and the SMTP hostname is just a string that will be sent to the client,
-        controller.hostname = config.bind_address
+        # TODO: fix ipv6 support
+        controller.hostname = "" if config.ipv6_support else config.ipv4
 
         # alter the server hostname
         controller.SMTP_kwargs["hostname"] = smtp_config.smtp_fqdn.split(".", 1)[0]

@@ -205,16 +205,7 @@ in development. The legend for each symbol is as follows:
                         <td>LOGIN</td>
                     </tr>
                     <tr>
-                        <td>NTLMv1</td>
-                    </tr>
-                    <tr>
-                        <td>NTLMv2</td>
-                    </tr>
-                    <tr>
-                        <td>NTLMv1-SSP</td>
-                    </tr>
-                    <tr>
-                        <td>NTLMv2-SSP</td>
+                        <td>NTLM</td>
                     </tr>
                 </tbody>
                 </table>
@@ -228,15 +219,6 @@ in development. The legend for each symbol is as follows:
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
@@ -257,15 +239,6 @@ in development. The legend for each symbol is as follows:
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
                 </tbody>
                 </table>
             </td>
@@ -273,7 +246,12 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>SNMP</td>
             <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
+        </tr>
+        <tr>
+            <td>RDP</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
         </tr>
         <tr>
             <td>HTTP_PROXY</td>
@@ -332,14 +310,113 @@ in development. The legend for each symbol is as follows:
         </tr>
         </tr>
         <tr>
-            <td>IMAP</td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td>
+                <a href="./config/imap.html">IMAP</a>
+                <table>
+                <tbody>
+                    <tr>
+                        <td>PLAIN</td>
+                    </tr>
+                    <tr>
+                        <td>LOGIN</td>
+                    </tr>
+                    <tr>
+                        <td>NTLM</td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                         <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
-            <td>POP3</td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td>
+                <a href="./config/pop3.html">POP3</a>
+                <table>
+                <tbody>
+                    <tr>
+                        <td>USER/PASS</td>
+                    </tr>
+                    <tr>
+                        <td>PLAIN</td>
+                    </tr>
+                    <tr>
+                        <td>LOGIN</td>
+                    </tr>
+                    <tr>
+                        <td>NTLM</td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
             <td><a href="./config/ldap.html">LDAP</a></td>

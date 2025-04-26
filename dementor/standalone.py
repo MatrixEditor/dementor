@@ -38,7 +38,8 @@ from rich.columns import Columns
 
 from dementor import __version__ as DementorVersion
 from dementor import logger, database, config
-from dementor.config import SessionConfig, TomlConfig
+from dementor.config.session import SessionConfig
+from dementor.config.toml import TomlConfig
 from dementor.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH
@@ -212,8 +213,8 @@ def main_print_banner(quiet_mode: bool) -> None:
     if quiet_mode:
         # only print out scapy and impacket versions
         print(
-            f"[bold]Dementor[/bold] - [white]Running with Scapy v{ScapyVersion} "
-            f"and Impacket v{ImpacketVersion}[/white]\n",
+            f"[bold]Dementor[/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
+            f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
         return
 

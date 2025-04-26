@@ -25,7 +25,44 @@ import secrets
 from typing import Tuple
 from impacket import ntlm
 
-from dementor.config import SessionConfig, get_value
+from dementor.config.toml import Attribute
+from dementor.config.session import SessionConfig
+from dementor.config.util import is_true, get_value
+
+
+def ntlm_config_get_challenge(value: str | bytes | None) -> bytes:
+    match value:
+        case None:
+            return secrets.token_bytes(8)
+
+        case str():
+            try:
+                return bytes.fromhex(value)
+            except ValueError:
+                return value.encode()
+
+        case bytes():
+            return value
+
+        case _:
+            return str(value).encode()
+
+
+ATTR_NTLM_CHALLENGE = Attribute(
+    "ntlm_challenge",
+    "NTLM.Challenge",
+    b"1337LEET",
+    section_local=False,
+    factory=ntlm_config_get_challenge,
+)
+
+ATTR_NTLM_ESS = Attribute(
+    "ntlm_ess",
+    "NTLM.ExtendedSessionSecurity",
+    True,
+    section_local=False,
+    factory=is_true,
+)
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -206,3 +243,32 @@ def NTLM_AUTH_CreateChallenge(
     ntlm_challenge["Version"] = b"\xff" * 8  # must be blank here
     ntlm_challenge["VersionLen"] = 8
     return ntlm_challenge
+
+
+def NTLM_report_auth(
+    auth_token: ntlm.NTLMAuthChallengeResponse,
+    challenge: bytes,
+    client,
+    session,
+    logger=None,
+    extras=None,
+) -> None:
+    flags = auth_token["flags"]
+    hversion, hstring = NTLM_AUTH_to_hashcat_format(
+        challenge,
+        auth_token["user_name"],
+        auth_token["domain_name"],
+        auth_token["lanman"],
+        auth_token["ntlm"],
+        flags,
+    )
+    if not NTLM_AUTH_is_anonymous(auth_token):
+        session.db.add_auth(
+            client=client,
+            credtype=hversion,
+            username=NTLM_AUTH_decode_string(auth_token["user_name"], flags),
+            domain=NTLM_AUTH_decode_string(auth_token["domain_name"], flags),
+            password=hstring,
+            logger=logger,
+            extras=extras,
+        )

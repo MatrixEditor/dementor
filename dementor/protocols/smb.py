@@ -32,12 +32,15 @@ from impacket.spnego import (
     TypesMech,
 )
 
-from dementor.config import TomlConfig, SessionConfig, get_value, Attribute as A
+from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.session import SessionConfig
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_decode_string,
     NTLM_AUTH_to_hashcat_format,
     NTLM_AUTH_CreateChallenge,
+    NTLM_report_auth,
 )
 from dementor.protocols.spnego import negTokenInit_step
 
@@ -61,7 +64,6 @@ class SMBServerConfig(TomlConfig):
                 self.smb_challenge = value.encode("utf-8", errors="replace")
             case bytes():
                 self.smb_challenge = value
-
 
     def set_smb_error_code(self, value: str | int):
         match value:
@@ -260,43 +262,13 @@ class SMBServerThread(threading.Thread):
                 authenticateMessage = ntlm.NTLMAuthChallengeResponse()
                 authenticateMessage.fromString(token)
                 connData["AUTHENTICATE_MESSAGE"] = authenticateMessage
-                if (
-                    not authenticateMessage["flags"] & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS
-                    and authenticateMessage["user_name"]
-                ):
-                    hash_version, hash_string = NTLM_AUTH_to_hashcat_format(
-                        self.config.ntlm_challange,
-                        authenticateMessage["user_name"],
-                        authenticateMessage["domain_name"],
-                        authenticateMessage["lanman"],
-                        authenticateMessage["ntlm"],
-                        authenticateMessage["flags"],
-                    )
-
-                    flags = authenticateMessage["flags"]
-                    host_name = NTLM_AUTH_decode_string(
-                        authenticateMessage["host_name"], flags
-                    )
-                    user_name = NTLM_AUTH_decode_string(
-                        authenticateMessage["user_name"], flags
-                    )
-                    domain_name = NTLM_AUTH_decode_string(
-                        authenticateMessage["domain_name"], flags
-                    )
-
-                    self.logger.debug(
-                        f"Completed NTLM AUTH flow for {domain_name}/{user_name} from {host_name}",
-                    )
-                    self.config.db.add_auth(
-                        (connData["ClientIP"], self.server_config.smb_port),
-                        credtype=hash_version,
-                        password=hash_string,
-                        logger=self.logger,
-                        username=user_name,
-                        domain=domain_name,
-                        hostname=host_name,
-                    )
-
+                NTLM_report_auth(
+                    authenticateMessage,
+                    challenge=self.get_challenge(connData),
+                    client=(connData["ClientIP"], self.server_config.smb_port),
+                    session=self.config,
+                    logger=self.logger,
+                )
                 errorCode = self.server_config.smb_error_code
                 respToken = negTokenInit_step(negResult=0x02)
 
@@ -432,42 +404,13 @@ class SMBServerThread(threading.Thread):
                     authenticateMessage = ntlm.NTLMAuthChallengeResponse()
                     authenticateMessage.fromString(token)
                     connData["AUTHENTICATE_MESSAGE"] = authenticateMessage
-                    if (
-                        not authenticateMessage["flags"]
-                        & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS
-                    ):
-                        hash_version, hash_string = NTLM_AUTH_to_hashcat_format(
-                            self.config.ntlm_challange,
-                            authenticateMessage["user_name"],
-                            authenticateMessage["domain_name"],
-                            authenticateMessage["lanman"],
-                            authenticateMessage["ntlm"],
-                            authenticateMessage["flags"],
-                        )
-
-                        flags = authenticateMessage["flags"]
-                        host_name = NTLM_AUTH_decode_string(
-                            authenticateMessage["host_name"], flags
-                        )
-                        user_name = NTLM_AUTH_decode_string(
-                            authenticateMessage["user_name"], flags
-                        )
-                        domain_name = NTLM_AUTH_decode_string(
-                            authenticateMessage["domain_name"], flags
-                        )
-
-                        self.logger.debug(
-                            f"Completed NTLM AUTH flow for {domain_name}/{user_name} from {host_name}",
-                        )
-                        self.config.db.add_auth(
-                            (connData["ClientIP"], self.server_config.smb_port),
-                            credtype=hash_version,
-                            password=hash_string,
-                            logger=self.logger,
-                            username=user_name,
-                            domain=domain_name,
-                            hostname=host_name,
-                        )
+                    NTLM_report_auth(
+                        authenticateMessage,
+                        challenge=self.get_challenge(connData),
+                        client=(connData["ClientIP"], self.server_config.smb_port),
+                        logger=self.logger,
+                        session=self.config,
+                    )
 
                     errorCode = self.server_config.smb_error_code
                     respToken = negTokenInit_step(negResult=0x02)

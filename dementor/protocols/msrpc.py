@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from collections import defaultdict
-from dementor.config import TomlConfig
+from dementor.config.toml import TomlConfig
 from dementor.servers import ServerThread
 from dementor.protocols.msrpc.rpc import MSRPCServer, RPCConfig, RPCConnection
 
