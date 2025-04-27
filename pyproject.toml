@@ -1,6 +1,6 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev5"
+version = "1.0.0.dev6"
 license = { file = "LICENSE" }
 
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
@@ -47,3 +47,6 @@ source = "https://github.com/MatrixEditor/dementor"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dementor*"]
+
+[tool.setuptools.package-data]
+dementor = ["assets/**", ]
