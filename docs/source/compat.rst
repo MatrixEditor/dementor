@@ -16,6 +16,7 @@ in development. The legend for each symbol is as follows:
         <li><i class="i-lucide x sd-text-danger xl"></i> - Not Supported / Not Implemented</li>
         <li><i class="i-lucide triangle-alert sd-text-warning xl"></i> - Partially Supported</li>
         <li><i class="i-lucide message-square-warning sd-text-info xl"></i> - In Development</li>
+        <li><i class="i-lucide cancelled sd-text-secondary xl"></i> - Won't be supported. Please file a pulll request explaining why this feature is necessary.</li>
     </ul>
 
 
@@ -33,12 +34,12 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>DHCP</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide cancelled sd-text-secondary l"></i> (use <a class="reference external" target="_blank" href="https://www.bettercap.org/">bettercap</a>)</td>
         </tr>
         <tr>
             <td>DNS</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide cancelled sd-text-secondary l"></i> (use <a class="reference external" target="_blank" href="https://www.bettercap.org/">bettercap</a>)</td>
         </tr>
         <tr>
             <td><a href="./config/netbios.html">NBTNS</a></td>
@@ -251,12 +252,12 @@ in development. The legend for each symbol is as follows:
         <tr>
             <td>RDP</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide message-square-warning sd-text-info l"></i></td>
+            <td><i class="i-lucide cancelled sd-text-secondary l"></i> (use <a class="reference external" target="_blank" href="https://github.com/GoSecure/pyrdp">pyrdp-mitm</a>)</td>
         </tr>
         <tr>
             <td>HTTP_PROXY</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide cancelled sd-text-secondary l"></i> (use <a class="reference external" target="_blank" href="https://mitmproxy.org/">mitmproxy</a>)</td>
         </tr>
         <tr>
             <td>

@@ -21,8 +21,8 @@ import ssl
 
 from typing import Any, List, Tuple
 
+from impacket import ntlm
 from impacket.ntlm import NTLMAuthChallengeResponse, NTLMAuthNegotiate
-
 from impacket.ldap.ldap import BindRequest, SearchRequest
 from impacket.ldap.ldapasn1 import (
     BindResponse,
@@ -51,6 +51,7 @@ from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_AUTH_format_host,
     NTLM_report_auth,
+    NTLM_split_fqdn,
 )
 
 # Taken from Microsoft's spec:
@@ -133,6 +134,10 @@ def create_server_threads(session) -> list:
     return servers
 
 
+class LDAPTerminateSession(Exception):
+    pass
+
+
 class LDAPHandler(BaseProtoHandler):
     def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
@@ -167,7 +172,8 @@ class LDAPHandler(BaseProtoHandler):
             disable_ess=not self.config.ntlm_ess,
         )
         # return bind success with challenge message
-        return self.server.bind_result(req, matched_dn=ntlm_challenge.getData())
+        self.send(self.server.bind_result(req, matched_dn=ntlm_challenge.getData()))
+        # raise LDAPTerminateSession
 
     def handle_NTLM_Auth(self, req: LDAPMessage, blob: bytes) -> None | bool:
         auth_message = NTLMAuthChallengeResponse()
@@ -179,10 +185,13 @@ class LDAPHandler(BaseProtoHandler):
             logger=self.logger,
             session=self.config,
         )
-        return self.server.bind_result(
-            req,
-            reason=self.server.server_config.ldap_error_code,
+        self.send(
+            self.server.bind_result(
+                req,
+                reason=self.server.server_config.ldap_error_code,
+            )
         )
+        raise LDAPTerminateSession
 
     def handle_bindRequest(
         self,
@@ -220,7 +229,60 @@ class LDAPHandler(BaseProtoHandler):
                 if self.mech_name == "ntlm":
                     return self.handle_NTLM_Auth(message, bytes(bind_auth))
 
-        return response
+            case "sasl":
+                mech_name = str(bind_auth["mechanism"]).replace("-", "_")
+                method = getattr(self, f"handle_sasl_{mech_name.upper()}", None)
+
+                if method:
+                    response = method(message, bind_auth)
+                else:
+                    response = self.server.bind_result(message, reason=0x01)
+
+        self.send(response)
+
+    # [RFC4178] https://datatracker.ietf.org/doc/html/rfc4178 4616]
+    def handle_sasl_GSS_SPNEGO(self, message, bind_auth):
+        # we expect this to be a NTLM message
+        data = bytes(bind_auth["credentials"])
+        if not data.startswith(b"NTLMSSP"):
+            self.logger.debug(f"Unsupported SASL mechanism: {data.hex()}")
+            return False
+
+        # negotiate message will have message type 0x01
+        if data[8] == 0x01:
+            token = ntlm.NTLMAuthNegotiate()
+            token.fromString(data)
+            ntlm_challenge = NTLM_AUTH_CreateChallenge(
+                token,
+                *NTLM_split_fqdn(self.server.server_config.ldap_fqdn),
+                challenge=self.config.ntlm_challange,
+                disable_ess=not self.config.ntlm_ess,
+            )
+            return self.send(
+                self.server.bind_result(
+                    req=message,
+                    reason=14,  # saslBindInProgress
+                    sasl_credentials=ntlm_challenge.getData(),
+                )
+            )
+
+        elif data[8] == 0x03:  # AUTH
+            token = ntlm.NTLMAuthChallengeResponse()
+            token.fromString(data)
+            NTLM_report_auth(
+                auth_token=token,
+                challenge=self.config.ntlm_challange,
+                client=self.client_address,
+                logger=self.logger,
+                session=self.config,
+            )
+            return self.send(
+                self.server.bind_result(
+                    req=message,
+                    reason=self.server.server_config.ldap_error_code,
+                )
+            )
+        raise LDAPTerminateSession  # terminate connection
 
     def handle_unbindRequest(
         self,
@@ -228,7 +290,7 @@ class LDAPHandler(BaseProtoHandler):
         unbind_req: UnbindRequest,
     ) -> bool:
         # terminate connection
-        return False
+        raise LDAPTerminateSession
 
     def handle_searchRequest(
         self,
@@ -253,10 +315,11 @@ class LDAPHandler(BaseProtoHandler):
                 response.append(self.server.list_sasl_mechs(message))
 
         response.append(self.server.search_done(message))
-        return response
+        self.send(response)
 
     def handle_data(self, data, transport) -> None:
-        transport.settimeout(self.server.server_config.ldap_timeout)
+        if self.server.server_config.ldap_timeout:
+            transport.settimeout(self.server.server_config.ldap_timeout)
 
         self.mech_name = None
 
@@ -266,18 +329,12 @@ class LDAPHandler(BaseProtoHandler):
                 break
 
             func_name = f"handle_{message['protocolOp'].getName()}"
-            response = False
-            if hasattr(self, func_name):
-                response = getattr(self, func_name)(
-                    message, message["protocolOp"].getComponent()
-                )
-
-            if response is False:
-                # REVISIT: log error
-                break
-
-            if response is not None:
-                self.send(response)
+            method = getattr(self, func_name, None)
+            if method is not None:
+                try:
+                    method(message, message["protocolOp"].getComponent())
+                except LDAPTerminateSession:
+                    break
 
     def recv(self, size: int) -> LDAPMessage | None:
         try:
@@ -296,11 +353,12 @@ class LDAPHandler(BaseProtoHandler):
 
     def send(self, data) -> None:
         # TODO: add debug logging
-        if isinstance(data, list):
-            data = b"".join([BEREncoder.encode(x) for x in data])
-        else:
-            data = BEREncoder.encode(data)
-        return super().send(data)
+        if data is not None:
+            if isinstance(data, list):
+                data = b"".join([BEREncoder.encode(x) for x in data])
+            else:
+                data = BEREncoder.encode(data)
+            return super().send(data)
 
 
 class LDAPServerMixin:
@@ -344,11 +402,14 @@ class LDAPServerMixin:
         req,
         reason: int = 0x00,
         matched_dn: str | bytes | None = None,
+        sasl_credentials: bytes | None = None,
     ) -> LDAPMessage:
         bind = BindResponse()
         bind["resultCode"] = reason  # SUCCESS
         bind["matchedDN"] = matched_dn or ""
         bind["diagnosticMessage"] = ""
+        if sasl_credentials:
+            bind["serverSaslCreds"] = sasl_credentials
         return self.new_message(req, bind)
 
     def new_message(self, req, op) -> LDAPMessage:

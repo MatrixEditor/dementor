@@ -29,7 +29,7 @@ from sqlalchemy.engine import Engine, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData, Table
 from sqlalchemy import sql
-from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable
+from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable, OperationalError
 
 
 from dementor.logger import dm_logger, dm_console_lock
@@ -223,7 +223,17 @@ class DementorDB:
                     "password": password,
                 }
             )
-            self.db_exec(q)
+            try:
+                self.db_exec(q)
+            except OperationalError as e:
+                # attempt to write on a read-only database
+                if "readonly database" in str(e):
+                    dm_logger.warning(
+                        f"Failed to add {credtype} for {username} on {client_address}: "
+                        "Database is read-only! (maybe restart in sudo mode?)"
+                    )
+                else:
+                    raise
             with dm_console_lock:
                 target_logger.success(
                     f"Captured {credtype} {text}{full_name} from {client_address}:",
