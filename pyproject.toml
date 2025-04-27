@@ -23,6 +23,19 @@ classifiers = [
     "Operating System :: Unix",
 ]
 
+dependencies = [
+    "rich",
+    "impacket",
+    "scapy",
+    "aiosmtpd",
+    "sqlalchemy",
+    "pyasn1",
+    "aioquic",
+    "typer",
+    "jinja2",
+    "caterpillar @ git+https://github.com/MatrixEditor/caterpillar@v2.4.2",
+]
+
 [project.scripts]
 Dementor = "dementor.standalone:run_from_cli"
 
