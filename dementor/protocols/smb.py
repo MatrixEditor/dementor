@@ -37,7 +37,6 @@ from dementor.config.session import SessionConfig
 from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_decode_string,
     NTLM_AUTH_to_hashcat_format,
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,

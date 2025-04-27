@@ -173,7 +173,7 @@ def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
 
 
 def NTLM_AUTH_CreateChallenge(
-    token: ntlm.NTLMAuthNegotiate,
+    token: ntlm.NTLMAuthNegotiate | dict,
     name: str,
     domain: str,
     challenge: bytes,

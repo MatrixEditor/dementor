@@ -67,7 +67,7 @@ class SessionConfig(TomlConfig):
     ldap_config: List[Any]
 
     def __init__(self) -> None:
-        super().__init__(config.dm_config.get("Dementor", {}))
+        super().__init__(config._get_global_config().get("Dementor", {}))
         # global options that are not loaded from configuration
         self.ipv6 = None
         self.ipv4 = None

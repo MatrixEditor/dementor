@@ -1,6 +1,6 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev5"
+version = "1.0.0.dev6"
 license = { file = "LICENSE" }
 
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
@@ -23,6 +23,19 @@ classifiers = [
     "Operating System :: Unix",
 ]
 
+dependencies = [
+    "rich",
+    "impacket",
+    "scapy",
+    "aiosmtpd",
+    "sqlalchemy",
+    "pyasn1",
+    "aioquic",
+    "typer",
+    "jinja2",
+    "caterpillar @ git+https://github.com/MatrixEditor/caterpillar@v2.4.2",
+]
+
 [project.scripts]
 Dementor = "dementor.standalone:run_from_cli"
 
@@ -34,3 +47,6 @@ source = "https://github.com/MatrixEditor/dementor"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dementor*"]
+
+[tool.setuptools.package-data]
+dementor = ["assets/**", ]
