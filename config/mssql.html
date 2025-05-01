@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MSSQL - Dementor 1.0.0.dev6 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="NBTNS" href="netbios.html" /><link rel="prev" title="mDNS" href="mdns.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MSSQL - Dementor 1.0.0.dev7 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="MySQL" href="mysql.html" /><link rel="prev" title="mDNS" href="mdns.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/mssql.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -124,10 +124,11 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="http.html">HTTP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imap.html">IMAP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">MSSQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mysql.html">MySQL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pop3.html">POP3</a></li>
@@ -315,7 +316,7 @@ is used in NTLM responses; the domain portion is optional.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ErrorMessage">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorMessage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1205</span></em><a class="headerlink" href="#MSSQL.ErrorMessage" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorMessage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#MSSQL.ErrorMessage" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_error_msg</span></code></p>
 <p>Sets the error message value returned to clients.</p>
 </dd></dl>
@@ -394,10 +395,10 @@ semicolon and MUST NOT end with one</strong>. For example:</p>
         <span>Previous</span><div class="title">mDNS</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="netbios.html">
+    <a href="mysql.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">NBTNS</div>
+        <div class="title">MySQL</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>
@@ -425,7 +426,7 @@ semicolon and MUST NOT end with one</strong>. For example:</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=7f178765"></script>
+      <script src="../_static/documentation_options.js?v=1bd85721"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
