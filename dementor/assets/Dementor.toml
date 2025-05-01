@@ -117,6 +117,11 @@ WinRM = true
 
 MSSQL = true
 
+# Enables a simple MySQL server on its configured port. This setting does not
+# require root privileges by default.
+
+MySQL = true
+
 # Enables POP3 servers. Requires root privileges by default (depends on port
 # configuration)
 # The default value is: true
@@ -691,6 +696,35 @@ Port = 110
 # Port = 995
 # TLS = true
 # Cert = "/path/to/cert"
+# Key = "/path/to/key"
+
+
+# =============================================================================
+# MySQL
+# =============================================================================
+[MySQL]
+
+# Port for the MySQL server.
+
+Port = 3306
+
+# Numeric error code returned to the client.
+
+# ErrorCode = 1205
+
+# Optional custom error message returned with the error code.
+
+# ErrorMessage = "Access Denied"
+
+# Specifies the reported version of the MySQL server. This version string is returned
+# in responses and may influence client behavior.
+
+ServerVersion = "8.0.42"
+
+# TLS configuration is also available and will be applied if TLS is set to true.
+
+# TLS = false
+# Cert = /path/to/cert"
 # Key = "/path/to/key"
 
 
