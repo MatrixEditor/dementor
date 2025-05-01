@@ -53,6 +53,7 @@ class SessionConfig(TomlConfig):
             "SSRP",
             "IMAP",
             "POP3",
+            "MySQL",
         )
     ]
 

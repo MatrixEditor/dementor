@@ -34,7 +34,7 @@ from rich import markup
 from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import get_value, is_true
+from dementor.config.util import format_string, get_value, is_true
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER
@@ -161,9 +161,9 @@ class HTTPServerConfig(TomlConfig):
     _section_ = "HTTP"
     _fields_ = [
         A("http_port", "Port"),
-        A("http_server_type", "ServerType", "Microsoft-IIS/10.0"),
+        A("http_server_type", "ServerType", "Microsoft-IIS/10.0", factory=format_string), #noqa
         A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic", "Bearer"]),
-        A("http_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A("http_fqdn", "FQDN", "DEMENTOR", section_local=False, factory=format_string),
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),
         A("http_wpad_auth", "WPADAuthRequired", True, factory=is_true),
