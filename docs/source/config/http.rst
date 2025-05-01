@@ -49,6 +49,19 @@ Section ``[HTTP]``
         Specifies the server name returned in the `Server <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server>`_
         header.
 
+        .. versionchanged:: 1.0.0.dev7
+
+            This setting is now a *formatted-string*, which means, it supports templating as specified by
+            Jinja2. For instance:
+
+            .. code-block:: toml
+
+                [HTTP]
+                # ...
+                ServerType = "Foobar-{{ random(10) }}"
+
+            This definition will result in ten random characters appended to ``Foobar-`` for each session.
+            More information about *formatted-strings* are coming up in future releases.
 
     .. py:attribute:: Server.ExtraHeaders
         :type: List[str]
@@ -160,6 +173,10 @@ Section ``[HTTP]``
 
         Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion is
         used in NTLM responses. The domain portion is optional.
+
+        .. versionchanged:: 1.0.0.dev7
+
+            This setting is now a *formatted-string*,
 
     .. py:attribute:: Server.TLS
         :type: bool

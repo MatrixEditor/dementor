@@ -16,6 +16,7 @@ Protocols
     llmnr
     mdns
     mssql
+    mysql
     netbios
     ntlm
     pop3

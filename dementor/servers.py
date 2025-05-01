@@ -60,9 +60,10 @@ class ServerThread(threading.Thread):
                 dm_logger.error(
                     f"Failed to start server for {self.service_name}: Permission Denied!"
                 )
-            print(e)
+            else:
+                dm_logger.error(f"Failed to start server for {self.service_name}: {e}")
         except Exception as e:
-            print(e)
+            dm_logger.exception(f"Failed to start server for {self.service_name}: {e}")
 
 
 class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
@@ -122,6 +123,14 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
     @property
     def client_port(self) -> int:
         return self.client_address[1]
+
+
+class BaseServerProtoHandler(BaseProtoHandler):
+    def __init__(
+        self, config: SessionConfig, server_config, request, client_address, server
+    ) -> None:
+        self.server_config = server_config
+        super().__init__(config, request, client_address, server)
 
 
 class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
@@ -192,7 +201,9 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.RequestHandlerClass(self.config, request, client_address, self)
 
 
-def create_tls_context(server_config, server=None, force=False) -> ssl.SSLContext | None:
+def create_tls_context(
+    server_config, server=None, force=False
+) -> ssl.SSLContext | None:
     if getattr(server_config, "use_ssl", False) or force:
         # if defined use ssl
         cert_path = pathlib.Path(str(getattr(server_config, "certfile", None)))

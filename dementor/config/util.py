@@ -17,9 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import random
+import string
+
 from typing import Any
+from jinja2.sandbox import SandboxedEnvironment
 
 from dementor.config import _get_global_config
+
+
+_SANDBOX = SandboxedEnvironment()
 
 
 def get_value(section: str, key: str | None, default=None) -> Any:
@@ -42,3 +49,16 @@ def get_value(section: str, key: str | None, default=None) -> Any:
 def is_true(value: str) -> bool:
     return str(value).lower() in ("true", "1", "on", "yes")
 
+
+def random_value(size: int) -> str:
+    return "".join(random.choice(string.ascii_letters) for _ in range(size))
+
+
+def format_string(value: str) -> str:
+    config = _get_global_config()
+    try:
+        template = _SANDBOX.from_string(value)
+        return template.render(config=config, random=random_value)
+    except Exception as e:
+        # TODO: log that
+        return value
