@@ -117,8 +117,7 @@ Error Configuration
     Sets the error class value returned to clients.
 
 .. py:attribute:: ErrorMessage
-    :type: int
-    :value: 1205
+    :type: str
 
     *Maps to* :attr:`mssql.MSSQLConfig.mssql_error_msg`
 

@@ -25,7 +25,6 @@
 
 import enum
 import secrets
-import random
 
 from typing import Any
 from collections import OrderedDict
@@ -68,8 +67,8 @@ class MySQLConfig(TomlConfig):
         A("mysql_port", "Port", 3306),
         A("mysql_plugin_name", "AuthPlugin", "mysql_clear_password"),
         A("mysql_version", "ServerVersion", "8.0.42"),
-        A("ErrorCode", "ErrorCode", 1045),
-        A("ErrorMessage", "ErrorMessage", "Access denied for user"),
+        A("mysql_error_code", "ErrorCode", 1045),
+        A("mysql_error_message", "ErrorMessage", "Access denied for user"),
         ATTR_CERT,
         ATTR_KEY,
         ATTR_TLS,

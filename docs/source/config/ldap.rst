@@ -2,8 +2,8 @@
 .. _config_ldap:
 
 
-LDAP ⚙️
-=======
+LDAP
+====
 
 Section ``[LDAP]``
 ------------------
