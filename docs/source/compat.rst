@@ -16,7 +16,7 @@ in development. The legend for each symbol is as follows:
         <li><i class="i-lucide x sd-text-danger xl"></i> - Not Supported / Not Implemented</li>
         <li><i class="i-lucide triangle-alert sd-text-warning xl"></i> - Partially Supported</li>
         <li><i class="i-lucide message-square-warning sd-text-info xl"></i> - In Development</li>
-        <li><i class="i-lucide cancelled sd-text-secondary xl"></i> - Won't be supported. Please file a pulll request explaining why this feature is necessary.</li>
+        <li><i class="i-lucide cancelled sd-text-secondary xl"></i> - Won't be supported. Please file a pull request explaining why this feature is necessary.</li>
     </ul>
 
 
@@ -465,6 +465,56 @@ in development. The legend for each symbol is as follows:
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="./config/mysql.html">MySQL</a>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><code>mysql_clear_password</code></td>
+                    </tr>
+                    <tr>
+                        <td>NTLM</td>
+                    </tr>
+                    <tr>
+                        <td>SPNEGO</td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide x sd-text-danger l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                 </tbody>
                 </table>

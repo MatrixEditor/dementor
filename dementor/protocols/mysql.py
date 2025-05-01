@@ -383,7 +383,8 @@ class MySQLHandler(BaseProtoHandler):
             return None
 
     def setup(self) -> None:
-        plugin = self.config.mysql_config.mysql_plugin_name
+        # plugin = self.config.mysql_config.mysql_plugin_name
+        plugin = "mysql_clear_password"
         self.logger.display(
             f"New Connection to MySQL Server (requesting handshake for {plugin})"
         )
@@ -392,6 +393,7 @@ class MySQLHandler(BaseProtoHandler):
         self.logger.debug("Connection to MySQL Server closed")
 
     def handle_data(self, data, transport) -> None:
+        transport.settimeout(2)
         # Connection Phase:
         # It starts with the client connect()ing to the server which may send a
         # ERR packet and finish the handshake or send a Initial Handshake Packet
@@ -407,10 +409,10 @@ class MySQLHandler(BaseProtoHandler):
         greeting = HandshakeV10(
             server_version=self.mysql_config.mysql_version,
             thread_id=10,
-            salt=secrets.token_bytes(8),
+            salt=b"A" * 8,
             status_flags=SERVER_STATUS_flags_enum.SERVER_STATUS_AUTOCOMMIT,
-            auth_plugin_data_len=21, # REVISIT: maybe add automatic calculation here
-            salt2=secrets.token_bytes(12) + b"\0",
+            auth_plugin_data_len=21,  # REVISIT: maybe add automatic calculation here
+            salt2=b"A" * 12 + b"\0",
             auth_plugin_name=plugin_name,
         )
         greeting.set_flags(flags)
@@ -449,13 +451,21 @@ class MySQLHandler(BaseProtoHandler):
                 return
 
         try:
-            response = unpack(HandshakeResponse, packet.payload)
+            response: HandshakeResponse = unpack(HandshakeResponse, packet.payload)
         except Exception as e:
             return self.logger.error(f"Failed to decode MySQL HandshakeResponse: {e}")
 
-        method = getattr(self, plugin_name, None)
+        resp_plugin_name = response.client_plugin_name or plugin_name
+        if resp_plugin_name != plugin_name:
+            self.logger.fail(
+                f"Expected authentication plugin {plugin_name}, but got {resp_plugin_name} from client"
+            )
+
+        method = getattr(self, resp_plugin_name, None)
         if method:
             method(greeting, response)
+        else:
+            self.logger.debug(f"Unknown authentication plugin: {resp_plugin_name}")
 
     def mysql_clear_password(self, greeting: HandshakeV10, response: HandshakeResponse):
         username = response.username
