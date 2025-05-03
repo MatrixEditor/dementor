@@ -73,6 +73,7 @@ def init():
         markup=False,
         keywords=[],
         omit_repeated_times=False,
+        # show_path=False,
     )
     # should be disabled
     handler.highlighter = None
@@ -113,19 +114,65 @@ class ProtocolLogger(logging.LoggerAdapter):
     def __init__(self, extra=None) -> None:
         super().__init__(logging.getLogger("dementor"), extra or {})
 
+    def _get_extra(self, name: str, extra=None, default=None):
+        value = (self.extra or {}).get(name, default)
+        return extra.pop(name, value) if extra else value
+
+    def get_protocol_name(self, extra=None) -> str:
+        return str(self._get_extra("protocol", extra, ""))
+
+    def get_protocol_color(self, extra=None) -> str:
+        return str(self._get_extra("protocol_color", extra, "white"))
+
+    def get_host(self, extra=None) -> str:
+        return str(self._get_extra("host", extra, ""))
+
+    def get_port(self, extra=None) -> str:
+        return str(self._get_extra("port", extra, ""))
+
     def format(self, msg, *args, **kwargs):
         if self.extra is None:
             return f"{msg}", kwargs
 
-        module_name = self.extra.get("protocol", self.extra.get("module_name", None))
-        host = self.extra.get("host", kwargs.pop("host", "<no-host>"))
-        port = self.extra.get("port", kwargs.pop("port", "<no-port>"))
-        module_color = self.extra.get(
-            "protocol_color", self.extra.get("module_color", "cyan")
-        )
+        mod = self.get_protocol_name(kwargs)
+        host = self.get_host(kwargs) or "<no-host>"
+        port = self.get_port(kwargs) or "<no-port>"
+        color = self.get_protocol_color(kwargs)
         return (
-            f"[bold {module_color}]{module_name:<10}[/] {host:<25} {port:<6} {msg}",
+            f"[bold {color}]{mod:<10}[/] {host:<25} {port:<6} {msg}",
             kwargs,
+        )
+
+    def format_inline(self, msg, kwargs):
+        mod = self.get_protocol_name(kwargs)
+        host = self.get_host(kwargs)
+        port = self.get_port(kwargs) or "-"
+        is_server = kwargs.pop("is_server", False)
+        is_client = kwargs.pop("is_client", False)
+        line = msg
+
+        if is_client:
+            line = f"C: {line}"
+        elif is_server:
+            line = f"S: {line}"
+
+        if host:
+            line = f"({host}:{port}) {line}"
+
+        if mod:
+            line = f"({mod}) {line}"
+        return line, kwargs
+
+    def log(self, level, msg, *args, exc_info=None, stack_info=False, **kwargs) -> None:
+        msg, kwargs = self.format_inline(msg, kwargs)
+        return super().log(
+            level,
+            msg,
+            *args,
+            exc_info=exc_info,
+            stack_info=stack_info,
+            stacklevel=2,
+            **kwargs,
         )
 
     def success(self, msg, color=None, *args, **kwargs):
@@ -166,8 +213,8 @@ class ProtocolLogger(logging.LoggerAdapter):
                         lineno=caller.f_lineno,
                         msg=text,
                         args=args,
-                        kwargs=kwargs,
-                        exc_info=False,
+                        # kwargs=kwargs,
+                        exc_info=None,
                     )
                 )
 

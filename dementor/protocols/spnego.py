@@ -17,19 +17,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from impacket.spnego import SPNEGO_NegTokenResp, TypesMech
+from impacket.spnego import SPNEGO_NegTokenResp, TypesMech, SPNEGO_NegTokenInit
+
+
+SPNEGO_NTLMSSP_MECH = "NTLMSSP - Microsoft NTLM Security Support Provider"
 
 
 def negTokenInit_step(
-    negResult: int,
-    respToken: bytes | None = None,
-    supportedMech: str | None = None,
+    neg_result: int,
+    resp_token: bytes | None = None,
+    supported_mech: str | None = None,
 ) -> SPNEGO_NegTokenResp:
     response = SPNEGO_NegTokenResp()
-    response["NegState"] = negResult.to_bytes(1)
-    if supportedMech:
-        response["SupportedMech"] = TypesMech[supportedMech]
-    if respToken:
-        response["ResponseToken"] = respToken
+    response["NegState"] = neg_result.to_bytes(1)
+    if supported_mech:
+        response["SupportedMech"] = TypesMech[supported_mech]
+    if resp_token:
+        response["ResponseToken"] = resp_token
 
     return response
+
+
+def negTokenInit(mech_types: list) -> SPNEGO_NegTokenInit:
+    token_init = SPNEGO_NegTokenInit()
+    token_init["MechTypes"] = [TypesMech[x] for x in mech_types]
+    return token_init

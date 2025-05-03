@@ -27,33 +27,16 @@ from impacket import ntlm
 
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
-from dementor.config.util import is_true, get_value
-
-
-def ntlm_config_get_challenge(value: str | bytes | None) -> bytes:
-    match value:
-        case None:
-            return secrets.token_bytes(8)
-
-        case str():
-            try:
-                return bytes.fromhex(value)
-            except ValueError:
-                return value.encode()
-
-        case bytes():
-            return value
-
-        case _:
-            return str(value).encode()
+from dementor.config.util import is_true, get_value, BytesValue
 
 
 ATTR_NTLM_CHALLENGE = Attribute(
     "ntlm_challenge",
     "NTLM.Challenge",
-    b"1337LEET",
+    # Documentation states that a random challenge will be used
+    default_val=None,
     section_local=False,
-    factory=ntlm_config_get_challenge,
+    factory=BytesValue(8),
 )
 
 ATTR_NTLM_ESS = Attribute(
@@ -165,7 +148,7 @@ def NTLM_new_timestamp() -> int:
 
 
 def NTLM_split_fqdn(fqdn: str):
-    return fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
+    return fqdn.split(".", 1) if "." in fqdn else (fqdn, "WORKGROUP")
 
 
 def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:

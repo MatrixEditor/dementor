@@ -232,19 +232,15 @@ AllowedQueryTypes = ["A", "AAAA", "ALL"]
 # The name that will be used to identify the SMB server when responding to client
 # queries.
 
-ServerName = "SPOOFED"
+# FQDN = "name.domain.com"
 
 # The operating system reported by the SMB server. This helps identify the type
 # of server responding.
 
 # ServerOS = "UNIX"
 
-# The domain that the SMB server is identified as. In many cases, this is "WORKGROUP"
-# for local setups.
-
-ServerDomain = "WORKGROUP"
-
-# Enables SMB2 protocol support.
+# Enables SMB2 protocol support. Requests made with SMB1 will be upgraded automatically
+# to SMB2.
 
 SMB2Support = true
 

@@ -133,7 +133,7 @@ class IMAPHandler(BaseProtoHandler):
         self._write_line(line)
 
     def _write_line(self, msg: str) -> None:
-        self.logger.debug(f"(imap) S: {msg!r}")
+        self.logger.debug(repr(msg), is_server=True)
         self.send(f"{msg}\r\n".encode("utf-8", "strict"))
 
     #  There are three possible server completion responses:
@@ -183,7 +183,7 @@ class IMAPHandler(BaseProtoHandler):
         # If the client wishes to cancel an authentication exchange, it issues a line consisting
         # of a single "*"
         resp = self.rfile.readline(1024).strip()
-        self.logger.debug(f"(imap) C: {resp!r}")
+        self.logger.debug(repr(resp), is_client=True)
         if resp == b"*":
             self.bad("Authentication canceled")
             raise StopHandler
@@ -220,7 +220,7 @@ class IMAPHandler(BaseProtoHandler):
                 tag, cmd, *args = shlex.split(line)
                 self.seq_id = tag
             except ValueError:
-                self.logger.debug(f"(imap) Unknown command: {line!r}")
+                self.logger.debug(f"Unknown command: {line!r}")
                 self.bad("Invalid command")
                 continue
 
@@ -231,7 +231,7 @@ class IMAPHandler(BaseProtoHandler):
                 except StopHandler:
                     break
             else:
-                self.logger.debug(f"(imap) Unknown command: {line!r}")
+                self.logger.debug(f"Unknown command: {line!r}")
                 #  7.1.5. BYE Response
                 self._push("BYE Unknown command", seq=False)
                 break
@@ -240,7 +240,7 @@ class IMAPHandler(BaseProtoHandler):
         data = self.rfile.readline(size)
         if data:
             text = data.decode("utf-8", errors="replace").strip()
-            self.logger.debug(f"(imap) C: {text!r}")
+            self.logger.debug(repr(text), is_client=True)
             return text
 
     # implementation

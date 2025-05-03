@@ -214,7 +214,6 @@ class SMTPServerHandler:
                 except binascii.Error:
                     self.logger.debug(
                         f"Could not parse input NTLM negotiate: {args[1]}",
-                        host=server.session.peer[0],
                     )
                     await server.push("501 5.7.0 Auth aborted")
                     return MISSING
