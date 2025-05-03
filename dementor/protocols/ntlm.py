@@ -147,7 +147,7 @@ def NTLM_new_timestamp() -> int:
 
 
 def NTLM_split_fqdn(fqdn: str):
-    return fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
+    return fqdn.split(".", 1) if "." in fqdn else (fqdn, "WORKGROUP")
 
 
 def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
