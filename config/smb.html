@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMB - Dementor 1.0.0.dev7 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="SMTP" href="smtp.html" /><link rel="prev" title="QUIC" href="quic.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMB - Dementor 1.0.0.dev8 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="SMTP" href="smtp.html" /><link rel="prev" title="QUIC" href="quic.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/smb.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -153,9 +153,10 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#section-smb">Section <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></a><ul>
 <li><a class="reference internal" href="#SMB.Server"><code class="docutils literal notranslate"><span class="pre">Server</span></code></a><ul>
 <li><a class="reference internal" href="#SMB.Server.Port"><code class="docutils literal notranslate">Port</span></code></a></li>
-<li><a class="reference internal" href="#SMB.Server.ServerName"><code class="docutils literal notranslate">ServerName</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.ServerOS"><code class="docutils literal notranslate">ServerOS</span></code></a></li>
+<li><a class="reference internal" href="#SMB.Server.ServerName"><code class="docutils literal notranslate">ServerName</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.ServerDomain"><code class="docutils literal notranslate">ServerDomain</span></code></a></li>
+<li><a class="reference internal" href="#SMB.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.ErrorCode"><code class="docutils literal notranslate">ErrorCode</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.SMB2Support"><code class="docutils literal notranslate">SMB2Support</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.ExtendedSessionSecurity"><code class="docutils literal notranslate">ExtendedSessionSecurity</span></code></a></li>
@@ -167,6 +168,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_server_os"><code class="docutils literal notranslate">SMBServerConfig.smb_server_os</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_server_name"><code class="docutils literal notranslate">SMBServerConfig.smb_server_name</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_server_domain"><code class="docutils literal notranslate">SMBServerConfig.smb_server_domain</span></code></a></li>
+<li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_fqdn"><code class="docutils literal notranslate">SMBServerConfig.smb_fqdn</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_error_code"><code class="docutils literal notranslate">SMBServerConfig.smb_error_code</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb2_support"><code class="docutils literal notranslate">SMBServerConfig.smb2_support</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_ess"><code class="docutils literal notranslate">SMBServerConfig.smb_ess</span></code></a></li>
@@ -236,14 +238,34 @@ used in the</strong> <code class="docutils literal notranslate"><span class="pre
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="SMB.Server.ServerName">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerName</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMB.Server.ServerName" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="SMB.Server.ServerOS">
 <span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerOS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMB.Server.ServerOS" title="Link to this definition">¶</a></dt>
+<dd><p><em>Map to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_server_os" title="SMB.smb.SMBServerConfig.smb_server_os"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.smb_server_os</span></code></a>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
+<p>Defines the operating system for the SMB server. These values are used when crafting responses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SMB.Server.ServerName">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerName</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMB.Server.ServerName" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="SMB.Server.ServerDomain">
 <span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerDomain</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMB.Server.ServerDomain" title="Link to this definition">¶</a></dt>
 <dd><p><em>Map to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.smb_server_XXX</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
 <p>Defines identification metadata for the SMB server. These values are used when crafting responses.</p>
+<div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev8: </span><code class="code docutils literal notranslate"><span class="pre">ServerName</span></code> and <code class="code docutils literal notranslate"><span class="pre">ServerDomain</span></code> were merged into <a class="reference internal" href="#SMB.Server.FQDN" title="SMB.Server.FQDN"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.FQDN</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SMB.Server.FQDN">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></em><a class="headerlink" href="#SMB.Server.FQDN" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_fqdn" title="SMB.smb.SMBServerConfig.smb_fqdn"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.smb_fqdn</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
+<p>Specifies the Fully Qualified Domain Name (FQDN) hostname used by the SMB server.
+The hostname portion of the FQDN will be included in server responses. The domain part is optional
+and will point to <code class="docutils literal notranslate"><span class="pre">WORKGROUP</span></code> by default.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev8.</span></p>
+</div>
 </dd></dl>
 
 <dl class="py attribute">
@@ -324,12 +346,27 @@ value for each session.</p>
 <dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.smb_server_name">
 <span class="sig-name descname"><span class="pre">smb_server_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#SMB.smb.SMBServerConfig.smb_server_name" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMB.Server.ServerName" title="SMB.Server.ServerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.ServerName</span></code></a></p>
+<div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev8: </span>Merged into <a class="reference internal" href="#SMB.Server.FQDN" title="SMB.Server.FQDN"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.FQDN</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.smb_server_domain">
 <span class="sig-name descname"><span class="pre">smb_server_domain</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;WORKGROUP&quot;</span></em><a class="headerlink" href="#SMB.smb.SMBServerConfig.smb_server_domain" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMB.Server.ServerDomain" title="SMB.Server.ServerDomain"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.ServerDomain</span></code></a></p>
+<div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev8: </span>Merged into <a class="reference internal" href="#SMB.Server.FQDN" title="SMB.Server.FQDN"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.FQDN</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.smb_fqdn">
+<span class="sig-name descname"><span class="pre">smb_fqdn</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#SMB.smb.SMBServerConfig.smb_fqdn" title="Link to this definition">¶</a></dt>
+<dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMB.Server.FQDN" title="SMB.Server.FQDN"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.FQDN</span></code></a></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev8.</span></p>
+</div>
 </dd></dl>
 
 <dl class="py attribute">
@@ -368,17 +405,16 @@ in <a class="reference internal" href="#SMB.Server.Challenge" title="SMB.Server.
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-text">SMB configuration section (default values)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos"> 1</span><span class="k">[SMB]</span>
-</span><span data-line="2"><span class="linenos"> 2</span><span class="n">ServerName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;SPOOFED&quot;</span>
-</span><span data-line="3"><span class="linenos"> 3</span><span class="n">ServerOS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;UNIX&quot;</span>
-</span><span data-line="4"><span class="linenos"> 4</span><span class="n">ServerDomain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;WORKGROUP&quot;</span>
-</span><span data-line="5"><span class="linenos"> 5</span><span class="n">SMB2Support</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-</span><span data-line="6"><span class="linenos"> 6</span><span class="n">ErrorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;STATUS_SMB_BAD_UID&quot;</span>
-</span><span data-line="7"><span class="linenos"> 7</span>
-</span><span data-line="8"><span class="linenos"> 8</span><span class="k">[[SMB.Server]]</span>
-</span><span data-line="9"><span class="linenos"> 9</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">139</span>
-</span><span data-line="10"><span class="linenos">10</span>
-</span><span data-line="11"><span class="linenos">11</span><span class="k">[[SMB.Server]]</span>
-</span><span data-line="12"><span class="linenos">12</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">445</span>
+</span><span data-line="2"><span class="linenos"> 2</span><span class="n">ServerOS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Windows&quot;</span>
+</span><span data-line="3"><span class="linenos"> 3</span><span class="n">FQDN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEMENTOR&quot;</span>
+</span><span data-line="4"><span class="linenos"> 4</span><span class="n">SMB2Support</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span data-line="5"><span class="linenos"> 5</span><span class="n">ErrorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;STATUS_SMB_BAD_UID&quot;</span>
+</span><span data-line="6"><span class="linenos"> 6</span>
+</span><span data-line="7"><span class="linenos"> 7</span><span class="k">[[SMB.Server]]</span>
+</span><span data-line="8"><span class="linenos"> 8</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">139</span>
+</span><span data-line="9"><span class="linenos"> 9</span>
+</span><span data-line="10"><span class="linenos">10</span><span class="k">[[SMB.Server]]</span>
+</span><span data-line="11"><span class="linenos">11</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">445</span>
 </span></pre></div>
 </div>
 </div>
@@ -428,7 +464,7 @@ in <a class="reference internal" href="#SMB.Server.Challenge" title="SMB.Server.
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=1bd85721"></script>
+      <script src="../_static/documentation_options.js?v=6e5aee1e"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
