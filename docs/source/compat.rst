@@ -95,11 +95,11 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide check-check sd-text-success l"></i>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -121,7 +121,7 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide cancelled sd-text-secondary l"></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>

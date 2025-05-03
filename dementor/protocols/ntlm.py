@@ -33,7 +33,8 @@ from dementor.config.util import is_true, get_value, BytesValue
 ATTR_NTLM_CHALLENGE = Attribute(
     "ntlm_challenge",
     "NTLM.Challenge",
-    b"1337LEET",
+    # Documentation states that a random challenge will be used
+    default_val=None,
     section_local=False,
     factory=BytesValue(8),
 )

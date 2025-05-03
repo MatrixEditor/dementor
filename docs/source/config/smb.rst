@@ -32,14 +32,35 @@ Section ``[SMB]``
             This attribute must be defined within a dedicated ``[[SMB.Server]]`` section.
 
 
+    .. py:attribute:: Server.ServerOS
+        :type: str
+
+        *Map to* :attr:`smb.SMBServerConfig.smb_server_os`. *May also be set in* ``[SMB]``
+
+        Defines the operating system for the SMB server. These values are used when crafting responses.
+
     .. py:attribute:: Server.ServerName
-                      Server.ServerOS
                       Server.ServerDomain
         :type: str
 
         *Map to* :attr:`smb.SMBServerConfig.smb_server_XXX`. *May also be set in* ``[SMB]``
 
         Defines identification metadata for the SMB server. These values are used when crafting responses.
+
+        .. versionremoved:: 1.0.0.dev8
+            :code:`ServerName` and :code:`ServerDomain` were merged into :attr:`SMB.Server.FQDN`
+
+    .. py:attribute:: Server.FQDN
+        :type: str
+        :value: "Dementor"
+
+        *Linked to* :attr:`smb.SMBServerConfig.smb_fqdn`. *Can also be set in* ``[SMB]`` *or* ``[Globals]``
+
+        Specifies the Fully Qualified Domain Name (FQDN) hostname used by the SMB server.
+        The hostname portion of the FQDN will be included in server responses. The domain part is optional
+        and will point to ``WORKGROUP`` by default.
+
+        .. versionadded:: 1.0.0.dev8
 
 
     .. py:attribute:: Server.ErrorCode
@@ -125,12 +146,26 @@ Section ``[SMB]``
 
         *Corresponds to* :attr:`SMB.Server.ServerName`
 
+        .. versionremoved:: 1.0.0.dev8
+            Merged into :attr:`SMB.Server.FQDN`
+
 
     .. py:attribute:: smb_server_domain
         :type: str
         :value: "WORKGROUP"
 
         *Corresponds to* :attr:`SMB.Server.ServerDomain`
+
+        .. versionremoved:: 1.0.0.dev8
+            Merged into :attr:`SMB.Server.FQDN`
+
+    .. py:attribute:: smb_fqdn
+        :type: str
+        :value: "DEMENTOR"
+
+        *Corresponds to* :attr:`SMB.Server.FQDN`
+
+        .. versionadded:: 1.0.0.dev8
 
 
     .. py:attribute:: smb_error_code
@@ -174,9 +209,8 @@ Default Configuration
     :caption: SMB configuration section (default values)
 
     [SMB]
-    ServerName = "SPOOFED"
-    ServerOS = "UNIX"
-    ServerDomain = "WORKGROUP"
+    ServerOS = "Windows"
+    FQDN = "DEMENTOR"
     SMB2Support = true
     ErrorCode = "STATUS_SMB_BAD_UID"
 

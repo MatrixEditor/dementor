@@ -20,6 +20,7 @@
 import uuid
 import calendar
 import time
+import secrets
 
 from impacket.smbserver import TypesMech, MechTypes
 from scapy.fields import NetBIOSNameField
@@ -36,7 +37,7 @@ from impacket import (
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import get_value, BytesValue
+from dementor.config.util import get_value
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -70,7 +71,6 @@ class SMBServerConfig(TomlConfig):
     _section_ = "SMB"
     _fields_ = [
         A("smb_port", "Port"),
-        A("smb_guid", "GUID", None, factory=BytesValue(16)),
         A("smb_server_os", "ServerOS", "Windows"),
         A("smb_fqdn", "FQDN", "DEMENTOR", section_local=False),
         A("smb_error_code", "ErrorCode", nt_errors.STATUS_SMB_BAD_UID),
@@ -125,7 +125,7 @@ def smb2_negotiate(handler, target_revision: int):
     command = smb2.SMB2Negotiate_Response()
     command["SecuityMode"] = 0x01  # signing enabled, but not enforced
     command["DialectRevision"] = target_revision
-    command["ServerGuid"] = handler.smb_config.smb_guid
+    command["ServerGuid"] = secrets.token_bytes(16)
     command["Capabilities"] = 0x00
     command["MaxTransactSize"] = 65536
     command["MaxReadSize"] = 65536
@@ -214,7 +214,7 @@ def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
     if packet["Flags2"] & smb.SMB.FLAGS2_EXTENDED_SECURITY:
         resp["Flags2"] = smb.SMB.FLAGS2_EXTENDED_SECURITY | smb.SMB.FLAGS2_NT_STATUS
         _dialects_data = smb.SMBExtended_Security_Data()
-        _dialects_data["ServerGUID"] = handler.smb_config.smb_guid
+        _dialects_data["ServerGUID"] = secrets.token_bytes(16)
         blob = negTokenInit([SPNEGO_NTLMSSP_MECH])
         _dialects_data["SecurityBlob"] = blob.getData()
 
@@ -228,7 +228,8 @@ def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
         _dialects_parameters["ChallengeLength"] = 0
     else:
         handler.logger.fail(
-            "SMB1 and lower dialiects without extended security are not supported."
+            "Client requested SMB1 or lower dialect without extended security, "
+            "which is not supported."
         )
         raise BaseProtoHandler.TerminateConnection
 
