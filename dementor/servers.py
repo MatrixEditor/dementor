@@ -67,6 +67,9 @@ class ServerThread(threading.Thread):
 
 
 class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
+    class TerminateConnection(Exception):
+        pass
+
     def __init__(self, config: SessionConfig, request, client_address, server) -> None:
         self.client_address = client_address
         self.server = server
@@ -87,6 +90,8 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
                 data = None
 
             self.handle_data(data, transport)
+        except BaseProtoHandler.TerminateConnection:
+            pass
         except BrokenPipeError:
             pass  # connection closed, maybe log that
         except TimeoutError:

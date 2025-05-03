@@ -27,25 +27,7 @@ from impacket import ntlm
 
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
-from dementor.config.util import is_true, get_value
-
-
-def ntlm_config_get_challenge(value: str | bytes | None) -> bytes:
-    match value:
-        case None:
-            return secrets.token_bytes(8)
-
-        case str():
-            try:
-                return bytes.fromhex(value)
-            except ValueError:
-                return value.encode()
-
-        case bytes():
-            return value
-
-        case _:
-            return str(value).encode()
+from dementor.config.util import is_true, get_value, BytesValue
 
 
 ATTR_NTLM_CHALLENGE = Attribute(
@@ -53,7 +35,7 @@ ATTR_NTLM_CHALLENGE = Attribute(
     "NTLM.Challenge",
     b"1337LEET",
     section_local=False,
-    factory=ntlm_config_get_challenge,
+    factory=BytesValue(8),
 )
 
 ATTR_NTLM_ESS = Attribute(

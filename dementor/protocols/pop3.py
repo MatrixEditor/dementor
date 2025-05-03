@@ -124,7 +124,7 @@ class POP3Handler(BaseProtoHandler):
         line = str(msg)
         if prefix:
             line = f"{prefix} {line}"
-        self.logger.debug(f"(pop3) S: {line!r}")
+        self.logger.debug(repr(line), is_server=True)
         self.send(f"{line}\r\n".encode("utf-8", "strict"))
 
     def challenge_auth(
@@ -139,7 +139,7 @@ class POP3Handler(BaseProtoHandler):
 
         self.line(line)
         resp = self.rfile.readline(1024).strip().decode("utf-8", errors="replace")
-        self.logger.debug(f"(pop3) C: {resp!r}")
+        self.logger.debug(repr(resp), is_client=True)
         # A client response consists of a line containing a string
         # encoded as Base64.  If the client wishes to cancel the
         # authentication exchange, it issues a line with a single "*".
@@ -167,7 +167,7 @@ class POP3Handler(BaseProtoHandler):
         # now identify and authenticate itself to the POP3 server.
         while line := self.rfile.readline(1024):
             line = line.decode("utf-8", errors="replace").strip()
-            self.logger.debug(f"(pop3) C: {line!r}")
+            self.logger.debug(repr(line), is_client=True)
 
             args = line.split(" ")
             if len(args) > 0:
@@ -179,7 +179,7 @@ class POP3Handler(BaseProtoHandler):
                         break
                 continue
 
-            self.logger.debug(f"(pop3) Unknown command: {line!r}")
+            self.logger.debug(f"Unknown command: {line!r}")
             self.err("Unknown command")
 
     # Implementation

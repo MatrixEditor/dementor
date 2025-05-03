@@ -19,6 +19,7 @@
 # SOFTWARE.
 import random
 import string
+import secrets
 
 from typing import Any
 from jinja2.sandbox import SandboxedEnvironment
@@ -48,6 +49,28 @@ def get_value(section: str, key: str | None, default=None) -> Any:
 # --- factory methods for attributes ---
 def is_true(value: str) -> bool:
     return str(value).lower() in ("true", "1", "on", "yes")
+
+
+class BytesValue:
+    def __init__(self, length=None) -> None:
+        self.length = length
+
+    def __call__(self, value) -> Any:
+        match value:
+            case None:
+                return secrets.token_bytes(self.length or 1)
+
+            case str():
+                try:
+                    return bytes.fromhex(value)
+                except ValueError:
+                    return value.encode()
+
+            case bytes():
+                return value
+
+            case _:
+                return str(value).encode()
 
 
 def random_value(size: int) -> str:

