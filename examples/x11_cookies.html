@@ -2,8 +2,8 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rogue Kerberos KDC - Dementor 1.0.0.dev9 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="SMTP/IMAP/POP3 Downgrade" href="smtp_downgrade.html" /><link rel="prev" title="Multicast Poisoning ⚙️" href="multicast.html" />
-      <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/kdc.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Stealing XAuth Cookies - Dementor 1.0.0.dev9 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Main" href="../config/main.html" /><link rel="prev" title="WebDAV Fallback" href="webdav_fallback.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/x11_cookies.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
@@ -22,8 +22,8 @@
 }
 </style>
     <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://matrixeditor.github.io/dementor/examples/kdc.html"/>
-<meta property="og:title" content="Rogue Kerberos KDC"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/examples/x11_cookies.html"/>
+<meta property="og:title" content="Stealing XAuth Cookies"/>
 <meta name="twitter:card" content="summary"/>
   </head>
 <body><div class="sy-head">
@@ -43,7 +43,7 @@
         <ul><li><a href="multicast.html">
                 <span>Multicast Poisoing</span>
                 <small>mDNS, LLMNR and NBT-NS Poisoning</small>
-              </a></li><li><a href="#">
+              </a></li><li><a href="kdc.html">
                 <span>Rogue KDC</span>
                 <small>Rogue Kerberos KDC for ASREQroasting</small>
               </a></li><li><a href="smtp_downgrade.html">
@@ -109,10 +109,10 @@ data-aria-dark="Switch to auto color mode">
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
 <ul class="current">
 <li class="toctree-l1 _expand"><a class="reference internal" href="multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="kdc.html">Rogue Kerberos  KDC</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="webdav_fallback.html">WebDAV Fallback</a></li>
-<li class="toctree-l1 _expand"><a class="reference internal" href="x11_cookies.html">Stealing XAuth Cookies</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Stealing XAuth Cookies</a></li>
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
 <ul>
@@ -152,11 +152,10 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#how-it-works">How it Works</a></li>
-<li><a class="reference internal" href="#as-req-roasting-via-rogue-key-distribution-center-kdc">AS-REQ Roasting via Rogue Key Distribution Center (KDC)</a></li>
+<li><a class="reference internal" href="#using-multicast-poisoning-to-capture-xauth-cookies">Using Multicast Poisoning to Capture XAuth Cookies</a></li>
 </ul>
 </div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/kdc.rst">Edit this page</a>
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/x11_cookies.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -172,7 +171,7 @@ data-aria-dark="Switch to auto color mode">
         <span>/</span>
         <meta itemprop="position" content="1" />
       </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <strong itemprop="name">Rogue Kerberos  KDC</strong>
+        <strong itemprop="name">Stealing XAuth Cookies</strong>
         <meta itemprop="position" content="2" />
       </li></ol>
     <div class="xl:hidden ml-1">
@@ -185,64 +184,57 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
         <article class="yue" role="main">
-          <section id="rogue-kerberos-kdc">
-<span id="example-kerberos"></span><h1>Rogue Kerberos  KDC<a class="headerlink" href="#rogue-kerberos-kdc" title="Link to this heading">¶</a></h1>
-<p><em>Kerberos Spec</em> <span class="sd-sphinx-override sd-badge sd-outline-secondary sd-text-secondary">RFC-4120</span></p>
-<p><a class="reference external" href="https://tools.ietf.org/html/rfc4120">Kerberos</a> is a network authentication protocol designed to provide
-secure identity verification using secret-key cryptography. It is the preferred authentication protocol
-in Active Directory environments for domain accounts and is incompatible with workgroups. Unlike NTLM,
-which uses challenge-response authentication, Kerberos utilizes a ticket-based system, mitigating the
-risk of credential relay attacks (however still possible).</p>
-<section id="how-it-works">
-<h2>How it Works<a class="headerlink" href="#how-it-works" title="Link to this heading">¶</a></h2>
-<p>Kerberos follows a three-party authentication model, involving:</p>
-<ul class="simple">
-<li><p>A <strong>Client</strong> (either a user or service) that seeks authentication.</p></li>
-<li><p>A <strong>Key Distribution Center (KDC)</strong> that validates the identity and issues tickets.</p></li>
-<li><p>A <strong>Service</strong> that the client wants to access, requiring authentication.</p></li>
-</ul>
-<p>When a user attempts to access a service, the Kerberos authentication process ensures that credentials are
-exchanged securely without exposing passwords over the network.</p>
-<figure class="align-center" id="id2">
-<img alt="../_images/kerberos-flow_dark.png" src="../_images/kerberos-flow_dark.png" />
-<figcaption>
-<p><span class="caption-text">Kerberos protocol flow</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<ol class="arabic simple">
-<li><p>The client requests a Ticket Granting Ticket (TGT) from the Authentication Server (AS) within the Key Distribution Center (KDC) by sending an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.1">AS-REQ</a> message. This request may include a timestamp encrypted with the user’s Kerberos key, a process known as <a class="reference external" href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc961961(v=technet.10)?redirectedfrom=MSDN">Preauthentication</a>.</p></li>
-<li><p>The AS verifies the timestamp (if present) and responds with an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.2">AS-REP</a> message. This response contains two encrypted parts: a TGT encrypted with the KDC’s key and client-specific data encrypted with the client’s key. Key information, such as the session key, is embedded in both parts to ensure shared access between the client and the KDC.</p></li>
-<li><p>When the client attempts to access a service, it negotiates the authentication protocol using SPNEGO. If Kerberos is chosen, the client must obtain a Service Ticket (ST) for the target service.</p></li>
-<li><p>The client sends a <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.1">TGS-REQ</a> message to the KDC requesting the ST. This message includes the TGT, the Service Principal Name ([SPN](#service-principal-name-spn)) of the target service, and additional encrypted data (such as the client’s username and timestamp) to verify authenticity.</p></li>
-<li><p>The KDC decrypts the TGT using its key, extracts the session key, and verifies the client’s username. Upon validation, the KDC issues a <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.2">TGS-REP</a> message containing two encrypted sections: an ST encrypted with the service’s key and client-related data encrypted with the session key. Shared data, such as the service session key, is embedded in both sections to facilitate communication between the client and the service.</p></li>
-<li><p>The client forwards the ST to the service within an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.5.1">AP-REQ</a> message, which is encapsulated in the application protocol. The service decrypts the ST, retrieves the session key, and accesses the Privilege Attribute Certificate (PAC), which contains security information about the client.</p></li>
-<li><p>(Optional) If the service needs to validate the PAC, it can use the Netlogon protocol to request the domain controller (DC) to <a class="reference external" href="https://learn.microsoft.com/en-us/archive/blogs/openspecification/understanding-microsoft-kerberos-pac-validation">verify the PAC</a> signature through a <a class="reference external" href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-apds/b27be921-39b3-4dff-af4a-b7b74deb33b5">KERB_VERIFY_PAC_REQUEST</a>.</p></li>
-<li><p>(Optional) The domain controller verifies the PAC and responds with a code indicating whether the PAC is valid.</p></li>
-<li><p>(Optional) If mutual authentication is required, the service must authenticate itself to the client. This is done by responding to the AP-REQ message with an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.5.2">AP-REP</a> message, proving its identity by encrypting a response with the session key. This ensures the service is legitimate and not a malicious impersonator.</p></li>
-</ol>
-</section>
-<section id="as-req-roasting-via-rogue-key-distribution-center-kdc">
-<h2>AS-REQ Roasting via Rogue Key Distribution Center (KDC)<a class="headerlink" href="#as-req-roasting-via-rogue-key-distribution-center-kdc" title="Link to this heading">¶</a></h2>
-<p>A rogue KDC is an attacker-controlled KDC that impersonates the legitimate KDC, manipulating the Kerberos authentication process. <em>Dementor</em> offers configuration options to start a KDC service on port <cite>88</cite> (both TCP and UDP).</p>
-<figure class="align-center" id="id3">
-<img alt="../_images/asreqroast-kdc_dark.png" src="../_images/asreqroast-kdc_dark.png" />
-<figcaption>
-<p><span class="caption-text">AS-REQ roasting flow using a rogue KDC</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<ol class="arabic simple">
-<li><p>(step 3. from earlier): When the client attempts to access a service, it first negotiates the authentication protocol using SPNEGO. If Kerberos is selected, the client must obtain a Service Ticket (ST) for the target service.</p></li>
-<li><p>The client sends an <a class="reference external" href="https://tools.ietf.org/html/rfc4120#section-5.4.1">AS-REQ</a> message, which includes a pre-authentication timestamp encrypted with their Kerberos key.</p></li>
-</ol>
-<p><em>Dementor</em> can generate hashes from that timestamp, which can be cracked using <a class="reference external" href="https://hashcat.net/hashcat/">hashcat</a>. For example, the following hash was generated using the <a class="reference external" href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/network-security-configure-encryption-types-allowed-for-kerberos">Encryption Type</a>
-<code class="docutils literal notranslate"><span class="pre">23</span></code>, which points to <code class="docutils literal notranslate"><span class="pre">RC4_HMAC_MD5</span></code> (Hashcat mode <code class="docutils literal notranslate"><span class="pre">7500</span></code>). It can be enabled using the <a class="reference internal" href="../config/kerberos.html#Kerberos.EncType" title="Kerberos.EncType"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Kerberos.EncType</span></code></a> attribute.</p>
+          <section id="stealing-xauth-cookies">
+<span id="example-x11-cookies"></span><h1>Stealing XAuth Cookies<a class="headerlink" href="#stealing-xauth-cookies" title="Link to this heading">¶</a></h1>
+<p>The X11 protocol allows graphical applications to display their user interface on a remote system.
+If access control is enabled (e.g., using <code class="docutils literal notranslate"><span class="pre">xhost</span></code>), the user must supply valid authentication
+credentials—known as <em>X authorization cookies</em>—before launching the application.</p>
+<p>Let’s consider the following scenario: A user wants to run a graphical application locally but have it
+display remotely on a server named <code class="docutils literal notranslate"><span class="pre">UbuntuSrv</span></code>. Since the user doesn’t know the IP address, they use
+the hostname instead:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">$<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span>UbuntuSrv:0<span class="w"> </span>&lt;program-name&gt;
+</span></pre></div>
+</div>
+<p>On Windows, if the hostname cannot be resolved via DNS, it will automatically fall back to <strong>multicast DNS</strong>
+(mDNS) for resolution. <em>Dementor</em> can exploit this fallback mechanism to capture authentication cookies.</p>
+<p>However, unless explicitly configured, no XAuth data is sent by default. In such cases, <em>Dementor</em> will log
+an anonymous request:</p>
 <div class="demo docutils container">
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>sudo<span class="w"> </span>Dementor<span class="w"> </span>-I<span class="w"> </span>&lt;IFACE&gt;
-</span><span data-line="2"><span class="go">[...]</span>
-</span><span data-line="3"><span class="go">Kerberos   192.168.56.1  88     [+] Captured KRB5-PA Hash for droid/CONTOSO.LOCAL from 192.168.56.1:</span>
-</span><span data-line="4"><span class="go">Kerberos   192.168.56.1  88     KRB5-PA Username: droid</span>
-</span><span data-line="5"><span class="go">Kerberos   192.168.56.1  88     KRB5-PA Hash: $krb5pa$23$droid$CONTOSO.LOCAL$434f4e544f534f2e4c4f43414c64726f6964$f5b47b6b69f11c6eca9e494c6ba3512456c52bd2bf3dcd9fb6b381a34cf571d94c61e3c459adcae50f5f98b0c65be7951ddd3eb4</span>
-</span><span data-line="6"><span class="go">[...]</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span><span data-line="2"><span class="go">X11  192.168.56.1  6000  [*] Anonymous X11 request from 192.168.56.125 (version: 11.0)</span>
+</span><span data-line="3"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span></pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A more robust approach to capturing X11 authentication and session data would be a traditional
+Man-in-the-Middle (MITM) attack between the client and the X server.</p>
+</div>
+<section id="using-multicast-poisoning-to-capture-xauth-cookies">
+<h2>Using Multicast Poisoning to Capture XAuth Cookies<a class="headerlink" href="#using-multicast-poisoning-to-capture-xauth-cookies" title="Link to this heading">¶</a></h2>
+<p>As mentioned above, when Windows fails to resolve a hostname via DNS, it will attempt mDNS.
+If a user specifies a valid <em>Xauthority</em> file when launching their application, the authentication
+cookie will be sent <strong>in cleartext</strong> to any host claiming that name.</p>
+<p>For instance, a user on Windows attempts to launch an <code class="docutils literal notranslate"><span class="pre">xterm</span></code> session directed at <code class="docutils literal notranslate"><span class="pre">UbuntuSrv</span></code>.
+Even if the cookie is correct, <em>Dementor</em> will reject access and terminate the session:</p>
+<div class="demo docutils container">
+<img alt="../_images/x11-xterm_remote_display.png" class="align-center" src="../_images/x11-xterm_remote_display.png" />
+</div>
+<p><em>Dementor</em> logs the captured cookie like so:</p>
+<div class="demo docutils container">
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span><span data-line="2"><span class="go">X11  192.168.56.116  6000   [+] Captured MIT-MAGIC-COOKIE-1 for &lt;missing-user&gt; from 192.168.56.116:</span>
+</span><span data-line="3"><span class="go">X11  192.168.56.116  6000   MIT-MAGIC-COOKIE-1: 8032c808e97ef530a585f4f0c6ed2d5b</span>
+</span><span data-line="4"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span></pre></div>
+</div>
+</div>
+<p>You can then manually reuse this cookie to authenticate to the legitimate X server:</p>
+<div class="demo docutils container">
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">$<span class="w"> </span>touch<span class="w"> </span>./cookie
+</span><span data-line="2">$<span class="w"> </span>xauth<span class="w"> </span>-f<span class="w"> </span>./cookie<span class="w"> </span>add<span class="w"> </span>UbuntuSrv:0<span class="w"> </span>MIT-MAGIC-COOKIE-1<span class="w"> </span>8032c808e97ef530a585f4f0c6ed2d5b
+</span><span data-line="3">$<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span>UbuntuSrv:0<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span>./cookie<span class="w"> </span>&lt;program-name&gt;
 </span></pre></div>
 </div>
 </div>
@@ -255,16 +247,16 @@ exchanged securely without exposing passwords over the network.</p>
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="multicast.html">
+    <a href="webdav_fallback.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">Multicast Poisoning ⚙️</div></div>
+        <span>Previous</span><div class="title">WebDAV Fallback</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="smtp_downgrade.html">
+    <a href="../config/main.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">SMTP/IMAP/POP3 Downgrade</div>
+        <div class="title">Main</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>
