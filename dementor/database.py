@@ -166,6 +166,7 @@ class DementorDB:
         domain: str | None = None,
         hostname: str | None = None,
         extras: dict | None = None,
+        custom: bool = False,
     ) -> None:
         if not logger and not protocol:
             dm_logger.error(
@@ -235,8 +236,10 @@ class DementorDB:
                 else:
                     raise
             with dm_console_lock:
+                head_text = text if not custom else ""
+                credtype = markup.escape(credtype)
                 target_logger.success(
-                    f"Captured {credtype} {text}{full_name} from {client_address}:",
+                    f"Captured {credtype} {head_text}{full_name} from {client_address}:",
                     host=hostname or client_address,
                     locked=True,
                 )
@@ -248,7 +251,11 @@ class DementorDB:
                     )
 
                 target_logger.highlight(
-                    f"{credtype} {text}: {markup.escape(password)}",
+                    (
+                        f"{credtype} {text}: {markup.escape(password)}"
+                        if not custom
+                        else f"{credtype}: {markup.escape(password)}"
+                    ),
                     host=hostname or client_address,
                     locked=True,
                 )

@@ -428,6 +428,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             password=token.encode().hex(),
             logger=logger,
             extras=self.get_extras(),
+            custom=True,
         )
         self.finish_request(logger)
 
