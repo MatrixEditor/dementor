@@ -24,3 +24,4 @@ Protocols
     smb
     smtp
     winrm
+    x11

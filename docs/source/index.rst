@@ -10,7 +10,8 @@
 
 .. rst-class:: lead
 
-   IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner - you can think if it as `Responder <https://github.com/lgandx/Responder">`_ 2.0
+   IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner - you can think if it as upgraded version of `Responder <https://github.com/lgandx/Responder">`_
+   with many more features.
 
 
 .. container:: buttons
@@ -87,6 +88,7 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    examples/kdc
    examples/smtp_downgrade
    examples/webdav_fallback
+   examples/x11_cookies
 
 .. toctree::
    :caption: Configuration ⚙️
