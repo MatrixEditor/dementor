@@ -1,0 +1,57 @@
+.. _config_x11:
+
+X11
+===
+
+The current server implementation does not support session hijacking. For such purposes, use
+a dedicated MITM proxy tool instead.
+
+.. seealso::
+    Refer to the `X Window System Protocol documentation <https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#major_opcode>`_
+    for a detailed description of protocol behavior.
+
+Section ``[X11]``
+-----------------
+
+.. py:currentmodule:: X11
+
+.. py:attribute:: PortRange
+    :type: str | dict
+    :value: range(6000, 6005)
+
+    *Maps to* :attr:`x11.X11Config.x11_ports`
+
+    Defines the port range the server will listen on. By default, five ports are opened
+    (for displays 0 through 4).
+
+    Supported formats:
+
+    - ``START-END`` (string): A hyphen-separated range, inclusive start and exclusive end
+    - Dictionary with ``start`` and/or ``end`` keys
+
+    Example:
+
+    .. code-block:: toml
+        :caption: Port range specification
+
+        PortRange = { start = 6000, end = 6010 }
+
+.. py:attribute:: ErrorMessage
+    :type: str
+    :value: "Access denied"
+
+    *Maps to* :attr:`x11.X11Config.x11_error_reason`
+
+    Custom message returned to the client after authentication completes.
+
+
+Default Configuration
+---------------------
+
+.. code-block:: toml
+    :linenos:
+    :caption: X11 configuration (default values)
+
+    [X11]
+    PortRange = { start = 6000, end = 6005 }
+    ErrorMessage = "Access denied"
