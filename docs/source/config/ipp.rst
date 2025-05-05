@@ -17,6 +17,8 @@ using the awesome `python-ipp <https://github.com/ctalkington/python-ipp>`_ pack
 Section ``[IPP]``
 -----------------
 
+.. versionadded:: 1.0.0.dev10
+
 .. py:currentmodule:: IPP
 
 Server Configuration
