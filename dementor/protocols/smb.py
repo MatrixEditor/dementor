@@ -101,7 +101,7 @@ def apply_config(session):
 
 def create_server_threads(session):
     servers = []
-    if True:  # session.smb_enabled:
+    if session.smb_enabled:
         for server_config in session.smb_config:
             servers.append(
                 ServerThread(

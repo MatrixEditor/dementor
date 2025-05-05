@@ -24,7 +24,6 @@
 #     https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html
 
 import enum
-import secrets
 
 from typing import Any
 from collections import OrderedDict
@@ -86,7 +85,7 @@ def create_server_threads(session):
             MySQLServer,
             server_address=(session.bind_address, session.mysql_config.mysql_port),
         )
-    ]
+    ] if session.mysql_enabled else []
 
 
 # --- MySQL Protocol ---
