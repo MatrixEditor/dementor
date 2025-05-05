@@ -214,7 +214,7 @@ Default Configuration
     :linenos:
     :caption: HTTP configuration section (default values)
 
-    [SMTP]
+    [HTTP]
     # Global settings for all HTTP servers
     ServerType = "Microsoft-IIS/10.0"
     FQDN = "DEMENTOR"

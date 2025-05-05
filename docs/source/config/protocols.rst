@@ -11,6 +11,7 @@ Protocols
     ftp
     http
     imap
+    ipp
     kerberos
     ldap
     llmnr

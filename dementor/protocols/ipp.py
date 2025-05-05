@@ -45,6 +45,7 @@ from pyipp.enums import IppOperation, IppPrinterState, IppStatus, IppTag
 from pyipp.tags import ATTRIBUTE_TAG_MAP
 
 from dementor.config.toml import Attribute as A, TomlConfig
+from dementor.config.util import format_string
 from dementor.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import normalize_client_address
@@ -119,15 +120,15 @@ class IPPConfig(TomlConfig):
     _section_ = "IPP"
     _fields_ = [
         A("ipp_port", "Port", 631),
-        A("ipp_printer_name", "PrinterName", None),
-        A("ipp_server_type", "ServerType", "IPP/1.1"),
+        A("ipp_server_type", "ServerType", "IPP/1.1", factory=format_string),
         A("ipp_supported_formats", "DocumentFormats", IPP_MIME_MEDIA_TYPES),
         A("ipp_supported_versions", "SupportedVersions", IPP_SUPPORTED_VERSIONS),
         A("ipp_default_format", "DefaultDocumentFormat", "text/plain"),
         A("ipp_driver_uri", "DriverUri", None),
-        A("ipp_printer_info", "PrinterInfo", "Printer"),
+        A("ipp_printer_name", "PrinterName", None),
+        A("ipp_printer_info", "PrinterInfo", "Printer Info"),
         A("ipp_printer_location", "PrinterLocation", "outside"),
-        A("ipp_printer_model", "PrinterModel", "HP8.0"),
+        A("ipp_printer_model", "PrinterModel", "HP 8.0"),
         A("ipp_extra_attrib", "ExtraAttributes", None),
         A("ipp_extra_headers", "ExtraHeaders", None),
         A("ipp_supported_operations", "SupportedOperations", None),
@@ -370,7 +371,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         resp_attrib["printer-name"] = self.printer_name
 
         msg = f"Serving IPP printer [i]{markup.escape(self.printer_name)}[/]"
-        # CVE-2024-47175
+        # CVE-2024-47175, CVE-2024-47176
         if self.config.ipp_remote_cmd:
             cups_filter = (
                 self.config.ipp_remote_cmd_filter

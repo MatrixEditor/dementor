@@ -7,4 +7,4 @@ pyasn1
 aioquic
 typer
 jinja2
-caterpillar-py
+caterpillar-py>=2.4.4
