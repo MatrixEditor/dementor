@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Main - Dementor 1.0.0.dev9 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Database" href="database.html" /><link rel="prev" title="Stealing XAuth Cookies" href="../examples/x11_cookies.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Main - Dementor 1.0.0.dev10 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Database" href="database.html" /><link rel="prev" title="Abusing CUPS for RCE" href="../examples/cups.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/main.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -113,6 +113,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../examples/x11_cookies.html">Stealing XAuth Cookies</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/cups.html">Abusing CUPS for RCE</a></li>
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
 <ul class="current">
@@ -124,6 +125,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
 <li class="toctree-l2"><a class="reference internal" href="http.html">HTTP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="imap.html">IMAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ipp.html">IPP / CUPS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
@@ -155,10 +157,14 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#section-dementor">Section <code class="docutils literal notranslate"><span class="pre">[Dementor]</span></code></a><ul>
 <li><a class="reference internal" href="#Dementor.Workspace"><code class="docutils literal notranslate"><span class="pre">Workspace</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.ExtraModules"><code class="docutils literal notranslate"><span class="pre">ExtraModules</span></code></a></li>
+<li><a class="reference internal" href="#poisoners">Poisoners</a><ul>
 <li><a class="reference internal" href="#Dementor.LLMNR"><code class="docutils literal notranslate"><span class="pre">LLMNR</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.mDNS"><code class="docutils literal notranslate"><span class="pre">mDNS</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.NBTNS"><code class="docutils literal notranslate"><span class="pre">NBTNS</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.SSRP"><code class="docutils literal notranslate"><span class="pre">SSRP</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#services">Services</a><ul>
 <li><a class="reference internal" href="#Dementor.SMTP"><code class="docutils literal notranslate"><span class="pre">SMTP</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.SMB"><code class="docutils literal notranslate"><span class="pre">SMB</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.NBTDS"><code class="docutils literal notranslate"><span class="pre">NBTDS</span></code></a></li>
@@ -170,6 +176,13 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#Dementor.RPC"><code class="docutils literal notranslate"><span class="pre">RPC</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.WinRM"><code class="docutils literal notranslate"><span class="pre">WinRM</span></code></a></li>
 <li><a class="reference internal" href="#Dementor.MSSQL"><code class="docutils literal notranslate"><span class="pre">MSSQL</span></code></a></li>
+<li><a class="reference internal" href="#Dementor.POP3"><code class="docutils literal notranslate"><span class="pre">POP3</span></code></a></li>
+<li><a class="reference internal" href="#Dementor.IMAP"><code class="docutils literal notranslate"><span class="pre">IMAP</span></code></a></li>
+<li><a class="reference internal" href="#Dementor.MySQL"><code class="docutils literal notranslate"><span class="pre">MySQL</span></code></a></li>
+<li><a class="reference internal" href="#Dementor.X11"><code class="docutils literal notranslate"><span class="pre">X11</span></code></a></li>
+<li><a class="reference internal" href="#Dementor.IPP"><code class="docutils literal notranslate"><span class="pre">IPP</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -232,6 +245,8 @@ including additional protocols, see <a class="reference internal" href="../proto
 mechanism and its priorities are described in <code class="xref py py-class docutils literal notranslate"><span class="pre">ProtocolLoader</span></code>.</p>
 </dd></dl>
 
+<section id="poisoners">
+<h3>Poisoners<a class="headerlink" href="#poisoners" title="Link to this heading">¶</a></h3>
 <p>The following options control servers that perform poisoning in the local network:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.LLMNR">
@@ -268,6 +283,9 @@ configuration options, see <a class="reference internal" href="netbios.html#conf
 <p>Enables or disables the SSRP (MSSQL Browser) poisoner. For more details, refer to <a class="reference internal" href="mssql.html#config-ssrp"><span class="std std-ref">Section [SSRP]</span></a>.</p>
 </dd></dl>
 
+</section>
+<section id="services">
+<h3>Services<a class="headerlink" href="#services" title="Link to this heading">¶</a></h3>
 <p>The following settings apply to protocol-specific servers that do not perform active
 attacks, but instead passively capture credentials:</p>
 <dl class="py attribute">
@@ -304,9 +322,12 @@ Kerberos service).</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.RPC">
 <span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">RPC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.RPC" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.msrpc_enabled</span></code></p>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.rpc_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev2.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev10: </span>Modified naming scheme from <code class="docutils literal notranslate"><span class="pre">msrpc</span></code> to <code class="docutils literal notranslate"><span class="pre">rcp</span></code> (Python side only)</p>
 </div>
 <p>Enables or disables the DCE/RPC service. For more details, refer to <a class="reference internal" href="dcerpc.html#config-dcerpc"><span class="std std-ref">DCE/RPC</span></a>.</p>
 </dd></dl>
@@ -325,13 +346,58 @@ Configuration is the same as described in <a class="reference internal" href="ht
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.MSSQL">
 <span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">MSSQL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.MSSQL" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.msrpc_enabled</span></code></p>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.mssql_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev4.</span></p>
 </div>
 <p>Enables or disables the MSSQL service. For more details, refer to <a class="reference internal" href="mssql.html#config-mssql"><span class="std std-ref">MSSQL</span></a>.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Dementor.POP3">
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">POP3</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.POP3" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="Dementor.IMAP">
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">IMAP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.IMAP" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.xxx_enabled</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev5.</span></p>
+</div>
+<p>Enables or disables the OPO3/IMAP service. For more details, refer to <a class="reference internal" href="pop3.html#config-pop3"><span class="std std-ref">POP3</span></a>
+or <a class="reference internal" href="imap.html#config-imap"><span class="std std-ref">IMAP</span></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Dementor.MySQL">
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">MySQL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.MySQL" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.mysql_enabled</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev7.</span></p>
+</div>
+<p>Enables or disables the MSSQL service. For more details, refer to <a class="reference internal" href="mysql.html#config-mysql"><span class="std std-ref">MySQL</span></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Dementor.X11">
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">X11</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.X11" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.x11_enabled</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev9.</span></p>
+</div>
+<p>Enables or disables X11 servers based on the configured port range. For more details,
+refer to <a class="reference internal" href="x11.html#config-x11"><span class="std std-ref">X11</span></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Dementor.IPP">
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">IPP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.IPP" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ipp_enabled</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev10.</span></p>
+</div>
+<p>Enables or disables the IPP service. For more details, refer to <a class="reference internal" href="ipp.html#config-ipp"><span class="std std-ref">IPP / CUPS</span></a>.</p>
+</dd></dl>
+
+</section>
 </section>
 </section>
 
@@ -341,10 +407,10 @@ Configuration is the same as described in <a class="reference internal" href="ht
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="../examples/x11_cookies.html">
+    <a href="../examples/cups.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">Stealing XAuth Cookies</div></div>
+        <span>Previous</span><div class="title">Abusing CUPS for RCE</div></div>
     </a>
   </div><div class="navigation-next">
     <a href="database.html">
@@ -378,7 +444,7 @@ Configuration is the same as described in <a class="reference internal" href="ht
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=0a953e5a"></script>
+      <script src="../_static/documentation_options.js?v=38c2a499"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
