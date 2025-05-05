@@ -37,17 +37,21 @@ def create_server_threads(session):
 
     # connection data will be shared across both servers
     conn_data = defaultdict(RPCConnection)
-    return [
-        ServerThread(
-            session,
-            MSRPCServer,
-            server_address=(addr, 135),
-            handles=conn_data,
-        ),
-        ServerThread(
-            session,
-            MSRPCServer,
-            server_address=(addr, session.rpc_config.epm_port),
-            handles=conn_data,
-        ),
-    ]
+    return (
+        [
+            ServerThread(
+                session,
+                MSRPCServer,
+                server_address=(addr, 135),
+                handles=conn_data,
+            ),
+            ServerThread(
+                session,
+                MSRPCServer,
+                server_address=(addr, session.rpc_config.epm_port),
+                handles=conn_data,
+            ),
+        ]
+        if session.rpc_enabled
+        else []
+    )

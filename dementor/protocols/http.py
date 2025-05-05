@@ -264,7 +264,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         # let us log mssages
         text = format % args
         msg = text.translate(self._control_char_table)
-        self.logger.debug(f"(http) {msg}")
+        self.logger.debug(msg)
 
     def send_response(self, code: int, message: str | None = None) -> None:
         if not hasattr(self, "_headers_buffer"):

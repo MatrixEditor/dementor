@@ -38,6 +38,9 @@ Section ``[Dementor]``
     including additional protocols, see :ref:`howto_custom_protocol`. The loading
     mechanism and its priorities are described in :class:`~dementor.loader.ProtocolLoader`.
 
+Poisoners
+^^^^^^^^^
+
 The following options control servers that perform poisoning in the local network:
 
 .. py:attribute:: LLMNR
@@ -79,6 +82,9 @@ The following options control servers that perform poisoning in the local networ
     Enables or disables the SSRP (MSSQL Browser) poisoner. For more details, refer to :ref:`config_ssrp`.
 
 
+Services
+^^^^^^^^
+
 The following settings apply to protocol-specific servers that do not perform active
 attacks, but instead passively capture credentials:
 
@@ -114,9 +120,12 @@ attacks, but instead passively capture credentials:
     :type: bool
     :value: true
 
-    *Maps to* :attr:`config.SessionConfig.msrpc_enabled`
+    *Maps to* :attr:`config.SessionConfig.rpc_enabled`
 
     .. versionadded:: 1.0.0.dev2
+
+    .. versionchanged:: 1.0.0.dev10
+        Modified naming scheme from ``msrpc`` to ``rcp`` (Python side only)
 
     Enables or disables the DCE/RPC service. For more details, refer to :ref:`config_dcerpc`.
 
@@ -137,9 +146,55 @@ attacks, but instead passively capture credentials:
     :type: bool
     :value: true
 
-    *Maps to* :attr:`config.SessionConfig.msrpc_enabled`
+    *Maps to* :attr:`config.SessionConfig.mssql_enabled`
 
     .. versionadded:: 1.0.0.dev4
 
     Enables or disables the MSSQL service. For more details, refer to :ref:`config_mssql`.
 
+
+.. py:attribute:: POP3
+                  IMAP
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.xxx_enabled`
+
+    .. versionadded:: 1.0.0.dev5
+
+    Enables or disables the OPO3/IMAP service. For more details, refer to :ref:`config_pop3`
+    or :ref:`config_imap`.
+
+
+.. py:attribute:: MySQL
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.mysql_enabled`
+
+    .. versionadded:: 1.0.0.dev7
+
+    Enables or disables the MSSQL service. For more details, refer to :ref:`config_mysql`.
+
+
+.. py:attribute:: X11
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.x11_enabled`
+
+    .. versionadded:: 1.0.0.dev9
+
+    Enables or disables X11 servers based on the configured port range. For more details,
+    refer to :ref:`config_x11`.
+
+
+.. py:attribute:: IPP
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.ipp_enabled`
+
+    .. versionadded:: 1.0.0.dev10
+
+    Enables or disables the IPP service. For more details, refer to :ref:`config_ipp`.

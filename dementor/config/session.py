@@ -55,6 +55,7 @@ class SessionConfig(TomlConfig):
             "POP3",
             "MySQL",
             "X11",
+            "IPP",
         )
     ]
 
