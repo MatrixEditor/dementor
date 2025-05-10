@@ -31,6 +31,7 @@ from aiosmtpd import __version__ as AiosmtpdVersion
 from aioquic import __version__ as AioquicVersion
 from scapy import VERSION as ScapyVersion
 from scapy.arch import get_if_addr, in6_getifaddr
+from pyipp.ipp import VERSION as PyippVersion
 
 from rich import print
 from rich.console import Console
@@ -231,6 +232,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         impacket_version=ImpacketVersion,
         aiosmtpd_version=AiosmtpdVersion,
         aioquic_version=AioquicVersion,
+        pyipp_version=PyippVersion,
     )
     print(text)
 
