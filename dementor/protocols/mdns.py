@@ -18,14 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import socket
-import struct
 
 from scapy.layers import dns
 from rich import markup
 
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 from dementor.logger import ProtocolLogger
-from dementor.servers import ThreadingUDPServer, BaseProtoHandler, ServerThread
+from dementor.servers import ThreadingUDPServer, BaseProtoHandler, ServerThread, add_mcast_membership
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 
@@ -183,16 +182,10 @@ class MDNSServer(ThreadingUDPServer):
 
     def server_bind(self) -> None:
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
-
-        if self.config.ipv4:
-            # join IPv4 mDNS multicast group
-            mreq = socket.inet_aton(MDNS_IPV4_ADDR) + socket.inet_aton(self.config.ipv4)
-            self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-
-        if self.config.ipv6:
-            mreq = socket.inet_pton(socket.AF_INET6, MDNS_IPV6_ADDR)
-            mreq += struct.pack("@I", socket.if_nametoindex(self.config.interface))
-            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
-
+        add_mcast_membership(
+            self.socket,
+            self.config,
+            group4=MDNS_IPV4_ADDR,
+            group6=MDNS_IPV6_ADDR,
+        )
         super().server_bind()

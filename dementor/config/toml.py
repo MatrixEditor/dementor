@@ -51,12 +51,13 @@ class TomlConfig:
         if hasattr(self, key):
             return getattr(self, key)
 
-        for attrname, qname, _ in getattr(self, "_fields_", []):
-            if "." in qname:
-                _, qname = qname.rsplit(".", 1)
+        for attr in getattr(self, "_fields_", []):
+            name = attr.qname
+            if "." in name:
+                _, name = name.rsplit(".", 1)
 
-            if key == qname:
-                return getattr(self, attrname)
+            if key == name:
+                return getattr(self, attr.attr_name)
 
         raise KeyError(f"Could not find config with key {key!r}")
 

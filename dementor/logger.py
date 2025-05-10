@@ -178,13 +178,13 @@ class ProtocolLogger(logging.LoggerAdapter):
     def success(self, msg, color=None, *args, **kwargs):
         color = color or "green"
         prefix = r"[bold %s]\[+][/bold %s]" % (color, color)
-        msg, kwargs = self.format(f"{prefix} [white]{msg}[/white]", **kwargs)
+        msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 
     def display(self, msg, *args, **kwargs):
         prefix = r"[bold %s]\[*][/bold %s]" % ("blue", "blue")
-        msg, kwargs = self.format(f"{prefix} [white]{msg}[/white]", **kwargs)
+        msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 

@@ -31,6 +31,7 @@ from aiosmtpd import __version__ as AiosmtpdVersion
 from aioquic import __version__ as AioquicVersion
 from scapy import VERSION as ScapyVersion
 from scapy.arch import get_if_addr, in6_getifaddr
+from pyipp.ipp import VERSION as PyippVersion
 
 from rich import print
 from rich.console import Console
@@ -171,6 +172,8 @@ def parse_options(options: List[str]) -> dict:
             dm_logger.warning(f"Invalid option definition: {option}")
             raise typer.Exit(1)
 
+        append_value = key.endswith("+")
+        key = key.removesuffix("+")
         if "." in key:
             section, key = key.rsplit(".", 1)
         else:
@@ -198,7 +201,12 @@ def parse_options(options: List[str]) -> dict:
         if section not in result:
             result[section] = {}
 
-        result[section][key] = value
+        if append_value:
+            if key not in result[section]:
+                result[section][key] = []
+            result[section][key].append(value)
+        else:
+            result[section][key] = value
     return result
 
 
@@ -224,6 +232,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         impacket_version=ImpacketVersion,
         aiosmtpd_version=AiosmtpdVersion,
         aioquic_version=AioquicVersion,
+        pyipp_version=PyippVersion,
     )
     print(text)
 
@@ -242,7 +251,9 @@ def main_print_options(session: SessionConfig, interface):
     off = r"[bold red]\[OFF][/bold red]"
 
     poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
-    for name in ("LLMNR", "mDNS", "NBTNS", "SSRP"):
+    # REVISIT: creation of poisoners list
+    poisoners =("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
+    for name in poisoners:
         attr_name = f"{name.lower()}_enabled"
         status = on if getattr(session, attr_name, False) else off
         if session.analysis:
@@ -263,6 +274,9 @@ def main_print_options(session: SessionConfig, interface):
     additional_protocols = ["KDC", "NBTDS", "WinRM"]
     protos = (list(session.protocols) or []) + additional_protocols
     for name in sorted(protos):
+        if name.upper() in poisoners:
+            continue
+
         attr_name = f"{name.lower()}_enabled"
         value = getattr(session, attr_name, None)
         if value is None:
@@ -362,7 +376,7 @@ def main(
         main_print_options(session, interface)
 
     logger.ProtocolLogger.init_logfile(session)
-    serve(interface=interface, session=session)
+    serve(interface=interface, session=session, analyze_only=analyze)
 
 
 def run_from_cli() -> None:
