@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Configuration - Dementor 1.0.0.dev10 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="CLI" href="../cli.html" /><link rel="prev" title="Compatibility" href="../compat.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Configuration - Dementor 1.0.0.dev11 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="CLI" href="../cli.html" /><link rel="prev" title="Compatibility" href="../compat.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -138,6 +138,8 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ssdp.html">SSDP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upnp.html">UPnP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="winrm.html">WinRM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="x11.html">X11</a></li>
 </ul>
@@ -245,6 +247,17 @@ with <em>Dementor</em>.</p>
 <p class="admonition-title">Hint</p>
 <p>Need an example configuration file? No problem, its available on GitHub: <a class="reference external" href="https://github.com/MatrixEditor/Dementor/blob/master/dementor/assets/Dementor.toml">Dementor.conf</a></p>
 </div>
+<p>To get the paths and directories of <em>Dementor</em>’s installation files and
+assets, use <code class="docutils literal notranslate"><span class="pre">dementor.paths</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>dementor.paths
+</span><span data-line="2">DefaultWorkspace<span class="w">  </span>:<span class="w"> </span>~/.dementor
+</span><span data-line="3">AssetsPath<span class="w">        </span>:<span class="w"> </span>/.../dementor/assets
+</span><span data-line="4">ConfigPath<span class="w">        </span>:<span class="w"> </span>~/.dementor/Dementor.toml
+</span><span data-line="5">BannerPath<span class="w">        </span>:<span class="w"> </span>/.../dementor/assets/banner.txt
+</span><span data-line="6">DefaultConfigPath<span class="w"> </span>:<span class="w"> </span>/.../dementor/assets/Dementor.toml
+</span><span data-line="7">HTTPTemplatesPath<span class="w"> </span>:<span class="w"> </span>/.../dementor/assets/www
+</span></pre></div>
+</div>
 </section>
 
         </article><button class="back-to-top" type="button">
@@ -290,7 +303,7 @@ with <em>Dementor</em>.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=38c2a499"></script>
+      <script src="../_static/documentation_options.js?v=5c0d74dd"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

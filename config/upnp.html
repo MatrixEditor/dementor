@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="cyan" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>UPnP - Dementor 1.0.0.dev11 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="WinRM" href="winrm.html" /><link rel="prev" title="SSDP" href="ssdp.html" />
+      <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/upnp.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"dark");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=397bb51e" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=c516b45e" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme.css?v=e875d3b6" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+<meta property="og:url" content="https://matrixeditor.github.io/dementor/config/upnp.html"/>
+<meta property="og:title" content="UPnP"/>
+<meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="https://matrixeditor.github.io/dementor/">
+      <img class="light-logo" src="../_static/logo-new-big-transparent.png" alt="Dementor" height="28" loading="lazy" />
+      <img class="dark-logo" src="../_static/logo-new-circle.ico" alt="Dementor" height="28" loading="lazy" />
+      <strong>Dementor</strong>
+    </a>
+    <div class="sy-head-nav" id="HeadNav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><a href="../examples/multicast.html">
+            <span>Examples</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="../examples/multicast.html">
+                <span>Multicast Poisoing</span>
+                <small>mDNS, LLMNR and NBT-NS Poisoning</small>
+              </a></li><li><a href="../examples/kdc.html">
+                <span>Rogue KDC</span>
+                <small>Rogue Kerberos KDC for ASREQroasting</small>
+              </a></li><li><a href="../examples/smtp_downgrade.html">
+                <span>SMTP Downgrade Attack</span>
+                <small>Downgrade NTLM auth to LOGIN or PLAIN</small>
+              </a></li></ul>
+      </li>
+      <li class="link"><a href="index.html">
+            <span>Configuration</span>
+            <i class="i-lucide chevron-down"></i>
+          </a>
+        <ul><li><a href="main.html">
+                <span>Main Configuration</span>
+                <small>Main configuration for Dementor</small>
+              </a></li><li><a href="database.html">
+                <span>Database Configuration</span>
+                <small>Database directory and name</small>
+              </a></li><li><a href="globals.html">
+                <span>Globals</span>
+                <small>Global settings for protocol servers</small>
+              </a></li><li><a href="protocols.html">
+                <span>Protocols</span>
+                <small>Inidividual protocol configuration</small>
+              </a></li></ul>
+      </li><li class="link"><a href="../compat.html">Compatibility</a></li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="HeadNav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2 -translate-x-2"></span>
+          <span class="hamburger_3 -translate-x-1"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../compat.html">Compatibility</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="index.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../cli.html">CLI</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../proto.html">Custom Protocols &#9881;&#65039;</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Examples &#9881;&#65039;</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/multicast.html">Multicast Poisoning &#9881;&#65039;</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/kdc.html">Rogue Kerberos  KDC</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/smtp_downgrade.html">SMTP/IMAP/POP3 Downgrade</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/webdav_fallback.html">WebDAV Fallback</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/x11_cookies.html">Stealing XAuth Cookies</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../examples/cups.html">Abusing CUPS for RCE</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Configuration &#9881;&#65039;</span></p>
+<ul class="current">
+<li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="protocols.html">Protocols</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="http.html">HTTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="imap.html">IMAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ipp.html">IPP / CUPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">Kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">LDAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llmnr.html">LLMNR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdns.html">mDNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mssql.html">MSSQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mysql.html">MySQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netbios.html">NBTNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ntlm.html">NTLM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pop3.html">POP3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quic.html">QUIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smb.html">SMB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ssdp.html">SSDP</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">UPnP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="winrm.html">WinRM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="x11.html">X11</a></li>
+</ul>
+</li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#section-upnp">Section <code class="docutils literal notranslate"><span class="pre">[UPnP]</span></code></a><ul>
+<li><a class="reference internal" href="#UPnP.Port"><code class="docutils literal notranslate"><span class="pre">Port</span></code></a></li>
+<li><a class="reference internal" href="#UPnP.UUID"><code class="docutils literal notranslate"><span class="pre">UUID</span></code></a></li>
+<li><a class="reference internal" href="#UPnP.TemplatesPath"><code class="docutils literal notranslate"><span class="pre">TemplatesPath</span></code></a></li>
+<li><a class="reference internal" href="#UPnP.Template"><code class="docutils literal notranslate"><span class="pre">Template</span></code></a></li>
+<li><a class="reference internal" href="#device-configuration">Device Configuration</a><ul>
+<li><a class="reference internal" href="#UPnP.DDUri"><code class="docutils literal notranslate"><span class="pre">DDUri</span></code></a></li>
+<li><a class="reference internal" href="#UPnP.SCPDUri"><code class="docutils literal notranslate"><span class="pre">SCPDUri</span></code></a></li>
+<li><a class="reference internal" href="#UPnP.PresentationUri"><code class="docutils literal notranslate"><span class="pre">PresentationUri</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
+</ul>
+</div><div class="edit-this-page">
+  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/upnp.rst">Edit this page</a>
+</div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6"><div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">Dementor</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="protocols.html"><span itemprop="name">Protocols</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">UPnP</strong>
+        <meta itemprop="position" content="3" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+        <article class="yue" role="main">
+          <section id="upnp">
+<span id="config-upnp"></span><h1>UPnP<a class="headerlink" href="#upnp" title="Link to this heading">¶</a></h1>
+<section id="section-upnp">
+<h2>Section <code class="docutils literal notranslate"><span class="pre">[UPnP]</span></code><a class="headerlink" href="#section-upnp" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev11.</span></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.Port">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50001</span></em><a class="headerlink" href="#UPnP.Port" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_port</span></code></p>
+<p>Specifies the port used by the UPNP server instance.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.UUID">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">UUID</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#UPnP.UUID" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_uuid</span></code></p>
+<p>Specifies the device UUID to use for this UPnP device. If not set, a random UUID at startup
+will be used.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.TemplatesPath">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">TemplatesPath</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#UPnP.TemplatesPath" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_templates_path</span></code></p>
+<p>A list of directories that store extra UPnP profiles to be used by the web server. Note that
+only the target directory specified in <a class="reference internal" href="#UPnP.Template" title="UPnP.Template"><code class="xref py py-attr docutils literal notranslate"><span class="pre">UPnP.Template</span></code></a> will be used.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.Template">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">Template</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;upnp-default&quot;</span></em><a class="headerlink" href="#UPnP.Template" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_template</span></code></p>
+<p>The directory name under one of the template directories specified in <a class="reference internal" href="#UPnP.TemplatesPath" title="UPnP.TemplatesPath"><code class="xref py py-attr docutils literal notranslate"><span class="pre">UPnP.TemplatesPath</span></code></a>
+that stores the device description, service description and presentation HTML.</p>
+</dd></dl>
+
+<section id="device-configuration">
+<h3>Device Configuration<a class="headerlink" href="#device-configuration" title="Link to this heading">¶</a></h3>
+<p>All template files specified here are using the templating language specified by Jinja2. By default,
+the current UUID (<code class="docutils literal notranslate"><span class="pre">uuid</span></code>), the UPnP configuration (<code class="docutils literal notranslate"><span class="pre">config</span></code>), current session configuration (<code class="docutils literal notranslate"><span class="pre">session</span></code>)
+and a factory method for random values (<code class="docutils literal notranslate"><span class="pre">random</span></code>) are accessible within the template.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.DDUri">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">DDUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/dd.xml&quot;</span></em><a class="headerlink" href="#UPnP.DDUri" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_dd_path</span></code></p>
+<p>Defines the URI and path to the local device description template. By default, the device description
+is expected to be found in <code class="docutils literal notranslate"><span class="pre">dd.xml</span></code> within the template directory.</p>
+<p>The default template corresponds to:</p>
+<div class="demo docutils container">
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
+</span><span data-line="2"><span class="nt">&lt;root</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;urn:schemas-upnp-org:device-1-0&quot;</span><span class="w"> </span><span class="na">configId=</span><span class="s">&quot;1337&quot;</span><span class="nt">&gt;</span>
+</span><span data-line="3"><span class="w">    </span><span class="nt">&lt;specVersion&gt;</span>
+</span><span data-line="4"><span class="w">        </span><span class="nt">&lt;major&gt;</span>1<span class="nt">&lt;/major&gt;</span>
+</span><span data-line="5"><span class="w">        </span><span class="nt">&lt;minor&gt;</span>0<span class="nt">&lt;/minor&gt;</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">&lt;/specVersion&gt;</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">&lt;device&gt;</span>
+</span><span data-line="8"><span class="w">        </span><span class="nt">&lt;deviceType&gt;</span>urn:schemas-upnp-org:device:Basic:1<span class="nt">&lt;/deviceType&gt;</span>
+</span><span data-line="9"><span class="w">        </span><span class="nt">&lt;friendlyName&gt;</span>Dementor<span class="nt">&lt;/friendlyName&gt;</span>
+</span><span data-line="10"><span class="w">        </span><span class="nt">&lt;manufacturer&gt;</span>Manufacturer<span class="nt">&lt;/manufacturer&gt;</span>
+</span><span data-line="11"><span class="w">        </span><span class="nt">&lt;manufacturerURL&gt;</span>http://{{session.ipv4}}/manufacturer/<span class="nt">&lt;/manufacturerURL&gt;</span>
+</span><span data-line="12"><span class="w">        </span><span class="nt">&lt;modelDescription&gt;</span>user-friendly<span class="w"> </span>computer<span class="nt">&lt;/modelDescription&gt;</span>
+</span><span data-line="13"><span class="w">        </span><span class="nt">&lt;modelName&gt;</span>Office<span class="w"> </span>Computer<span class="nt">&lt;/modelName&gt;</span>
+</span><span data-line="14"><span class="w">        </span><span class="nt">&lt;modelNumber&gt;</span>COM{{<span class="w"> </span>random(5)<span class="w"> </span>}}<span class="nt">&lt;/modelNumber&gt;</span>
+</span><span data-line="15"><span class="w">        </span><span class="nt">&lt;modelURL&gt;</span>http://{{session.ipv4}}/model<span class="nt">&lt;/modelURL&gt;</span>
+</span><span data-line="16"><span class="w">        </span><span class="nt">&lt;serialNumber&gt;</span>{{<span class="w"> </span>random(10)<span class="w"> </span>}}<span class="nt">&lt;/serialNumber&gt;</span>
+</span><span data-line="17"><span class="w">        </span><span class="nt">&lt;UDN&gt;</span>uuid:{{uuid}}<span class="nt">&lt;/UDN&gt;</span>
+</span><span data-line="18"><span class="w">        </span><span class="nt">&lt;UPC&gt;</span>00000000000<span class="nt">&lt;/UPC&gt;</span>
+</span><span data-line="19"><span class="w">        </span><span class="nt">&lt;serviceList&gt;</span>
+</span><span data-line="20"><span class="w">            </span><span class="nt">&lt;service&gt;</span>
+</span><span data-line="21"><span class="w">                </span><span class="nt">&lt;serviceType&gt;</span>urn:schemas-upnp-org:service:Dummy:1<span class="nt">&lt;/serviceType&gt;</span>
+</span><span data-line="22"><span class="w">                </span><span class="nt">&lt;serviceId&gt;</span>urn:upnp-org:serviceId:Dummy<span class="nt">&lt;/serviceId&gt;</span>
+</span><span data-line="23"><span class="w">                </span><span class="nt">&lt;SCPDURL&gt;</span>/{{uuid}}/{{config.upnp_scpd_path}}<span class="nt">&lt;/SCPDURL&gt;</span>
+</span><span data-line="24"><span class="w">                </span><span class="nt">&lt;controlURL&gt;</span>/{{uuid}}/{{config.upnp_scpd_path}}<span class="nt">&lt;/controlURL&gt;</span>
+</span><span data-line="25"><span class="w">                </span><span class="nt">&lt;eventSubURL&gt;</span>/{{uuid}}/{{config.upnp_scpd_path}}<span class="nt">&lt;/eventSubURL&gt;</span>
+</span><span data-line="26"><span class="w">            </span><span class="nt">&lt;/service&gt;</span>
+</span><span data-line="27"><span class="w">        </span><span class="nt">&lt;/serviceList&gt;</span>
+</span><span data-line="28"><span class="w">        </span><span class="nt">&lt;deviceList&gt;</span>
+</span><span data-line="29"><span class="w">        </span><span class="nt">&lt;/deviceList&gt;</span>
+</span><span data-line="30"><span class="w">        </span><span class="nt">&lt;presentationURL&gt;</span>http://{{session.ipv4}}:{{config.upnp_port}}/present.html<span class="nt">&lt;/presentationURL&gt;</span>
+</span><span data-line="31"><span class="w">    </span><span class="nt">&lt;/device&gt;</span>
+</span><span data-line="32"><span class="nt">&lt;/root&gt;</span>
+</span></pre></div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.SCPDUri">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">SCPDUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/scpd.xml&quot;</span></em><a class="headerlink" href="#UPnP.SCPDUri" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_scpd_path</span></code></p>
+<p>Defines the URI and path to the local service control description template. By default, the service description
+is expected to be found in <code class="docutils literal notranslate"><span class="pre">scpd.xml</span></code> within the template directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="UPnP.PresentationUri">
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">PresentationUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/present.html&quot;</span></em><a class="headerlink" href="#UPnP.PresentationUri" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_present_path</span></code></p>
+<p>Defines the URI and path to the presentation page template.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="default-configuration">
+<h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">UPnP configuration section (default values)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos">1</span><span class="k">[UPnP]</span>
+</span><span data-line="2"><span class="linenos">2</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50001</span>
+</span><span data-line="3"><span class="linenos">3</span><span class="n">Template</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;upnp-default&quot;</span>
+</span><span data-line="4"><span class="linenos">4</span><span class="n">DDUri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/dd.xml&quot;</span>
+</span><span data-line="5"><span class="linenos">5</span><span class="n">SCPDUri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/scpd.xml&quot;</span>
+</span><span data-line="6"><span class="linenos">6</span><span class="n">PresentationUri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/present.html&quot;</span>
+</span></pre></div>
+</div>
+</div>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="ssdp.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">SSDP</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="winrm.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">WinRM</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2025-Present, MatrixEditor</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/MatrixEditor/Dementor" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5c0d74dd"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+      <script src="../_static/shibuya.js?v=e2230717"></script></body>
+</html>

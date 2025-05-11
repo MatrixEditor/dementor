@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="./">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CLI - Dementor 1.0.0.dev10 documentation</title><link rel="shortcut icon" href="_static/favicon.ico"/><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Custom Protocols ⚙️" href="proto.html" /><link rel="prev" title="Configuration" href="config/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CLI - Dementor 1.0.0.dev11 documentation</title><link rel="shortcut icon" href="_static/favicon.ico"/><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Custom Protocols ⚙️" href="proto.html" /><link rel="prev" title="Configuration" href="config/index.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/cli.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -138,6 +138,8 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="config/quic.html">QUIC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="config/smb.html">SMB</a></li>
 <li class="toctree-l2"><a class="reference internal" href="config/smtp.html">SMTP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/ssdp.html">SSDP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config/upnp.html">UPnP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="config/winrm.html">WinRM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="config/x11.html">X11</a></li>
 </ul>
@@ -215,7 +217,7 @@ will be used from the package installation path (typically <code class="docutils
 <dt><kbd><span class="option">-O</span>, <span class="option">--option <var>OPTION</var></span></kbd></dt>
 <dd><p>Additional option to add on top of the configuration file. This action will overwrite
 any existing setting.The structure of this override follows the format:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">[Section.]KEY=VALUE
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">[Section.]KEY[+]=VALUE
 </span></pre></div>
 </div>
 <ul class="simple">
@@ -242,11 +244,16 @@ any existing setting.The structure of this override follows the format:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">--option</span> <span class="pre">mDNS.TTL=340</span></code> → Maps to <a class="reference internal" href="config/mdns.html#mDNS.TTL" title="mDNS.TTL"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.TTL</span></code></a>, value parsed as integer.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--option</span> <span class="pre">SMB.SMB2Support=off</span></code> → Maps to <a class="reference internal" href="config/smb.html#SMB.Server.SMB2Support" title="SMB.Server.SMB2Support"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.SMB2Support</span></code></a>, value parsed as boolean.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--option</span> <span class="pre">Log.DebugLoggers='[&quot;asyncio&quot;,</span> <span class="pre">&quot;quic&quot;]'</span></code> → Maps to <a class="reference internal" href="config/logging.html#Log.DebugLoggers" title="Log.DebugLoggers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Log.DebugLoggers</span></code></a>, value parsed as list.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-O</span> <span class="pre">Globals.Ignore+=&quot;foobar&quot;</span></code> → Appends the parsed string value to <a class="reference internal" href="config/globals.html#Globals.Ignore" title="Globals.Ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Ignore</span></code></a></p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Overrides made via the <code class="docutils literal notranslate"><span class="pre">--option</span></code> flag will <strong>always take precedence</strong> over the values
 defined in the configuration file.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev11: </span>Options now support an “append” action using the <code class="docutils literal notranslate"><span class="pre">+=</span></code> operator for settings storing multiple
+values.</p>
 </div>
 </dd>
 <dt><kbd><span class="option">--verbose</span></kbd></dt>
@@ -305,7 +312,7 @@ defined in the configuration file.</p>
     </div>
   </div>
 </footer>
-      <script src="_static/documentation_options.js?v=38c2a499"></script>
+      <script src="_static/documentation_options.js?v=5c0d74dd"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
