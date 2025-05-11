@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0" configId="1337">
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+    <device>
+        <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
+        <friendlyName>Dementor</friendlyName>
+        <manufacturer>Manufacturer</manufacturer>
+        <manufacturerURL>http://{{session.ipv4}}/manufacturer/</manufacturerURL>
+        <modelDescription>user-friendly computer</modelDescription>
+        <modelName>Office Computer</modelName>
+        <modelNumber>COM{{ random(5) }}</modelNumber>
+        <modelURL>http://{{session.ipv4}}/model</modelURL>
+        <serialNumber>{{ random(10) }}</serialNumber>
+        <UDN>uuid:{{uuid}}</UDN>
+        <UPC>00000000000</UPC>
+        <serviceList>
+            <service>
+                <serviceType>urn:schemas-upnp-org:service:Dummy:1</serviceType>
+                <serviceId>urn:upnp-org:serviceId:Dummy</serviceId>
+                <SCPDURL>/{{uuid}}/{{config.upnp_scpd_path}}</SCPDURL>
+                <controlURL>/{{uuid}}/{{config.upnp_scpd_path}}</controlURL>
+                <eventSubURL>/{{uuid}}/{{config.upnp_scpd_path}}</eventSubURL>
+            </service>
+        </serviceList>
+        <deviceList>
+        </deviceList>
+        <presentationURL>http://{{session.ipv4}}:{{config.upnp_port}}/present.html</presentationURL>
+    </device>
+</root>
