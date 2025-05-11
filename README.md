@@ -9,6 +9,7 @@ on the [Documentation](https://matrixeditor.github.io/dementor/) page.
 - Fine-grained, per-protocol configuration using a modular system (see [Docs - Configuration](https://matrixeditor.github.io/dementor/config/index.html))
 - Near-complete protocol parity with Responder (see [Docs - Compatibility](https://matrixeditor.github.io/dementor/compat.html))
 - Easy integration of new protocols via the extension system
+- A lot of new protocols (e.g. IPP, MySQL, X11, ...)
 
 ## Installation
 
