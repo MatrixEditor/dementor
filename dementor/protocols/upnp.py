@@ -61,7 +61,7 @@ def create_server_threads(session):
 class UPNPConfig(TomlConfig):
     _section_ = "UPnP"
     _fields_ = [
-        A("upnp_port", "Port", 8080),
+        A("upnp_port", "Port", 50001),
         A("upnp_uuid", "UUID", str(uuid.uuid4())),
         A("upnp_templates_path", "TemplatesPath", list),
         A("upnp_template", "Template", "upnp-default"),

@@ -48,3 +48,18 @@ with *Dementor*.
 
 .. hint::
     Need an example configuration file? No problem, its available on GitHub: `Dementor.conf <https://github.com/MatrixEditor/Dementor/blob/master/dementor/assets/Dementor.toml>`_
+
+
+To get the paths and directories of *Dementor*'s installation files and
+assets, use ``dementor.paths``:
+
+.. code-block:: bash
+
+    $ python3 -m dementor.paths
+    DefaultWorkspace  : ~/.dementor
+    AssetsPath        : /.../dementor/assets
+    ConfigPath        : ~/.dementor/Dementor.toml
+    BannerPath        : /.../dementor/assets/banner.txt
+    DefaultConfigPath : /.../dementor/assets/Dementor.toml
+    HTTPTemplatesPath : /.../dementor/assets/www
+

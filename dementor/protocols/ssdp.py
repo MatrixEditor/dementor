@@ -23,11 +23,9 @@
 import email.message
 import email.parser
 import io
-import uuid
 
 import http.client
 import socket
-from typing import NamedTuple
 
 from rich.markup import escape
 from rich.text import Text
@@ -284,10 +282,10 @@ class SSDPPoisoner(BaseProtoHandler):
 
         location = self.ssdp_config.ssdp_location
         if not location:
-            host = str(self.message["HOST"])
+            host = str(self.message["HOST"]).lower()
             host_addr = self.config.ipv4
             port = self.upnp_config.upnp_port
-            if _SSDP_IPv6_mcast_addr in host:
+            if "ff02::" in host: # IPv6 prefix
                 if not self.config.ipv6:
                     self.logger.highlight(
                         "Client requested IPv6 address but local config does not "
