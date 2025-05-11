@@ -60,7 +60,12 @@ LLMNR = true
 
 NBTNS = true
 
-# Enables theMSSQL Browser service. Does not require superuser privileges.
+# Enables SSDP multicast poisoning. Does not require superuser privileges.
+# The default value is: true
+
+SSDP = true
+
+# Enables the MSSQL Browser service. Does not require superuser privileges.
 # The default value is: true
 
 SSRP = true
@@ -145,6 +150,12 @@ X11 = true
 # The default value is: true
 
 IPP = true
+
+# Enables the UPnP web server.Requires no special privileges by default (depends on
+# port configuration)
+# The default value is: true
+
+UPnP = true
 
 
 # =============================================================================
@@ -806,6 +817,64 @@ Port = 631
 # the FoomaticRIPCommandLine.
 
 # RemoteCmdCupsFilter =
+
+
+# =============================================================================
+# SSDP
+# =============================================================================
+
+# Specifies the target location of the UPnP webserver. This value will point to
+# the current host if not explicitly set
+
+# Location =
+
+# Specifies the server type (``Server`` header) that will be returned in SSDP
+# M-SEARCH responses
+
+Server = "OS/1.0 UPnP/1.0 Dementor/1.0"
+
+# Defines the duration a response to a multicast search should be valid. Maximum
+# cche time.
+
+MaxAge = 1800
+
+# Specifies additional headers to include in all server responses. Each entry must
+# be a fully qualified SSDP header line without CRLF at the end.
+
+ExtraHeaders = ["BOOTID.UPNP.ORG: 1", "CONFIGID.UPNP.ORG: 1337"]
+
+
+# =============================================================================
+# UPnP
+# =============================================================================
+[UPnP]
+
+# Port for the UPnP web server.
+
+Port = 50001
+
+# A list of directories that store extra UPnP profiles to be used by the web server. Note that
+# only the target directory specified in "Template" will be used.
+
+# TemplatesPath = ["/path/to/templates"]
+
+# The directory name under one of the template directories specified in "TemplatesPath"
+# that stores the device description, service description and presentation HTML.
+
+Template = "upnp-default"
+
+# URI and path to the local device description template.
+
+DDUri = "/dd.xml"
+
+# URI and path to the local service control description template. The file will
+# be empty by default.
+
+SCPDUri = "/scpd.xml"
+
+# URI and path to the presentation page template.
+
+PresentationUri = "/present.html"
 
 
 # =============================================================================

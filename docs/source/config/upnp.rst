@@ -113,8 +113,7 @@ and a factory method for random values (``random``) are accessible within the te
 
     *Linked to* :attr:`upnp.UPNPConfig.upnp_present_path`
 
-    Defines the URI and path to the local device description template. By default, the device description
-    is expected to be found in ``dd.xml`` within the template directory.
+    Defines the URI and path to the presentation page template.
 
 Default Configuration
 ---------------------
