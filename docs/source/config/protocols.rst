@@ -24,5 +24,7 @@ Protocols
     quic
     smb
     smtp
+    ssdp
+    upnp
     winrm
     x11

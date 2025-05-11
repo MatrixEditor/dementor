@@ -8,3 +8,4 @@ aioquic
 typer
 jinja2
 caterpillar-py==2.4.4
+pyipp==0.17.1

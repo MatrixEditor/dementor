@@ -62,8 +62,13 @@ in development. The legend for each symbol is as follows:
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
-            <td><a href="./config/mdns.html">SSRP</a></td>
+            <td><a href="./config/ssdp.html">SSDP</a></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
+            <td><a href="./config/mssql.html">SSRP</a></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
@@ -582,6 +587,11 @@ in development. The legend for each symbol is as follows:
         </tr>
         <tr>
             <td><a href="./config/ipp.html">IPP</a></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
+            <td><a href="./config/upnp.html">UPnP</a></td>
             <td><i class="i-lucide x sd-text-danger l"></i></td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>

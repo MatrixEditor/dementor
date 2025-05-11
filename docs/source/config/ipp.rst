@@ -47,7 +47,7 @@ Server Configuration
         # ...
         ServerType = "IPP/{{ random(3) }}" # results in: "IPP/cq2"
 
-.. py:attribute:: Server.ExtraHeaders
+.. py:attribute:: ExtraHeaders
     :type: List[str]
 
     *Maps to* :attr:`ipp.IPPConfig.ipp_extra_headers`

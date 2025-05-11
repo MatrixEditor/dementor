@@ -198,3 +198,16 @@ attacks, but instead passively capture credentials:
     .. versionadded:: 1.0.0.dev10
 
     Enables or disables the IPP service. For more details, refer to :ref:`config_ipp`.
+
+
+.. py:attribute:: SSDP
+                  UPnP
+    :type: bool
+    :value: true
+
+    *Maps to* :attr:`config.SessionConfig.xxx_enabled`
+
+    .. versionadded:: 1.0.0.dev11
+
+    Enables or disables the SSDP poisoning with a UPnP web service. For more details, refer
+    to :ref:`config_ssdp` and :ref:`config_upnp`.

@@ -21,6 +21,7 @@ import pathlib
 import socket
 import socketserver
 import threading
+import struct
 import abc
 import ssl
 
@@ -224,3 +225,18 @@ def create_tls_context(
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ssl_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
         return ssl_context
+
+
+def add_mcast_membership(target, session, group4=None, group6=None, ttl=255):
+    target.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+
+    if session.ipv4 and group4:
+        mreq = socket.inet_aton(group4) + socket.inet_aton(session.ipv4)
+        target.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        target.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+
+    if session.ipv6 and group6:
+        mreq = socket.inet_pton(socket.AF_INET6, group6)
+        mreq += struct.pack("@I", socket.if_nametoindex(session.interface))
+        target.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
+        target.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)

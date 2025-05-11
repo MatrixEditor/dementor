@@ -60,7 +60,12 @@ LLMNR = true
 
 NBTNS = true
 
-# Enables theMSSQL Browser service. Does not require superuser privileges.
+# Enables SSDP multicast poisoning. Does not require superuser privileges.
+# The default value is: true
+
+SSDP = true
+
+# Enables the MSSQL Browser service. Does not require superuser privileges.
 # The default value is: true
 
 SSRP = true
@@ -133,6 +138,24 @@ POP3 = true
 # The default value is: true
 
 IMAP = true
+
+# Enables X11 TCP servers. Requires no special privileges by default (depends on
+# port configuration)
+# The default value is: true
+
+X11 = true
+
+# Enables an IPP server. Requires root privileges by default (also depends on
+# port configuration)
+# The default value is: true
+
+IPP = true
+
+# Enables the UPnP web server.Requires no special privileges by default (depends on
+# port configuration)
+# The default value is: true
+
+UPnP = true
 
 
 # =============================================================================
@@ -725,6 +748,136 @@ ServerVersion = "8.0.42"
 
 
 # =============================================================================
+# X11
+# =============================================================================
+[X11]
+
+# Defines the port range the server will listen on. By default, five ports are opened
+# (for displays 0 through 4). Inclusive start and exclusive end.
+
+# PortRange = "6000-6005"
+
+# Custom message returned to the client after authentication completes.
+
+# ErrorMessage = "Access Denied"
+
+
+# =============================================================================
+# IPP
+# =============================================================================
+[IPP]
+
+# Specifies the port used by the IPP server instance.
+
+Port = 631
+
+# Defines the server name returned in the Server header.The value can be a formatted
+# string, supporting templating (Jinja2)
+
+# ServerType = "IPP/1.1 UNIX-{{ random(5) }}"
+
+# Specifies additional headers to include in all server responses. Each entry must be
+# a fully qualified HTTP header line without CRLF at the end.
+
+# ExtraHeaders = []
+
+# Specifies additional attributes to include in the get-printer-attributes response.
+# Each new attribute requires the following fields:
+#   - name: e.g. "printer-device-id"
+#   - value: e.g. "1234567890"
+#   - tag: e.g. "TEXT" (optional, if type alredy known)
+# # The default attribute settings below can be overridden using this options.
+
+# Attributes = []
+
+# Default attributes:
+
+# PrinterName = "Printer Info"
+# PrinterLocation = "outside"
+# PrinterModel = "HP 8.0"
+# DriverUri =
+# DocumentFormats = []
+# DefaultDocumentFormat = "text/plain"
+# SupportedVersions =  ["1.0", "1.1", "2.0", "2.1", "2.2"]
+# SupportedOperations = []
+
+# The following settings can be used to trigger CVE-2024-47175 / CVE-2024-47076.
+
+# Specifies the command to inject into the generated PPD. (CVE-2024-47175) Any
+# extra hyphens will NOT get escaped.
+
+# RemoteCmd =
+
+# Specifies the printer attribute that stores the malformed text. (CVE-2024-47176)
+
+# RemoteCmdAttr =
+
+# Specifies the printer attribute that stores the malformed text. (CVE-2024-47176).
+# "foomatic-rip" must be present in this filter string to correctly interpolate
+# the FoomaticRIPCommandLine.
+
+# RemoteCmdCupsFilter =
+
+
+# =============================================================================
+# SSDP
+# =============================================================================
+
+# Specifies the target location of the UPnP webserver. This value will point to
+# the current host if not explicitly set
+
+# Location =
+
+# Specifies the server type (``Server`` header) that will be returned in SSDP
+# M-SEARCH responses
+
+Server = "OS/1.0 UPnP/1.0 Dementor/1.0"
+
+# Defines the duration a response to a multicast search should be valid. Maximum
+# cche time.
+
+MaxAge = 1800
+
+# Specifies additional headers to include in all server responses. Each entry must
+# be a fully qualified SSDP header line without CRLF at the end.
+
+ExtraHeaders = ["BOOTID.UPNP.ORG: 1", "CONFIGID.UPNP.ORG: 1337"]
+
+
+# =============================================================================
+# UPnP
+# =============================================================================
+[UPnP]
+
+# Port for the UPnP web server.
+
+Port = 50001
+
+# A list of directories that store extra UPnP profiles to be used by the web server. Note that
+# only the target directory specified in "Template" will be used.
+
+# TemplatesPath = ["/path/to/templates"]
+
+# The directory name under one of the template directories specified in "TemplatesPath"
+# that stores the device description, service description and presentation HTML.
+
+Template = "upnp-default"
+
+# URI and path to the local device description template.
+
+DDUri = "/dd.xml"
+
+# URI and path to the local service control description template. The file will
+# be empty by default.
+
+SCPDUri = "/scpd.xml"
+
+# URI and path to the presentation page template.
+
+PresentationUri = "/present.html"
+
+
+# =============================================================================
 # Logging
 # =============================================================================
 [Log]
@@ -740,4 +893,11 @@ Enabled = false
 # List of debug loggers to enable for troubleshooting. Those won't be visible in
 # file output and only affect the terminal output.
 
-DebugLoggers = ["asyncio", "mail.log", "impacket.smbserver", "impacket", "quic"]
+DebugLoggers = [
+    "asyncio",
+    "mail.log",
+    "impacket.smbserver",
+    "impacket",
+    "quic",
+    "pyipp.parser",
+]

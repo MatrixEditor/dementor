@@ -1,6 +1,6 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev10"
+version = "1.0.0.dev11"
 license = { file = "LICENSE" }
 
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
@@ -34,6 +34,7 @@ dependencies = [
     "typer",
     "jinja2",
     "caterpillar-py",
+    "pyipp",
 ]
 
 [project.scripts]

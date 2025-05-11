@@ -56,6 +56,8 @@ class SessionConfig(TomlConfig):
             "MySQL",
             "X11",
             "IPP",
+            "SSDP",
+            "UPnP",
         )
     ]
 

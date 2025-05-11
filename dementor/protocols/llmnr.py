@@ -18,13 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import socket
-import struct
 
 from scapy.layers import llmnr, dns
 from rich import markup
 
 from dementor.protocols.mdns import build_dns_answer
-from dementor.servers import ThreadingUDPServer, ServerThread, BaseProtoHandler
+from dementor.servers import (
+    ThreadingUDPServer,
+    ServerThread,
+    BaseProtoHandler,
+    add_mcast_membership,
+)
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.logger import ProtocolLogger
@@ -130,18 +134,10 @@ class LLMNRServer(ThreadingUDPServer):
 
     def server_bind(self) -> None:
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
-
-        if self.config.ipv4:
-            # join IPv4 mDNS multicast group
-            mreq = socket.inet_aton(LLMNR_IPV4_ADDR) + socket.inet_aton(
-                self.config.ipv4
-            )
-            self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-
-        if self.config.ipv6:
-            mreq = socket.inet_pton(socket.AF_INET6, LLMNR_IPV6_ADDR)
-            mreq += struct.pack("@I", socket.if_nametoindex(self.config.interface))
-            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
-
+        add_mcast_membership(
+            self.socket,
+            self.config,
+            group4=LLMNR_IPV4_ADDR,
+            group6=LLMNR_IPV6_ADDR,
+        )
         super().server_bind()

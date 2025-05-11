@@ -39,7 +39,7 @@ Command-Line Options
 
     .. code-block:: text
 
-        [Section.]KEY=VALUE
+        [Section.]KEY[+]=VALUE
 
     - ``KEY``:
         May refer to a top-level configuration key in the ``[Dementor]`` configuration section (e.g., ``mDNS``), or include a section (e.g., ``LLMNR.AnswerName``).
@@ -57,10 +57,16 @@ Command-Line Options
     - ``--option mDNS.TTL=340`` → Maps to :attr:`mDNS.TTL`, value parsed as integer.
     - ``--option SMB.SMB2Support=off`` → Maps to :attr:`SMB.Server.SMB2Support`, value parsed as boolean.
     - ``--option Log.DebugLoggers='["asyncio", "quic"]'`` → Maps to :attr:`Log.DebugLoggers`, value parsed as list.
+    - ``-O Globals.Ignore+="foobar"`` → Appends the parsed string value to :attr:`Globals.Ignore`
 
     .. note::
         Overrides made via the ``--option`` flag will **always take precedence** over the values
         defined in the configuration file.
+
+    .. versionchanged:: 1.0.0.dev11
+        Options now support an "append" action using the ``+=`` operator for settings storing multiple
+        values.
+
 --verbose
 
     Enables verbose output for protocol-specific loggers, including debug-level messages.
