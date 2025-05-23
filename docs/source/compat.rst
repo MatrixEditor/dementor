@@ -73,7 +73,7 @@ in development. The legend for each symbol is as follows:
         </tr>
         <tr>
             <td><a href="./config/quic.html">QUIC</a></td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
