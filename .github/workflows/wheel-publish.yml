@@ -1,0 +1,40 @@
+name: Build and Publish wheels
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+
+jobs:
+  build_wheels:
+    name: Build wheels and sources
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Requirements and Build
+        run: |
+          pip install build
+          pip -m build .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ./dist/*
+
+  upload_all:
+    needs: [build_wheels]
+    environment: pypi
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@v1.12.4
