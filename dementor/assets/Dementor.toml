@@ -708,7 +708,7 @@ AuthMechanisms = ["PLAIN", "LOGIN", "NTLM"]
 
 # default plaintext server
 [[IMAP.Server]]
-Port = 110
+Port = 143
 
 # Example TLS server
 # [[POP3.Server]]
@@ -901,3 +901,28 @@ DebugLoggers = [
     "quic",
     "pyipp.parser",
 ]
+
+
+# Special instruction to save all ip addresses that try to connect or send
+# multicast requests.
+
+# WriteClientsTo = "/path/to/file"
+
+# Captures all queried multicast DNS names to a file.
+
+# WriteDNSNamesTo = "/path/to/file"
+
+[Log.Stream.Hosts]
+# Path =  "./client_hosts.txt"
+# IPv6 = true
+# IPv4 = true
+
+[Log.Stream.DNS]
+# Path = "..."
+
+[Log.Stream.Hashes]
+# Path = "./hash-collections"
+# Split = true
+# FilePrefix = "{{ hash_type }}-capture"
+# FileSuffix = ".txt"
+
