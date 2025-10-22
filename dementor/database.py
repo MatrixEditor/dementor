@@ -32,7 +32,8 @@ from sqlalchemy import sql
 from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable, OperationalError
 
 
-from dementor.logger import dm_logger, dm_console_lock
+from dementor.log.logger import dm_logger
+from dementor.log import dm_console_lock
 from dementor.config.toml import TomlConfig, Attribute as A
 
 

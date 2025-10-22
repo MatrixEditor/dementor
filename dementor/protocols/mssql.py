@@ -42,7 +42,7 @@ from caterpillar.py import (
 
 from dementor.database import _CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     ATTR_NTLM_ESS,

@@ -46,7 +46,7 @@ from pyipp.tags import ATTRIBUTE_TAG_MAP
 
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.config.util import format_string
-from dementor.logger import ProtocolLogger, dm_logger
+from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import normalize_client_address
 

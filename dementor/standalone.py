@@ -38,10 +38,11 @@ from rich.console import Console
 from rich.columns import Columns
 
 from dementor import __version__ as DementorVersion
-from dementor import logger, database, config
+from dementor import database, config
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
-from dementor.logger import dm_logger
+from dementor.log import logger, stream as log_stream
+from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH
 
@@ -68,6 +69,7 @@ def serve(
 
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
+    log_stream.init_streams(session)
 
     if éxtra_options:
         for section, options in éxtra_options.items():
@@ -158,6 +160,7 @@ def stop_session(session: SessionConfig, threads=None) -> None:
 
     # 3. close database
     session.db.close()
+    log_stream.close_streams(session)
 
 
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
@@ -219,10 +222,9 @@ def main_print_banner(quiet_mode: bool) -> None:
         quiet_mode = True
 
     if quiet_mode:
-        # only print out scapy and impacket versions
         print(
-            f"[bold]Dementor[/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
-            f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
+            f"[bold]Dementor [white]v{DementorVersion}[white][/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
+            + f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
         return
 
@@ -252,7 +254,7 @@ def main_print_options(session: SessionConfig, interface):
 
     poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
     # REVISIT: creation of poisoners list
-    poisoners =("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
+    poisoners = ("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
     for name in poisoners:
         attr_name = f"{name.lower()}_enabled"
         status = on if getattr(session, attr_name, False) else off

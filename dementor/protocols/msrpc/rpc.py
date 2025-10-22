@@ -30,7 +30,7 @@ from impacket.dcerpc.v5 import rpcrt, epm
 from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.logger import ProtocolLogger, dm_logger
+from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     ATTR_NTLM_ESS,

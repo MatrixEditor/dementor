@@ -42,7 +42,7 @@ from dementor.servers import (
     BaseProtoHandler,
     create_tls_context,
 )
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.database import _CLEARTEXT
 from dementor.config.toml import (
     TomlConfig,

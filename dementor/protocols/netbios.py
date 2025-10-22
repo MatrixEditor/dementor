@@ -23,7 +23,7 @@ from scapy.layers import netbios, smb
 from rich import markup
 
 from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.config.session import SessionConfig, TomlConfig
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 
