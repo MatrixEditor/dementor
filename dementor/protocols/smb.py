@@ -163,7 +163,7 @@ def smb2_negotiate_protocol(handler, packet: smb2.SMB2Packet) -> None:
         raise BaseProtoHandler.TerminateConnection
 
     command = smb2_negotiate(handler, dialect)
-    handler.log_server(f"selected dialect: {SMB2_DIALECTS[dialect]}", "SMB2_NEGOTIATE")
+    handler.log_server(f"selected dialect: {SMB2_DIALECTS.get(dialect, hex(dialect))}", "SMB2_NEGOTIATE")
     handler.send_smb2_command(command.getData())
 
 

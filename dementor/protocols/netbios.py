@@ -31,10 +31,7 @@ from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 
 class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
-    _fields_ = [
-        ATTR_WHITELIST,
-        ATTR_BLACKLIST
-    ]
+    _fields_ = [ATTR_WHITELIST, ATTR_BLACKLIST]
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -103,6 +100,12 @@ class NetBiosNSPoisoner(BaseProtoHandler):
             # name query --> this is what we are looking for
             if header.haslayer(netbios.NBNSNodeStatusRequest):
                 # we should  handle those too
+                return
+
+            if not header.haslayer(netbios.NBNSQueryRequest):
+                self.logger.display(
+                    f"Not a name query, ignoring... ({markup.escape(repr(header))})"
+                )
                 return
 
             request = header[netbios.NBNSQueryRequest]
