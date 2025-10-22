@@ -131,16 +131,14 @@ class SVR_RESP_DAC:
 
 class SSRPConfig(TomlConfig):
     _section_ = "SSRP"
-    _fields_ = (
-        [
-            A("ssrp_server_name", "MSSQL.FQDN", "DEMENTOR"),
-            A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
-            A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
-            A("ssrp_instance_config", "InstanceConfig", ""),
-            ATTR_WHITELIST,
-            ATTR_BLACKLIST,
-        ]
-    )
+    _fields_ = [
+        A("ssrp_server_name", "MSSQL.FQDN", "DEMENTOR"),
+        A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
+        A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
+        A("ssrp_instance_config", "InstanceConfig", ""),
+        ATTR_WHITELIST,
+        ATTR_BLACKLIST,
+    ]
 
 
 class SSRPPoisoner(BaseProtoHandler):
@@ -314,21 +312,33 @@ class MSSQLHandler(BaseProtoHandler):
             except OSError:
                 break
 
-            packet = tds.TDSPacket(data)
-            code = None
-            match packet["Type"]:
-                case 18:  # TDS_PRE_LOGIN
-                    code = self.handle_pre_login(packet)
+            try:
+                packet = tds.TDSPacket(data)
+            except Exception as _:
+                self.logger.error(
+                    f"Could not parse MSSQL packet. Received packet: {data.hex()}"
+                )
+                break
 
-                case 16:  # TDS_LOGIN
-                    code = self.handle_login(packet)
+            try:
+                code = None
+                match packet["Type"]:
+                    case 18:  # TDS_PRE_LOGIN
+                        code = self.handle_pre_login(packet)
 
-                case 17:
-                    code = self.handle_sspi(packet)
+                    case 16:  # TDS_LOGIN
+                        code = self.handle_login(packet)
 
-                case _:
-                    self.send_error(packet)
-                    code = 1
+                    case 17:
+                        code = self.handle_sspi(packet)
+
+                    case _:
+                        self.send_error(packet)
+                        code = 1
+            except Exception as e:
+                self.logger.error(f"Error while handling MSSQL packet: {e}")
+                self.send_error(packet)
+                code = 1
 
             if code:
                 break

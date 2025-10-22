@@ -346,7 +346,7 @@ class LDAPHandler(BaseProtoHandler):
         try:
             message, _ = BERDecoder.decode(data, asn1Spec=LDAPMessage())
         except Exception as e:
-            self.logger.error(f"Failed to decode LDAP packet: {e}")
+            self.logger.error(f"Failed to decode LDAP packet. Original data (hex): {data.hex()}")
             return
 
         return message

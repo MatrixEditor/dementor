@@ -163,8 +163,12 @@ class RPCHandler(BaseProtoHandler):
 
             if not data:
                 return
+            try:
+                header = rpcrt.MSRPCHeader(data)
+            except struct.error:
+                self.logger.error(f"Could not parse MSRPC header. Received packet: {data.hex()}")
+                return
 
-            header = rpcrt.MSRPCHeader(data)
             match header["type"]:
                 case 0x00:  # Request
                     code = self.handle_request(data)
