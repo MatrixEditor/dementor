@@ -20,7 +20,6 @@
 import argparse
 import inspect
 import logging
-import threading
 import pathlib
 import datetime
 import sys
@@ -28,10 +27,10 @@ import sys
 from abc import abstractmethod
 from logging.handlers import RotatingFileHandler
 
-from rich.console import Console
 from rich.logging import RichHandler
 from rich.markup import render
 
+from dementor.config import util
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log import dm_print, dm_console
 
@@ -238,7 +237,7 @@ class ProtocolLogger(logging.LoggerAdapter):
         workspace = pathlib.Path(session.workspace_path)
         workspace /= config.log_dir or "logs"
         workspace.mkdir(parents=True, exist_ok=True)
-        log_name = f"log_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+        log_name = f"log_{util.now()}.log"
         dm_logger.add_logfile(str(workspace / log_name))
 
 

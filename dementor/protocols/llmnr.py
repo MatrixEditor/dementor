@@ -33,7 +33,7 @@ from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_WHITELIST, ATTR_BLACKLIST, in_scope
-from dementor.log.stream import log_host
+from dementor.log.stream import log_to
 
 
 # --- Protocol Interface ---
@@ -83,6 +83,7 @@ class LLMNRPoisoner(BaseProtoHandler):
                 # similar to mdns but here we don't have to check for .local
                 qname = question.qname.decode(errors="replace").removesuffix(".")
                 qtype = dns.dnsqtypes.get(question.qtype)
+                log_to("dns", type="LLMNR", name=qname)
                 # Whitelist+Blacklist filters
                 if not in_scope(qname, config) or not in_scope(host, config):
                     # REVISIT: maybe log ignored requests via option

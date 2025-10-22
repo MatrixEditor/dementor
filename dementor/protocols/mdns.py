@@ -24,6 +24,7 @@ from rich import markup
 
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 from dementor.log.logger import ProtocolLogger
+from dementor.log.stream import log_to
 from dementor.servers import (
     ThreadingUDPServer,
     BaseProtoHandler,
@@ -135,6 +136,10 @@ class MDNSPoisoner(BaseProtoHandler):
                 qclass = dns.dnsclasses.get(question.qclass)
                 # only .local names are targets
                 normalized_qname = normalized_name(qname)
+                if "._tcp" not in normalized_qname and "._udp" not in normalized_qname:
+                    if not normalized_qname.endswith(".arpa"):
+                        log_to("dns", type="MDNS", name=normalized_qname)
+
                 if self.should_answer_request(question):
                     name = markup.escape(normalized_qname)
                     self.logger.display(

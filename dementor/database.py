@@ -35,6 +35,7 @@ from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable, OperationalE
 from dementor.log.logger import dm_logger
 from dementor.log import dm_console_lock
 from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.log.stream import log_to
 
 
 class DatabaseConfig(TomlConfig):
@@ -70,6 +71,8 @@ def init_dementor_db(session) -> str:
         # commit and save changes
         conn.commit()
         conn.close()
+
+    dm_logger.debug("Using database at: %s", db_path)
     return db_path
 
 
@@ -212,6 +215,8 @@ class DementorDB:
             full_name = ""
 
         if not results or self.config.db_config.db_duplicate_creds:
+            if credtype != _CLEARTEXT:
+                log_to("hashes", type=credtype, value=password)
             # just insert a new row
             q = sql.insert(self.CredentialsTable).values(
                 {

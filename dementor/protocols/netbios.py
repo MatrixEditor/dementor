@@ -22,6 +22,7 @@ from typing import List
 from scapy.layers import netbios, smb
 from rich import markup
 
+from dementor.log.stream import log_to
 from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
 from dementor.log.logger import ProtocolLogger
 from dementor.config.session import SessionConfig, TomlConfig
@@ -118,6 +119,7 @@ class NetBiosNSPoisoner(BaseProtoHandler):
             self.logger.display(
                 f"Name Query: \\\\{markup.escape(name)} ({suffix}) (qtype: {qrtype})"
             )
+            log_to("dns", type="NETBIOS", name=name)
             if self.config.analysis:
                 # Analyze-only mode
                 return

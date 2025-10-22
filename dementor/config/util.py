@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import datetime
 import random
 import string
 import secrets
@@ -38,7 +39,7 @@ def get_value(section: str, key: str | None, default=None) -> Any:
     else:
         target = config
         for section in sections:
-            target = target[section]
+            target = target.get(section, {})
 
     if key is None:
         return target
@@ -77,11 +78,15 @@ def random_value(size: int) -> str:
     return "".join(random.choice(string.ascii_letters) for _ in range(size))
 
 
-def format_string(value: str) -> str:
+def format_string(value: str, locals: dict | None = None) -> str:
     config = _get_global_config()
     try:
         template = _SANDBOX.from_string(value)
-        return template.render(config=config, random=random_value)
+        return template.render(config=config, random=random_value, **(locals or {}))
     except Exception as e:
         # TODO: log that
         return value
+
+
+def now() -> str:
+    return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
