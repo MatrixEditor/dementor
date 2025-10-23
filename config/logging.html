@@ -2,12 +2,12 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Logging - Dementor 1.0.0.dev11 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="X11" href="x11.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Logging - Dementor 1.0.0.dev11 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Protocols" href="protocols.html" /><link rel="prev" title="Globals" href="globals.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/logging.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
-  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b1a1f93b" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=bb284d7b" />
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=d140fbf8" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -120,6 +120,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Logging</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="protocols.html">Protocols</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
@@ -144,7 +145,6 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="x11.html">X11</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Logging</a></li>
 </ul>
         </div>
       </div>
@@ -160,6 +160,26 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#Log.Enable"><code class="docutils literal notranslate"><span class="pre">Enable</span></code></a></li>
 <li><a class="reference internal" href="#Log.LogDir"><code class="docutils literal notranslate"><span class="pre">LogDir</span></code></a></li>
 <li><a class="reference internal" href="#Log.DebugLoggers"><code class="docutils literal notranslate"><span class="pre">DebugLoggers</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#section-log-stream">Section <code class="docutils literal notranslate"><span class="pre">[Log.Stream]</span></code></a><ul>
+<li><a class="reference internal" href="#hosts-logging">Hosts Logging</a><ul>
+<li><a class="reference internal" href="#Log.Stream.Hosts.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a></li>
+<li><a class="reference internal" href="#Log.Stream.Hosts.IPv4"><code class="docutils literal notranslate"><span class="pre">IPv4</span></code></a></li>
+<li><a class="reference internal" href="#Log.Stream.Hosts.IPv6"><code class="docutils literal notranslate"><span class="pre">IPv6</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dns-logging">DNS Logging</a><ul>
+<li><a class="reference internal" href="#Log.Stream.DNS.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#hash-logging">Hash Logging</a><ul>
+<li><a class="reference internal" href="#Log.Stream.Hashes.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a></li>
+<li><a class="reference internal" href="#Log.Stream.Hashes.Split"><code class="docutils literal notranslate"><span class="pre">Split</span></code></a></li>
+<li><a class="reference internal" href="#Log.Stream.Hashes.FilePrefix"><code class="docutils literal notranslate"><span class="pre">FilePrefix</span></code></a></li>
+<li><a class="reference internal" href="#Log.Stream.Hashes.FileSuffix"><code class="docutils literal notranslate"><span class="pre">FileSuffix</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -224,6 +244,94 @@ on the command line. These loggers produce more verbose output useful for troubl
 </dd></dl>
 
 </section>
+<section id="section-log-stream">
+<h2>Section <code class="docutils literal notranslate"><span class="pre">[Log.Stream]</span></code><a class="headerlink" href="#section-log-stream" title="Link to this heading">¶</a></h2>
+<p>A special way to save a live copy of received data can be enabled using custom
+<em>loggins streams</em>. Each of them provides a unique functionality:</p>
+<section id="hosts-logging">
+<h3>Hosts Logging<a class="headerlink" href="#hosts-logging" title="Link to this heading">¶</a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hosts.Path">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><a class="headerlink" href="#Log.Stream.Hosts.Path" title="Link to this definition">¶</a></dt>
+<dd><p>Enables writing all identified hosts (direct connections or multicast
+queries) to a separate log file. Can be an absolute path (“/” prefixed), a
+relative path to the current working directory (“./” prefixed) or a path
+relative to the workspace directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hosts.IPv4">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">IPv4</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Log.Stream.Hosts.IPv4" title="Link to this definition">¶</a></dt>
+<dd><p>Enables logging IPv4 addresses (default value is <code class="docutils literal notranslate"><span class="pre">true</span></code>).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hosts.IPv6">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">IPv6</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Log.Stream.Hosts.IPv6" title="Link to this definition">¶</a></dt>
+<dd><p>Enables logging IPv6 addresses (default value is <code class="docutils literal notranslate"><span class="pre">true</span></code>).</p>
+</dd></dl>
+
+</section>
+<section id="dns-logging">
+<h3>DNS Logging<a class="headerlink" href="#dns-logging" title="Link to this heading">¶</a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.DNS.Path">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.DNS.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><a class="headerlink" href="#Log.Stream.DNS.Path" title="Link to this definition">¶</a></dt>
+<dd><p>Enables writing all captured multicast/broadcast name queries to a separate
+log file. Can be an absolute path (“/” prefixed), a relative path to the
+current working directory (“./” prefixed) or a path relative to the
+workspace directory.</p>
+</dd></dl>
+
+</section>
+<section id="hash-logging">
+<h3>Hash Logging<a class="headerlink" href="#hash-logging" title="Link to this heading">¶</a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hashes.Path">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><a class="headerlink" href="#Log.Stream.Hashes.Path" title="Link to this definition">¶</a></dt>
+<dd><p>Enables writing all captured hashes to a separate log file or directory.</p>
+<p>Can be an absolute path (“/” prefixed), a relative path to the current
+working directory (“./” prefixed) or a path relative to the workspace
+directory. Additionally, may represent a target non-existing target
+directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hashes.Split">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">Split</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#Log.Stream.Hashes.Split" title="Link to this definition">¶</a></dt>
+<dd><p>Creates a separate log file for each hash type using the naming scheme
+defined by <a class="reference internal" href="#Log.Stream.Hashes.FilePrefix" title="Log.Stream.Hashes.FilePrefix"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FilePrefix</span></code></a> and
+<a class="reference internal" href="#Log.Stream.Hashes.FileSuffix" title="Log.Stream.Hashes.FileSuffix"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FileSuffix</span></code></a>. The default file naming scheme is
+as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">FileName := {{hash_type}}_{{start_time}}.txt
+</span></pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hashes.FilePrefix">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">FilePrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Log.Stream.Hashes.FilePrefix" title="Link to this definition">¶</a></dt>
+<dd><p>File prefix to use for each hash type. Make sure this value returns a unique
+string for each hash type to avoid overwriting existing files.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This config variable is a <em>formatted string</em>, which uses <code class="docutils literal notranslate"><span class="pre">hash_type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">time</span></code> as globals, e.g.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[Log.Stream.Hashes]</span>
+</span><span data-line="2"><span class="n">FilePrefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{{ hash_type }}-capture&quot;</span>
+</span></pre></div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Stream.Hashes.FileSuffix">
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">FileSuffix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;.txt&quot;</span></em><a class="headerlink" href="#Log.Stream.Hashes.FileSuffix" title="Link to this definition">¶</a></dt>
+<dd><p>File suffix to use for each hash type.</p>
+</dd></dl>
+
+</section>
+</section>
 </section>
 
         </article><button class="back-to-top" type="button">
@@ -232,10 +340,18 @@ on the command line. These loggers produce more verbose output useful for troubl
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="x11.html">
+    <a href="globals.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">X11</div></div>
+        <span>Previous</span><div class="title">Globals</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="protocols.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Protocols</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
     </a>
   </div></div></div>
     </div>
@@ -267,5 +383,5 @@ on the command line. These loggers produce more verbose output useful for troubl
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>
-      <script src="../_static/shibuya.js?v=e730760c"></script></body>
+      <script src="../_static/shibuya.js?v=9b0e4dde"></script></body>
 </html>
