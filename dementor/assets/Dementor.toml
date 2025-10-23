@@ -903,26 +903,40 @@ DebugLoggers = [
 ]
 
 
-# Special instruction to save all ip addresses that try to connect or send
-# multicast requests.
-
-# WriteClientsTo = "/path/to/file"
-
-# Captures all queried multicast DNS names to a file.
-
-# WriteDNSNamesTo = "/path/to/file"
-
 [Log.Stream.Hosts]
+
+# Uncommenting the Path variable will enable logging all identified clients
+# within the network that either (1) establish a direct connection to dementor,
+# or (2) via multicast/broadcast messages.
+
 # Path =  "./client_hosts.txt"
+
+# Enables/Disables logging IPv4/v6 addresses
+
 # IPv6 = true
 # IPv4 = true
 
 [Log.Stream.DNS]
-# Path = "..."
+
+# Uncommenting the Path variable will enable logging all multicast or broadcast
+# name queries (currently: mDNS, LLMNR and NetBIOS).
+
+# Path = "/absolute/path"
 
 [Log.Stream.Hashes]
+
+# Enables logging captured hashes either to a single output file or into
+# separate files.
+
 # Path = "./hash-collections"
+
+# "Splits" the collected hashes into separate files.
+
 # Split = true
+
+# File prefix (dynamic string) and suffix to apply when writeing hashes to
+# separate files.
+
 # FilePrefix = "{{ hash_type }}-capture"
 # FileSuffix = ".txt"
 

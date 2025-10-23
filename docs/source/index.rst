@@ -10,7 +10,7 @@
 
 .. rst-class:: lead
 
-   IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner - you can think if it as upgraded version of `Responder <https://github.com/lgandx/Responder">`_
+   IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner - you can think if it as upgraded version of `Responder <https://github.com/lgandx/Responder>`_
    with many more features.
 
 
@@ -98,5 +98,5 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    config/main
    config/database
    config/globals
-   config/protocols
    config/logging
+   config/protocols

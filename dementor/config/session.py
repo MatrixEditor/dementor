@@ -107,10 +107,9 @@ class SessionConfig(TomlConfig):
 
     def resolve_path(self, path: str | Path) -> Path:
         raw_path = str(path)
-        match raw_path[0]:
-            case ".":
-                return Path(raw_path).resolve()
-            case "/":
-                return Path(raw_path)
-            case _:
-                return (Path(self.workspace_path) / raw_path).resolve()
+        if raw_path[0] == "/":
+            return Path(raw_path)
+        elif raw_path.startswith("./") or raw_path.startswith("../"):
+            return Path(raw_path).resolve()
+
+        return (Path(self.workspace_path) / raw_path).resolve()

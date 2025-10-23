@@ -58,7 +58,9 @@ def apply_config(session):
 def create_server_threads(session):
     servers = []
     if session.quic_enabled:
-        servers.append(QuicServerThread(session, session.bind_address, ipv6=bool(session.ipv6)))
+        servers.append(
+            QuicServerThread(session, session.bind_address, ipv6=bool(session.ipv6))
+        )
 
     return servers
 
@@ -176,15 +178,15 @@ class QuicServerThread(Thread):
 
         if not os.path.exists(self.config.quic_config.quic_cert_path):
             dm_logger.error(
-                f"Failed to start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
-                "Certificate file does not exist!"
+                f"Cannot start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
+                + "without a certificate file!"
             )
             return
 
         if not os.path.exists(self.config.quic_config.quic_cert_key):
             dm_logger.error(
-                f"Failed to start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
-                "Certificate key file does not exist!"
+                f"Cannot start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
+                + "without a key file!"
             )
             return
 
