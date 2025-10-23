@@ -36,14 +36,16 @@ from pyipp.ipp import VERSION as PyippVersion
 from rich import print
 from rich.console import Console
 from rich.columns import Columns
+from rich.prompt import Prompt
 
 from dementor import __version__ as DementorVersion
-from dementor import logger, database, config
+from dementor import database, config
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
-from dementor.logger import dm_logger
+from dementor.log import logger, stream as log_stream
+from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
-from dementor.paths import BANNER_PATH
+from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
 
 
 def serve(
@@ -68,6 +70,7 @@ def serve(
 
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
+    log_stream.init_streams(session)
 
     if éxtra_options:
         for section, options in éxtra_options.items():
@@ -158,6 +161,7 @@ def stop_session(session: SessionConfig, threads=None) -> None:
 
     # 3. close database
     session.db.close()
+    log_stream.close_streams(session)
 
 
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
@@ -219,10 +223,9 @@ def main_print_banner(quiet_mode: bool) -> None:
         quiet_mode = True
 
     if quiet_mode:
-        # only print out scapy and impacket versions
         print(
-            f"[bold]Dementor[/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
-            f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
+            f"[bold]Dementor [white]v{DementorVersion}[white][/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
+            + f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
         return
 
@@ -243,7 +246,7 @@ def main_format_config(name: str, value: str) -> str:
 
 
 # TODO: refactor this
-def main_print_options(session: SessionConfig, interface):
+def main_print_options(session: SessionConfig, interface: str, config_path: str):
     console = Console()
     console.rule(style="white", title="Dementor Configuration")
     analyze_only = r"[bold grey]\[Analyze Only][/bold grey]"
@@ -252,7 +255,7 @@ def main_print_options(session: SessionConfig, interface):
 
     poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
     # REVISIT: creation of poisoners list
-    poisoners =("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
+    poisoners = ("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
     for name in poisoners:
         attr_name = f"{name.lower()}_enabled"
         status = on if getattr(session, attr_name, False) else off
@@ -294,6 +297,17 @@ def main_print_options(session: SessionConfig, interface):
     )
     console.print(columns)
     console.print()
+
+    config_paths = [DEFAULT_CONFIG_PATH, CONFIG_PATH]
+    if config_path:
+        config_paths.append(config_path)
+
+    console.print("[bold]Configuration Paths:[/]")
+    console.print(main_format_config("DB Directory", f"{session.workspace_path}"))
+    console.print(main_format_config("Config Paths", f"[0] {config_paths[0]}"))
+    for i, extra_config_path in enumerate(config_paths[1:]):
+        console.print(" "*39 + f"[{i+1}] {extra_config_path}")
+
     console.rule(style="white", title="Log")
     console.print()
 
@@ -337,6 +351,14 @@ def main(
             help="Add an extra option to the global configuration file.",
         ),
     ] = None,
+    ignore_prompt: Annotated[
+        bool,
+        typer.Option(
+            "-y",
+            "--yes",
+            help="Do not ask before starting attack mode.",
+        ),
+    ] = False,
     verbose: Annotated[bool, _SkippedOption] = False,
     debug: Annotated[bool, _SkippedOption] = False,
     quiet: Annotated[
@@ -373,7 +395,20 @@ def main(
     session.protocols = loader.get_protocols(session)
 
     if not quiet:
-        main_print_options(session, interface)
+        main_print_options(session, interface, config_path)
+
+
+    if not ignore_prompt and not analyze:
+        result = Prompt.ask(
+            "[bold red]CAUTION:[/bold red] [red] You are about to start Dementor in [i]attack[/] node, "
+            + "protentially breaking some network connections for certain devices temporarily. "
+            + "\nAre you sure you want to continue? [/] (Y/n)",
+            choices=["y", "n", "Y", "N"],
+            default="Y",
+            show_choices=False,
+        )
+        if result.lower() != "y":
+            return
 
     logger.ProtocolLogger.init_logfile(session)
     serve(interface=interface, session=session, analyze_only=analyze)

@@ -49,7 +49,7 @@ from dementor.servers import (
     BaseProtoHandler,
     ServerThread,
 )
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 
 
 class KerberosConfig(TomlConfig):

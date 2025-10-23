@@ -20,7 +20,6 @@
 import argparse
 import inspect
 import logging
-import threading
 import pathlib
 import datetime
 import sys
@@ -28,21 +27,12 @@ import sys
 from abc import abstractmethod
 from logging.handlers import RotatingFileHandler
 
-from rich.console import Console
 from rich.logging import RichHandler
 from rich.markup import render
 
+from dementor.config import util
 from dementor.config.toml import TomlConfig, Attribute as A
-
-dm_console = Console(
-    soft_wrap=True,
-    tab_size=4,
-    highlight=False,
-    highlighter=None,
-)
-
-dm_console_lock = threading.Lock()
-
+from dementor.log import dm_print, dm_console
 
 class LoggingConfig(TomlConfig):
     _section_ = "Log"
@@ -50,6 +40,7 @@ class LoggingConfig(TomlConfig):
         A("log_debug_loggers", "DebugLoggers", list),
         A("log_dir", "LogDir", "logs"),
         A("log_enable", "Enabled", True),
+        A("log_capture_hosts", "CaptureHostsTo", None),
     ]
 
 
@@ -97,17 +88,6 @@ def init():
     else:
         dm_logger.logger.setLevel(logging.INFO)
         root_logger.setLevel(logging.INFO)
-
-
-def dm_print(msg, *args, **kwargs) -> None:
-    # If someone has a better idea I'll be open for it. This is just
-    # a here to synchronize the logging output
-    if kwargs.pop("locked", False):
-        dm_console.print(msg, *args, **kwargs)
-        return
-
-    with dm_console_lock:
-        dm_console.print(msg, *args, **kwargs)
 
 
 class ProtocolLogger(logging.LoggerAdapter):
@@ -226,7 +206,9 @@ class ProtocolLogger(logging.LoggerAdapter):
         outfile = pathlib.Path(log_file_path)
         file_exists = outfile.exists()
         if not file_exists:
-            open(str(outfile), "x")
+            if not outfile.parent.exists():
+                outfile.parent.mkdir(parents=True, exist_ok=True)
+            open(str(outfile), "x").close()
 
         handler = RotatingFileHandler(
             outfile,
@@ -244,7 +226,7 @@ class ProtocolLogger(logging.LoggerAdapter):
 
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        self.logger.debug(f"Created log file handler for {log_file_path}")
+        self.logger.info(f"Created log file handler for {log_file_path}")
 
     @staticmethod
     def init_logfile(session) -> None:
@@ -255,7 +237,7 @@ class ProtocolLogger(logging.LoggerAdapter):
         workspace = pathlib.Path(session.workspace_path)
         workspace /= config.log_dir or "logs"
         workspace.mkdir(parents=True, exist_ok=True)
-        log_name = f"log_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+        log_name = f"log_{util.now()}.log"
         dm_logger.add_logfile(str(workspace / log_name))
 
 

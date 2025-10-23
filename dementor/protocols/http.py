@@ -35,7 +35,7 @@ from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import format_string, get_value, is_true
-from dementor.logger import ProtocolLogger, dm_logger
+from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.database import _CLEARTEXT, normalize_client_address, _NO_USER
 from dementor.paths import HTTP_TEMPLATES_PATH

@@ -54,7 +54,7 @@ from dementor.servers import (
     BaseProtoHandler,
     create_tls_context,
 )
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.config.attr import Attribute as A, ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.toml import TomlConfig
 from dementor.database import _CLEARTEXT
@@ -427,7 +427,7 @@ class MySQLHandler(BaseProtoHandler):
         try:
             ssl_request: SSLRequest = unpack(SSLRequest, packet.payload)
         except Exception as e:
-            return self.logger.error(f"Failed to decode MySQL SSLRequest: {e}")
+            return self.logger.error(f"Failed to decode MySQL SSLRequest: {e}\n{packet.payload.hex()}")
 
         if ssl_request.capabilities & CLIENT_SSL != 0:
             if not self.mysql_config.use_ssl:
@@ -452,7 +452,7 @@ class MySQLHandler(BaseProtoHandler):
         try:
             response: HandshakeResponse = unpack(HandshakeResponse, packet.payload)
         except Exception as e:
-            return self.logger.error(f"Failed to decode MySQL HandshakeResponse: {e}")
+            return self.logger.error(f"Failed to decode MySQL HandshakeResponse: {e}\n{packet.payload.hex()}")
 
         resp_plugin_name = response.client_plugin_name or plugin_name
         if resp_plugin_name != plugin_name:

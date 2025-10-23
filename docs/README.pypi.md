@@ -32,6 +32,21 @@ Let's take a look.
 
 ![index_video](https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/_static/images/index-video.gif)
 
+### CLI Options
+
+```
+ Usage: Dementor [OPTIONS]
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --interface  -I      NAME       Network interface to use (required for poisoning) [required]      │
+│    --analyze    -A                 Only analyze traffic, don't respond to requests                   │
+│    --config     -c      PATH       Path to a configuration file (otherwise standard path is used)    │
+│    --option     -O      KEY=VALUE  Add an extra option to the global configuration file.             │
+│    --yes        -y                 Do not ask before starting attack mode.                           │
+│    --quiet      -q                 Don't print banner at startup                                     │
+│    --help                          Show this message and exit.                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
 
 ## You need more?
 

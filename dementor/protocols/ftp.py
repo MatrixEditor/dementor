@@ -19,7 +19,7 @@
 # SOFTWARE.
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import get_value
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
 from dementor.database import _CLEARTEXT
 

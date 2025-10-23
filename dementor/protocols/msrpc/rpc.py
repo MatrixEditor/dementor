@@ -30,7 +30,7 @@ from impacket.dcerpc.v5 import rpcrt, epm
 from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.logger import ProtocolLogger, dm_logger
+from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     ATTR_NTLM_ESS,
@@ -163,8 +163,12 @@ class RPCHandler(BaseProtoHandler):
 
             if not data:
                 return
+            try:
+                header = rpcrt.MSRPCHeader(data)
+            except struct.error:
+                self.logger.error(f"Could not parse MSRPC header. Received packet: {data.hex()}")
+                return
 
-            header = rpcrt.MSRPCHeader(data)
             match header["type"]:
                 case 0x00:  # Request
                     code = self.handle_request(data)

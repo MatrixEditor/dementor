@@ -23,8 +23,14 @@ from scapy.layers import dns
 from rich import markup
 
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
-from dementor.logger import ProtocolLogger
-from dementor.servers import ThreadingUDPServer, BaseProtoHandler, ServerThread, add_mcast_membership
+from dementor.log.logger import ProtocolLogger
+from dementor.log.stream import log_to
+from dementor.servers import (
+    ThreadingUDPServer,
+    BaseProtoHandler,
+    ServerThread,
+    add_mcast_membership,
+)
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 
@@ -49,7 +55,7 @@ def normalized_name(host: str | bytes) -> str:
     if isinstance(host, (bytes, bytearray)):
         host = host.decode("utf-8", errors="replace")
 
-    return str(host).strip().removesuffix(".")
+    return str(host).strip().removesuffix(".").removesuffix(".local")
 
 
 class MDNSConfig(TomlConfig):
@@ -129,12 +135,13 @@ class MDNSPoisoner(BaseProtoHandler):
                 qtype = dns.dnsqtypes.get(question.qtype)
                 qclass = dns.dnsclasses.get(question.qclass)
                 # only .local names are targets
-                normalized_qname = normalized_name(question.qname)
-                if not normalized_qname.endswith(".local"):
-                    continue
+                normalized_qname = normalized_name(qname)
+                if "._tcp" not in normalized_qname and "._udp" not in normalized_qname:
+                    if not normalized_qname.endswith(".arpa"):
+                        log_to("dns", type="MDNS", name=normalized_qname)
 
                 if self.should_answer_request(question):
-                    name = markup.escape(normalized_name(qname))
+                    name = markup.escape(normalized_qname)
                     self.logger.display(
                         f"Request for [i]{name}[/i] (class: {qclass}, type: {qtype})"
                     )

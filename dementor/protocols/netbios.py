@@ -22,18 +22,16 @@ from typing import List
 from scapy.layers import netbios, smb
 from rich import markup
 
+from dementor.log.stream import log_to
 from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.config.session import SessionConfig, TomlConfig
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 
 
 class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
-    _fields_ = [
-        ATTR_WHITELIST,
-        ATTR_BLACKLIST
-    ]
+    _fields_ = [ATTR_WHITELIST, ATTR_BLACKLIST]
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -104,6 +102,12 @@ class NetBiosNSPoisoner(BaseProtoHandler):
                 # we should  handle those too
                 return
 
+            if not header.haslayer(netbios.NBNSQueryRequest):
+                self.logger.display(
+                    f"Not a name query, ignoring... ({markup.escape(repr(header))})"
+                )
+                return
+
             request = header[netbios.NBNSQueryRequest]
             suffix = netbios._NETBIOS_SUFFIXES.get(
                 request.SUFFIX,
@@ -118,6 +122,7 @@ class NetBiosNSPoisoner(BaseProtoHandler):
             self.logger.display(
                 f"Name Query: \\\\{markup.escape(name)} ({suffix}) (qtype: {qrtype})"
             )
+            log_to("dns", type="NETBIOS", name=name)
             if self.config.analysis:
                 # Analyze-only mode
                 return
