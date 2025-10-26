@@ -31,7 +31,7 @@ HTTP_TEMPLATES_PATH = os.path.join(ASSETS_PATH, "www")
 if __name__ == "__main__":
     print(f"DefaultWorkspace  : {DEMENTOR_PATH}")
     print(f"AssetsPath        : {ASSETS_PATH}")
-    print(f"ConfigPath        : {CONFIG_PATH}")
+    print(f"ConfigPath        : {CONFIG_PATH} (for root: /root/.dementor)")
     print(f"BannerPath        : {BANNER_PATH}")
     print(f"DefaultConfigPath : {DEFAULT_CONFIG_PATH}")
     print(f"HTTPTemplatesPath : {HTTP_TEMPLATES_PATH}")

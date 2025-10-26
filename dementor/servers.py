@@ -31,7 +31,8 @@ from typing import Tuple
 from socketserver import BaseRequestHandler
 
 from dementor import database
-from dementor.logger import ProtocolLoggerMixin, dm_logger
+from dementor.log.logger import ProtocolLoggerMixin, dm_logger
+from dementor.log.stream import log_host
 from dementor.config.session import SessionConfig
 
 
@@ -79,6 +80,7 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
         self.config = config
         ProtocolLoggerMixin.__init__(self)
         super().__init__(request, client_address, server)
+        log_host(self.client_host)
 
     @abc.abstractmethod
     def handle_data(self, data, transport) -> None:

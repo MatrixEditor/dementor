@@ -21,6 +21,8 @@ import asyncio
 
 from typing import Any, List
 
+from pathlib import Path
+
 from dementor.config.toml import TomlConfig, Attribute
 from dementor.config.util import is_true
 from dementor.paths import DEMENTOR_PATH
@@ -102,3 +104,12 @@ class SessionConfig(TomlConfig):
     @property
     def ipv6_support(self) -> bool:
         return bool(self.ipv6) and not getattr(self, "ipv4_only", False)
+
+    def resolve_path(self, path: str | Path) -> Path:
+        raw_path = str(path)
+        if raw_path[0] == "/":
+            return Path(raw_path)
+        elif raw_path.startswith("./") or raw_path.startswith("../"):
+            return Path(raw_path).resolve()
+
+        return (Path(self.workspace_path) / raw_path).resolve()

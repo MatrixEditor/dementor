@@ -55,7 +55,7 @@ from dementor.servers import (
     BaseProtoHandler,
     create_tls_context,
 )
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.config.attr import Attribute as A, ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.toml import TomlConfig
 from dementor.database import _CLEARTEXT

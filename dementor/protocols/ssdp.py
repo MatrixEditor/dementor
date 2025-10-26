@@ -21,7 +21,6 @@
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
 import email.message
-import email.parser
 import io
 
 import http.client
@@ -37,7 +36,7 @@ from dementor.servers import (
     add_mcast_membership,
 )
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.logger import ProtocolLogger
+from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 
 
@@ -285,7 +284,7 @@ class SSDPPoisoner(BaseProtoHandler):
             host = str(self.message["HOST"]).lower()
             host_addr = self.config.ipv4
             port = self.upnp_config.upnp_port
-            if "ff02::" in host: # IPv6 prefix
+            if "ff02::" in host:  # IPv6 prefix
                 if not self.config.ipv6:
                     self.logger.highlight(
                         "Client requested IPv6 address but local config does not "
@@ -343,7 +342,10 @@ class SSDPPoisoner(BaseProtoHandler):
         if "UPnP/" in server:
             os_name, _, product_name = server.partition("UPnP/")
             os_name = os_name.strip()
-            product_name = product_name.split(" ", 1)[1].strip()
+            if " " in product_name:
+                _, product_name = product_name.split(" ", 1)
+
+            product_name = product_name.strip()
 
         return (server, os_name.rstrip(","), product_name)
 

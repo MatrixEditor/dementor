@@ -32,8 +32,10 @@ from sqlalchemy import sql
 from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable, OperationalError
 
 
-from dementor.logger import dm_logger, dm_console_lock
+from dementor.log.logger import dm_logger
+from dementor.log import dm_console_lock
 from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.log.stream import log_to
 
 
 class DatabaseConfig(TomlConfig):
@@ -69,6 +71,8 @@ def init_dementor_db(session) -> str:
         # commit and save changes
         conn.commit()
         conn.close()
+
+    dm_logger.debug("Using database at: %s", db_path)
     return db_path
 
 
@@ -134,7 +138,7 @@ class DementorDB:
                 "password" TEXT
             )"""
         )
-
+        # TODO: still unused
         cursor.execute(
             """CREATE TABLE "hosts" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -171,7 +175,7 @@ class DementorDB:
         if not logger and not protocol:
             dm_logger.error(
                 f"Failed to add {credtype} for {username} on {client[0]}:{client[1]}: "
-                "Protocol must be present either in the logger or as a parameter!"
+                + "Protocol must be present either in the logger or as a parameter!"
             )
             return
 
@@ -182,7 +186,7 @@ class DementorDB:
 
         target_logger.debug(
             f"Adding {credtype} for {username} on {client_address}: "
-            f"{logger} | {protocol} | {domain} | {hostname} | {username} | {password}"
+            + f"{logger} | {protocol} | {domain} | {hostname} | {username} | {password}"
         )
 
         q = sql.select(self.CredentialsTable).filter(
@@ -211,6 +215,8 @@ class DementorDB:
             full_name = ""
 
         if not results or self.config.db_config.db_duplicate_creds:
+            if credtype != _CLEARTEXT:
+                log_to("hashes", type=credtype, value=password)
             # just insert a new row
             q = sql.insert(self.CredentialsTable).values(
                 {
@@ -231,7 +237,7 @@ class DementorDB:
                 if "readonly database" in str(e):
                     dm_logger.warning(
                         f"Failed to add {credtype} for {username} on {client_address}: "
-                        "Database is read-only! (maybe restart in sudo mode?)"
+                        + "Database is read-only! (maybe restart in sudo mode?)"
                     )
                 else:
                     raise

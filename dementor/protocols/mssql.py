@@ -136,16 +136,14 @@ class SVR_RESP_DAC:
 
 class SSRPConfig(TomlConfig):
     _section_ = "SSRP"
-    _fields_ = (
-        [
-            A("ssrp_server_name", "MSSQL.FQDN", "DEMENTOR"),
-            A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
-            A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
-            A("ssrp_instance_config", "InstanceConfig", ""),
-            ATTR_WHITELIST,
-            ATTR_BLACKLIST,
-        ]
-    )
+    _fields_ = [
+        A("ssrp_server_name", "MSSQL.FQDN", "DEMENTOR"),
+        A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
+        A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
+        A("ssrp_instance_config", "InstanceConfig", ""),
+        ATTR_WHITELIST,
+        ATTR_BLACKLIST,
+    ]
 
 
 class SSRPPoisoner(BaseProtoHandler):
@@ -336,11 +334,11 @@ class MSSQLHandler(BaseProtoHandler):
                 break
 >>>>>>> Stashed changes
 
-                case 16:  # TDS_LOGIN
-                    code = self.handle_login(packet)
+                    case 16:  # TDS_LOGIN
+                        code = self.handle_login(packet)
 
-                case 17:
-                    code = self.handle_sspi(packet)
+                    case 17:
+                        code = self.handle_sspi(packet)
 
 <<<<<<< Updated upstream
                 case _:

@@ -36,14 +36,16 @@ from pyipp.ipp import VERSION as PyippVersion
 from rich import print
 from rich.console import Console
 from rich.columns import Columns
+from rich.prompt import Prompt
 
 from dementor import __version__ as DementorVersion
-from dementor import logger, database, config
+from dementor import database, config
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
-from dementor.logger import dm_logger
+from dementor.log import logger, stream as log_stream
+from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
-from dementor.paths import BANNER_PATH
+from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
 
 
 def serve(
@@ -68,6 +70,7 @@ def serve(
 
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
+    log_stream.init_streams(session)
 
     if éxtra_options:
         for section, options in éxtra_options.items():
@@ -158,6 +161,7 @@ def stop_session(session: SessionConfig, threads=None) -> None:
 
     # 3. close database
     session.db.close()
+    log_stream.close_streams(session)
 
 
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
@@ -221,10 +225,9 @@ def main_print_banner(quiet_mode: bool) -> None:
         quiet_mode = True
 
     if quiet_mode:
-        # only print out scapy and impacket versions
         print(
-            f"[bold]Dementor[/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
-            f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
+            f"[bold]Dementor [white]v{DementorVersion}[white][/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
+            + f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
         return
 
@@ -245,7 +248,7 @@ def main_format_config(name: str, value: str) -> str:
 
 
 # TODO: refactor this
-def main_print_options(session: SessionConfig, interface):
+def main_print_options(session: SessionConfig, interface: str, config_path: str):
     console = Console()
     console.rule(style="white", title="Dementor Configuration")
     analyze_only = r"[bold grey]\[Analyze Only][/bold grey]"
@@ -254,7 +257,7 @@ def main_print_options(session: SessionConfig, interface):
 
     poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
     # REVISIT: creation of poisoners list
-    poisoners =("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
+    poisoners = ("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
     for name in poisoners:
         attr_name = f"{name.lower()}_enabled"
         status = on if getattr(session, attr_name, False) else off
@@ -356,6 +359,14 @@ def main(
             help="Add an extra option to the global configuration file.",
         ),
     ] = None,
+    ignore_prompt: Annotated[
+        bool,
+        typer.Option(
+            "-y",
+            "--yes",
+            help="Do not ask before starting attack mode.",
+        ),
+    ] = False,
     verbose: Annotated[bool, _SkippedOption] = False,
     debug: Annotated[bool, _SkippedOption] = False,
     quiet: Annotated[
