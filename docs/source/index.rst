@@ -98,15 +98,8 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    config/main
    config/database
    config/globals
+   config/protocols
    config/logging
-
-.. card:: Disclaimer
-
-   **For educational use only.**
-   *Dementor* is provided for authorized security research, learning, and testing in
-   controlled environments only. Do not use this tool on systems you do not own
-   or have explicit written permission to test. Misuse may be illegal and is
-   solely the user's responsibility.
 
 .. card:: Disclaimer
 

@@ -435,9 +435,6 @@ class MySQLHandler(BaseProtoHandler):
         try:
             ssl_request: SSLRequest = unpack(SSLRequest, packet.payload)
         except Exception as e:
-<<<<<<< Updated upstream
-            return self.logger.error(f"Failed to decode MySQL SSLRequest: {e}")
-=======
             self.logger.error(
                 "Failed to decode MySQL SSLRequest. Terminating connection: "
             )
@@ -445,7 +442,6 @@ class MySQLHandler(BaseProtoHandler):
                 f"Invalid MySQL SSLRequest packet: {str(e)}\n{hexdump(packet.payload)}"
             )
             return
->>>>>>> Stashed changes
 
         if ssl_request.capabilities & CLIENT_SSL != 0:
             if not self.mysql_config.use_ssl:
@@ -470,9 +466,6 @@ class MySQLHandler(BaseProtoHandler):
         try:
             response: HandshakeResponse = unpack(HandshakeResponse, packet.payload)
         except Exception as e:
-<<<<<<< Updated upstream
-            return self.logger.error(f"Failed to decode MySQL HandshakeResponse: {e}")
-=======
             self.logger.error(
                 "Failed to decode MySQL HandshakeResponse. Terminating connection: "
             )
@@ -480,7 +473,6 @@ class MySQLHandler(BaseProtoHandler):
                 f"Invalid MySQL HandshakeResponse packet: {str(e)}\n{hexdump(packet.payload)}"
             )
             return
->>>>>>> Stashed changes
 
         resp_plugin_name = response.client_plugin_name or plugin_name
         if resp_plugin_name != plugin_name:

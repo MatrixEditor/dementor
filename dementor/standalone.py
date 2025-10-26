@@ -299,8 +299,6 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
     )
     console.print(columns)
     console.print()
-<<<<<<< Updated upstream
-=======
 
     config_paths = [DEFAULT_CONFIG_PATH, CONFIG_PATH]
     if config_path:
@@ -315,7 +313,6 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
             console.print(" " * 39 + f"[{pos}] {extra_config_path}")
             pos += 1
 
->>>>>>> Stashed changes
     console.rule(style="white", title="Log")
     console.print()
 
@@ -403,9 +400,6 @@ def main(
     session.protocols = loader.get_protocols(session)
 
     if not quiet:
-<<<<<<< Updated upstream
-        main_print_options(session, interface)
-=======
         main_print_options(session, interface, config_path)
 
     if not ignore_prompt and not analyze:
@@ -419,7 +413,6 @@ def main(
         )
         if result.lower() != "y":
             return
->>>>>>> Stashed changes
 
     logger.ProtocolLogger.init_logfile(session)
     serve(interface=interface, session=session, analyze_only=analyze)

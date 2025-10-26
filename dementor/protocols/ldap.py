@@ -39,12 +39,8 @@ from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.config.util import get_value
-<<<<<<< Updated upstream
-from dementor.logger import ProtocolLogger
-=======
 from dementor.log import hexdump
 from dementor.log.logger import ProtocolLogger
->>>>>>> Stashed changes
 from dementor.servers import (
     ThreadingTCPServer,
     ThreadingUDPServer,
@@ -351,11 +347,7 @@ class LDAPHandler(BaseProtoHandler):
         try:
             message, _ = BERDecoder.decode(data, asn1Spec=LDAPMessage())
         except Exception as e:
-<<<<<<< Updated upstream
-            self.logger.error(f"Failed to decode LDAP packet: {e}")
-=======
             self.logger.error(f"Failed to decode LDAP packet.\n{hexdump.hexdump(data)}")
->>>>>>> Stashed changes
             return
 
         return message

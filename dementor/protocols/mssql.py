@@ -42,12 +42,8 @@ from caterpillar.py import (
 
 from dementor.database import _CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
-<<<<<<< Updated upstream
-from dementor.logger import ProtocolLogger
-=======
 from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
->>>>>>> Stashed changes
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     ATTR_NTLM_ESS,
@@ -317,13 +313,6 @@ class MSSQLHandler(BaseProtoHandler):
             except OSError:
                 break
 
-<<<<<<< Updated upstream
-            packet = tds.TDSPacket(data)
-            code = None
-            match packet["Type"]:
-                case 18:  # TDS_PRE_LOGIN
-                    code = self.handle_pre_login(packet)
-=======
             try:
                 packet = tds.TDSPacket(data)
             except Exception as e:
@@ -332,22 +321,16 @@ class MSSQLHandler(BaseProtoHandler):
                 )
                 self.logger.debug(f"Invalid MSSQL packet: {str(e)}\n{hexdump(data)}")
                 break
->>>>>>> Stashed changes
 
+            try:
+                code = None
+                match packet["Type"]:
+                    case 18:  # TDS_PRELOGIN
+                        code = self.handle_pre_login(packet)
                     case 16:  # TDS_LOGIN
                         code = self.handle_login(packet)
-
                     case 17:
                         code = self.handle_sspi(packet)
-
-<<<<<<< Updated upstream
-                case _:
-                    self.send_error(packet)
-                    code = 1
-=======
-                    case 17:
-                        code = self.handle_sspi(packet)
-
                     case _:
                         self.send_error(packet)
                         code = 1
@@ -356,7 +339,6 @@ class MSSQLHandler(BaseProtoHandler):
                 self.logger.debug(f"Invalid MSSQL packet: {str(e)}\n{hexdump(data)}")
                 self.send_error(packet)
                 code = 1
->>>>>>> Stashed changes
 
             if code:
                 break
