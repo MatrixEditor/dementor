@@ -316,9 +316,7 @@ class MSSQLHandler(BaseProtoHandler):
             try:
                 packet = tds.TDSPacket(data)
             except Exception as e:
-                self.logger.error(
-                    "Could not parse MSSQL packet. Terminating connection..."
-                )
+                self.logger.fail("Closing connection on invalid MSSQL packet")
                 self.logger.debug(f"Invalid MSSQL packet: {str(e)}\n{hexdump(data)}")
                 break
 
@@ -335,7 +333,7 @@ class MSSQLHandler(BaseProtoHandler):
                         self.send_error(packet)
                         code = 1
             except Exception as e:
-                self.logger.error(f"Error while handling MSSQL packet: invalid payload")
+                self.logger.fail("Error while handling MSSQL packet: invalid payload")
                 self.logger.debug(f"Invalid MSSQL packet: {str(e)}\n{hexdump(data)}")
                 self.send_error(packet)
                 code = 1

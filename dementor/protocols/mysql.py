@@ -384,7 +384,7 @@ class MySQLHandler(BaseProtoHandler):
             raise  # will terminate the connection
 
         except Exception as e:
-            self.logger.error("Failed to decode MySQL packet, closing connection...")
+            self.logger.fail("Received invalid MySQL packet, closing connection...")
             data = data or b""
             self.logger.debug(f"Failed to decode MySQL packet: {e}\n({hexdump(data)})")
             return None
@@ -435,8 +435,8 @@ class MySQLHandler(BaseProtoHandler):
         try:
             ssl_request: SSLRequest = unpack(SSLRequest, packet.payload)
         except Exception as e:
-            self.logger.error(
-                "Failed to decode MySQL SSLRequest. Terminating connection: "
+            self.logger.fail(
+                "Received invalid MySQL SSLRequest. Terminating connection: "
             )
             self.logger.debug(
                 f"Invalid MySQL SSLRequest packet: {str(e)}\n{hexdump(packet.payload)}"
@@ -466,8 +466,8 @@ class MySQLHandler(BaseProtoHandler):
         try:
             response: HandshakeResponse = unpack(HandshakeResponse, packet.payload)
         except Exception as e:
-            self.logger.error(
-                "Failed to decode MySQL HandshakeResponse. Terminating connection: "
+            self.logger.fail(
+                "Failed to decode MySQL HandshakeResponse. Terminating connection... "
             )
             self.logger.debug(
                 f"Invalid MySQL HandshakeResponse packet: {str(e)}\n{hexdump(packet.payload)}"

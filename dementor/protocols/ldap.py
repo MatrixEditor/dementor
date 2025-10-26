@@ -347,7 +347,10 @@ class LDAPHandler(BaseProtoHandler):
         try:
             message, _ = BERDecoder.decode(data, asn1Spec=LDAPMessage())
         except Exception as e:
-            self.logger.error(f"Failed to decode LDAP packet.\n{hexdump.hexdump(data)}")
+            self.logger.fail("Received invalid LDAP - terminating connection...")
+            self.logger.debug(
+                f"Invalid LDAP packet: {str(e.__class__)}\n{hexdump.hexdump(data)}"
+            )
             return
 
         return message
