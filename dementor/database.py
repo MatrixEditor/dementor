@@ -207,7 +207,7 @@ class DementorDB:
             username_text = "(blank)"
 
         full_name = (
-            f" for [b]{username_text}[/]/[b]{markup.escape(domain)}[/]"
+            f" for [b]{markup.escape(domain)}[/]/[b]{username_text}[/]"
             if domain
             else f" for [b]{username_text}[/]"
         )
