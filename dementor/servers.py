@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import traceback
 import pathlib
 import socket
 import socketserver
@@ -25,6 +26,7 @@ import struct
 import abc
 import ssl
 
+from io import StringIO
 from typing import Tuple
 from socketserver import BaseRequestHandler
 
@@ -101,7 +103,12 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
             if e.errno not in (32, 104):  # EPIPE, ECONNRESET
                 self.logger.exception(e)
         except Exception as e:
-            self.logger.exception(e)
+            self.logger.error("Error handling request from client, terminating...")
+            out = StringIO()
+            traceback.print_exc(file=out)
+            self.logger.debug(
+                f"Error while handling request. Traceback:\n{out.getvalue()}"
+            )
 
     def recv(self, size: int) -> bytes:
         if isinstance(self.request, tuple):

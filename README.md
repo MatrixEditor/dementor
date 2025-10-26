@@ -57,3 +57,13 @@ Take a look at the [Documentation on GitHub-Pages](https://matrixeditor.github.i
 ## License
 
 Distributed under the MIT License. See LICENSE for more information.
+
+## Disclaimer
+
+**Dementor** is intended only for lawful educational purposes: learning, testing
+in your own lab, or assessments on systems where you have explicit written
+authorization. You agree not to use this software to access,  damage, interfere
+with, or exfiltrate data from systems for which you do not have permission.
+We make no promises about safety, completeness, or fitness for any purpose. Use
+at your own risk. If you discover a vulnerability, please follow responsible
+disclosure by using the private disclosing feature offered by GitHub.

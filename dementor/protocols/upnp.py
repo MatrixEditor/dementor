@@ -134,7 +134,7 @@ class UPnPHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.logger.debug(f"Request for {self.path}", is_client=True)
-        user_agent = escape(self.headers["User-Agent"])
+        user_agent = escape(self.headers.get("User-Agent", "<no-user-agent>"))
         if len(user_agent) > 50:
             user_agent = user_agent[:47] + "..."
 
@@ -203,7 +203,10 @@ class UPnPServer(ThreadingHTTPServer):
         return super().server_bind()
 
     def finish_request(self, request, client_address) -> None:
-        self.RequestHandlerClass(self.config, request, client_address, self)
+        try:
+            self.RequestHandlerClass(self.config, request, client_address, self)
+        except ConnectionError:
+            pass
 
     def render(self, template, **kwargs):
         return self.env.get_template(template).render(

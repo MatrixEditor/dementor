@@ -434,6 +434,10 @@ class SMBHandler(BaseProtoHandler):
             # 2. Step: decode SMB packet
             # The protocol identifier for SMBv1 is 0xFF 0x53 0x4C 0x49 0x53 0x4E 0x00:
             raw_smb_data = packet.get_trailer()
+            if len(raw_smb_data) == 0:
+                self.logger.warning("Received empty SMB packet")
+                continue
+
             smbv1 = False
             match raw_smb_data[0]:
                 case 0xFF:  # SMB1
@@ -442,7 +446,7 @@ class SMBHandler(BaseProtoHandler):
                 case 0xFE:  # SMB2/SMB3
                     packet = smb2.SMB2Packet(data=raw_smb_data)
                 case _:
-                    self.logger.error(f"Unknown SMB packet type: {raw_smb_data[0]}")
+                    self.logger.debug(f"Unknown SMB packet type: {raw_smb_data[0]}")
                     break
 
             # 3. Step: handle SMB packet

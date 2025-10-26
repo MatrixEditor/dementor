@@ -229,14 +229,14 @@ class X11Handler(BaseProtoHandler):
                 ResponseTy = xConnSetupPrefixBE
                 endian_name = "BE"
             case _:
-                return self.logger.warning(
+                return self.logger.debug(
                     f"Unknown byteorder type in X11 request: '{data[0]:#x}'"
                 )
 
         try:
             request: RequestTy = py.unpack(RequestTy, data)
         except Exception as e:
-            return self.logger.error(f"Invalid X11 request: {e}")
+            return self.logger.debug(f"Invalid X11 request: {e}")
 
         error_message = X_AUTH_MISSING
         if request.authProto:

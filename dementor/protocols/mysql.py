@@ -48,6 +48,7 @@ from caterpillar.py import (
 )
 from caterpillar.exception import DynamicSizeError, StructException
 
+from dementor.log.hexdump import hexdump
 from dementor.servers import (
     ThreadingTCPServer,
     ServerThread,
@@ -79,13 +80,17 @@ def apply_config(session):
 
 
 def create_server_threads(session):
-    return [
-        ServerThread(
-            session,
-            MySQLServer,
-            server_address=(session.bind_address, session.mysql_config.mysql_port),
-        )
-    ] if session.mysql_enabled else []
+    return (
+        [
+            ServerThread(
+                session,
+                MySQLServer,
+                server_address=(session.bind_address, session.mysql_config.mysql_port),
+            )
+        ]
+        if session.mysql_enabled
+        else []
+    )
 
 
 # --- MySQL Protocol ---
@@ -368,6 +373,7 @@ class MySQLHandler(BaseProtoHandler):
         self.send(pack(packet))
 
     def recv_unpack(self) -> Any:
+        data = None
         try:
             data = self.recv(8192)
             if not data:
@@ -378,7 +384,9 @@ class MySQLHandler(BaseProtoHandler):
             raise  # will terminate the connection
 
         except Exception as e:
-            self.logger.error(f"Failed to decode MySQL packet: {e}")
+            self.logger.error("Failed to decode MySQL packet, closing connection...")
+            data = data or b""
+            self.logger.debug(f"Failed to decode MySQL packet: {e}\n({hexdump(data)})")
             return None
 
     def setup(self) -> None:
@@ -427,7 +435,17 @@ class MySQLHandler(BaseProtoHandler):
         try:
             ssl_request: SSLRequest = unpack(SSLRequest, packet.payload)
         except Exception as e:
+<<<<<<< Updated upstream
             return self.logger.error(f"Failed to decode MySQL SSLRequest: {e}")
+=======
+            self.logger.error(
+                "Failed to decode MySQL SSLRequest. Terminating connection: "
+            )
+            self.logger.debug(
+                f"Invalid MySQL SSLRequest packet: {str(e)}\n{hexdump(packet.payload)}"
+            )
+            return
+>>>>>>> Stashed changes
 
         if ssl_request.capabilities & CLIENT_SSL != 0:
             if not self.mysql_config.use_ssl:
@@ -452,7 +470,17 @@ class MySQLHandler(BaseProtoHandler):
         try:
             response: HandshakeResponse = unpack(HandshakeResponse, packet.payload)
         except Exception as e:
+<<<<<<< Updated upstream
             return self.logger.error(f"Failed to decode MySQL HandshakeResponse: {e}")
+=======
+            self.logger.error(
+                "Failed to decode MySQL HandshakeResponse. Terminating connection: "
+            )
+            self.logger.debug(
+                f"Invalid MySQL HandshakeResponse packet: {str(e)}\n{hexdump(packet.payload)}"
+            )
+            return
+>>>>>>> Stashed changes
 
         resp_plugin_name = response.client_plugin_name or plugin_name
         if resp_plugin_name != plugin_name:

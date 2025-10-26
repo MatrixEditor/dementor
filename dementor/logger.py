@@ -44,6 +44,7 @@ dm_console = Console(
 dm_console_lock = threading.Lock()
 
 
+
 class LoggingConfig(TomlConfig):
     _section_ = "Log"
     _fields_ = [
@@ -252,11 +253,18 @@ class ProtocolLogger(logging.LoggerAdapter):
         if not config.log_enable:
             return
 
+<<<<<<< Updated upstream:dementor/logger.py
         workspace = pathlib.Path(session.workspace_path)
         workspace /= config.log_dir or "logs"
         workspace.mkdir(parents=True, exist_ok=True)
         log_name = f"log_{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
         dm_logger.add_logfile(str(workspace / log_name))
+=======
+        log_dir: pathlib.Path = session.resolve_path(config.log_dir or "logs")
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_name = f"dm_log-{util.now()}.log"
+        dm_logger.add_logfile(str(log_dir / log_name))
+>>>>>>> Stashed changes:dementor/log/logger.py
 
 
 class ProtocolLoggerMixin:

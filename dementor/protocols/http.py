@@ -532,9 +532,12 @@ class HTTPServer(ThreadingHTTPServer):
         ThreadingHTTPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:
-        self.RequestHandlerClass(
-            self.config, self.server_config, request, client_address, self
-        )
+        try:
+            self.RequestHandlerClass(
+                self.config, self.server_config, request, client_address, self
+            )
+        except ConnectionResetError:
+            pass
 
     def render_error(
         self, code: int, message: str | None = None, explain: str | None = None
