@@ -328,7 +328,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         else:
             script = self.server.render_page("wpad.dat")
             if self.config.http_wpad_enabled and not script:
-                self.logger.error("WPAD enabled but script not configured")
+                self.logger.fail("WPAD enabled but script not configured")
                 return self.send_error(HTTPStatus.NOT_FOUND)
 
         self.logger.success("Serving WPAD script to client")
@@ -381,7 +381,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             message = ntlm.NTLM_HTTP.get_instance(f"NTLM {token}")
         except Exception:
             # invalid value
-            logger.error(f"Invalid negotiate authentication: {token}")
+            logger.fail(f"Invalid negotiate authentication: {token}")
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
             return
 
@@ -414,7 +414,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 self.finish_request(logger)
 
             case _:
-                logger.error(f"Invalid negotiate authentication: {token}")
+                logger.fail(f"Invalid negotiate authentication: {token}")
                 self.send_error(
                     HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"
                 )
@@ -437,7 +437,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         try:
             username, password = base64.b64decode(token).decode().split(":", 1)
         except ValueError:
-            logger.error(f"Invalid basic authentication: {token}")
+            logger.fail(f"Invalid basic authentication: {token}")
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
             return
 
@@ -532,9 +532,12 @@ class HTTPServer(ThreadingHTTPServer):
         ThreadingHTTPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:
-        self.RequestHandlerClass(
-            self.config, self.server_config, request, client_address, self
-        )
+        try:
+            self.RequestHandlerClass(
+                self.config, self.server_config, request, client_address, self
+            )
+        except ConnectionResetError:
+            pass
 
     def render_error(
         self, code: int, message: str | None = None, explain: str | None = None

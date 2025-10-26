@@ -42,6 +42,7 @@ from caterpillar.py import (
 
 from dementor.database import _CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -314,29 +315,26 @@ class MSSQLHandler(BaseProtoHandler):
 
             try:
                 packet = tds.TDSPacket(data)
-            except Exception as _:
-                self.logger.error(
-                    f"Could not parse MSSQL packet. Received packet: {data.hex()}"
-                )
+            except Exception as e:
+                self.logger.fail("Closing connection on invalid MSSQL packet")
+                self.logger.debug(f"Invalid MSSQL packet: {str(e)}\n{hexdump(data)}")
                 break
 
             try:
                 code = None
                 match packet["Type"]:
-                    case 18:  # TDS_PRE_LOGIN
+                    case 18:  # TDS_PRELOGIN
                         code = self.handle_pre_login(packet)
-
                     case 16:  # TDS_LOGIN
                         code = self.handle_login(packet)
-
                     case 17:
                         code = self.handle_sspi(packet)
-
                     case _:
                         self.send_error(packet)
                         code = 1
             except Exception as e:
-                self.logger.error(f"Error while handling MSSQL packet: {e}")
+                self.logger.fail("Error while handling MSSQL packet: invalid payload")
+                self.logger.debug(f"Invalid MSSQL packet: {str(e)}\n{hexdump(data)}")
                 self.send_error(packet)
                 code = 1
 
@@ -413,7 +411,7 @@ class MSSQLHandler(BaseProtoHandler):
                 negotiate.fromString(sspi_buffer)
             except Exception:
                 # invalid packet
-                self.logger.debug(f"Invalid NTLMSSP packet: {sspi_buffer.hex()}")
+                self.logger.debug(f"Invalid NTLMSSP packet:\n{hexdump(sspi_buffer)}")
                 self.send_error(packet)
                 return 1
 

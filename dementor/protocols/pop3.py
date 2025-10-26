@@ -166,8 +166,8 @@ class POP3Handler(BaseProtoHandler):
         # The POP3 session is now in the AUTHORIZATION state.  The client must
         # now identify and authenticate itself to the POP3 server.
         while line := self.rfile.readline(1024):
-            line = line.decode("utf-8", errors="replace").strip()
             self.logger.debug(repr(line), is_client=True)
+            line = line.decode("utf-8", errors="replace").strip()
 
             args = line.split(" ")
             if len(args) > 0:

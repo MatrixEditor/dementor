@@ -210,8 +210,9 @@ class IPPHandler(BaseHTTPRequestHandler):
         )
 
     def send_response(self, code: int, message=None, document=None) -> None:
+        path = getattr(self, "path", "<invalid>")
         self.logger.debug(
-            markup.escape(f"{self.command} {self.path} {code}"), is_server=True
+            markup.escape(f"{self.command} {path} {code}"), is_server=True
         )
         if not hasattr(self, "_headers_buffer"):
             self._headers_buffer = []
@@ -421,6 +422,9 @@ class IPPServer(ThreadingHTTPServer):
         return super().server_bind()
 
     def finish_request(self, request, client_address) -> None:
-        self.RequestHandlerClass(
-            self.config, self.server_config, request, client_address, self
-        )
+        try:
+            self.RequestHandlerClass(
+                self.config, self.server_config, request, client_address, self
+            )
+        except ConnectionError:
+            pass

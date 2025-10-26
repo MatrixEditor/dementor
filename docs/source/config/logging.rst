@@ -21,12 +21,12 @@ Section ``[Log]``
     affect terminal output.
 
 .. py:attribute:: LogDir
-    :type: str
+    :type: RelativePath | RelativeWorkspacePath | AbsolutePath
     :value: "logs"
 
     *Maps to* :attr:`logger.LoggingConfig.log_dir`
 
-    Specifies the subdirectory (relative to :attr:`Dementor.Workspace`) where log files
+    Specifies the subdirectory (relative to :attr:`Dementor.Workspace` or absolute) where log files
     will be stored. Absolute paths are currently not supported.
 
 .. py:attribute:: DebugLoggers

@@ -220,7 +220,7 @@ class IMAPHandler(BaseProtoHandler):
                 tag, cmd, *args = shlex.split(line)
                 self.seq_id = tag
             except ValueError:
-                self.logger.debug(f"Unknown command: {line!r}")
+                self.logger.debug(f"Unknown command: {line.encode()!r}")
                 self.bad("Invalid command")
                 continue
 
@@ -231,7 +231,7 @@ class IMAPHandler(BaseProtoHandler):
                 except StopHandler:
                     break
             else:
-                self.logger.debug(f"Unknown command: {line!r}")
+                self.logger.debug(f"Unknown command: {line.encode()!r}")
                 #  7.1.5. BYE Response
                 self._push("BYE Unknown command", seq=False)
                 break
@@ -240,7 +240,7 @@ class IMAPHandler(BaseProtoHandler):
         data = self.rfile.readline(size)
         if data:
             text = data.decode("utf-8", errors="replace").strip()
-            self.logger.debug(repr(text), is_client=True)
+            self.logger.debug(repr(data), is_client=True)
             return text
 
     # implementation

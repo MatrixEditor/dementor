@@ -18,5 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "1.0.0.dev13"
-__author__ = "MatrixEditor"
+# just reusing impacket's hexdump
+from impacket.structure import hexdump
+
+__all__ = ["hexdump"]

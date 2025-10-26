@@ -172,17 +172,24 @@ def parse_options(options: List[str]) -> dict:
     for option in options:
         key, raw_value = option.split("=", 1)
         # Each definition is a key=value pair with an optional section prefix
+        section_dict = {}
         if key.count(".") > 1:
-            dm_logger.warning(f"Invalid option definition: {option}")
-            raise typer.Exit(1)
+            # create missing sections
+            *sections, key = key.split(".")
+            current = result
+            for section in sections:
+                current = current.setdefault(section, {})
+
+            section_dict = current
+        else:
+            if key.count(".") == 1:
+                section, key = key.rsplit(".", 1)
+                section_dict = result.setdefault(section, {})
+            else:
+                section_dict = result.setdefault("Dementor", {})
 
         append_value = key.endswith("+")
         key = key.removesuffix("+")
-        if "." in key:
-            section, key = key.rsplit(".", 1)
-        else:
-            section = "Dementor"
-
         match raw_value.strip().lower():
             case "true" | "on" | "yes":
                 value = True
@@ -202,15 +209,10 @@ def parse_options(options: List[str]) -> dict:
                 if value is None:
                     value = raw_value.removeprefix('"').removesuffix('"')
 
-        if section not in result:
-            result[section] = {}
-
         if append_value:
-            if key not in result[section]:
-                result[section][key] = []
-            result[section][key].append(value)
+            section_dict.setdefault(key, []).append(value)
         else:
-            result[section][key] = value
+            section_dict[key] = value
     return result
 
 
@@ -305,8 +307,11 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
     console.print("[bold]Configuration Paths:[/]")
     console.print(main_format_config("DB Directory", f"{session.workspace_path}"))
     console.print(main_format_config("Config Paths", f"[0] {config_paths[0]}"))
-    for i, extra_config_path in enumerate(config_paths[1:]):
-        console.print(" "*39 + f"[{i+1}] {extra_config_path}")
+    pos = 1
+    for extra_config_path in config_paths[1:]:
+        if pathlib.Path(extra_config_path).exists():
+            console.print(" " * 39 + f"[{pos}] {extra_config_path}")
+            pos += 1
 
     console.rule(style="white", title="Log")
     console.print()
@@ -397,10 +402,9 @@ def main(
     if not quiet:
         main_print_options(session, interface, config_path)
 
-
     if not ignore_prompt and not analyze:
         result = Prompt.ask(
-            "[bold red]CAUTION:[/bold red] [red] You are about to start Dementor in [i]attack[/] node, "
+            "[bold red]CAUTION:[/bold red] [red] You are about to start Dementor in [i]attack[/] mode, "
             + "protentially breaking some network connections for certain devices temporarily. "
             + "\nAre you sure you want to continue? [/] (Y/n)",
             choices=["y", "n", "Y", "N"],

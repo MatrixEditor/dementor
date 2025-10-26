@@ -434,6 +434,10 @@ class SMBHandler(BaseProtoHandler):
             # 2. Step: decode SMB packet
             # The protocol identifier for SMBv1 is 0xFF 0x53 0x4C 0x49 0x53 0x4E 0x00:
             raw_smb_data = packet.get_trailer()
+            if len(raw_smb_data) == 0:
+                self.logger.debug("Received empty SMB packet")
+                continue
+
             smbv1 = False
             match raw_smb_data[0]:
                 case 0xFF:  # SMB1
@@ -442,7 +446,7 @@ class SMBHandler(BaseProtoHandler):
                 case 0xFE:  # SMB2/SMB3
                     packet = smb2.SMB2Packet(data=raw_smb_data)
                 case _:
-                    self.logger.error(f"Unknown SMB packet type: {raw_smb_data[0]}")
+                    self.logger.debug(f"Unknown SMB packet type: {raw_smb_data[0]}")
                     break
 
             # 3. Step: handle SMB packet
@@ -461,7 +465,7 @@ class SMBHandler(BaseProtoHandler):
             except Exception as e:
                 self.logger.exception(f"Error in {title}: {e}")
         else:
-            self.logger.error(f"{title} not implemented")
+            self.logger.fail(f"{title} not implemented")
             raise BaseProtoHandler.TerminateConnection
 
     def log_client(self, msg, command=None):
@@ -497,7 +501,7 @@ class SMBHandler(BaseProtoHandler):
                 if mech_type != TypesMech[SPNEGO_NTLMSSP_MECH]:
                     # reject this request by providing the NTLM mechanism
                     name = MechTypes.get(mech_type, "<unknown>")
-                    self.logger.warning(
+                    self.logger.fail(
                         f"<{command_name}> Unsupported mechanism: {name} ({mech_type.hex()})"
                     )
 
@@ -523,7 +527,7 @@ class SMBHandler(BaseProtoHandler):
 
         # NTLM authentication below
         if len(token) < 8:
-            self.logger.error(
+            self.logger.fail(
                 f"<{command_name}> Invalid NTLM token length: {len(token)}"
             )
             raise BaseProtoHandler.TerminateConnection
@@ -559,7 +563,7 @@ class SMBHandler(BaseProtoHandler):
                 # shouldn't happen
                 if not is_gssapi:
                     self.log_client("NTLMSSP_CHALLENGE_MESSAGE", command_name)
-                self.logger.warning("NTLM challenge message not supported!")
+                self.logger.debug("NTLM challenge message not supported!")
                 raise BaseProtoHandler.TerminateConnection
 
             case 0x03:  # AUTHENTICATE

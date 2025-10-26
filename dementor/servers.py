@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import traceback
 import pathlib
 import socket
 import socketserver
@@ -25,10 +26,12 @@ import struct
 import abc
 import ssl
 
+from io import StringIO
 from typing import Tuple
 from socketserver import BaseRequestHandler
 
 from dementor import database
+from dementor.log import hexdump
 from dementor.log.logger import ProtocolLoggerMixin, dm_logger
 from dementor.log.stream import log_host
 from dementor.config.session import SessionConfig
@@ -85,6 +88,7 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
         pass
 
     def handle(self) -> None:
+        data = None
         try:
             if isinstance(self.request, tuple):
                 data, transport = self.request
@@ -103,7 +107,17 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
             if e.errno not in (32, 104):  # EPIPE, ECONNRESET
                 self.logger.exception(e)
         except Exception as e:
-            self.logger.exception(e)
+            self.logger.fail(
+                f"Error handling request from client ({e.__class__.__name__}) "
+                + "- use --debug|--verbose to see traceback"
+            )
+            out = StringIO()
+            traceback.print_exc(file=out)
+            data = data or b""
+            self.logger.debug(
+                f"Error while handling request. Traceback:\n{out.getvalue()}\n"
+                + f"Client request:\n{hexdump.hexdump(data)}"
+            )
 
     def recv(self, size: int) -> bytes:
         if isinstance(self.request, tuple):

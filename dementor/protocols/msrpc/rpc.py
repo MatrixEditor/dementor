@@ -166,7 +166,7 @@ class RPCHandler(BaseProtoHandler):
             try:
                 header = rpcrt.MSRPCHeader(data)
             except struct.error:
-                self.logger.error(f"Could not parse MSRPC header. Received packet: {data.hex()}")
+                self.logger.fail("Data is not a valid MSRPC header, closing connection")
                 return
 
             match header["type"]:

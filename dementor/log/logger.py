@@ -34,6 +34,7 @@ from dementor.config import util
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log import dm_print, dm_console
 
+
 class LoggingConfig(TomlConfig):
     _section_ = "Log"
     _fields_ = [
@@ -234,11 +235,10 @@ class ProtocolLogger(logging.LoggerAdapter):
         if not config.log_enable:
             return
 
-        workspace = pathlib.Path(session.workspace_path)
-        workspace /= config.log_dir or "logs"
-        workspace.mkdir(parents=True, exist_ok=True)
-        log_name = f"log_{util.now()}.log"
-        dm_logger.add_logfile(str(workspace / log_name))
+        log_dir: pathlib.Path = session.resolve_path(config.log_dir or "logs")
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_name = f"dm_log-{util.now()}.log"
+        dm_logger.add_logfile(str(log_dir / log_name))
 
 
 class ProtocolLoggerMixin:

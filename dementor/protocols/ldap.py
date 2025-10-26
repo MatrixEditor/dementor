@@ -39,6 +39,7 @@ from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.config.util import get_value
+from dementor.log import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.servers import (
     ThreadingTCPServer,
@@ -245,7 +246,7 @@ class LDAPHandler(BaseProtoHandler):
         # we expect this to be a NTLM message
         data = bytes(bind_auth["credentials"])
         if not data.startswith(b"NTLMSSP"):
-            self.logger.debug(f"Unsupported SASL mechanism: {data.hex()}")
+            self.logger.debug(f"Unsupported SASL mechanism:\n{hexdump.hexdump(data)}")
             return False
 
         # negotiate message will have message type 0x01
@@ -346,7 +347,10 @@ class LDAPHandler(BaseProtoHandler):
         try:
             message, _ = BERDecoder.decode(data, asn1Spec=LDAPMessage())
         except Exception as e:
-            self.logger.error(f"Failed to decode LDAP packet. Original data (hex): {data.hex()}")
+            self.logger.fail("Received invalid LDAP - terminating connection...")
+            self.logger.debug(
+                f"Invalid LDAP packet: {str(e.__class__)}\n{hexdump.hexdump(data)}"
+            )
             return
 
         return message
