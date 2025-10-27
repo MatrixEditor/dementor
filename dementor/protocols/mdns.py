@@ -139,15 +139,14 @@ class MDNSPoisoner(BaseProtoHandler):
                 if "._tcp" not in normalized_qname and "._udp" not in normalized_qname:
                     if not normalized_qname.endswith(".arpa"):
                         log_to("dns", type="MDNS", name=normalized_qname)
-
+                name = markup.escape(normalized_qname)
+                self.logger.display(
+                    f"Request for [i]{name}[/i] (class: {qclass}, type: {qtype})"
+                )
+                if self.config.analysis:
+                    # Analyze-only mode
+                    continue
                 if self.should_answer_request(question):
-                    name = markup.escape(normalized_qname)
-                    self.logger.display(
-                        f"Request for [i]{name}[/i] (class: {qclass}, type: {qtype})"
-                    )
-                    if self.config.analysis:
-                        # Analyze-only mode
-                        continue
                     self.send_poisoned_answer(packet, question, transport, name)
                 # REVISIT: maybe log ignored requests
                 # else:
