@@ -21,7 +21,7 @@ from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 
 ReplyCodes = {
     220: b"220 Service ready for new user.",

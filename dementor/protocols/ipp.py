@@ -48,7 +48,7 @@ from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.config.util import format_string
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
-from dementor.database import normalize_client_address
+from dementor.db import normalize_client_address
 
 # [5.1.10.  'mimeMediaType']
 IPP_MIME_MEDIA_TYPES = [

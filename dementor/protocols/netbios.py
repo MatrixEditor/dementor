@@ -220,6 +220,7 @@ class NetBiosDSPoisoner(BaseProtoHandler):
         slot_name = transaction.Name.decode("utf-8", errors="replace")
         if slot_name != "\\MAILSLOT\\BROWSE":
             # not a browser request, ignore
+            self.logger.display(f"Received request for new slot: {markup.escape(slot_name)}")
             return
 
         buffer = transaction.Buffer
@@ -235,7 +236,8 @@ class NetBiosDSPoisoner(BaseProtoHandler):
         source_types = self.get_browser_server_types(brws.ServerType)
         if len(source_types) > 3:
             # REVISIT: maybe add complete logging output if --debug is active
-            source_types = source_types[:3] + ["..."]
+            # source_types = source_types[:3] + ["..."]
+            pass
 
         fmt_source_types = ", ".join([f"[b]{t}[/b]" for t in source_types])
         source_version = f"{brws.OSVersionMajor}.{brws.OSVersionMinor}"

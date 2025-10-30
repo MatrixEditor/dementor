@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import sqlite3
 from sqlalchemy import Engine, create_engine
 
 from dementor.config.session import SessionConfig
@@ -55,7 +56,9 @@ def init_engine(session: SessionConfig) -> Engine | None:
             return dm_logger.error("Database path not specified!")
 
         if dialect == "sqlite":
-            path = str(session.resolve_path(path))
+            if path != ":memory:":
+                path = f"/{session.resolve_path(path)}"
+
         # see https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
         raw_path = f"{dialect}+{driver}://{path}"
     else:
@@ -66,7 +69,13 @@ def init_engine(session: SessionConfig) -> Engine | None:
             dialect = sql_type
             driver = "<default>"
 
-    dm_logger.debug("Using %s database with %s driver", dialect, driver)
+    if dialect != "sqlite":
+        first_element, *parts = path.split("/")
+        if "@" in first_element:
+            first_element = first_element.split("@")[1]
+            path = "***:***@" + "/".join([first_element] + list(parts))
+
+    dm_logger.debug("Using database [%s:%s] at: %s", dialect, driver, path)
     return create_engine(raw_path, isolation_level="AUTOCOMMIT", future=True)
 
 

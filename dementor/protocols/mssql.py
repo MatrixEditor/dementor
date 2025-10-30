@@ -40,7 +40,7 @@ from caterpillar.py import (
     StructException,
 )
 
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger

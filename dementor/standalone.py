@@ -450,7 +450,6 @@ def main(
         if result.lower() != "y":
             return
 
-    logger.ProtocolLogger.init_logfile(session)
     serve(interface=interface, session=session, analyze_only=analyze)
 
 

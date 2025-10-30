@@ -43,7 +43,7 @@ from dementor.servers import (
     create_tls_context,
 )
 from dementor.log.logger import ProtocolLogger
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 from dementor.config.toml import (
     TomlConfig,
     Attribute as A,

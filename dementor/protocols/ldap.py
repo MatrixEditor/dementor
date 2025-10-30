@@ -47,7 +47,7 @@ from dementor.servers import (
     BaseProtoHandler,
     ServerThread,
 )
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_AUTH_format_host,

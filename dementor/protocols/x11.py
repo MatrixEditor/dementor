@@ -26,7 +26,7 @@ from caterpillar import py
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.log.logger import ProtocolLogger
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
-from dementor.database import _NO_USER
+from dementor.db import _NO_USER
 
 
 class X11Config(TomlConfig):

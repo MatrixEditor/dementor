@@ -42,7 +42,7 @@ from dementor.config.util import random_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.paths import HTTP_TEMPLATES_PATH
-from dementor.database import normalize_client_address
+from dementor.db import normalize_client_address
 
 
 def apply_config(session):

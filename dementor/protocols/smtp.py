@@ -54,7 +54,7 @@ from dementor.protocols.ntlm import (
     NTLM_AUTH_format_host,
     NTLM_report_auth,
 )
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 
 # removes explicit warning messages from aiosmtpd
 warnings.simplefilter("ignore")

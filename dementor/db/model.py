@@ -52,10 +52,10 @@ class Credential(ModelBase):
     protocol: Mapped[str] = mapped_column(Text, nullable=False)
     credtype: Mapped[str] = mapped_column(Text, nullable=False)
     client: Mapped[str] = mapped_column(Text, nullable=False)
-    hostname: Mapped[str] = mapped_column(Text)
-    domain: Mapped[str] = mapped_column(Text)
+    hostname: Mapped[str] = mapped_column(Text, nullable=True)
+    domain: Mapped[str] = mapped_column(Text, nullable=True)
     username: Mapped[str] = mapped_column(Text, nullable=False)
-    password: Mapped[str] = mapped_column(Text)
+    password: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class HostInfo(ModelBase):
@@ -63,8 +63,8 @@ class HostInfo(ModelBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     ip: Mapped[str] = mapped_column(Text, nullable=False)
-    hostname: Mapped[str] = mapped_column(Text)
-    domain: Mapped[str] = mapped_column(Text)
+    hostname: Mapped[str] = mapped_column(Text, nullable=True)
+    domain: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class HostExtra(ModelBase):

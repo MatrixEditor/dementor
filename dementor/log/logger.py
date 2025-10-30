@@ -146,6 +146,8 @@ class ProtocolLogger(logging.LoggerAdapter):
 
     def log(self, level, msg, *args, exc_info=None, stack_info=False, **kwargs) -> None:
         msg, kwargs = self.format_inline(msg, kwargs)
+
+        self.getEffectiveLevel()
         return super().log(
             level,
             msg,

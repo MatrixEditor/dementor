@@ -17,10 +17,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import asyncio
 
-from typing import Any, List
-
+from typing import Any
 from pathlib import Path
 
 from dementor.config.toml import TomlConfig, Attribute
@@ -71,7 +71,9 @@ class SessionConfig(TomlConfig):
     llmnr_config: Any
     quic_config: Any
     netbiosns_config: Any
-    ldap_config: List[Any]
+    ldap_config: list[Any]
+    workspace_path: str
+    extra_modules: list[str]
 
     def __init__(self) -> None:
         super().__init__(config._get_global_config().get("Dementor", {}))
