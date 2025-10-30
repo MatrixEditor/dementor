@@ -39,7 +39,8 @@ from rich.columns import Columns
 from rich.prompt import Prompt
 
 from dementor import __version__ as DementorVersion
-from dementor import database, config
+from dementor import config
+from dementor.db.connector import create_db, DatabaseConfig
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
 from dementor.log import logger, stream as log_stream
@@ -105,9 +106,12 @@ def serve(
 
     # Setup database for current session
     if not getattr(session, "db", None):
-        session.db_config = TomlConfig.build_config(database.DatabaseConfig)
-        db_path = database.init_dementor_db(session)
-        session.db = database.DementorDB(database.init_engine(db_path), session)
+        session.db_config = TomlConfig.build_config(DatabaseConfig)
+        try:
+            session.db = create_db(session)
+        except Exception as e:
+            dm_logger.error(f"Failed to create database: {e}")
+            return
 
     # Load protocols
     loader = ProtocolLoader()

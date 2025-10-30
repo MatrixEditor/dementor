@@ -18,14 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUnusedCallResult=false
+import datetime
 import threading
-import pathlib
 
-from datetime import datetime
-from typing import Any, Tuple
+from typing import Any
 from rich import markup
-
-from sqlalchemy.engine import Engine, create_engine
+from sqlalchemy.exc import NoInspectionAvailable, NoSuchTableError, OperationalError
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -33,61 +31,13 @@ from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
 )
-from sqlalchemy import ForeignKey, Text, sql
-from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable, OperationalError
+from sqlalchemy import Engine, ForeignKey, Text, sql
 
 
+from dementor.db import _CLEARTEXT, _NO_USER, normalize_client_address
 from dementor.log.logger import dm_logger
 from dementor.log import dm_console_lock
-from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.stream import log_to
-
-
-class DatabaseConfig(TomlConfig):
-    _section_ = "DB"
-    _fields_ = [
-        A("db_dir", "Directory", None),
-        A("db_name", "Name", "Dementor.db"),
-        A("db_duplicate_creds", "DuplicateCreds", False),
-    ]
-
-
-def init_dementor_db(session) -> str:
-    workspace_path = session.workspace_path
-    if session.db_config.db_dir:
-        workspace_path = session.db_config.db_dir
-
-    name = session.db_config.db_name
-    db_path = pathlib.Path(workspace_path) / name
-    if not db_path.exists():
-        dm_logger.info("Initializing Dementor database")
-        # TODO: check for parent dirs
-        if not db_path.parent.exists():
-            dm_logger.info(f"Creating directory {db_path.parent}")
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-
-        engine = init_engine(db_path)
-        ModelBase.metadata.create_all(engine)
-        engine.dispose()
-
-    dm_logger.debug("Using database at: %s", db_path)
-    return db_path
-
-
-def init_engine(db_path: str) -> Engine:
-    return create_engine(
-        f"sqlite:///{db_path}",
-        isolation_level="AUTOCOMMIT",
-        future=True,
-    )
-
-
-def normalize_client_address(client: str) -> str:
-    return client.removeprefix("::ffff:")
-
-
-_CLEARTEXT = "Cleartext"
-_NO_USER = "<missing-user>"
 
 
 class ModelBase(DeclarativeBase):
@@ -187,7 +137,7 @@ class DementorDB:
 
     def add_auth(
         self,
-        client: Tuple[str, int],
+        client: tuple[str, int],
         credtype: str,
         username: str,
         password: str,
@@ -241,7 +191,7 @@ class DementorDB:
                 log_to("hashes", type=credtype, value=password)
             # just insert a new row
             cred = Credential(
-                timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 protocol=protocol.lower(),
                 credtype=credtype.lower(),
                 client=f"{client_address}:{port}",

@@ -186,10 +186,10 @@ UPnP = true
 #   These extra fields (e.g., `foo`, `bar`) will be passed to the final
 #   FilterObj instance and may be used for protocol-specific handling.
 
-# AnswerTo = []
+# Target = []
 
 # Describes a list of hosts to *exclude* from poisoning (blacklist approach).
-# Uses the same filter structure as `AnswerTo`.
+# Uses the same filter structure as Target.
 
 # Ignore = []
 
@@ -205,16 +205,10 @@ UPnP = true
 
 DuplicateCreds = true
 
-# Custom database filename (overrides default "Dementor.db"). Do not put any
-# path information here.
-
-# Name = "database.db"
-
-# Custom path where the database file will be stored. If set, it overrides the
-# workspace directory.
-
-# Directory = "/path/to/directory/"
-
+# Dialect = "sqlite"
+# Driver = "pysqlite"
+# Url = "sqlite:///:memory:"
+# Path = "Dementor.db"
 
 # =============================================================================
 # mDNS
