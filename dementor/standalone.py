@@ -368,6 +368,24 @@ def main(
             help="Do not ask before starting attack mode.",
         ),
     ] = False,
+    targets: Annotated[
+        list[str],
+        typer.Option(
+            "--target",
+            "-t",
+            metavar="NAME[,...]",
+            help="Target host(s) to attack",
+        ),
+    ] = None,
+    ignored: Annotated[
+        list[str],
+        typer.Option(
+            "--ignore",
+            "-i",
+            metavar="NAME[,...]",
+            help="Target host(s) to ignore",
+        ),
+    ] = None,
     verbose: Annotated[bool, _SkippedOption] = False,
     debug: Annotated[bool, _SkippedOption] = False,
     quiet: Annotated[
@@ -397,6 +415,20 @@ def main(
 
             for key, value in options.items():
                 config.dm_config[section][key] = value
+
+    if ignored:
+        ignore_targets = config.dm_config["Globals"].setdefault("Ignore", [])
+        for target_format in ignored:
+            ignore_targets.extend(
+                [target for target in target_format.split(",") if target]
+            )
+
+    if targets:
+        include_targets = config.dm_config["Globals"].setdefault("Target", [])
+        for target_format in targets:
+            include_targets.extend(
+                [target for target in target_format.split(",") if target]
+            )
 
     loader = ProtocolLoader()
     session = SessionConfig()

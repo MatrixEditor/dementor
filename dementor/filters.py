@@ -44,7 +44,7 @@ class FilterObj:
             if (sys.version_info.major, sys.version_info.minor) < (3, 13):
                 warnings.warn(
                     "glob.translate is only available since 3.13, "
-                    "using basic-string instead"
+                    + "using basic-string instead"
                 )
                 self.pattern = None
             else:
@@ -96,6 +96,7 @@ ATTR_WHITELIST = Attribute(
     factory=_optional_filter,
 )
 
+
 def in_scope(value: str, config: Any) -> bool:
     if hasattr(config, "targets"):
         is_target = value in config.targets if config.targets else True
@@ -123,13 +124,13 @@ class Filters:
             else:
                 # must be a dictionary
                 # 1. Direct target specification
-                target = filter_config.pop("Target", None)
+                target = filter_config.get("Target")
                 if target:
                     # target with optional extras
                     self.filters.append(FilterObj(target, filter_config))
                 else:
                     # 2. source file with list of targets
-                    source = filter_config.pop("File")
+                    source = filter_config.get("File")
                     if source is None:
                         # silently continue
                         continue

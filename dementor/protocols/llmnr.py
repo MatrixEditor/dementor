@@ -84,15 +84,15 @@ class LLMNRPoisoner(BaseProtoHandler):
                 qname = question.qname.decode(errors="replace").removesuffix(".")
                 qtype = dns.dnsqtypes.get(question.qtype)
                 log_to("dns", type="LLMNR", name=qname)
-                # Whitelist+Blacklist filters
-                if not in_scope(qname, config) or not in_scope(host, config):
-                    # REVISIT: maybe log ignored requests via option
-                    continue
-
                 self.logger.display(
                     f"Query for [i]{markup.escape(qname)}[/i] (type: {qtype})"
                 )
                 if self.config.analysis:
+                    continue
+
+                # Whitelist+Blacklist filters
+                if not in_scope(qname, config) or not in_scope(host, config):
+                    # REVISIT: maybe log ignored requests via option
                     continue
 
                 self.send_poisoned_answer(packet, question, transport)
