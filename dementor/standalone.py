@@ -23,7 +23,7 @@ import json
 import typer
 import pathlib
 
-from typing import Any, List
+from typing import Any
 from typing_extensions import Annotated
 
 from impacket.version import version as ImpacketVersion
@@ -173,7 +173,7 @@ def stop_session(session: SessionConfig, threads=None) -> None:
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
 
 
-def parse_options(options: List[str]) -> dict:
+def parse_options(options: list[str]) -> dict:
     result = {}
     for option in options:
         key, raw_value = option.split("=", 1)
@@ -353,7 +353,7 @@ def main(
         ),
     ] = None,
     options: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             "--option",
             "-O",
@@ -367,6 +367,7 @@ def main(
         typer.Option(
             "-y",
             "--yes",
+            "--yolo",
             help="Do not ask before starting attack mode.",
         ),
     ] = False,

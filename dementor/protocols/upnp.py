@@ -105,7 +105,7 @@ class UPNPConfig(TomlConfig):
             path = pathlib.Path(templates_dir) / template
             if path.exists() and path.is_dir():
                 upnp_template = str(path)
-                return
+                break
 
         if not upnp_template:
             upnp_template = str(pathlib.Path(HTTP_TEMPLATES_PATH) / "upnp-default")
@@ -200,7 +200,7 @@ class UPnPServer(ThreadingHTTPServer):
 
     def __init__(
         self,
-        session,
+        session: SessionConfig,
         server_address=None,
         RequestHandlerClass=None,
     ) -> None:

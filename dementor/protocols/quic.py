@@ -185,14 +185,14 @@ class QuicServerThread(Thread):
 
         if not os.path.exists(self.config.quic_config.quic_cert_path):
             dm_logger.error(
-                f"Cannot start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
+                f"Cannot start QUIC server on {self.host}:{self.config.quic_config.quic_port} "
                 + "without a certificate file!"
             )
             return
 
         if not os.path.exists(self.config.quic_config.quic_cert_key):
             dm_logger.error(
-                f"Cannot start QUIC server on {self.host}:{self.config.quic_config.quic_port}: "
+                f"Cannot start QUIC server on {self.host}:{self.config.quic_config.quic_port} "
                 + "without a key file!"
             )
             return
