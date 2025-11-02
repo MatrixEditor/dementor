@@ -38,7 +38,7 @@ def negTokenInit_step(
     return response
 
 
-def negTokenInit(mech_types: list) -> SPNEGO_NegTokenInit:
+def negTokenInit(mech_types: list[str]) -> SPNEGO_NegTokenInit:
     token_init = SPNEGO_NegTokenInit()
     token_init["MechTypes"] = [TypesMech[x] for x in mech_types]
     return token_init

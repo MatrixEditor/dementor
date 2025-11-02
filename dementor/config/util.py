@@ -53,10 +53,10 @@ def is_true(value: str) -> bool:
 
 
 class BytesValue:
-    def __init__(self, length=None) -> None:
-        self.length = length
+    def __init__(self, length: int | None = None) -> None:
+        self.length: int | None = length
 
-    def __call__(self, value) -> Any:
+    def __call__(self, value: Any) -> bytes:
         match value:
             case None:
                 return secrets.token_bytes(self.length or 1)
@@ -78,7 +78,7 @@ def random_value(size: int) -> str:
     return "".join(random.choice(string.ascii_letters) for _ in range(size))
 
 
-def format_string(value: str, locals: dict | None = None) -> str:
+def format_string(value: str, locals: dict[str, Any] | None = None) -> str:
     config = _get_global_config()
     try:
         template = _SANDBOX.from_string(value)

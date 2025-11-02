@@ -17,16 +17,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # Reference:
 #   - https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf
+import typing
 import warnings
 import base64
 import binascii
 import threading
 import ssl
 
-from typing import Any, List, NamedTuple
+from typing import Any, NamedTuple
 
 # SMTP server
 from aiosmtpd.smtp import (
@@ -84,17 +85,29 @@ class SMTPServerConfig(TomlConfig):
         A("smtp_auth_mechanisms", "AuthMechanisms", list),
         A("smtp_require_auth", "RequireAUTH", False),
         A("smtp_require_starttls", "RequireSTARTTLS", False),
-        A("smtp_tls_cert", "Cert", False, section_local=False),
-        A("smtp_tls_key", "Key", False, section_local=False),
+        A("smtp_tls_cert", "Cert", "", section_local=False),
+        A("smtp_tls_key", "Key", "", section_local=False),
     ]
 
+    if typing.TYPE_CHECKING:
+        smtp_port: int
+        smtp_tls: bool
+        smtp_fqdn: str
+        smtp_ident: str
+        smtp_downgrade: bool
+        smtp_auth_mechanisms: list[str]
+        smtp_require_auth: bool
+        smtp_require_starttls: bool
+        smtp_tls_cert: str
+        smtp_tls_key: str
 
-def apply_config(session) -> None:
+
+def apply_config(session: SessionConfig) -> None:
     # setup SMTP server options
     if not session.smtp_enabled:
         return
 
-    ports = set()
+    ports: set[int] = set()
     for server in get_value("SMTP", "Server", []):
         smtp_config = SMTPServerConfig(server)
 
@@ -112,7 +125,7 @@ def apply_config(session) -> None:
         session.smtp_servers.append(smtp_config)
 
 
-def create_server_threads(session: SessionConfig) -> list:
+def create_server_threads(session: SessionConfig) -> list[threading.Thread]:
     if not session.smtp_enabled:
         return []
 
@@ -183,22 +196,22 @@ class SMTPServerHandler:
 
     # add explicit support for lowercase authentication
     async def auth_login(
-        self, server: SMTPServerBase, args: List[str]
+        self, server: SMTPServerBase, args: list[str]
     ) -> SMTP_AUTH_Result:
         return await server.auth_LOGIN(server, args)
 
     async def auth_plain(
-        self, server: SMTPServerBase, args: List[str]
+        self, server: SMTPServerBase, args: list[str]
     ) -> SMTP_AUTH_Result:
         return await server.auth_PLAIN(server, args)
 
     async def auth_ntlm(
-        self, server: SMTPServerBase, args: List[str]
+        self, server: SMTPServerBase, args: list[str]
     ) -> SMTP_AUTH_Result:
         return await self.auth_NTLM(server, args)
 
     async def auth_NTLM(
-        self, server: SMTPServerBase, args: List[bytes]
+        self, server: SMTPServerBase, args: list[bytes]
     ) -> SMTP_AUTH_Result:
         login = None
         match len(args):

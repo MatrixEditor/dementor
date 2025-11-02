@@ -17,11 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import NamedTuple, Callable, Any
+from typing import NamedTuple, Callable, Any, TypeVar
 
 from dementor.config.util import get_value
 
 _LOCAL = object()
+_T = TypeVar("_T", bound="TomlConfig")
 
 
 class Attribute(NamedTuple):
@@ -36,7 +37,7 @@ class TomlConfig:
     _section_: str | None
     _fields_: list[Attribute]
 
-    def __init__(self, config: dict | None = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         for field in self._fields_:
             self._set_field(
                 config or {},
@@ -62,8 +63,12 @@ class TomlConfig:
         raise KeyError(f"Could not find config with key {key!r}")
 
     @staticmethod
-    def build_config(cls_ty, section: str | None = None) -> Any:
-        return cls_ty(get_value(section or cls_ty._section_, key=None, default={}))
+    def build_config(cls_ty: type[_T], section: str | None = None) -> _T:
+        section_name = section or cls_ty._section_
+        if section_name is None:
+            raise ValueError("section cannot be None")
+
+        return cls_ty(get_value(section_name, key=None, default={}))
 
     def _set_field(
         self,

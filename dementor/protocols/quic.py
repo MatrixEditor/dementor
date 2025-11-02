@@ -17,15 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # Heavily inspired by:
 #   - https://github.com/xpn/ntlmquic
 #   - https://github.com/ctjf/Responder/tree/master
 import asyncio
 import os
+import typing
 
 from threading import Thread
-from typing import Optional
 
 from aioquic.asyncio.server import serve
 from aioquic.asyncio.protocol import QuicConnectionProtocol, QuicStreamHandler
@@ -43,19 +43,26 @@ class QuicServerConfig(TomlConfig):
     _section_ = "QUIC"
     _fields_ = [
         A("quic_port", "Port", 443),
-        A("quic_cert_path", "Cert", None, section_local=False),
-        A("quic_cert_key", "Key", None, section_local=False),
+        A("quic_cert_path", "Cert", "", section_local=False),
+        A("quic_cert_key", "Key", "", section_local=False),
         A("quic_smb_host", "TargetSMBHost", None),
         A("quic_smb_port", "TargetSMBPort", 445),  # default SMB
     ]
 
+    if typing.TYPE_CHECKING:
+        quic_port: int
+        quic_cert_path: str
+        quic_cert_key: str
+        quic_smb_host: str | None
+        quic_smb_port: int
 
-def apply_config(session):
+
+def apply_config(session: SessionConfig):
     if session.quic_enabled:
         session.quic_config = TomlConfig.build_config(QuicServerConfig)
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     servers = []
     if session.quic_enabled:
         servers.append(
@@ -71,7 +78,7 @@ class QuicHandler(QuicConnectionProtocol, ProtocolLoggerMixin):
         config: SessionConfig,
         host: str,
         quic: QuicConnection,
-        stream_handler: Optional[QuicStreamHandler] = None,
+        stream_handler: QuicStreamHandler | None = None,
     ):
         super().__init__(quic, stream_handler)
         self.host = host

@@ -23,7 +23,7 @@ import json
 import typer
 import pathlib
 
-from typing import List
+from typing import Any, List
 from typing_extensions import Annotated
 
 from impacket.version import version as ImpacketVersion
@@ -59,7 +59,7 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
-    éxtra_options: dict | None = None,
+    éxtra_options: dict[str, Any] | None = None,
 ) -> tuple | None:
     if config_path:
         try:

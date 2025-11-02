@@ -17,10 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import uuid
 import calendar
 import time
 import secrets
+import typing
 
 from impacket.smbserver import TypesMech, MechTypes
 from scapy.fields import NetBIOSNameField
@@ -79,6 +81,15 @@ class SMBServerConfig(TomlConfig):
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
     ]
+
+    if typing.TYPE_CHECKING:
+        smb_port: int
+        smb_server_os: str
+        smb_fqdn: str
+        smb_error_code: int
+        smb2_support: bool
+        ntlm_challenge: bytes
+        ntlm_ess: bool
 
     def set_smb_error_code(self, value: str | int):
         if isinstance(value, int):

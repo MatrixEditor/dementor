@@ -17,6 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dementor.config.session import SessionConfig
+
+
+from dementor.config.session import SessionConfig
+
+
 import traceback
 import pathlib
 import socket
@@ -27,7 +33,7 @@ import abc
 import ssl
 
 from io import StringIO
-from typing import Tuple
+from typing import Any, Tuple
 from socketserver import BaseRequestHandler
 
 from dementor import db
@@ -39,10 +45,10 @@ from dementor.config.session import SessionConfig
 
 class ServerThread(threading.Thread):
     def __init__(self, config: SessionConfig, server_class: type, *args, **kwargs):
-        self.config = config
-        self.server_class = server_class
+        self.config: SessionConfig = config
+        self.server_class: type = server_class
         self.args = args
-        self.kwargs = kwargs
+        self.kwargs: dict[str, Any] = kwargs
         super().__init__()
 
     @property
@@ -84,7 +90,7 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
     def __init__(self, config: SessionConfig, request, client_address, server) -> None:
         self.client_address = client_address
         self.server = server
-        self.config = config
+        self.config: SessionConfig = config
         ProtocolLoggerMixin.__init__(self)
         super().__init__(request, client_address, server)
         log_host(self.client_host)

@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 #
 # - [MS-OXIMAP]:
 #    https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oximap4/b0f9d5f1-ac42-4b27-a874-0c3bf9e3b9b5
@@ -25,9 +26,11 @@
 import base64
 import binascii
 import shlex
+import typing
 
 from impacket import ntlm
 
+from dementor.config.session import SessionConfig
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,
@@ -51,13 +54,13 @@ from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.util import get_value
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.imap_config = list(
         map(IMAPServerConfig, get_value("IMAP", "Server", default=[]))
     )
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     return [
         ServerThread(
             session,
@@ -94,6 +97,19 @@ class IMAPServerConfig(TomlConfig):
         ATTR_CERT,
         ATTR_TLS,
     ]
+
+    if typing.TYPE_CHECKING:
+        imap_port: int
+        imap_fqdn: str
+        imap_caps: list[str]
+        imap_auth_mechanisms: list[str]
+        imap_banner: str
+        imap_downgrade: bool
+        ntlm_challenge: bytes
+        ntlm_ess: bool
+        ntlm_key: str
+        ntlm_cert: str
+        ntlm_tls: bool
 
 
 class StopHandler(Exception):

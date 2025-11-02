@@ -19,6 +19,7 @@
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
 import asyncio
+import typing
 
 from typing import Any
 from pathlib import Path
@@ -27,6 +28,31 @@ from dementor.config.toml import TomlConfig, Attribute
 from dementor.config.util import is_true
 from dementor.paths import DEMENTOR_PATH
 from dementor import config
+
+if typing.TYPE_CHECKING:
+    from dementor.protocols import (
+        kerberos,
+        mdns,
+        netbios,
+        llmnr,
+        ldap,
+        smb,
+        smtp,
+        ftp,
+        http,
+        imap,
+        ipp,
+        mssql,
+        mysql,
+        pop3,
+        quic,
+        ssdp,
+        upnp,
+        x11,
+    )
+    from dementor.protocols.msrpc import rpc
+    from dementor.db.model import DementorDB
+    from dementor.db.connector import DatabaseConfig
 
 
 class SessionConfig(TomlConfig):
@@ -64,16 +90,66 @@ class SessionConfig(TomlConfig):
     ]
 
     # TODO: move into .pyi
-    db: Any
-    db_config: Any
-    krb5_config: Any
-    mdns_config: Any
-    llmnr_config: Any
-    quic_config: Any
-    netbiosns_config: Any
-    ldap_config: list[Any]
-    workspace_path: str
-    extra_modules: list[str]
+    if typing.TYPE_CHECKING:
+        workspace_path: str
+        extra_modules: list[str]
+        ipv6: str | None
+        ipv4: str | None
+        interface: str | None
+        protocols: dict[str, Any]
+
+        db: DementorDB
+        db_config: DatabaseConfig
+        krb5_config: kerberos.KerberosConfig
+        mdns_config: mdns.MDNSConfig
+        llmnr_config: llmnr.LLMNRConfig
+        netbiosns_config: netbios.NBTNSConfig
+        ldap_config: list[ldap.LDAPServerConfig]
+        smtp_servers: list[smtp.SMTPServerConfig]
+        smb_config: list[smb.SMBServerConfig]
+        ftp_config: list[ftp.FTPServerConfig]
+        proxy_config: http.ProxyAutoConfig
+        http_config: list[http.HTTPServerConfig]
+        winrm_config: list[http.HTTPServerConfig]
+        imap_config: list[imap.IMAPServerConfig]
+        ipp_config: ipp.IPPConfig
+        rpc_config: rpc.RPCConfig
+        mssql_config: mssql.MSSQLConfig
+        ssrp_config: mssql.SSRPConfig
+        mysql_config: mysql.MySQLConfig
+        pop3_config: list[pop3.POP3ServerConfig]
+        quic_config: quic.QuicServerConfig
+        ssdp_config: ssdp.SSDPConfig
+        upnp_config: upnp.UPNPConfig
+        x11_config: x11.X11Config
+
+        ntlm_challange: bytes
+        ntlm_ess: bool
+        analysis: bool
+        loop: asyncio.AbstractEventLoop
+
+        llmnr_enabled: bool
+        nbtns_enabled: bool
+        nbtds_enabled: bool
+        smtp_enabled: bool
+        smb_enabled: bool
+        ftp_enabled: bool
+        kdc_enabled: bool
+        ldap_enabled: bool
+        quic_enabled: bool
+        mdns_enabled: bool
+        http_enabled: bool
+        rpc_enabled: bool
+        winrm_enabled: bool
+        mssql_enabled: bool
+        ssrp_enabled: bool
+        imap_enabled: bool
+        pop3_enabled: bool
+        mysql_enabled: bool
+        x11_enabled: bool
+        ipp_enabled: bool
+        ssdp_enabled: bool
+        upnp_enabled: bool
 
     def __init__(self) -> None:
         super().__init__(config._get_global_config().get("Dementor", {}))
@@ -91,9 +167,6 @@ class SessionConfig(TomlConfig):
         # NTLM configuration
         self.ntlm_challange = b"1337LEET"
         self.ntlm_ess = True
-
-        # SMB configuration
-        self.smb_server_config = []
 
     def is_bound_to_all(self) -> bool:
         # REVISIT: this should raise an exception

@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # Basic implementation of a POP3 server based on:
 #   - https://datatracker.ietf.org/doc/html/rfc1939
 #   - https://datatracker.ietf.org/doc/html/rfc5034
@@ -27,8 +27,10 @@
 #   - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-pop3/
 import base64
 import binascii
+import typing
 
 from impacket import ntlm
+from dementor.config.session import SessionConfig
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,
@@ -52,13 +54,13 @@ from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.util import get_value
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.pop3_config = list(
         map(POP3ServerConfig, get_value("POP3", "Server", default=[]))
     )
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig) -> list[ServerThread]:
     return [
         ServerThread(
             session,
@@ -93,6 +95,18 @@ class POP3ServerConfig(TomlConfig):
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
     ]
+
+    if typing.TYPE_CHECKING:
+        pop3_port: int
+        pop3_fqdn: str
+        pop3_downgrade: bool
+        pop3_banner: str
+        pop3_auth_mechs: list[str]
+        certfile: str | None
+        keyfile: str | None
+        use_ssl: bool
+        ntlm_challenge: bytes
+        ntlm_ess: bool
 
 
 class CloseConnection(Exception):

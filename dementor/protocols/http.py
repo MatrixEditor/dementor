@@ -17,10 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import socket
 import base64
 import pathlib
 import ssl
+import typing
 
 from http import HTTPStatus
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -33,6 +35,7 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
+from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import format_string, get_value, is_true
 from dementor.log.logger import ProtocolLogger, dm_logger
@@ -48,7 +51,7 @@ from dementor.protocols.ntlm import (
 )
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.proxy_config = ProxyAutoConfig(get_value("Proxy", key=None, default={}))
 
     servers = []
@@ -72,11 +75,12 @@ def apply_config(session):
         ssl_config.http_use_ssl = True
         winrm_config.append(ssl_config)
 
-    if session.winrm_enabled:
-        session.winrm_config = winrm_config
+    if not session.winrm_enabled:
+        winrm_config = []
+    session.winrm_config = winrm_config
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     servers = []
     for server_config in session.http_config if session.http_enabled else []:
         address = (
@@ -114,6 +118,9 @@ class ProxyAutoConfig(TomlConfig):
     _fields_ = [
         A("proxy_script", "Script", None),
     ]
+
+    if typing.TYPE_CHECKING:
+        proxy_script: str | None
 
     def set_proxy_script(self, script):
         self.proxy_script = None
@@ -161,7 +168,12 @@ class HTTPServerConfig(TomlConfig):
     _section_ = "HTTP"
     _fields_ = [
         A("http_port", "Port"),
-        A("http_server_type", "ServerType", "Microsoft-IIS/10.0", factory=format_string), #noqa
+        A(
+            "http_server_type",
+            "ServerType",
+            "Microsoft-IIS/10.0",
+            factory=format_string,
+        ),  # noqa
         A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic", "Bearer"]),
         A("http_fqdn", "FQDN", "DEMENTOR", section_local=False, factory=format_string),
         A("http_extra_headers", "ExtraHeaders", list),
@@ -177,14 +189,25 @@ class HTTPServerConfig(TomlConfig):
         ATTR_NTLM_ESS,
     ]
 
-    def set_http_ntlm_challenge(self, challenge):
-        if isinstance(challenge, bytes):
-            self.http_ntlm_challenge = challenge
-        else:
-            self.http_ntlm_challenge = str(challenge).encode(errors="replace")
+    if typing.TYPE_CHECKING:
+        http_port: int
+        http_server_type: str
+        http_auth_schemes: list[str]
+        http_fqdn: str
+        http_extra_headers: list[str]
+        http_wpad_enabled: bool
+        http_wpad_auth: bool
+        http_templates: list[str]
+        http_webdav_enabled: bool
+        http_methods: list[str]
+        http_cert: str | None
+        http_cert_key: str | None
+        http_use_ssl: bool
+        ntlm_challenge: bytes | None
+        ntlm_ess: bool
 
-    def set_http_templates(self, templates_dirs: list):
-        dirs = []
+    def set_http_templates(self, templates_dirs: list[str]):
+        dirs: list[str] = []
         for templates_dir in templates_dirs:
             path = pathlib.Path(templates_dir)
             if not path.exists() or not path.is_dir():
@@ -207,7 +230,14 @@ class HTTPHeaders:
 
 
 class HTTPHandler(BaseHTTPRequestHandler):
-    def __init__(self, session, config, request, client_address, server) -> None:
+    def __init__(
+        self,
+        session: SessionConfig,
+        config: HTTPServerConfig,
+        request,
+        client_address: tuple[str, int],
+        server,
+    ) -> None:
         self.config = config  # REVISIT: this is confusing
         self.session = session
         self.client_address = client_address
@@ -223,7 +253,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
         super().__init__(request, client_address, server)
 
     def setup_proto_logger(self):
-        self.logger = ProtocolLogger(
+        self.logger: ProtocolLogger = ProtocolLogger(
             extra={
                 "protocol": "HTTP",
                 "protocol_color": "chartreuse3",
@@ -231,7 +261,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 "port": self.config.http_port,
             }
         )
-        self.webdav_logger = ProtocolLogger(
+        self.webdav_logger: ProtocolLogger = ProtocolLogger(
             extra={
                 "protocol": "WebDAV",
                 "protocol_color": "sea_green3",

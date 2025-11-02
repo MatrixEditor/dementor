@@ -17,7 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import List
+# pyright: reportUninitializedInstanceVariable=false
+import typing
 
 from scapy.layers import netbios, smb
 from rich import markup
@@ -27,18 +28,23 @@ from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
 from dementor.log.logger import ProtocolLogger
 from dementor.config.session import SessionConfig, TomlConfig
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
-
+if typing.TYPE_CHECKING:
+    from dementor.filters import Filters
 
 class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
     _fields_ = [ATTR_WHITELIST, ATTR_BLACKLIST]
+
+    if typing.TYPE_CHECKING:
+        targets: Filters | None
+        ignored: Filters | None
 
 
 def apply_config(session: SessionConfig) -> None:
     session.netbiosns_config = TomlConfig.build_config(NBTNSConfig)
 
 
-def create_server_threads(session) -> list:
+def create_server_threads(session) -> list[ServerThread]:
     servers = []
     if session.nbtns_enabled:
         servers.append(ServerThread(session, NetBiosNSServer))
@@ -193,7 +199,7 @@ class NetBiosDSPoisoner(BaseProtoHandler):
             }
         )
 
-    def get_browser_server_types(self, server_type: int) -> List[str]:
+    def get_browser_server_types(self, server_type: int) -> list[str]:
         mask = 1
         value = server_type
         server_types = []

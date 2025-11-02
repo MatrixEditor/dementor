@@ -23,13 +23,13 @@ import glob
 import pathlib
 import warnings
 
-from typing import Any, List
+from typing import Any
 from dementor.config.toml import Attribute
 
 
 class FilterObj:
     def __init__(self, target: str, extra: Any | None = None) -> None:
-        self.target = target
+        self.target: str = target
         self.extra = extra or {}
 
         # Patterns can be either regex directly or glob-style
@@ -65,7 +65,7 @@ class FilterObj:
         return FilterObj(target, extra)
 
     @staticmethod
-    def from_file(source: str, extra: Any | None) -> list:
+    def from_file(source: str, extra: Any | None) -> list["FilterObj"]:
         filters = []
         path = pathlib.Path(source)
         if path.exists() and path.is_file():
@@ -76,7 +76,7 @@ class FilterObj:
         return filters
 
 
-def _optional_filter(value):
+def _optional_filter(value: list[str | dict[str, Any]] | None) -> "Filters | None":
     return None if value is None else Filters(value)
 
 
@@ -112,8 +112,8 @@ def in_scope(value: str, config: Any) -> bool:
 
 
 class Filters:
-    def __init__(self, config: List[str | dict]) -> None:
-        self.filters = []
+    def __init__(self, config: list[str | dict[str, Any]]) -> None:
+        self.filters: list[FilterObj] = []
         for filter_config in config:
             if isinstance(filter_config, str):
                 # String means simple filter expression without extra config
@@ -140,7 +140,7 @@ class Filters:
     def __contains__(self, host: str) -> bool:
         return self.has_match(host)
 
-    def get_machted(self, host: str) -> list:
+    def get_machted(self, host: str) -> list[FilterObj]:
         return list(filter(lambda x: x.matches(host), self.filters))
 
     def get_first_match(self, host: str) -> FilterObj | None:

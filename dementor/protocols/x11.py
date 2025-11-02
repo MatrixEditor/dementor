@@ -17,10 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # Reference:
 #   - https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html
 # pyright: reportInvalidTypeForm=false, reportCallIssue=false, reportGeneralTypeIssues=false
+import typing
+
 from caterpillar import py
 
 from dementor.config.toml import Attribute as A, TomlConfig
@@ -36,22 +38,27 @@ class X11Config(TomlConfig):
         A("x11_error_reason", "ErrorMessage", "Access denied"),
     ]
 
-    def set_x11_ports(self, port_range: str | range | dict):
-        self.x11_ports = None
+    if typing.TYPE_CHECKING:
+        x11_ports: range
+        x11_error_reason: str
+
+    def set_x11_ports(self, port_range: str | range | dict[str, int]):
+        x11_ports = None
         match port_range:
             case range():
-                self.x11_ports = port_range
+                x11_ports = port_range
             case dict():
-                self.x11_ports = range(
+                x11_ports = range(
                     port_range.get("start", 6000), port_range.get("end", 6005)
                 )
             case str():
                 values = port_range.split("-")
                 if len(values) == 2:
-                    self.x11_ports = range(int(values[0]), int(values[1]))
+                    x11_ports = range(int(values[0]), int(values[1]))
 
-        if not self.x11_ports:
-            self.x11_ports = range(6000, 6005)
+        if not x11_ports:
+            x11_ports = range(6000, 6005)
+        self.x11_ports = x11_ports
 
 
 def apply_config(session):

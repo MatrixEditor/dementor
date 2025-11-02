@@ -17,18 +17,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
 import email.message
 import io
-
+import typing
 import http.client
 import socket
 
 from rich.markup import escape
 from rich.text import Text
 
+from dementor.config.session import SessionConfig
 from dementor.servers import (
     ThreadingUDPServer,
     ServerThread,
@@ -38,13 +39,14 @@ from dementor.servers import (
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
+if typing.TYPE_CHECKING:
+    from dementor.filters import Filters
 
-
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.ssdp_config = TomlConfig.build_config(SSDPConfig)
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     return (
         [ServerThread(session, SSDPServer, server_address=(session.bind_address, 1900))]
         if session.ssdp_enabled
@@ -75,6 +77,12 @@ class SSDPConfig(TomlConfig):
         ATTR_WHITELIST,
         ATTR_BLACKLIST,
     ]
+
+    if typing.TYPE_CHECKING:
+        ssdp_location: str | None
+        ssdp_server: str
+        ssdp_extra_headers: list[str]
+        ssdp_max_age: int
 
 
 # --- Protocol implementation ---

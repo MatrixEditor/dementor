@@ -17,9 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import ssl
-
-from typing import Any, List, Tuple
+import typing
 
 from impacket import ntlm
 from impacket.ntlm import NTLMAuthChallengeResponse, NTLMAuthNegotiate
@@ -102,6 +102,18 @@ class LDAPServerConfig(TomlConfig):
         A("ldap_error_code", "ErrorCode", "unwillingToPerform"),
     ]
 
+    if typing.TYPE_CHECKING:
+        ldap_port: int
+        ldap_udp: bool
+        ldap_caps: list[str]
+        ldap_mech: list[str]
+        ldap_timeout: int
+        ldap_fqdn: str
+        ldap_tls: bool
+        ldap_tls_key: str | None
+        ldap_tls_cert: str | None
+        ldap_error_code: int
+
     def set_ldap_error_code(self, value: str | int):
         if isinstance(value, int):
             self.ldap_error_code = value
@@ -110,8 +122,8 @@ class LDAPServerConfig(TomlConfig):
             self.ldap_error_code = ResultCode.namedValues[str(value)]
 
 
-def apply_config(session) -> None:
-    ldap_config = []
+def apply_config(session: SessionConfig) -> None:
+    ldap_config: list[LDAPServerConfig] = []
     if session.ldap_enabled:
         for server_config in get_value("LDAP", "Server", default=[]):
             ldap_config.append(LDAPServerConfig(server_config))
@@ -119,8 +131,8 @@ def apply_config(session) -> None:
     session.ldap_config = ldap_config
 
 
-def create_server_threads(session) -> list:
-    servers = []
+def create_server_threads(session: SessionConfig):
+    servers: list[ServerThread] = []
     for config in session.ldap_config if session.ldap_enabled else []:
         server_cls = CLDAPServer if config.ldap_udp else LDAPServer
         servers.append(
@@ -131,7 +143,6 @@ def create_server_threads(session) -> list:
                 server_config=config,
             )
         )
-
     return servers
 
 
@@ -140,6 +151,8 @@ class LDAPTerminateSession(Exception):
 
 
 class LDAPHandler(BaseProtoHandler):
+    server: "LDAPServerMixin"
+
     def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             extra={
@@ -198,7 +211,7 @@ class LDAPHandler(BaseProtoHandler):
         self,
         message: LDAPMessage,
         bind_req: BindRequest,
-    ) -> LDAPMessage | List[LDAPMessage] | None | bool:
+    ) -> LDAPMessage | list[LDAPMessage] | None | bool:
         self.logger.debug(f"Got bind request from {self.client_host}")
         response = None
         bind_req = message["protocolOp"].getComponent()
@@ -297,7 +310,7 @@ class LDAPHandler(BaseProtoHandler):
         self,
         message: LDAPMessage,
         search_req: SearchRequest,
-    ) -> List[LDAPMessage]:
+    ) -> list[LDAPMessage]:
         # handle capabilities
         search_req = message["protocolOp"].getComponent()
         search_filter = search_req["filter"]
@@ -317,6 +330,7 @@ class LDAPHandler(BaseProtoHandler):
 
         response.append(self.server.search_done(message))
         self.send(response)
+        return response
 
     def handle_data(self, data, transport) -> None:
         if self.server.server_config.ldap_timeout:
@@ -366,7 +380,7 @@ class LDAPHandler(BaseProtoHandler):
 
 
 class LDAPServerMixin:
-    server_config: Any
+    server_config: LDAPServerConfig
 
     def list_capabilities(self, req: LDAPMessage) -> LDAPMessage:
         entry = self.search_entry(
@@ -389,7 +403,7 @@ class LDAPServerMixin:
         result["diagnosticMessage"] = ""
         return self.new_message(req, result)
 
-    def search_entry(self, entry_type: str, vals: List[str]) -> SearchResultEntry:
+    def search_entry(self, entry_type: str, vals: list[str]) -> SearchResultEntry:
         entry = SearchResultEntry()
         entry["objectName"] = ""  # <root>
 
@@ -431,7 +445,7 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
     def __init__(
         self,
         config: SessionConfig,
-        server_address: Tuple[str, int] | None = None,
+        server_address: tuple[str, int] | None = None,
         RequestHandlerClass: type | None = None,
         server_config: LDAPServerConfig | None = None,
     ) -> None:
@@ -459,7 +473,7 @@ class CLDAPServer(ThreadingUDPServer, LDAPServerMixin):
     def __init__(
         self,
         config: SessionConfig,
-        server_address: Tuple[str, int] | None = None,
+        server_address: tuple[str, int] | None = None,
         RequestHandlerClass: type | None = None,
         server_config: LDAPServerConfig | None = None,
     ) -> None:

@@ -17,10 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import os
 import struct
 import random
 import threading
+import typing
 
 from collections import defaultdict
 from typing import Any, Callable
@@ -56,6 +58,23 @@ def uuid_name(uuid_bin: bytes) -> str:
         return f"UUID {uuid_str} v{version}"
 
 
+class RPCEndpointHandler(typing.Protocol):
+    def __call__(
+        self, rpc: "RPCHandler", request: rpcrt.MSRPCRequestHeader, data: bytes
+    ) -> int:
+        pass
+
+
+RPCEndpointHandlerFunc = Callable[["RPCHandler", rpcrt.MSRPCRequestHeader, bytes], int]
+
+if typing.TYPE_CHECKING:
+
+    class RPCModule(typing.Protocol):
+        __uuid__: str | bytes | list[str | bytes]
+        handle_request: RPCEndpointHandlerFunc | None
+        RPCEndpointHandlerClass: type[RPCEndpointHandler] | None
+
+
 class RPCConfig(TomlConfig):
     _section_ = "RPC"
     _fields_ = [
@@ -67,6 +86,15 @@ class RPCConfig(TomlConfig):
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
     ]
+
+    if typing.TYPE_CHECKING:
+        rpc_fqdn: str
+        epm_port: int
+        epm_port_range: tuple[int, int] | None
+        rpc_modules: list[RPCModule]
+        rpc_error_code: int
+        ntlm_challenge: bytes
+        ntlm_ess: bool
 
     def set_rcp_error_code(self, value: str | int):
         if isinstance(value, str):
@@ -125,6 +153,9 @@ class RPCConnection:
 
 
 class RPCHandler(BaseProtoHandler):
+    if typing.TYPE_CHECKING:
+        server: "MSRPCServer"
+
     def __init__(self, config, request, client_address, server) -> None:
         self.rpc_config = config.rpc_config
         super().__init__(config, request, client_address, server)
@@ -330,9 +361,6 @@ class RPCHandler(BaseProtoHandler):
         return conn.target(self, request, data)
 
 
-RPCEndpointHandler = Callable[[RPCHandler, rpcrt.MSRPCHeader, bytes], int]
-
-
 class MSRPCServer(ThreadingTCPServer):
     default_port = 135
     default_handler_class = RPCHandler
@@ -365,7 +393,7 @@ class MSRPCServer(ThreadingTCPServer):
     def rem_conn_by_call_id(self, call_id: int):
         self.conn_data.pop(call_id, None)
 
-    def _module_handler(self, module) -> RPCEndpointHandler | None:
+    def _module_handler(self, module) -> RPCEndpointHandlerFunc | None:
         func = getattr(module, "handle_request", None)
         if func:
             return func
@@ -374,7 +402,7 @@ class MSRPCServer(ThreadingTCPServer):
         if handler_cls:
             return handler_cls()
 
-    def get_handler_by_uuid(self, uuid: bytes) -> RPCEndpointHandler | None:
+    def get_handler_by_uuid(self, uuid: bytes) -> RPCEndpointHandlerFunc | None:
         uuid_str, _ = rpcrt.bin_to_uuidtup(uuid)
         for module in self.config.rpc_config.rpc_modules:
             mod_uuid = getattr(module, "__uuid__", None)
