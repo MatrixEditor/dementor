@@ -220,7 +220,9 @@ class NetBiosDSPoisoner(BaseProtoHandler):
         slot_name = transaction.Name.decode("utf-8", errors="replace")
         if slot_name != "\\MAILSLOT\\BROWSE":
             # not a browser request, ignore
-            self.logger.display(f"Received request for new slot: {markup.escape(slot_name)}")
+            self.logger.display(
+                f"Received request for new slot: {markup.escape(slot_name)}"
+            )
             return
 
         buffer = transaction.Buffer
@@ -229,23 +231,25 @@ class NetBiosDSPoisoner(BaseProtoHandler):
             return
 
         brws: smb.BRWS = transaction.Buffer[0][1]
-        # only inspect HostAnnouncement for now
-        if brws.OpCode != 0x01:
-            return
+        match brws.OpCode:
+            case 0x01:  # announcement
+                source_types = self.get_browser_server_types(brws.ServerType)
+                if len(source_types) > 3:
+                    # REVISIT: maybe add complete logging output if --debug is active
+                    # source_types = source_types[:3] + ["..."]
+                    pass
 
-        source_types = self.get_browser_server_types(brws.ServerType)
-        if len(source_types) > 3:
-            # REVISIT: maybe add complete logging output if --debug is active
-            # source_types = source_types[:3] + ["..."]
-            pass
+                fmt_source_types = ", ".join([f"[b]{t}[/b]" for t in source_types])
+                source_version = f"{brws.OSVersionMajor}.{brws.OSVersionMinor}"
+                self.logger.display(
+                    f"HostAnnouncement: [i]{markup.escape(source_name)}[/i] (Version: "
+                    + f"[bold blue]{source_version}[/bold blue]) "
+                    + f"({fmt_source_types})"
+                )
 
-        fmt_source_types = ", ".join([f"[b]{t}[/b]" for t in source_types])
-        source_version = f"{brws.OSVersionMajor}.{brws.OSVersionMinor}"
-        self.logger.display(
-            f"HostAnnouncement: [i]{markup.escape(source_name)}[/i] (Version: "
-            f"[bold blue]{source_version}[/bold blue]) "
-            f"({fmt_source_types})"
-        )
+            case _:
+                # TODO: add support for more entries here
+                pass
 
 
 class NetBiosNSServer(ThreadingUDPServer):

@@ -84,4 +84,4 @@ def create_db(session: SessionConfig) -> DementorDB:
     engine = init_engine(session)
     if not engine:
         raise Exception("Failed to create database engine")
-    return DementorDB(engine, session.db_config)
+    return DementorDB(engine, session)

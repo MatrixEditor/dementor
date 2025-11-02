@@ -37,13 +37,15 @@ from rich import print
 from rich.console import Console
 from rich.columns import Columns
 from rich.prompt import Prompt
+from rich.panel import Panel
+from rich.text import Text
 
 from dementor import __version__ as DementorVersion
 from dementor import config
 from dementor.db.connector import create_db, DatabaseConfig
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
-from dementor.log import logger, stream as log_stream
+from dementor.log import dm_console, logger, stream as log_stream
 from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
@@ -439,10 +441,21 @@ def main(
         main_print_options(session, interface, config_path)
 
     if not ignore_prompt and not analyze:
+        panel = Panel(
+            Columns(
+                [
+                    Text.from_markup(
+                        "[red]You are about to start Dementor in [i]attack[/i] mode, "
+                        + "protentially breaking some network services for certain devices temporarily. [/]"
+                    )
+                ]
+            ),
+            title="[bold red]!! CAUTION !![/bold red]",
+            border_style="red",
+        )
+        dm_console.print(panel)
         result = Prompt.ask(
-            "[bold red]CAUTION:[/bold red] [red] You are about to start Dementor in [i]attack[/] mode, "
-            + "protentially breaking some network connections for certain devices temporarily. "
-            + "\nAre you sure you want to continue? [/] (Y/n)",
+            "Are you sure you want to continue? (Y/n)",
             choices=["y", "n", "Y", "N"],
             default="Y",
             show_choices=False,

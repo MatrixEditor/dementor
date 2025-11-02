@@ -149,11 +149,11 @@ class MDNSPoisoner(BaseProtoHandler):
                 if self.should_answer_request(question):
                     self.send_poisoned_answer(packet, question, transport, name)
                 # REVISIT: maybe log ignored requests
-                # else:
-                #     self.logger.display(
-                #         f"[b]Ignoring[/b] request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
-                #         f"type: {qtype})"
-                #     )
+                else:
+                    self.logger.debug(
+                        f"Ignoring request for {name} (class: {qclass}, "
+                        + f"type: {qtype})"
+                    )
 
     def send_poisoned_answer(
         self, req, question: dns.DNSQR, transport, name: str

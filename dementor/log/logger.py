@@ -146,8 +146,10 @@ class ProtocolLogger(logging.LoggerAdapter):
 
     def log(self, level, msg, *args, exc_info=None, stack_info=False, **kwargs) -> None:
         msg, kwargs = self.format_inline(msg, kwargs)
+        if not self.isEnabledFor(level):
+            # always emit log entries to the file handler
+            return self._emit_log_entry(msg, level, *args, **kwargs)
 
-        self.getEffectiveLevel()
         return super().log(
             level,
             msg,
@@ -183,7 +185,7 @@ class ProtocolLogger(logging.LoggerAdapter):
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 
-    def _emit_log_entry(self, text, *args, **kwargs) -> None:
+    def _emit_log_entry(self, text, level=logging.INFO, *args, **kwargs) -> None:
         caller = inspect.currentframe().f_back.f_back.f_back
         text = render(text).plain
         if len(self.logger.handlers) > 0:  # file handler
@@ -191,7 +193,7 @@ class ProtocolLogger(logging.LoggerAdapter):
                 handler.handle(
                     logging.LogRecord(
                         "dementor",
-                        logging.INFO,
+                        level,
                         pathname=caller.f_code.co_filename,
                         lineno=caller.f_lineno,
                         msg=text,

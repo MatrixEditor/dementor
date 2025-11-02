@@ -44,20 +44,6 @@ class ModelBase(DeclarativeBase):
     pass
 
 
-class Credential(ModelBase):
-    __tablename__ = "credentials"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    timestamp: Mapped[str] = mapped_column(Text, nullable=False)
-    protocol: Mapped[str] = mapped_column(Text, nullable=False)
-    credtype: Mapped[str] = mapped_column(Text, nullable=False)
-    client: Mapped[str] = mapped_column(Text, nullable=False)
-    hostname: Mapped[str] = mapped_column(Text, nullable=True)
-    domain: Mapped[str] = mapped_column(Text, nullable=True)
-    username: Mapped[str] = mapped_column(Text, nullable=False)
-    password: Mapped[str] = mapped_column(Text, nullable=True)
-
-
 class HostInfo(ModelBase):
     __tablename__ = "hosts"
 
@@ -74,6 +60,21 @@ class HostExtra(ModelBase):
     host: Mapped[int] = mapped_column(ForeignKey("hosts.id"))
     key: Mapped[str] = mapped_column(Text, nullable=False)
     value: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class Credential(ModelBase):
+    __tablename__ = "credentials"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    timestamp: Mapped[str] = mapped_column(Text, nullable=False)
+    protocol: Mapped[str] = mapped_column(Text, nullable=False)
+    credtype: Mapped[str] = mapped_column(Text, nullable=False)
+    client: Mapped[str] = mapped_column(Text, nullable=False)
+    host: Mapped[int] = mapped_column(ForeignKey("hosts.id"))
+    hostname: Mapped[str] = mapped_column(Text, nullable=True)
+    domain: Mapped[str] = mapped_column(Text, nullable=True)
+    username: Mapped[str] = mapped_column(Text, nullable=False)
+    password: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class DementorDB:
@@ -98,24 +99,55 @@ class DementorDB:
     def close(self) -> None:
         self.session.close()
 
+    def _execute(self, q):
+        try:
+            return self.session.scalars(q)
+        except OperationalError as e:
+            if "no such column" in str(e).lower():
+                dm_logger.error(
+                    "Could not execute SQL - you are probably using an outdated Dementor.db"
+                )
+            else:
+                raise e
+
+    def commit(self):
+        try:
+            self.session.commit()
+        except OperationalError as e:
+            if "no such column" in str(e).lower():
+                dm_logger.error(
+                    "Could not execute SQL - you are probably using an outdated Dementor.db"
+                )
+            else:
+                raise e
+
     def add_host(
         self,
         ip: str,
         hostname: str | None = None,
         domain: str | None = None,
         extras: dict[str, str] | None = None,
-    ) -> None:
+    ) -> HostInfo | None:
         with self.lock:
             q = sql.select(HostInfo).where(HostInfo.ip == ip)
-            host = self.session.scalars(q).one_or_none()
+            result = self._execute(q)
+            if result is None:
+                return None
+
+            host = result.one_or_none()
             if not host:
                 host = HostInfo(ip=ip, hostname=hostname, domain=domain)
                 self.session.add(host)
-                self.session.commit()
+                self.commit()
+            else:
+                host.domain = host.domain or domain or ""
+                host.hostname = host.hostname or hostname or ""
+                self.commit()
 
             if extras:
                 for key, value in extras.items():
                     self.add_host_extra(host.id, key, value, no_lock=True)
+            return host
 
     def add_host_extra(
         self, host_id: int, key: str, value: str, no_lock: bool = False
@@ -124,11 +156,15 @@ class DementorDB:
             self.lock.acquire()
 
         q = sql.select(HostExtra).where(HostExtra.host == host_id, HostExtra.key == key)
-        extra = self.session.scalars(q).one_or_none()
+        result = self._execute(q)
+        if result is None:
+            return
+
+        extra = result.one_or_none()
         if not extra:
             extra = HostExtra(host=host_id, key=key, value=value)
             self.session.add(extra)
-            self.session.commit()
+            self.commit()
         else:
             extra.value = f"{extra.value}\0{extra.value}"
 
@@ -165,13 +201,18 @@ class DementorDB:
             + f"{logger} | {protocol} | {domain} | {hostname} | {username} | {password}"
         )
 
+        host = self.add_host(client_address, hostname, domain)
         q = sql.select(Credential).filter(
             sql.func.lower(Credential.domain) == sql.func.lower(domain or ""),
             sql.func.lower(Credential.username) == sql.func.lower(username),
             sql.func.lower(Credential.credtype) == sql.func.lower(credtype),
             sql.func.lower(Credential.protocol) == sql.func.lower(protocol),
         )
-        results = self.session.scalars(q).all()
+        result = self._execute(q)
+        if result is None or host is None:
+            return
+
+        results = result.all()
         text = "Password" if credtype == _CLEARTEXT else "Hash"
         username_text = markup.escape(username)
         is_blank = len(str(username).strip()) == 0
@@ -199,6 +240,7 @@ class DementorDB:
                 domain=(domain or "").lower(),
                 username=username.lower(),
                 password=password,
+                host=host.id,
             )
             try:
                 with self.lock:
