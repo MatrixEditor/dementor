@@ -22,7 +22,8 @@
 # Notes:
 #   - Implementation of the MySQL protocol according to the online documentation.
 #     https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html
-
+# pyright: reportUninitializedInstanceVariable=false
+import typing
 import enum
 
 from typing import Any
@@ -48,6 +49,7 @@ from caterpillar.py import (
 )
 from caterpillar.exception import DynamicSizeError, StructException
 
+from dementor.config.session import SessionConfig
 from dementor.log.hexdump import hexdump
 from dementor.servers import (
     ThreadingTCPServer,
@@ -58,7 +60,7 @@ from dementor.servers import (
 from dementor.log.logger import ProtocolLogger
 from dementor.config.attr import Attribute as A, ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.toml import TomlConfig
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 
 
 class MySQLConfig(TomlConfig):
@@ -74,12 +76,22 @@ class MySQLConfig(TomlConfig):
         ATTR_TLS,
     ]
 
+    if typing.TYPE_CHECKING:
+        mysql_port: int
+        mysql_plugin_name: str
+        mysql_version: str
+        mysql_error_code: int
+        mysql_error_message: str
+        certfile: str | None
+        keyfile: str | None
+        use_ssl: bool
 
-def apply_config(session):
+
+def apply_config(session: SessionConfig):
     session.mysql_config = TomlConfig.build_config(MySQLConfig)
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig) -> list[ServerThread]:
     return (
         [
             ServerThread(

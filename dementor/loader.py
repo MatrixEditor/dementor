@@ -17,19 +17,34 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from typing import Any
+
+
+import threading
 import types
 import os
 import dementor
+import typing
 
 from importlib.machinery import SourceFileLoader
 from dementor.config.session import SessionConfig
 from dementor.paths import DEMENTOR_PATH
 
 
+ApplyConfigFunc = typing.Callable[[SessionConfig], None]
+CreateServersFunc = typing.Callable[[SessionConfig], list[threading.Thread]]
+
+
+class ProtocolModule(typing.Protocol):
+    config: "ProtocolModule | None"
+    apply_config: ApplyConfigFunc | None
+    create_server_threads: CreateServersFunc | None
+
+
 class ProtocolLoader:
     def __init__(self) -> None:
-        self.rs_path = os.path.join(DEMENTOR_PATH, "protocols")
-        self.search_path = [
+        self.rs_path: str = os.path.join(DEMENTOR_PATH, "protocols")
+        self.search_path: list[str] = [
             os.path.join(os.path.dirname(dementor.__file__), "protocols"),
             self.rs_path,
         ]
@@ -40,9 +55,9 @@ class ProtocolLoader:
         loader.exec_module(protocol)
         return protocol
 
-    def get_protocols(self, session=None):
-        protocols = {}
-        protocol_paths = list(self.search_path)
+    def get_protocols(self, session: SessionConfig | None = None) -> dict[str, str]:
+        protocols: dict[str, str] = {}
+        protocol_paths: list[str] = list(self.search_path)
 
         if session is not None:
             protocol_paths.extend(session.extra_modules)
@@ -71,27 +86,31 @@ class ProtocolLoader:
 
         return protocols
 
-    def apply_config(self, protocol: types.ModuleType, session: SessionConfig):
+    def apply_config(self, protocol: ProtocolModule, session: SessionConfig):
         # if config is defined, apply it
-        if hasattr(protocol, "apply_config"):
+        apply_config_fn: ApplyConfigFunc | None = getattr(
+            protocol, "apply_config", None
+        )
+        if apply_config_fn is not None:
             # sgnature is: apply_config(session: SessionConfig)
-            protocol.apply_config(session)
-
+            apply_config_fn(session)
         else:
             # maybe another submodule?
             if hasattr(protocol, "config"):
                 config_mod = protocol.config
-                # try again
-                self.apply_config(config_mod, session)
+                if config_mod is not None:
+                    self.apply_config(config_mod, session)
 
     def create_servers(
         self,
-        protocol: types.ModuleType,
+        protocol: ProtocolModule,
         session: SessionConfig,
-    ) -> list:
+    ) -> list[threading.Thread]:
         # creates servers for the given protocol (if defined)
-        if hasattr(protocol, "create_server_threads"):
-            # TODO: must be a thread instance
-            return protocol.create_server_threads(session)
+        create_server_threads: CreateServersFunc | None = getattr(
+            protocol, "create_server_threads", None
+        )
+        if create_server_threads is None:
+            return []
 
-        return []
+        return create_server_threads(session)

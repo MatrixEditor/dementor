@@ -17,12 +17,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false, reportUnusedCallResult=false
+from typing import Any
+
+
 import argparse
 import inspect
 import logging
 import pathlib
 import datetime
 import sys
+import typing
 
 from abc import abstractmethod
 from logging.handlers import RotatingFileHandler
@@ -31,6 +36,7 @@ from rich.logging import RichHandler
 from rich.markup import render
 
 from dementor.config import util
+from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log import dm_print, dm_console
 
@@ -43,6 +49,12 @@ class LoggingConfig(TomlConfig):
         A("log_enable", "Enabled", True),
         A("log_capture_hosts", "CaptureHostsTo", None),
     ]
+
+    if typing.TYPE_CHECKING:
+        log_debug_loggers: list[str]
+        log_dir: str
+        log_enable: bool
+        log_capture_hosts: list[str]
 
 
 def init():
@@ -111,7 +123,9 @@ class ProtocolLogger(logging.LoggerAdapter):
     def get_port(self, extra=None) -> str:
         return str(self._get_extra("port", extra, ""))
 
-    def format(self, msg, *args, **kwargs):
+    def format(
+        self, msg: str, *args: typing.Any, **kwargs: typing.Any
+    ) -> tuple[str, dict[str, Any]]:
         if self.extra is None:
             return f"{msg}", kwargs
 
@@ -124,7 +138,9 @@ class ProtocolLogger(logging.LoggerAdapter):
             kwargs,
         )
 
-    def format_inline(self, msg, kwargs):
+    def format_inline(
+        self, msg: str, kwargs: dict[str, Any]
+    ) -> tuple[str, dict[str, Any]]:
         mod = self.get_protocol_name(kwargs)
         host = self.get_host(kwargs)
         port = self.get_port(kwargs) or "-"
@@ -144,8 +160,20 @@ class ProtocolLogger(logging.LoggerAdapter):
             line = f"({mod}) {line}"
         return line, kwargs
 
-    def log(self, level, msg, *args, exc_info=None, stack_info=False, **kwargs) -> None:
+    def log(
+        self,
+        level: int,
+        msg: str,
+        *args,
+        exc_info: Any | None = None,
+        stack_info: bool = False,
+        **kwargs,
+    ) -> None:
         msg, kwargs = self.format_inline(msg, kwargs)
+        if not self.isEnabledFor(level):
+            # always emit log entries to the file handler
+            return self._emit_log_entry(msg, level, *args, **kwargs)
+
         return super().log(
             level,
             msg,
@@ -156,32 +184,34 @@ class ProtocolLogger(logging.LoggerAdapter):
             **kwargs,
         )
 
-    def success(self, msg, color=None, *args, **kwargs):
+    def success(self, msg: str, color: str | None = None, *args, **kwargs):
         color = color or "green"
         prefix = r"[bold %s]\[+][/bold %s]" % (color, color)
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 
-    def display(self, msg, *args, **kwargs):
+    def display(self, msg: str, *args, **kwargs):
         prefix = r"[bold %s]\[*][/bold %s]" % ("blue", "blue")
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 
-    def highlight(self, msg, *args, **kwargs):
+    def highlight(self, msg: str, *args, **kwargs):
         msg, kwargs = self.format(f"[bold yellow]{msg}[/yellow bold]", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 
-    def fail(self, msg, color=None, *args, **kwargs):
+    def fail(self, msg: str, color=None, *args, **kwargs):
         color = color or "red"
         prefix = r"[bold %s]\[-][/bold %s]" % (color, color)
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, *args, **kwargs)
 
-    def _emit_log_entry(self, text, *args, **kwargs) -> None:
+    def _emit_log_entry(
+        self, text: str, level: int = logging.INFO, *args, **kwargs
+    ) -> None:
         caller = inspect.currentframe().f_back.f_back.f_back
         text = render(text).plain
         if len(self.logger.handlers) > 0:  # file handler
@@ -189,7 +219,7 @@ class ProtocolLogger(logging.LoggerAdapter):
                 handler.handle(
                     logging.LogRecord(
                         "dementor",
-                        logging.INFO,
+                        level,
                         pathname=caller.f_code.co_filename,
                         lineno=caller.f_lineno,
                         msg=text,
@@ -230,7 +260,7 @@ class ProtocolLogger(logging.LoggerAdapter):
         self.logger.info(f"Created log file handler for {log_file_path}")
 
     @staticmethod
-    def init_logfile(session) -> None:
+    def init_logfile(session: SessionConfig) -> None:
         config = TomlConfig.build_config(LoggingConfig)
         if not config.log_enable:
             return
@@ -243,7 +273,7 @@ class ProtocolLogger(logging.LoggerAdapter):
 
 class ProtocolLoggerMixin:
     def __init__(self) -> None:
-        self.logger = self.proto_logger()
+        self.logger: ProtocolLogger = self.proto_logger()
 
     @abstractmethod
     def proto_logger(self) -> ProtocolLogger:

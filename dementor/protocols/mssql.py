@@ -21,6 +21,8 @@
 # SQL Server Resolution Protocol: [MS-SQLR]
 #  - https://winprotocoldoc.z19.web.core.windows.net/MC-SQLR/%5bMC-SQLR%5d.pdf
 # pyright: reportInvalidTypeForm=false, reportCallIssue=false
+# pyright: reportUninitializedInstanceVariable=false
+import typing
 
 from impacket import tds, ntlm
 from rich.markup import escape
@@ -40,7 +42,8 @@ from caterpillar.py import (
     StructException,
 )
 
-from dementor.database import _CLEARTEXT
+from dementor.config.session import SessionConfig
+from dementor.db import _CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
@@ -58,14 +61,16 @@ from dementor.servers import (
     ThreadingUDPServer,
 )
 from dementor.filters import in_scope, ATTR_BLACKLIST, ATTR_WHITELIST
+if typing.TYPE_CHECKING:
+    from dementor.filters import Filters
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.mssql_config = TomlConfig.build_config(MSSQLConfig)
     session.ssrp_config = TomlConfig.build_config(SSRPConfig)
 
 
-def create_server_threads(session):
+def create_server_threads(session) -> list[ServerThread]:
     servers = []
     if session.ssrp_enabled:
         servers.append(ServerThread(session, SSRPServer))
@@ -140,6 +145,14 @@ class SSRPConfig(TomlConfig):
         ATTR_WHITELIST,
         ATTR_BLACKLIST,
     ]
+
+    if typing.TYPE_CHECKING:
+        ssrp_server_name: str
+        ssrp_server_version: str
+        ssrp_server_instance: str
+        ssrp_instance_config: str
+        targets: Filters | None
+        ignored: Filters | None
 
 
 class SSRPPoisoner(BaseProtoHandler):
@@ -224,6 +237,18 @@ class MSSQLConfig(TomlConfig):
         ATTR_NTLM_CHALLENGE,
         ATTR_NTLM_ESS,
     ]
+
+    if typing.TYPE_CHECKING:
+        mssql_port: int
+        mssql_server_version: str
+        mssql_fqdn: str
+        mssql_instance: str
+        mssql_error_code: int
+        mssql_error_state: int
+        mssql_error_class: int
+        mssql_error_msg: str
+        ntlm_challenge: bytes
+        ntlm_ess: bool
 
 
 # 2.2.6.4 PRELOGIN

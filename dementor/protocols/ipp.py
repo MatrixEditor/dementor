@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # Reference:
 #   - https://datatracker.ietf.org/doc/html/rfc8010
 #   - https://github.com/istopwg/pwg-books/blob/master/ippguide/ippguide.pdf
@@ -38,17 +38,19 @@ import socket
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
+import typing
 
 from rich import markup
 from pyipp import parser as IppParser, serializer as IppSerializer
 from pyipp.enums import IppOperation, IppPrinterState, IppStatus, IppTag
 from pyipp.tags import ATTRIBUTE_TAG_MAP
 
+from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.config.util import format_string
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
-from dementor.database import normalize_client_address
+from dementor.db import normalize_client_address
 
 # [5.1.10.  'mimeMediaType']
 IPP_MIME_MEDIA_TYPES = [
@@ -137,13 +139,31 @@ class IPPConfig(TomlConfig):
         A("ipp_remote_cmd_filter", "RemoteCmdCupsFilter", None),
     ]
 
+    if typing.TYPE_CHECKING:
+        ipp_port: int
+        ipp_server_type: str
+        ipp_supported_formats: list[str]
+        ipp_supported_versions: list[str]
+        ipp_default_format: str
+        ipp_driver_uri: str | None
+        ipp_printer_name: str | None
+        ipp_printer_info: str
+        ipp_printer_location: str
+        ipp_printer_model: str
+        ipp_extra_attrib: dict[str, IppTag]
+        ipp_extra_headers: dict[str, str]
+        ipp_supported_operations: list[IppOperation]
+        ipp_remote_cmd: str
+        ipp_remote_cmd_attr: str
+        ipp_remote_cmd_filter: str
+
     def set_ipp_supported_operations(self, value):
         self.ipp_supported_operations = [
             IppOperation[operation] if isinstance(operation, str) else operation
             for operation in (value or [])
         ]
 
-    def set_ipp_extra_attrib(self, extra: list):
+    def set_ipp_extra_attrib(self, extra: list[dict[str, Any]] | None):
         # A list of attributes to add to the GET-PRINTER-ATTRIBUTES response.
         # This settings can also be used to add custom attributes to the
         # ATTRIBUTE_TAG_MAP.
@@ -169,11 +189,11 @@ class IPPConfig(TomlConfig):
                 self.ipp_extra_attrib[name] = value
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.ipp_config = TomlConfig.build_config(IPPConfig)
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     address = (session.bind_address, session.ipp_config.ipp_port)
     if session.ipp_enabled:
         yield ServerThread(
@@ -277,7 +297,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         else:
             method(req)
 
-    def ipp_get_printer_attributes(self, req: dict):
+    def ipp_get_printer_attributes(self, req: dict[str, Any]):
         # [4.2.5.  Get-Printer-Attributes Operation]
         # This REQUIRED operation allows a Client to request the values of the
         # attributes of a Printer.  In the request, the Client supplies the set

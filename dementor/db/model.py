@@ -17,101 +17,75 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUnusedCallResult=false
+import datetime
 import threading
-import sqlite3
-import pathlib
 
-from datetime import datetime
-from typing import Any, Tuple
+from typing import Any
 from rich import markup
+from sqlalchemy.exc import NoInspectionAvailable, NoSuchTableError, OperationalError
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    scoped_session,
+    sessionmaker,
+)
+from sqlalchemy import Engine, ForeignKey, Text, sql
 
-from sqlalchemy.engine import Engine, create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.schema import MetaData, Table
-from sqlalchemy import sql
-from sqlalchemy.exc import NoSuchTableError, NoInspectionAvailable, OperationalError
 
-
+from dementor.db import _CLEARTEXT, _NO_USER, normalize_client_address
 from dementor.log.logger import dm_logger
 from dementor.log import dm_console_lock
-from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.stream import log_to
 
 
-class DatabaseConfig(TomlConfig):
-    _section_ = "DB"
-    _fields_ = [
-        A("db_dir", "Directory", None),
-        A("db_name", "Name", "Dementor.db"),
-        A("db_duplicate_creds", "DuplicateCreds", False),
-    ]
+class ModelBase(DeclarativeBase):
+    pass
 
 
-def init_dementor_db(session) -> str:
-    workspace_path = session.workspace_path
-    if session.db_config.db_dir:
-        workspace_path = session.db_config.db_dir
+class HostInfo(ModelBase):
+    __tablename__ = "hosts"
 
-    name = session.db_config.db_name
-    db_path = pathlib.Path(workspace_path) / name
-    if not db_path.exists():
-        dm_logger.info("Initializing Dementor database")
-        # TODO: check for parent dirs
-        if not db_path.parent.exists():
-            dm_logger.info(f"Creating directory {db_path.parent}")
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        cursor.execute("PRAGMA journal_mode = OFF")
-        cursor.execute("PRAGMA foreign_keys = 1")
-        DementorDB.db_schema(cursor)
-
-        # commit and save changes
-        conn.commit()
-        conn.close()
-
-    dm_logger.debug("Using database at: %s", db_path)
-    return db_path
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ip: Mapped[str] = mapped_column(Text, nullable=False)
+    hostname: Mapped[str] = mapped_column(Text, nullable=True)
+    domain: Mapped[str] = mapped_column(Text, nullable=True)
 
 
-def init_engine(db_path: str) -> Engine:
-    return create_engine(
-        f"sqlite:///{db_path}",
-        isolation_level="AUTOCOMMIT",
-        future=True,
-    )
+class HostExtra(ModelBase):
+    __tablename__ = "extras"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    host: Mapped[int] = mapped_column(ForeignKey("hosts.id"))
+    key: Mapped[str] = mapped_column(Text, nullable=False)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
 
 
-def normalize_client_address(client: str) -> str:
-    return client.removeprefix("::ffff:")
+class Credential(ModelBase):
+    __tablename__ = "credentials"
 
-
-_CLEARTEXT = "Cleartext"
-_NO_USER = "<missing-user>"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    timestamp: Mapped[str] = mapped_column(Text, nullable=False)
+    protocol: Mapped[str] = mapped_column(Text, nullable=False)
+    credtype: Mapped[str] = mapped_column(Text, nullable=False)
+    client: Mapped[str] = mapped_column(Text, nullable=False)
+    host: Mapped[int] = mapped_column(ForeignKey("hosts.id"))
+    hostname: Mapped[str] = mapped_column(Text, nullable=True)
+    domain: Mapped[str] = mapped_column(Text, nullable=True)
+    username: Mapped[str] = mapped_column(Text, nullable=False)
+    password: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class DementorDB:
     def __init__(self, engine: Engine, config) -> None:
         self.db_engine = engine
         self.db_path = engine.url.database
-        self.metadata = MetaData()
+        self.metadata = ModelBase.metadata
         self.config = config
-
         with self.db_engine.connect():
             try:
-                # reflect tables
-                self.CredentialsTable = Table(
-                    "credentials",
-                    self.metadata,
-                    autoload_with=self.db_engine,
-                )
-                self.HostsTable = Table(
-                    "hosts",
-                    self.metadata,
-                    autoload_with=self.db_engine,
-                )
+                self.metadata.create_all(self.db_engine, checkfirst=True)
             except (NoSuchTableError, NoInspectionAvailable):
                 dm_logger.error(f"Failed to connect to database {self.db_path}!")
                 raise
@@ -122,46 +96,84 @@ class DementorDB:
         self.session = session_ty()
         self.lock = threading.Lock()
 
-    # now, lets create those tables
-    @staticmethod
-    def db_schema(cursor: sqlite3.Cursor) -> None:
-        cursor.execute(
-            """CREATE TABLE "credentials" (
-                "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                "timestamp" TEXT NOT NULL,
-                "protocol" TEXT NOT NULL,
-                "credtype" TEXT NOT NULL,
-                "client" TEXT NOT NULL,
-                "hostname" TEXT,
-                "domain" TEXT,
-                "username" TEXT NOT NULL,
-                "password" TEXT
-            )"""
-        )
-        # TODO: still unused
-        cursor.execute(
-            """CREATE TABLE "hosts" (
-                "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                "hostname" TEXT NOT NULL,
-                "ip" TEXT NOT NULL,
-                "port" INTEGER NOT NULL,
-                "banner" TEXT,
-                "os" TEXT
-            )"""
-        )
-
     def close(self) -> None:
         self.session.close()
 
-    def db_exec(self, *args, **kwargs):
-        self.lock.acquire()
-        result = self.session.execute(*args, **kwargs)
-        self.lock.release()
-        return result
+    def _execute(self, q):
+        try:
+            return self.session.scalars(q)
+        except OperationalError as e:
+            if "no such column" in str(e).lower():
+                dm_logger.error(
+                    "Could not execute SQL - you are probably using an outdated Dementor.db"
+                )
+            else:
+                raise e
+
+    def commit(self):
+        try:
+            self.session.commit()
+        except OperationalError as e:
+            if "no such column" in str(e).lower():
+                dm_logger.error(
+                    "Could not execute SQL - you are probably using an outdated Dementor.db"
+                )
+            else:
+                raise e
+
+    def add_host(
+        self,
+        ip: str,
+        hostname: str | None = None,
+        domain: str | None = None,
+        extras: dict[str, str] | None = None,
+    ) -> HostInfo | None:
+        with self.lock:
+            q = sql.select(HostInfo).where(HostInfo.ip == ip)
+            result = self._execute(q)
+            if result is None:
+                return None
+
+            host = result.one_or_none()
+            if not host:
+                host = HostInfo(ip=ip, hostname=hostname, domain=domain)
+                self.session.add(host)
+                self.commit()
+            else:
+                host.domain = host.domain or domain or ""
+                host.hostname = host.hostname or hostname or ""
+                self.commit()
+
+            if extras:
+                for key, value in extras.items():
+                    self.add_host_extra(host.id, key, value, no_lock=True)
+            return host
+
+    def add_host_extra(
+        self, host_id: int, key: str, value: str, no_lock: bool = False
+    ) -> None:
+        if not no_lock:
+            self.lock.acquire()
+
+        q = sql.select(HostExtra).where(HostExtra.host == host_id, HostExtra.key == key)
+        result = self._execute(q)
+        if result is None:
+            return
+
+        extra = result.one_or_none()
+        if not extra:
+            extra = HostExtra(host=host_id, key=key, value=value)
+            self.session.add(extra)
+            self.commit()
+        else:
+            extra.value = f"{extra.value}\0{extra.value}"
+
+        if not no_lock:
+            self.lock.release()
 
     def add_auth(
         self,
-        client: Tuple[str, int],
+        client: tuple[str, int],
         credtype: str,
         username: str,
         password: str,
@@ -189,17 +201,18 @@ class DementorDB:
             + f"{logger} | {protocol} | {domain} | {hostname} | {username} | {password}"
         )
 
-        q = sql.select(self.CredentialsTable).filter(
-            sql.func.lower(self.CredentialsTable.c.domain)
-            == sql.func.lower(domain or ""),
-            sql.func.lower(self.CredentialsTable.c.username)
-            == sql.func.lower(username),
-            sql.func.lower(self.CredentialsTable.c.credtype)
-            == sql.func.lower(credtype),
-            sql.func.lower(self.CredentialsTable.c.protocol)
-            == sql.func.lower(protocol),
+        host = self.add_host(client_address, hostname, domain)
+        q = sql.select(Credential).filter(
+            sql.func.lower(Credential.domain) == sql.func.lower(domain or ""),
+            sql.func.lower(Credential.username) == sql.func.lower(username),
+            sql.func.lower(Credential.credtype) == sql.func.lower(credtype),
+            sql.func.lower(Credential.protocol) == sql.func.lower(protocol),
         )
-        results = self.db_exec(q).all()
+        result = self._execute(q)
+        if result is None or host is None:
+            return
+
+        results = result.all()
         text = "Password" if credtype == _CLEARTEXT else "Hash"
         username_text = markup.escape(username)
         is_blank = len(str(username).strip()) == 0
@@ -218,29 +231,31 @@ class DementorDB:
             if credtype != _CLEARTEXT:
                 log_to("hashes", type=credtype, value=password)
             # just insert a new row
-            q = sql.insert(self.CredentialsTable).values(
-                {
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "protocol": protocol.lower(),
-                    "credtype": credtype.lower(),
-                    "client": f"{client_address}:{port}",
-                    "hostname": hostname or "",
-                    "domain": (domain or "").lower(),
-                    "username": username.lower(),
-                    "password": password,
-                }
+            cred = Credential(
+                timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                protocol=protocol.lower(),
+                credtype=credtype.lower(),
+                client=f"{client_address}:{port}",
+                hostname=hostname or "",
+                domain=(domain or "").lower(),
+                username=username.lower(),
+                password=password,
+                host=host.id,
             )
             try:
-                self.db_exec(q)
+                with self.lock:
+                    self.session.add(cred)
+                    self.session.commit()
             except OperationalError as e:
                 # attempt to write on a read-only database
                 if "readonly database" in str(e):
-                    dm_logger.warning(
+                    dm_logger.fail(
                         f"Failed to add {credtype} for {username} on {client_address}: "
                         + "Database is read-only! (maybe restart in sudo mode?)"
                     )
                 else:
                     raise
+
             with dm_console_lock:
                 head_text = text if not custom else ""
                 credtype = markup.escape(credtype)

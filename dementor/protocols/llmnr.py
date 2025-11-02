@@ -17,7 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import socket
+import typing
 
 from scapy.layers import llmnr, dns
 from rich import markup
@@ -35,6 +37,9 @@ from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_WHITELIST, ATTR_BLACKLIST, in_scope
 from dementor.log.stream import log_to
 
+if typing.TYPE_CHECKING:
+    from dementor.filters import Filters
+
 
 # --- Protocol Interface ---
 class LLMNRConfig(TomlConfig):
@@ -45,13 +50,18 @@ class LLMNRConfig(TomlConfig):
         ATTR_BLACKLIST,
     ]
 
+    if typing.TYPE_CHECKING:
+        llmnr_answer_name: str
+        ignored: Filters | None
+        targets: Filters | None
+
 
 def apply_config(session: SessionConfig) -> None:
     session.llmnr_config = TomlConfig.build_config(LLMNRConfig)
     pass
 
 
-def create_server_threads(session: SessionConfig) -> list:
+def create_server_threads(session: SessionConfig) -> list[ServerThread]:
     if not session.llmnr_enabled:
         return []
 
@@ -102,14 +112,14 @@ class LLMNRPoisoner(BaseProtoHandler):
         if question.qtype == 28 and not self.config.ipv6:
             self.logger.highlight(
                 "Client requested AAAA record (IPv6) but local config does not "
-                "specify IPv6 address. Ignoring..."
+                + "specify IPv6 address. Ignoring..."
             )
             return
 
         if question.qtype == 1 and not self.config.ipv4:
             self.logger.highlight(
                 "Client requested A record (IPv4) but local config does not "
-                "specify IPv4 address. Ignoring..."
+                + "specify IPv4 address. Ignoring..."
             )
             return
 

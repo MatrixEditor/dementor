@@ -18,5 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "1.0.0.dev14"
-__author__ = "MatrixEditor"
+_CLEARTEXT = "Cleartext"
+_NO_USER = "<missing-user>"
+
+
+def normalize_client_address(client: str) -> str:
+    return client.removeprefix("::ffff:")
+

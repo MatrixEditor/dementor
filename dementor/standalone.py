@@ -23,7 +23,7 @@ import json
 import typer
 import pathlib
 
-from typing import List
+from typing import Any
 from typing_extensions import Annotated
 
 from impacket.version import version as ImpacketVersion
@@ -37,12 +37,15 @@ from rich import print
 from rich.console import Console
 from rich.columns import Columns
 from rich.prompt import Prompt
+from rich.panel import Panel
+from rich.text import Text
 
 from dementor import __version__ as DementorVersion
-from dementor import database, config
+from dementor import config
+from dementor.db.connector import create_db, DatabaseConfig
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
-from dementor.log import logger, stream as log_stream
+from dementor.log import dm_console, logger, stream as log_stream
 from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
@@ -56,7 +59,7 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
-    éxtra_options: dict | None = None,
+    éxtra_options: dict[str, Any] | None = None,
 ) -> tuple | None:
     if config_path:
         try:
@@ -105,9 +108,12 @@ def serve(
 
     # Setup database for current session
     if not getattr(session, "db", None):
-        session.db_config = TomlConfig.build_config(database.DatabaseConfig)
-        db_path = database.init_dementor_db(session)
-        session.db = database.DementorDB(database.init_engine(db_path), session)
+        session.db_config = TomlConfig.build_config(DatabaseConfig)
+        try:
+            session.db = create_db(session)
+        except Exception as e:
+            dm_logger.error(f"Failed to create database: {e}")
+            return
 
     # Load protocols
     loader = ProtocolLoader()
@@ -167,7 +173,7 @@ def stop_session(session: SessionConfig, threads=None) -> None:
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
 
 
-def parse_options(options: List[str]) -> dict:
+def parse_options(options: list[str]) -> dict:
     result = {}
     for option in options:
         key, raw_value = option.split("=", 1)
@@ -347,7 +353,7 @@ def main(
         ),
     ] = None,
     options: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             "--option",
             "-O",
@@ -361,6 +367,7 @@ def main(
         typer.Option(
             "-y",
             "--yes",
+            "--yolo",
             help="Do not ask before starting attack mode.",
         ),
     ] = False,
@@ -435,10 +442,21 @@ def main(
         main_print_options(session, interface, config_path)
 
     if not ignore_prompt and not analyze:
+        panel = Panel(
+            Columns(
+                [
+                    Text.from_markup(
+                        "[red]You are about to start Dementor in [i]attack[/i] mode, "
+                        + "protentially breaking some network services for certain devices temporarily. [/]"
+                    )
+                ]
+            ),
+            title="[bold red]!! CAUTION !![/bold red]",
+            border_style="red",
+        )
+        dm_console.print(panel)
         result = Prompt.ask(
-            "[bold red]CAUTION:[/bold red] [red] You are about to start Dementor in [i]attack[/] mode, "
-            + "protentially breaking some network connections for certain devices temporarily. "
-            + "\nAre you sure you want to continue? [/] (Y/n)",
+            "Are you sure you want to continue? (Y/n)",
             choices=["y", "n", "Y", "N"],
             default="Y",
             show_choices=False,
@@ -446,7 +464,6 @@ def main(
         if result.lower() != "y":
             return
 
-    logger.ProtocolLogger.init_logfile(session)
     serve(interface=interface, session=session, analyze_only=analyze)
 
 

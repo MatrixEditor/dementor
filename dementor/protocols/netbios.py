@@ -17,7 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import List
+# pyright: reportUninitializedInstanceVariable=false
+import typing
 
 from scapy.layers import netbios, smb
 from rich import markup
@@ -27,18 +28,23 @@ from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
 from dementor.log.logger import ProtocolLogger
 from dementor.config.session import SessionConfig, TomlConfig
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
-
+if typing.TYPE_CHECKING:
+    from dementor.filters import Filters
 
 class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
     _fields_ = [ATTR_WHITELIST, ATTR_BLACKLIST]
+
+    if typing.TYPE_CHECKING:
+        targets: Filters | None
+        ignored: Filters | None
 
 
 def apply_config(session: SessionConfig) -> None:
     session.netbiosns_config = TomlConfig.build_config(NBTNSConfig)
 
 
-def create_server_threads(session) -> list:
+def create_server_threads(session) -> list[ServerThread]:
     servers = []
     if session.nbtns_enabled:
         servers.append(ServerThread(session, NetBiosNSServer))
@@ -193,7 +199,7 @@ class NetBiosDSPoisoner(BaseProtoHandler):
             }
         )
 
-    def get_browser_server_types(self, server_type: int) -> List[str]:
+    def get_browser_server_types(self, server_type: int) -> list[str]:
         mask = 1
         value = server_type
         server_types = []
@@ -220,6 +226,9 @@ class NetBiosDSPoisoner(BaseProtoHandler):
         slot_name = transaction.Name.decode("utf-8", errors="replace")
         if slot_name != "\\MAILSLOT\\BROWSE":
             # not a browser request, ignore
+            self.logger.display(
+                f"Received request for new slot: {markup.escape(slot_name)}"
+            )
             return
 
         buffer = transaction.Buffer
@@ -228,22 +237,25 @@ class NetBiosDSPoisoner(BaseProtoHandler):
             return
 
         brws: smb.BRWS = transaction.Buffer[0][1]
-        # only inspect HostAnnouncement for now
-        if brws.OpCode != 0x01:
-            return
+        match brws.OpCode:
+            case 0x01:  # announcement
+                source_types = self.get_browser_server_types(brws.ServerType)
+                if len(source_types) > 3:
+                    # REVISIT: maybe add complete logging output if --debug is active
+                    # source_types = source_types[:3] + ["..."]
+                    pass
 
-        source_types = self.get_browser_server_types(brws.ServerType)
-        if len(source_types) > 3:
-            # REVISIT: maybe add complete logging output if --debug is active
-            source_types = source_types[:3] + ["..."]
+                fmt_source_types = ", ".join([f"[b]{t}[/b]" for t in source_types])
+                source_version = f"{brws.OSVersionMajor}.{brws.OSVersionMinor}"
+                self.logger.display(
+                    f"HostAnnouncement: [i]{markup.escape(source_name)}[/i] (Version: "
+                    + f"[bold blue]{source_version}[/bold blue]) "
+                    + f"({fmt_source_types})"
+                )
 
-        fmt_source_types = ", ".join([f"[b]{t}[/b]" for t in source_types])
-        source_version = f"{brws.OSVersionMajor}.{brws.OSVersionMinor}"
-        self.logger.display(
-            f"HostAnnouncement: [i]{markup.escape(source_name)}[/i] (Version: "
-            f"[bold blue]{source_version}[/bold blue]) "
-            f"({fmt_source_types})"
-        )
+            case _:
+                # TODO: add support for more entries here
+                pass
 
 
 class NetBiosNSServer(ThreadingUDPServer):

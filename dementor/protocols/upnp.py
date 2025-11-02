@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
+# pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
 import posixpath
@@ -25,10 +25,12 @@ import socket
 import uuid
 import pathlib
 import mimetypes
+import typing
 
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote
+from collections.abc import Generator
 
 from rich.markup import escape
 
@@ -37,19 +39,22 @@ from jinja2.loaders import FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 from jinja2 import select_autoescape
 
+from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import random_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server
 from dementor.paths import HTTP_TEMPLATES_PATH
-from dementor.database import normalize_client_address
+from dementor.db import normalize_client_address
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.upnp_config = TomlConfig.build_config(UPNPConfig)
 
 
-def create_server_threads(session):
+def create_server_threads(
+    session: SessionConfig,
+) -> Generator[ServerThread, typing.Any, None]:
     if session.upnp_enabled:
         yield ServerThread(
             session,
@@ -70,6 +75,15 @@ class UPNPConfig(TomlConfig):
         A("upnp_present_path", "PresentationUri", "/present.html"),
     ]
 
+    if typing.TYPE_CHECKING:
+        upnp_port: int
+        upnp_uuid: str
+        upnp_templates_path: list[str]
+        upnp_template: str
+        upnp_dd_path: str
+        upnp_scpd_path: str
+        upnp_present_path: str
+
     def set_upnp_templates_path(self, path_list):
         dirs = set()
         for templates_dir in path_list:
@@ -86,20 +100,25 @@ class UPNPConfig(TomlConfig):
         self.upnp_templates_path = list(dirs)
 
     def set_upnp_template(self, template):
-        self.upnp_template = None
+        upnp_template = None
         for templates_dir in self.upnp_templates_path:
             path = pathlib.Path(templates_dir) / template
             if path.exists() and path.is_dir():
-                self.upnp_template = str(path)
-                return
+                upnp_template = str(path)
+                break
 
-        if not self.upnp_template:
-            self.upnp_template = str(pathlib.Path(HTTP_TEMPLATES_PATH) / "upnp-default")
+        if not upnp_template:
+            upnp_template = str(pathlib.Path(HTTP_TEMPLATES_PATH) / "upnp-default")
+
+        self.upnp_template = upnp_template
 
 
 # --- Simple UPnP HTTP server ---
 class UPnPHandler(BaseHTTPRequestHandler):
-    def __init__(self, session, request, client_address, server) -> None:
+    if typing.TYPE_CHECKING:
+        server: "UPnPServer"
+
+    def __init__(self, session: SessionConfig, request, client_address, server) -> None:
         self.session = session
         self.logger = ProtocolLogger(
             extra={
@@ -137,7 +156,6 @@ class UPnPHandler(BaseHTTPRequestHandler):
         user_agent = escape(self.headers.get("User-Agent", "<no-user-agent>"))
         if len(user_agent) > 50:
             user_agent = user_agent[:47] + "..."
-
 
         elements = self.path.split("/")
         if len(elements) == 0:
@@ -182,7 +200,7 @@ class UPnPServer(ThreadingHTTPServer):
 
     def __init__(
         self,
-        session,
+        session: SessionConfig,
         server_address=None,
         RequestHandlerClass=None,
     ) -> None:

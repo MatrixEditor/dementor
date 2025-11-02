@@ -17,11 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
+import typing
+
+from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
-from dementor.database import _CLEARTEXT
+from dementor.db import _CLEARTEXT
 
 ReplyCodes = {
     220: b"220 Service ready for new user.",
@@ -36,15 +40,18 @@ class FTPServerConfig(TomlConfig):
     _section_ = "FTP"
     _fields_ = [A("ftp_port", "Port")]
 
+    if typing.TYPE_CHECKING:
+        ftp_port: int
 
-def apply_config(session) -> None:
+
+def apply_config(session: SessionConfig) -> None:
     session.ftp_config = []
     if session.ftp_enabled:
         for server_config in get_value("FTP", "Server", default=[]):
             session.ftp_config.append(FTPServerConfig(server_config))
 
 
-def create_server_threads(session) -> list:
+def create_server_threads(session) -> list[ServerThread]:
     return [
         ServerThread(session, FTPServer, server_address=("", server_config.ftp_port))
         for server_config in session.ftp_config

@@ -17,6 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dementor.config.session import SessionConfig
+
+
+from dementor.config.session import SessionConfig
+
+
 import traceback
 import pathlib
 import socket
@@ -27,10 +33,10 @@ import abc
 import ssl
 
 from io import StringIO
-from typing import Tuple
+from typing import Any, Tuple
 from socketserver import BaseRequestHandler
 
-from dementor import database
+from dementor import db
 from dementor.log import hexdump
 from dementor.log.logger import ProtocolLoggerMixin, dm_logger
 from dementor.log.stream import log_host
@@ -39,10 +45,10 @@ from dementor.config.session import SessionConfig
 
 class ServerThread(threading.Thread):
     def __init__(self, config: SessionConfig, server_class: type, *args, **kwargs):
-        self.config = config
-        self.server_class = server_class
+        self.config: SessionConfig = config
+        self.server_class: type = server_class
         self.args = args
-        self.kwargs = kwargs
+        self.kwargs: dict[str, Any] = kwargs
         super().__init__()
 
     @property
@@ -54,6 +60,8 @@ class ServerThread(threading.Thread):
         )
 
     def run(self) -> None:
+        address = ""
+        port = ""
         try:
             self.server = self.server_class(self.config, *self.args, **self.kwargs)
             address, port, *_ = self.server.server_address
@@ -66,9 +74,13 @@ class ServerThread(threading.Thread):
                     f"Failed to start server for {self.service_name}: Permission Denied!"
                 )
             else:
-                dm_logger.error(f"Failed to start server for {self.service_name}: {e}")
+                dm_logger.error(
+                    f"Failed to start server for {self.service_name} ({address}:{port}): {e}"
+                )
         except Exception as e:
-            dm_logger.exception(f"Failed to start server for {self.service_name}: {e}")
+            dm_logger.exception(
+                f"Failed to start server for {self.service_name} ({address}:{port}): {e}"
+            )
 
 
 class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
@@ -78,10 +90,11 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
     def __init__(self, config: SessionConfig, request, client_address, server) -> None:
         self.client_address = client_address
         self.server = server
-        self.config = config
+        self.config: SessionConfig = config
         ProtocolLoggerMixin.__init__(self)
         super().__init__(request, client_address, server)
         log_host(self.client_host)
+        self.config.db.add_host(self.client_host)
 
     @abc.abstractmethod
     def handle_data(self, data, transport) -> None:
@@ -140,7 +153,7 @@ class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
 
     @property
     def client_host(self) -> str:
-        return database.normalize_client_address(self.client_address[0])
+        return db.normalize_client_address(self.client_address[0])
 
     @property
     def client_port(self) -> int:

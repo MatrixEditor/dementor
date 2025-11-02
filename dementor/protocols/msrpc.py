@@ -18,12 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from collections import defaultdict
+from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
 from dementor.servers import ServerThread
 from dementor.protocols.msrpc.rpc import MSRPCServer, RPCConfig, RPCConnection
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.rpc_config = TomlConfig.build_config(RPCConfig)
 
     for module in session.rpc_config.rpc_modules:
@@ -32,7 +33,7 @@ def apply_config(session):
             module.apply_config(session)
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     addr = "::" if session.ipv6 else session.ipv4  # necessary
 
     # connection data will be shared across both servers

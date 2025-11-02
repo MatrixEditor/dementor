@@ -17,7 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import socket
+import typing
 
 from scapy.layers import dns
 from rich import markup
@@ -34,6 +36,9 @@ from dementor.servers import (
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 
+if typing.TYPE_CHECKING:
+    from dementor.filters import Filters
+
 MDNS_IPV4_ADDR = "224.0.0.251"
 MDNS_IPV6_ADDR = "ff02::fb"
 
@@ -44,8 +49,8 @@ def apply_config(session: SessionConfig) -> None:
     session.mdns_config = TomlConfig.build_config(MDNSConfig)
 
 
-def create_server_threads(session: SessionConfig) -> list:
-    if not session.mdns_config.enabled:
+def create_server_threads(session: SessionConfig) -> list[ServerThread]:
+    if not session.mdns_enabled:
         return []
 
     return [ServerThread(session, MDNSServer)]
@@ -61,7 +66,6 @@ def normalized_name(host: str | bytes) -> str:
 class MDNSConfig(TomlConfig):
     _section_ = "mDNS"
     _fields_ = [
-        A("enabled", "Dementor.mDNS", True),
         A("mdns_ttl", "TTL", 120),
         A("mdns_max_labels", "MaxLabels", 1),
         A("mdns_qtypes", "AllowedQueryTypes", [1, 28, 255]),  # A, AAAA, ANY
@@ -69,7 +73,14 @@ class MDNSConfig(TomlConfig):
         ATTR_BLACKLIST,
     ]
 
-    def set_mdns_qtypes(self, value: list):
+    if typing.TYPE_CHECKING:
+        mdns_ttl: int
+        mdns_max_labels: int
+        mdns_qtypes: list[int]
+        ignored: Filters | None
+        targets: Filters | None
+
+    def set_mdns_qtypes(self, value: list[str | int]):
         # REVISIT: maybe add error check here
         self.mdns_qtypes = [x if isinstance(x, int) else QTYPES[x] for x in value]
 
@@ -149,11 +160,11 @@ class MDNSPoisoner(BaseProtoHandler):
                 if self.should_answer_request(question):
                     self.send_poisoned_answer(packet, question, transport, name)
                 # REVISIT: maybe log ignored requests
-                # else:
-                #     self.logger.display(
-                #         f"[b]Ignoring[/b] request for [i]{normalized_name(qname)}[/i] (class: {qclass}, "
-                #         f"type: {qtype})"
-                #     )
+                else:
+                    self.logger.debug(
+                        f"Ignoring request for {name} (class: {qclass}, "
+                        + f"type: {qtype})"
+                    )
 
     def send_poisoned_answer(
         self, req, question: dns.DNSQR, transport, name: str

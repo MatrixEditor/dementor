@@ -17,11 +17,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportUninitializedInstanceVariable=false
 import struct
+import typing
 
 from datetime import datetime, UTC
-from typing import List
-
 from impacket.krb5.asn1 import (
     AS_REQ,
     ETYPE_INFO2,
@@ -41,6 +41,7 @@ from impacket.krb5.constants import (
 from impacket.krb5.types import KerberosTime
 from pyasn1.codec.der import decoder, encoder
 
+from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import get_value
 from dementor.servers import (
@@ -59,6 +60,11 @@ class KerberosConfig(TomlConfig):
         A("krb5_etype", "EncType", EncryptionTypes.rc4_hmac),
         A("krb5_error_code", "ErrorCode", ErrorCodes.KDC_ERR_C_PRINCIPAL_UNKNOWN),
     ]
+
+    if typing.TYPE_CHECKING:
+        krb5_salt: bytes
+        krb5_etype: int
+        krb5_error_code: int
 
     def set_krb5_salt(self, value):
         if isinstance(value, bytes):
@@ -85,11 +91,11 @@ class KerberosConfig(TomlConfig):
                 self.krb5_error_code = ErrorCodes[value].value
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.krb5_config = KerberosConfig(get_value("Kerberos", key=None, default={}))
 
 
-def create_server_threads(session) -> list:
+def create_server_threads(session: SessionConfig):
     return (
         [
             ServerThread(session, KDCUDP),
@@ -103,7 +109,7 @@ def create_server_threads(session) -> list:
 def KRB5_Err(
     error_code: int,
     realm: str | None = None,
-    sname: List[str] | None = None,
+    sname: list[str] | None = None,
     sname_type: int | None = None,
     etype: int | None = None,
     salt: bytes | None = None,
