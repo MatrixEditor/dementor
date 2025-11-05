@@ -71,6 +71,8 @@ def serve(
     if session is None:
         session = SessionConfig()
 
+    workspace_path = pathlib.Path(session.workspace_path)
+    workspace_path.mkdir(parents=True, exist_ok=True)
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
     log_stream.init_streams(session)
@@ -436,8 +438,10 @@ def main(
     loader = ProtocolLoader()
     session = SessionConfig()
     session.analysis = analyze
-    session.protocols = loader.get_protocols(session)
+    workspace_path = pathlib.Path(session.workspace_path)
+    workspace_path.mkdir(parents=True, exist_ok=True)
 
+    session.protocols = loader.get_protocols(session)
     if not quiet:
         main_print_options(session, interface, config_path)
 
