@@ -17,7 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import sqlite3
+# pyright: reportUninitializedInstanceVariable=false
+import typing
 from sqlalchemy import Engine, create_engine
 
 from dementor.config.session import SessionConfig
@@ -35,6 +36,13 @@ class DatabaseConfig(TomlConfig):
         A("db_dialect", "Dialect", None),
         A("db_driver", "Driver", None),
     ]
+
+    if typing.TYPE_CHECKING:
+        db_raw_path: str | None
+        db_path: str
+        db_duplicate_creds: bool
+        db_dialect: str | None
+        db_driver: str | None
 
 
 def init_dementor_db(session: SessionConfig) -> Engine | None:
@@ -57,7 +65,12 @@ def init_engine(session: SessionConfig) -> Engine | None:
 
         if dialect == "sqlite":
             if path != ":memory:":
-                path = f"/{session.resolve_path(path)}"
+                real_path = session.resolve_path(path)
+                if not real_path.parent.exists():
+                    dm_logger.debug(f"Creating database directory {real_path.parent}")
+                    real_path.parent.mkdir(parents=True, exist_ok=True)
+
+                path = f"/{real_path}"
 
         # see https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
         raw_path = f"{dialect}+{driver}://{path}"
