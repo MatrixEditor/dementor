@@ -18,6 +18,7 @@
 
     `Docs <intro.html>`_
     `GitHub <https://github.com/MatrixEditor/Dementor>`_
+    `Blog <https://matrixeditor.github.io/posts/dementor-part-1/>`
 
 
 

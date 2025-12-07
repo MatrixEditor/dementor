@@ -10,7 +10,7 @@ Section ``[Log]``
 
 .. py:currentmodule:: Log
 
-.. py:attribute:: Enable
+.. py:attribute:: Enabled
     :type: bool
     :value: true
 

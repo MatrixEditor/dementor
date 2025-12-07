@@ -51,7 +51,7 @@ Let's take a look.
 
 ## You need more?
 
-Take a look at the [Documentation on GitHub-Pages](https://matrixeditor.github.io/dementor/)
+Take a look at the [Documentation on GitHub-Pages](https://matrixeditor.github.io/dementor/) or at the [Blog Series](https://matrixeditor.github.io/posts/dementor-part-1/).
 
 
 ## License
