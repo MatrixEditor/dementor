@@ -28,8 +28,10 @@ from dementor.servers import BaseProtoHandler, ServerThread, ThreadingUDPServer
 from dementor.log.logger import ProtocolLogger
 from dementor.config.session import SessionConfig, TomlConfig
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
+
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters
+
 
 class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
@@ -213,10 +215,14 @@ class NetBiosDSPoisoner(BaseProtoHandler):
 
     def handle_data(self, data: bytes, transport) -> None:
         # we're just her to inspect packets, no poisoning
-        datagram = netbios.NBTDatagram(data)
+        try:
+            datagram = netbios.NBTDatagram(data)
 
-        if not datagram.haslayer(smb.SMB_Header):
-            # probably something else, ignore that
+            if not datagram.haslayer(smb.SMB_Header):
+                # probably something else, ignore that
+                return
+        except Exception:
+            self.logger.fail(f"Invalid NBTDatagram - discarding data...")
             return
 
         source_name = datagram.SourceName.decode("utf-8", errors="replace")
