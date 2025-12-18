@@ -40,6 +40,8 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log import dm_print, dm_console
 
+LOG_DEFAULT_TIMEFMT = "%H:%M:%S"
+
 
 class LoggingConfig(TomlConfig):
     _section_ = "Log"
@@ -47,14 +49,16 @@ class LoggingConfig(TomlConfig):
         A("log_debug_loggers", "DebugLoggers", list),
         A("log_dir", "LogDir", "logs"),
         A("log_enable", "Enabled", True),
-        A("log_capture_hosts", "CaptureHostsTo", None),
+        A("log_timestamps", "Timestamps", False),
+        A("log_timestamp_fmt", "TimestampFmt", LOG_DEFAULT_TIMEFMT),
     ]
 
     if typing.TYPE_CHECKING:
         log_debug_loggers: list[str]
         log_dir: str
         log_enable: bool
-        log_capture_hosts: list[str]
+        log_timestamps: bool
+        log_timestamp_fmt: str
 
 
 def init():
@@ -106,6 +110,13 @@ def init():
 class ProtocolLogger(logging.LoggerAdapter):
     def __init__(self, extra=None) -> None:
         super().__init__(logging.getLogger("dementor"), extra or {})
+        self._log_config = None
+
+    @property
+    def log_config(self) -> LoggingConfig:
+        if not self._log_config:
+            self._log_config = TomlConfig.build_config(LoggingConfig)
+        return self._log_config
 
     def _get_extra(self, name: str, extra=None, default=None):
         value = (self.extra or {}).get(name, default)
@@ -126,15 +137,25 @@ class ProtocolLogger(logging.LoggerAdapter):
     def format(
         self, msg: str, *args: typing.Any, **kwargs: typing.Any
     ) -> tuple[str, dict[str, Any]]:
+        ts_prefix = ""
+        if self.log_config.log_timestamps:
+            ts_prefix = r"\["
+            time_now = datetime.datetime.now()
+            try:
+                ts_prefix = f"{ts_prefix}{time_now.strftime(self.log_config.log_timestamp_fmt)}] "
+            except Exception as e:
+                # TODO: log that exception
+                ts_prefix = f"{ts_prefix}{time_now.strftime(LOG_DEFAULT_TIMEFMT)}] "
+
         if self.extra is None:
-            return f"{msg}", kwargs
+            return f"{ts_prefix}{msg}", kwargs
 
         mod = self.get_protocol_name(kwargs)
         host = self.get_host(kwargs) or "<no-host>"
         port = self.get_port(kwargs) or "<no-port>"
         color = self.get_protocol_color(kwargs)
         return (
-            f"[bold {color}]{mod:<10}[/] {host:<25} {port:<6} {msg}",
+            f"{ts_prefix}[bold {color}]{mod:<10}[/] {host:<25} {port:<6} {msg}",
             kwargs,
         )
 
