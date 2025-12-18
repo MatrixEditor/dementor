@@ -41,7 +41,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from dementor import __version__ as DementorVersion
-from dementor import config
+from dementor import config, paths
 from dementor.db.connector import create_db, DatabaseConfig
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
@@ -417,7 +417,18 @@ def main(
             help="Log timestamps to terminal output too",
         )
     ] = False,
+    show_paths: Annotated[
+        bool,
+        typer.Option(
+            "--paths",
+            help="Displays the current configuration paths",
+            show_default=False,
+        )
+    ] = False,
 ) -> None:
+    if show_paths:
+        return paths.main()
+
     if interface is None and not version:
         return print(f"[bold red]Error:[/] Missing option --interface / -I")
 

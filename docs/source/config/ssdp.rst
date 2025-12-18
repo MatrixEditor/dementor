@@ -61,11 +61,14 @@ Section ``[SSDP]``
     If not explicitly set, this attribute has no effect.
     For a comprehensive explanation of how the blacklist is applied, refer to :class:`BlacklistConfigMixin`.
 
-.. py:attribute:: AnswerTo
+.. py:attribute:: Targets
     :type: list[str | dict]
 
+    .. versionchanged:: 1.0.0.dev16
+        Renamed from `AnswerTo`
+
     Defines a list of hosts or UDNs to which responses should be sent.
-    See :attr:`Globals.AnswerTo` for more information.
+    See :attr:`Globals.Targets` for more information.
     When specified, this attribute takes precedence over the global whitelist.
     If omitted, the global configuration remains in effect.
     For detailed behavior and usage, refer to :class:`WhitelistConfigMixin`.

@@ -19,11 +19,14 @@ Section ``[NetBIOS]``
     If not set, it has no effect.
     For a detailed explanation of how blacklist rules are applied, see :class:`BlacklistConfigMixin`.
 
-.. py:attribute:: AnswerTo
+.. py:attribute:: Targets
     :type: list[str | dict]
 
+    .. versionchanged:: 1.0.0.dev16
+        Renamed from `AnswerTo`
+
     Defines a list of hosts to which responses should be sent.
-    Refer to :attr:`Globals.AnswerTo` for more information.
+    Refer to :attr:`Globals.Targets` for more information.
     When specified, this setting takes precedence over the global whitelist configuration.
     If omitted, the global configuration remains effective.
     For details on how these rules are applied, see :class:`WhitelistConfigMixin`.

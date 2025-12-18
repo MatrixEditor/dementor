@@ -32,7 +32,7 @@ The supported forms are described below.
         .. code-block:: toml
             :caption: Basic whitelist responding only to requests from 127.0.0.1
 
-            AnswerTo = [ "127.0.0.1" ]
+            Targets = [ "127.0.0.1" ]
 
 - Regex-String:
     Use the ``re:`` prefix to define a Python-style regular expression.
@@ -42,7 +42,7 @@ The supported forms are described below.
         .. code-block:: toml
             :caption: Responds only to service names starting with "_tcp"
 
-            AnswerTo = [ "re:^_tcp.*" ]
+            Targets = [ "re:^_tcp.*" ]
 
 - Glob-String:
     Use Unix-style wildcard expressions by prefixing the string with ``g:``.
@@ -52,7 +52,7 @@ The supported forms are described below.
         .. code-block:: toml
             :caption: Responds only to services containing "_mcc"
 
-            AnswerTo = [ "g:*._mcc.*" ]
+            Targets = [ "g:*._mcc.*" ]
 
     .. important::
         Glob-style filters require Python 3.13 or newer.
@@ -81,7 +81,7 @@ Advanced filtering can be done using dictionary-based filter objects:
         .. code-block:: toml
             :caption: Using extras in a filter object
 
-            AnswerTo = [
+            Targets = [
                 { Target = "127.0.0.1", TTL = 340 }
             ]
 
@@ -93,10 +93,13 @@ The Whitelist
 
 All poisoners support target filtering via whitelist expressions.
 
-.. py:attribute:: AnswerTo
+.. py:attribute:: Targets
     :type: list[_FilterExprOrType]
 
     *Maps to* ``targets`` *internally.*
+
+    .. versionchanged:: 1.0.0.dev16
+        Renamed from `AnswerTo`
 
     Defines a whitelist of targets eligible for poisoning. Each item can be a basic string,
     regex, glob, or dictionary-based filter object.
