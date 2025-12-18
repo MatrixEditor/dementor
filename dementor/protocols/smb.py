@@ -104,13 +104,13 @@ class SMBServerConfig(TomlConfig):
                 self.smb_error_code = nt_errors.STATUS_SMB_BAD_UID
 
 
-def apply_config(session):
+def apply_config(session: SessionConfig):
     session.smb_config = list(
         map(SMBServerConfig, get_value("SMB", "Server", default=[]))
     )
 
 
-def create_server_threads(session):
+def create_server_threads(session: SessionConfig):
     servers = []
     if session.smb_enabled:
         for server_config in session.smb_config:
@@ -131,8 +131,26 @@ def SMB_get_server_time():
     return value + 116444736000000000
 
 
+def SMB_get_command_name(command: int, smb_version: int) -> str:
+    match smb_version:
+        case 0x01:
+            for key, value in vars(smb.SMB).items():
+                if key.startswith("SMB_COM") and value == command:
+                    return key
+
+        case 0x02:
+            if 0 <= command < 0x13:
+                for key, value in vars(smb2).items():
+                    if key.startswith("SMB2_") and value == command:
+                        return key
+        case _:
+            pass
+
+    return "Unknown"
+
+
 # --- SMB2/3 ---
-def smb2_negotiate(handler, target_revision: int):
+def smb2_negotiate(handler: "SMBHandler", target_revision: int):
     command = smb2.SMB2Negotiate_Response()
     command["SecuityMode"] = 0x01  # signing enabled, but not enforced
     command["DialectRevision"] = target_revision
@@ -151,7 +169,7 @@ def smb2_negotiate(handler, target_revision: int):
     return command
 
 
-def smb2_negotiate_protocol(handler, packet: smb2.SMB2Packet) -> None:
+def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> None:
     req = smb3.SMB2Negotiate(data=packet["Data"])
     # Let's take the first dialect the clients wan't us to use
     req_dialects = req["Dialects"][: req["DialectCount"]]
@@ -174,11 +192,14 @@ def smb2_negotiate_protocol(handler, packet: smb2.SMB2Packet) -> None:
         raise BaseProtoHandler.TerminateConnection
 
     command = smb2_negotiate(handler, dialect)
-    handler.log_server(f"selected dialect: {SMB2_DIALECTS.get(dialect, hex(dialect))}", "SMB2_NEGOTIATE")
+    handler.log_server(
+        f"selected dialect: {SMB2_DIALECTS.get(dialect, hex(dialect))}",
+        "SMB2_NEGOTIATE",
+    )
     handler.send_smb2_command(command.getData())
 
 
-def smb2_session_setup(handler, packet: smb2.SMB2Packet) -> None:
+def smb2_session_setup(handler: "SMBHandler", packet: smb2.SMB2Packet) -> None:
     req = smb2.SMB2SessionSetup(data=packet["Data"])
     command = smb2.SMB2SessionSetup_Response()
 
@@ -191,6 +212,20 @@ def smb2_session_setup(handler, packet: smb2.SMB2Packet) -> None:
         command.getData(),
         packet,
         status=error_code,
+    )
+
+
+def smb2_logoff(handler: "SMBHandler", packet: smb2.SMB2Packet) -> None:
+    handler.log_client("Client requested logoff", "SMB2_LOGOFF")
+    handler.logger.display("Client requested logoff")
+
+    response = smb2.SMB2Logoff_Response()
+    handler.authenticated = False
+    return handler.send_smb2_command(
+        response.getData(),
+        packet,
+        # REVISIT: maybe this value should be configurable too
+        status=nt_errors.STATUS_SUCCESS,
     )
 
 
@@ -314,7 +349,12 @@ class SMBHandler(BaseProtoHandler):
     STATE_AUTH = 1
 
     def __init__(
-        self, config: SessionConfig, server_config, request, client_address, server
+        self,
+        config: SessionConfig,
+        server_config: SMBServerConfig,
+        request,
+        client_address,
+        server,
     ) -> None:
         # initialize session data
         self.authenticated = False
@@ -326,6 +366,7 @@ class SMBHandler(BaseProtoHandler):
         self.smb2_commands = {
             smb2.SMB2_NEGOTIATE: smb2_negotiate_protocol,
             smb2.SMB2_SESSION_SETUP: smb2_session_setup,
+            smb2.SMB2_LOGOFF: smb2_logoff,
         }
         super().__init__(config, request, client_address, server)
 
@@ -465,7 +506,8 @@ class SMBHandler(BaseProtoHandler):
 
     def handle_smb_packet(self, packet, smbv1=False):
         command = packet["Command"]
-        title = f"SMBv{1 if smbv1 else 2} command {command:#x}"
+        command_name = SMB_get_command_name(command, 1 if smbv1 else 2)
+        title = f"SMBv{1 if smbv1 else 2} command {command_name} ({command:#04x})"
         handler_map = self.smb1_commands if smbv1 else self.smb2_commands
         handler = handler_map.get(command)
         if handler:

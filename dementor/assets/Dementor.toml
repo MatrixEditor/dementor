@@ -615,7 +615,7 @@ InstanceName = "MSSQLServer"
 
 # The following values can be defined here or inherited from the [Globals] section:
 #   - Ignore
-#   - AnswerTo
+#   - Targets
 
 # Specifies the instance-specific response used for SSRP (SQL Server Resolution Protocol).
 # This can be used to emulate specific server instance behaviors or service identifiers.
@@ -896,6 +896,16 @@ DebugLoggers = [
     "pyipp.parser",
 ]
 
+# Enables/Disables logging timestamps for default terminal output. By default, no
+# timestamps are printed.
+
+# Timestamps = false
+
+# Defines the timestamp format for terminal output. Only applies if timestamps are
+# enabled.
+
+# TimestampFmt = "%H:%M:%S"
+
 
 [Log.Stream.Hosts]
 
@@ -933,4 +943,3 @@ DebugLoggers = [
 
 # FilePrefix = "{{ hash_type }}-capture"
 # FileSuffix = ".txt"
-

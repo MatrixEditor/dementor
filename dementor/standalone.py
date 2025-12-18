@@ -41,7 +41,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from dementor import __version__ as DementorVersion
-from dementor import config
+from dementor import config, paths
 from dementor.db.connector import create_db, DatabaseConfig
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
@@ -335,7 +335,7 @@ def main(
             metavar="NAME",
             help="Network interface to use (required for poisoning)",
         ),
-    ],
+    ] = None,
     analyze: Annotated[
         bool,
         typer.Option(
@@ -396,14 +396,54 @@ def main(
     quiet: Annotated[
         bool,
         typer.Option(
-            "--quiet", "-q", help="Don't print banner at startup", show_default=False
+            "--quiet",
+            "-q",
+            help="Don't print banner at startup",
+            show_default=False,
         ),
     ] = False,
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            help="Show Dementor's version number",
+            show_default=False,
+        ),
+    ] = False,
+    timestamps: Annotated[
+        bool,
+        typer.Option(
+            "--ts",
+            help="Log timestamps to terminal output too",
+        )
+    ] = False,
+    show_paths: Annotated[
+        bool,
+        typer.Option(
+            "--paths",
+            help="Displays the current configuration paths",
+            show_default=False,
+        )
+    ] = False,
 ) -> None:
+    if show_paths:
+        return paths.main()
+
+    if interface is None and not version:
+        return print(f"[bold red]Error:[/] Missing option --interface / -I")
+
     main_print_banner(quiet)
+    if version:
+        return
 
     # prepare options
     extras = parse_options(options or [])
+    if timestamps:
+        if "Log" not in extras:
+            extras["Log"] = {}
+
+        extras["Log"]["Timestamps"] = True
+
     if config_path:
         try:
             config.init_from_file(config_path)

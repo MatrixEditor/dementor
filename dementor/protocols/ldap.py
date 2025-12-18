@@ -363,7 +363,7 @@ class LDAPHandler(BaseProtoHandler):
         except Exception as e:
             self.logger.fail("Received invalid LDAP - terminating connection...")
             self.logger.debug(
-                f"Invalid LDAP packet: {str(e.__class__)}\n{hexdump.hexdump(data)}"
+                f"Invalid LDAP packet: {str(e.__class__)}\n{hexdump.hexdump(data) if data else '<no-data>'}"
             )
             return
 

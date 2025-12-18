@@ -99,8 +99,8 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
    config/main
    config/database
    config/globals
-   config/protocols
    config/logging
+   config/protocols
 
 .. card:: Disclaimer
 

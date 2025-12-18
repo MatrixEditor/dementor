@@ -37,9 +37,33 @@ Section ``[Log]``
     Defines a list of additional loggers to enable when the ``--debug`` flag is used
     on the command line. These loggers produce more verbose output useful for troubleshooting.
 
+.. py:attribute:: Timestamps
+    :type: bool
+    :value: false
+
+    *Maps to* :attr:`logger.LoggingConfig.log_timestamps`
+
+    .. versionadded:: 1.0.0.dev16
+
+    Enables/Disables logging timestamps for default terminal output. By default, no
+    timestamps are printed.
+
+.. py:attribute:: TimestampFmt
+    :type: str
+    :value: "%H:%M:%S"
+
+    *Maps to* :attr:`logger.LoggingConfig.log_timestamp_fmt`
+
+    .. versionadded:: 1.0.0.dev16
+
+    Defines the timestamp format for terminal output. Only applies if timestamps are
+    enabled.
+
 
 Section ``[Log.Stream]``
 ------------------------
+
+.. versionadded:: 1.0.0.dev12
 
 A special way to save a live copy of received data can be enabled using custom
 *loggins streams*. Each of them provides a unique functionality:

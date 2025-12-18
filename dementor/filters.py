@@ -90,7 +90,7 @@ ATTR_BLACKLIST = Attribute(
 
 ATTR_WHITELIST = Attribute(
     "targets",
-    "Target",
+    "Targets",
     default_val=None,
     section_local=False,
     factory=_optional_filter,
