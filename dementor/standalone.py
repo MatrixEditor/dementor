@@ -414,14 +414,14 @@ def main(
         bool,
         typer.Option(
             "--ts",
-            help="Log timestamps to terminal output too",
+            help="Log timestamps to the terminal too",
         )
     ] = False,
     show_paths: Annotated[
         bool,
         typer.Option(
             "--paths",
-            help="Displays the current configuration paths",
+            help="Displays the default configuration paths",
             show_default=False,
         )
     ] = False,

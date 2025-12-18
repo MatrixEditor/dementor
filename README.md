@@ -13,7 +13,7 @@ on the [Documentation](https://matrixeditor.github.io/dementor/) page.
 
 ## Installation
 
-Installation via `pip` from GitHub or PyPI:
+Installation via `pip`/`pipx` from GitHub or PyPI:
 
 ```bash
 pip install dementor
@@ -38,14 +38,20 @@ Let's take a look.
 ```
  Usage: Dementor [OPTIONS]
 
-╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────╮
-│ *  --interface  -I      NAME       Network interface to use (required for poisoning) [required]    │
-│    --analyze    -A                 Only analyze traffic, don't respond to requests                 │
-│    --config     -c      PATH       Path to a configuration file (otherwise standard path is used)  │
-│    --option     -O      KEY=VALUE  Add an extra option to the global configuration file.           │
-│    --quiet      -q                 Don't print banner at startup                                   │
-│    --help                          Show this message and exit.                                     │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --interface   -I      NAME        Network interface to use (required for poisoning)              │
+│ --analyze     -A                  Only analyze traffic, don't respond to requests                │
+│ --config      -c      PATH        Path to a configuration file (otherwise standard path is used) │
+│ --option      -O      KEY=VALUE   Add an extra option to the global configuration file.          │
+│ --yes,--yolo  -y                  Do not ask before starting attack mode.                        │
+│ --target      -t      NAME[,...]  Target host(s) to attack                                       │
+│ --ignore      -i      NAME[,...]  Target host(s) to ignore                                       │
+│ --quiet       -q                  Don't print banner at startup                                  │
+│ --version                         Show Dementor's version number                                 │
+│ --ts                              Log timestamps to terminal output too                          │
+│ --paths                           Displays the default configuration paths                       │
+│ --help                            Show this message and exit.                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 
