@@ -2,12 +2,12 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Database - Dementor 1.0.0.dev15 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Globals" href="globals.html" /><link rel="prev" title="Main" href="main.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Database - Dementor 1.0.0.dev16 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Globals" href="globals.html" /><link rel="prev" title="Main" href="main.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/database.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=14737038" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -120,6 +120,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Database</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="protocols.html">Protocols</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
@@ -144,7 +145,6 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="x11.html">X11</a></li>
 </ul>
 </li>
-<li class="toctree-l1 _expand"><a class="reference internal" href="logging.html">Logging</a></li>
 </ul>
         </div>
       </div>
@@ -158,6 +158,10 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#section-database">Section <code class="docutils literal notranslate"><span class="pre">[Database]</span></code></a><ul>
 <li><a class="reference internal" href="#Database.DuplicateCreds"><code class="docutils literal notranslate"><span class="pre">DuplicateCreds</span></code></a></li>
+<li><a class="reference internal" href="#Database.Dialect"><code class="docutils literal notranslate"><span class="pre">Dialect</span></code></a></li>
+<li><a class="reference internal" href="#Database.Driver"><code class="docutils literal notranslate"><span class="pre">Driver</span></code></a></li>
+<li><a class="reference internal" href="#Database.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a></li>
+<li><a class="reference internal" href="#Database.Url"><code class="docutils literal notranslate"><span class="pre">Url</span></code></a></li>
 <li><a class="reference internal" href="#Database.Directory"><code class="docutils literal notranslate"><span class="pre">Directory</span></code></a></li>
 <li><a class="reference internal" href="#Database.Name"><code class="docutils literal notranslate"><span class="pre">Name</span></code></a></li>
 </ul>
@@ -192,8 +196,43 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </div><div class="flex flex-col break-words justify-between">
-      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
-        <article class="yue" role="main">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/database.rst"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/database.rst">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/database.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/database.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/database.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
           <section id="database">
 <span id="config-database"></span><h1>Database<a class="headerlink" href="#database" title="Link to this heading">¶</a></h1>
 <section id="section-database">
@@ -201,24 +240,69 @@ data-aria-dark="Switch to auto color mode">
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.DuplicateCreds">
 <span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">DuplicateCreds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#Database.DuplicateCreds" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">database.DatabaseConfig.db_duplicate_creds</span></code></p>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_duplicate_creds</span></code></p>
 <p>Controls whether duplicate credentials are stored. If set to <code class="docutils literal notranslate"><span class="pre">false</span></code>, each unique
 credential set is stored and displayed only once.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="Database.Dialect">
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Dialect</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;sqlite&quot;</span></em><a class="headerlink" href="#Database.Dialect" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_dialect</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
+</div>
+<p>Specifies the SQL dialect to use</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Database.Driver">
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Driver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;pysqlite&quot;</span></em><a class="headerlink" href="#Database.Driver" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_driver</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
+</div>
+<p>Specifies the SQL driver (external packages allowed) to be used for the database connection.
+Additional third-party packages must be installed before they can be used.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Database.Path">
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor.db&quot;</span></em><a class="headerlink" href="#Database.Path" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_path</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
+</div>
+<p>Specifies the database filename. Not used if <code class="xref py py-attr docutils literal notranslate"><span class="pre">Url</span></code> is set.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Database.Url">
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Database.Url" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_raw_path</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
+</div>
+<p>Custom database connection URL to use. Overwrites driver, dialect and path.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Directory">
 <span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Directory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Database.Directory" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">database.DatabaseConfig.db_dir</span></code></p>
-<p>Specifies a custom directory for storing the database. This setting overrides the default
+<dd><div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev14.</span></p>
+</div>
+<p><strong>DEPRECATED</strong> Specifies a custom directory for storing the database. This setting overrides the default
 directory configured via <a class="reference internal" href="main.html#Dementor.Workspace" title="Dementor.Workspace"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.Workspace</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Name">
 <span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor.db&quot;</span></em><a class="headerlink" href="#Database.Name" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">database.DatabaseConfig.db_name</span></code></p>
-<p>Sets the filename of the database to be used.</p>
+<dd><div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev14.</span></p>
+</div>
+<p><strong>DEPRECATED</strong> Sets the filename of the database to be used.</p>
 </dd></dl>
 
 </section>
@@ -267,11 +351,11 @@ directory configured via <a class="reference internal" href="main.html#Dementor.
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=1443338c"></script>
+      <script src="../_static/documentation_options.js?v=b9134340"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>
-      <script src="../_static/shibuya.js?v=c1cf1a6b"></script></body>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
 </html>

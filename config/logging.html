@@ -2,12 +2,12 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Logging - Dementor 1.0.0.dev15 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="X11" href="x11.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Logging - Dementor 1.0.0.dev16 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Protocols" href="protocols.html" /><link rel="prev" title="Globals" href="globals.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/logging.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=14737038" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -120,6 +120,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="main.html">Main</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="database.html">Database</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="globals.html">Globals</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Logging</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="protocols.html">Protocols</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dcerpc.html">DCE/RPC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ftp.html">FTP &#9881;&#65039;</a></li>
@@ -144,7 +145,6 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="x11.html">X11</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Logging</a></li>
 </ul>
         </div>
       </div>
@@ -160,6 +160,8 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#Log.Enabled"><code class="docutils literal notranslate"><span class="pre">Enabled</span></code></a></li>
 <li><a class="reference internal" href="#Log.LogDir"><code class="docutils literal notranslate"><span class="pre">LogDir</span></code></a></li>
 <li><a class="reference internal" href="#Log.DebugLoggers"><code class="docutils literal notranslate"><span class="pre">DebugLoggers</span></code></a></li>
+<li><a class="reference internal" href="#Log.Timestamps"><code class="docutils literal notranslate"><span class="pre">Timestamps</span></code></a></li>
+<li><a class="reference internal" href="#Log.TimestampFmt"><code class="docutils literal notranslate"><span class="pre">TimestampFmt</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#section-log-stream">Section <code class="docutils literal notranslate"><span class="pre">[Log.Stream]</span></code></a><ul>
@@ -212,8 +214,43 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </div><div class="flex flex-col break-words justify-between">
-      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
-        <article class="yue" role="main">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/logging.rst"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/logging.rst">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/logging.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/logging.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/logging.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
           <section id="logging">
 <span id="config-logging"></span><h1>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h1>
 <section id="section-log">
@@ -243,9 +280,34 @@ will be stored. Absolute paths are currently not supported.</p>
 on the command line. These loggers produce more verbose output useful for troubleshooting.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.Timestamps">
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">Timestamps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#Log.Timestamps" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_timestamps</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev16.</span></p>
+</div>
+<p>Enables/Disables logging timestamps for default terminal output. By default, no
+timestamps are printed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Log.TimestampFmt">
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">TimestampFmt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;%H:%M:%S&quot;</span></em><a class="headerlink" href="#Log.TimestampFmt" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_timestamp_fmt</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev16.</span></p>
+</div>
+<p>Defines the timestamp format for terminal output. Only applies if timestamps are
+enabled.</p>
+</dd></dl>
+
 </section>
 <section id="section-log-stream">
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[Log.Stream]</span></code><a class="headerlink" href="#section-log-stream" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0.dev12.</span></p>
+</div>
 <p>A special way to save a live copy of received data can be enabled using custom
 <em>loggins streams</em>. Each of them provides a unique functionality:</p>
 <section id="hosts-logging">
@@ -340,10 +402,18 @@ string for each hash type to avoid overwriting existing files.</p>
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="x11.html">
+    <a href="globals.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">X11</div></div>
+        <span>Previous</span><div class="title">Globals</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="protocols.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Protocols</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
     </a>
   </div></div></div>
     </div>
@@ -369,11 +439,11 @@ string for each hash type to avoid overwriting existing files.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=1443338c"></script>
+      <script src="../_static/documentation_options.js?v=b9134340"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>
-      <script src="../_static/shibuya.js?v=c1cf1a6b"></script></body>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
 </html>

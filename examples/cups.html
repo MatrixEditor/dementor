@@ -2,12 +2,12 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Abusing CUPS for RCE - Dementor 1.0.0.dev15 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Main" href="../config/main.html" /><link rel="prev" title="Stealing XAuth Cookies" href="x11_cookies.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Abusing CUPS for RCE - Dementor 1.0.0.dev16 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Main" href="../config/main.html" /><link rel="prev" title="Stealing XAuth Cookies" href="x11_cookies.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/cups.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=14737038" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -121,6 +121,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l1 _expand"><a class="reference internal" href="../config/main.html">Main</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../config/database.html">Database</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../config/globals.html">Globals</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../config/logging.html">Logging</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../config/protocols.html">Protocols</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../config/dcerpc.html">DCE/RPC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../config/ftp.html">FTP &#9881;&#65039;</a></li>
@@ -145,7 +146,6 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l2"><a class="reference internal" href="../config/x11.html">X11</a></li>
 </ul>
 </li>
-<li class="toctree-l1 _expand"><a class="reference internal" href="../config/logging.html">Logging</a></li>
 </ul>
         </div>
       </div>
@@ -189,8 +189,43 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </div><div class="flex flex-col break-words justify-between">
-      <div class="min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
-        <article class="yue" role="main">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/cups.rst"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/cups.rst">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/cups.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/cups.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/cups.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
           <section id="abusing-cups-for-rce">
 <span id="example-cups"></span><h1>Abusing CUPS for RCE<a class="headerlink" href="#abusing-cups-for-rce" title="Link to this heading">¶</a></h1>
 <p>Since version <code class="docutils literal notranslate"><span class="pre">1.0.0.dev10</span></code>, <em>Dementor</em> can be used to exploit <a class="reference external" href="https://github.com/OpenPrinting/libcupsfilters/security/advisories/GHSA-w63j-6g73-wmg5">CVE-2024-47076</a>
@@ -332,12 +367,12 @@ the RCE to work, <cite>foomatic</cite> must be installed on the target system.</
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=1443338c"></script>
+      <script src="../_static/documentation_options.js?v=b9134340"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>
-      <script src="../_static/shibuya.js?v=c1cf1a6b"></script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script>
       <script src="../_static/tabs.js?v=3030b3cb"></script></body>
 </html>
