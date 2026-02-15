@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -239,7 +239,7 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[Database]</span></code><a class="headerlink" href="#section-database" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.DuplicateCreds">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">DuplicateCreds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#Database.DuplicateCreds" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">DuplicateCreds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#Database.DuplicateCreds" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_duplicate_creds</span></code></p>
 <p>Controls whether duplicate credentials are stored. If set to <code class="docutils literal notranslate"><span class="pre">false</span></code>, each unique
 credential set is stored and displayed only once.</p>
@@ -247,7 +247,7 @@ credential set is stored and displayed only once.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Dialect">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Dialect</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;sqlite&quot;</span></em><a class="headerlink" href="#Database.Dialect" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Dialect</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;sqlite&quot;</span></span><a class="headerlink" href="#Database.Dialect" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_dialect</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
@@ -257,7 +257,7 @@ credential set is stored and displayed only once.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Driver">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Driver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;pysqlite&quot;</span></em><a class="headerlink" href="#Database.Driver" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Driver</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;pysqlite&quot;</span></span><a class="headerlink" href="#Database.Driver" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_driver</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
@@ -268,7 +268,7 @@ Additional third-party packages must be installed before they can be used.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Path">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor.db&quot;</span></em><a class="headerlink" href="#Database.Path" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor.db&quot;</span></span><a class="headerlink" href="#Database.Path" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_path</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
@@ -278,7 +278,7 @@ Additional third-party packages must be installed before they can be used.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Url">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Database.Url" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#Database.Url" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">db.connector.DatabaseConfig.db_raw_path</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev14.</span></p>
@@ -288,7 +288,7 @@ Additional third-party packages must be installed before they can be used.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Directory">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Directory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Database.Directory" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Directory</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#Database.Directory" title="Link to this definition">¶</a></dt>
 <dd><div class="versionremoved">
 <p><span class="versionmodified removed">Removed in version 1.0.0.dev14.</span></p>
 </div>
@@ -298,7 +298,7 @@ directory configured via <a class="reference internal" href="main.html#Dementor.
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Database.Name">
-<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor.db&quot;</span></em><a class="headerlink" href="#Database.Name" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Database.</span></span><span class="sig-name descname"><span class="pre">Name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor.db&quot;</span></span><a class="headerlink" href="#Database.Name" title="Link to this definition">¶</a></dt>
 <dd><div class="versionremoved">
 <p><span class="versionmodified removed">Removed in version 1.0.0.dev14.</span></p>
 </div>
@@ -352,8 +352,8 @@ directory configured via <a class="reference internal" href="main.html#Dementor.
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

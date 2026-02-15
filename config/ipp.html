@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -283,14 +283,14 @@ You should definitely check that out before attempting to use this server.</p>
 <h3>Server Configuration<a class="headerlink" href="#server-configuration" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IPP.Port">
-<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">631</span></em><a class="headerlink" href="#IPP.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">631</span></span><a class="headerlink" href="#IPP.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_port</span></code></p>
 <p>Specifies the port used by the IPP server instance.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IPP.ServerType">
-<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">ServerType</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;IPP/1.1&quot;</span></em><a class="headerlink" href="#IPP.ServerType" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">ServerType</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;IPP/1.1&quot;</span></span><a class="headerlink" href="#IPP.ServerType" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_server_type</span></code></p>
 <p>Defines the server name returned in the <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server">Server</a> header.
 The value can be a formatted string, supporting templating (Jinja2). For example:</p>
@@ -303,7 +303,7 @@ The value can be a formatted string, supporting templating (Jinja2). For example
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IPP.ExtraHeaders">
-<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#IPP.ExtraHeaders" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#IPP.ExtraHeaders" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_extra_headers</span></code></p>
 <p>Specifies additional headers to include in all server responses. Each entry must be a fully qualified HTTP header line without CRLF at the end.</p>
 </dd></dl>
@@ -314,26 +314,26 @@ The value can be a formatted string, supporting templating (Jinja2). For example
 <p>The <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> request retrieves a printer’s stored attributes. However, some printers may lack certain attributes. Therefore, additional attributes can be configured to be included in the response.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IPP.ExtraAttributes">
-<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">ExtraAttributes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AttributeDict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#IPP.ExtraAttributes" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IPP.</span></span><span class="sig-name descname"><span class="pre">ExtraAttributes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AttributeDict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#IPP.ExtraAttributes" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_extra_attrib</span></code></p>
 <p>Specifies additional attributes to include in the <code class="docutils literal notranslate"><span class="pre">get-printer-attributes</span></code> response. Each new attribute requires the following fields:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.name">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#AttributeDict.name" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#AttributeDict.name" title="Link to this definition">¶</a></dt>
 <dd><p><em>Required setting</em></p>
 <p>Specifies the name of the new attribute (e.g., <code class="docutils literal notranslate"><span class="pre">printer-device-id</span></code>).</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.value">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#AttributeDict.value" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#AttributeDict.value" title="Link to this definition">¶</a></dt>
 <dd><p><em>Optional, if</em> <a class="reference internal" href="#AttributeDict.tag" title="AttributeDict.tag"><code class="xref py py-attr docutils literal notranslate"><span class="pre">AttributeDict.tag</span></code></a> <em>is defined</em></p>
 <p>Specifies the value of the new attribute. Must match the registered data type.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.tag">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">tag</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#AttributeDict.tag" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">tag</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#AttributeDict.tag" title="Link to this definition">¶</a></dt>
 <dd><p><em>Optional setting</em></p>
 <p>Specifies the data type of the new attribute. Can be an <code class="docutils literal notranslate"><span class="pre">IppTag</span></code> string or an integer.</p>
 </dd></dl>
@@ -356,7 +356,7 @@ The value can be a formatted string, supporting templating (Jinja2). For example
 <p>The following attributes can also be overridden using <a class="reference internal" href="#IPP.ExtraAttributes" title="IPP.ExtraAttributes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IPP.ExtraAttributes</span></code></a>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.PrinterName">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterName</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#AttributeDict.PrinterName" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#AttributeDict.PrinterName" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_printer_name</span></code>.</p>
 <p>Defines the printer name to return to clients. If not specified, the printer name will be
 determined by the last path element of the request.</p>
@@ -364,56 +364,56 @@ determined by the last path element of the request.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.PrinterInfo">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterInfo</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Printer</span> <span class="pre">Info&quot;</span></em><a class="headerlink" href="#AttributeDict.PrinterInfo" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterInfo</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Printer</span> <span class="pre">Info&quot;</span></span><a class="headerlink" href="#AttributeDict.PrinterInfo" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_printer_info</span></code>.</p>
 <p>Defines the printer information attribute.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.PrinterLocation">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterLocation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;outside&quot;</span></em><a class="headerlink" href="#AttributeDict.PrinterLocation" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterLocation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;outside&quot;</span></span><a class="headerlink" href="#AttributeDict.PrinterLocation" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_printer_location</span></code>.</p>
 <p>Defines the printer location attribute. This will not be used if specified in the CUPS request.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.PrinterModel">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterModel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;HP</span> <span class="pre">8.0&quot;</span></em><a class="headerlink" href="#AttributeDict.PrinterModel" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">PrinterModel</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;HP</span> <span class="pre">8.0&quot;</span></span><a class="headerlink" href="#AttributeDict.PrinterModel" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_printer_model</span></code>.</p>
 <p>Defines the printer model attribute. This setting is required by the CUPS client.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.DriverUri">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">DriverUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#AttributeDict.DriverUri" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">DriverUri</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#AttributeDict.DriverUri" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_driver_uri</span></code>.</p>
 <p>Specifies a custom printer driver URI that clients can use to download a driver.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.DocumentFormats">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">DocumentFormats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#AttributeDict.DocumentFormats" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">DocumentFormats</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#AttributeDict.DocumentFormats" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_supported_formats</span></code>.</p>
 <p>Defines the supported print document formats.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.DefaultDocumentFormat">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">DefaultDocumentFormat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;text/plain&quot;</span></em><a class="headerlink" href="#AttributeDict.DefaultDocumentFormat" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">DefaultDocumentFormat</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;text/plain&quot;</span></span><a class="headerlink" href="#AttributeDict.DefaultDocumentFormat" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_default_format</span></code>.</p>
 <p>Defines the default print document format.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.SupportedVersions">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">SupportedVersions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;1.0&quot;,</span> <span class="pre">&quot;1.1&quot;,</span> <span class="pre">&quot;2.0&quot;,</span> <span class="pre">&quot;2.1&quot;,</span> <span class="pre">&quot;2.2&quot;]</span></em><a class="headerlink" href="#AttributeDict.SupportedVersions" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">SupportedVersions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;1.0&quot;,</span> <span class="pre">&quot;1.1&quot;,</span> <span class="pre">&quot;2.0&quot;,</span> <span class="pre">&quot;2.1&quot;,</span> <span class="pre">&quot;2.2&quot;]</span></span><a class="headerlink" href="#AttributeDict.SupportedVersions" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_supported_versions</span></code>.</p>
 <p>Specifies the supported IPP versions.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.SupportedOperations">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">SupportedOperations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">range(0x0001,</span> <span class="pre">0x0013)</span></em><a class="headerlink" href="#AttributeDict.SupportedOperations" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">SupportedOperations</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">range(0x0001,</span> <span class="pre">0x0013)</span></span><a class="headerlink" href="#AttributeDict.SupportedOperations" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_supported_operations</span></code>.</p>
 <p>Specifies the operations supported by the server. These operations cannot be removed unless
 explicitly overridden using <code class="xref py py-attr docutils literal notranslate"><span class="pre">ExtraAttributes</span></code>.</p>
@@ -426,21 +426,21 @@ explicitly overridden using <code class="xref py py-attr docutils literal notran
 practical usage, refer to <a class="reference internal" href="../examples/cups.html#example-cups"><span class="std std-ref">Abusing CUPS for RCE</span></a>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.RemoteCmd">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">RemoteCmd</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#AttributeDict.RemoteCmd" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">RemoteCmd</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#AttributeDict.RemoteCmd" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_remote_cmd</span></code>.</p>
 <p>Specifies the command to inject into the generated PPD. (CVE-2024-47175)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.RemoteCmdAttribute">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">RemoteCmdAttribute</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;printer-privacy-policy-uri&quot;</span></em><a class="headerlink" href="#AttributeDict.RemoteCmdAttribute" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">RemoteCmdAttribute</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;printer-privacy-policy-uri&quot;</span></span><a class="headerlink" href="#AttributeDict.RemoteCmdAttribute" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_remote_cmd_attr</span></code>.</p>
 <p>Specifies the printer attribute that stores the malformed text. (CVE-2024-47176)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="AttributeDict.RemoteCmdCupsFilter">
-<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">RemoteCmdCupsFilter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#AttributeDict.RemoteCmdCupsFilter" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AttributeDict.</span></span><span class="sig-name descname"><span class="pre">RemoteCmdCupsFilter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#AttributeDict.RemoteCmdCupsFilter" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ipp.IPPConfig.ipp_remote_cmd_filter</span></code>.</p>
 <p>Specifies the printer attribute that stores the malformed text. (CVE-2024-47176).
 Ensure that <em>foomatic-rip</em> is present in this filter string to correctly interpolate
@@ -522,8 +522,8 @@ the <code class="docutils literal notranslate"><span class="pre">FoomaticRIPComm
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

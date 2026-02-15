@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -258,21 +258,21 @@ is not configured, the server will terminate the connection due to the missing T
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.Port">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3306</span></em><a class="headerlink" href="#MySQL.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3306</span></span><a class="headerlink" href="#MySQL.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.mysql_port</span></code></p>
 <p>Specifies the port the MySQL server listens on.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.ServerVersion">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">ServerVersion</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;8.0.42&quot;</span></em><a class="headerlink" href="#MySQL.ServerVersion" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">ServerVersion</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;8.0.42&quot;</span></span><a class="headerlink" href="#MySQL.ServerVersion" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.mysql_version</span></code></p>
 <p>Sets the server version string returned to clients.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.AuthPlugin">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">AuthPlugin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;mysql_clear_password&quot;</span></em><a class="headerlink" href="#MySQL.AuthPlugin" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">AuthPlugin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;mysql_clear_password&quot;</span></span><a class="headerlink" href="#MySQL.AuthPlugin" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.mysql_plugin_name</span></code>. <em>Reserved for future use.</em></p>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
@@ -285,14 +285,14 @@ is not configured, the server will terminate the connection due to the missing T
 <h3>Error Configuration<a class="headerlink" href="#error-configuration" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.ErrorCode">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1045</span></em><a class="headerlink" href="#MySQL.ErrorCode" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1045</span></span><a class="headerlink" href="#MySQL.ErrorCode" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.mysql_error_code</span></code></p>
 <p>Sets the error code returned to clients after authentication.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.ErrorMessage">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">ErrorMessage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Access</span> <span class="pre">denied</span> <span class="pre">for</span> <span class="pre">user&quot;</span></em><a class="headerlink" href="#MySQL.ErrorMessage" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">ErrorMessage</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Access</span> <span class="pre">denied</span> <span class="pre">for</span> <span class="pre">user&quot;</span></span><a class="headerlink" href="#MySQL.ErrorMessage" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.mysql_error_msg</span></code></p>
 <p>Sets the error message returned to clients.</p>
 </dd></dl>
@@ -302,7 +302,7 @@ is not configured, the server will terminate the connection due to the missing T
 <h3>SSL Configuration<a class="headerlink" href="#ssl-configuration" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.TLS">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#MySQL.TLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#MySQL.TLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.use_ssl</span></code></p>
 <p>Enables SSL/TLS support using a custom certificate. The server will set the <code class="docutils literal notranslate"><span class="pre">CLIENT_SSL</span></code>
 capability flag to prompt clients to upgrade to a secure connection.</p>
@@ -310,14 +310,14 @@ capability flag to prompt clients to upgrade to a secure connection.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.Cert">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#MySQL.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#MySQL.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.certfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the certificate file used when TLS is enabled.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MySQL.Key">
-<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#MySQL.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MySQL.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#MySQL.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mysql.MySQLConfig.keyfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the private key file associated with the TLS certificate.</p>
 </dd></dl>
@@ -383,8 +383,8 @@ capability flag to prompt clients to upgrade to a secure connection.</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

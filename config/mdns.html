@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -252,7 +252,7 @@ data-aria-dark="Switch to auto color mode">
 <span id="config-mdns-sectioncfg"></span><h2>Section: <code class="docutils literal notranslate"><span class="pre">[mDNS]</span></code><a class="headerlink" href="#section-mdns" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.TTL">
-<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">TTL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></em><a class="headerlink" href="#mDNS.TTL" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">TTL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></span><a class="headerlink" href="#mDNS.TTL" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#mDNS.mdns.MDNSConfig.mdns_ttl" title="mDNS.mdns.MDNSConfig.mdns_ttl"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mdns.MDNSConfig.mdns_ttl</span></code></a></p>
 <p>Specifies the Time-To-Live (TTL), in seconds, for poisoned responses.
 Lower TTL values may increase the likelihood of detection by antivirus (AV) or endpoint detection and response (EDR) solutions.</p>
@@ -260,7 +260,7 @@ Lower TTL values may increase the likelihood of detection by antivirus (AV) or e
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.MaxLabels">
-<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">MaxLabels</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#mDNS.MaxLabels" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">MaxLabels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#mDNS.MaxLabels" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#mDNS.mdns.MDNSConfig.mdns_max_labels" title="mDNS.mdns.MDNSConfig.mdns_max_labels"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mdns.MDNSConfig.mdns_max_labels</span></code></a></p>
 <p>Defines the maximum number of domain name labels to be processed.
 This setting overrides <a class="reference internal" href="#mDNS.AllowedQueryTypes" title="mDNS.AllowedQueryTypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.AllowedQueryTypes</span></code></a> as well as global and local blacklist/whitelist configurations.
@@ -269,7 +269,7 @@ By default, all incoming queries that target services with more than one label (
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.AllowedQueryTypes">
-<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">AllowedQueryTypes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;A&quot;,</span> <span class="pre">&quot;AAAA&quot;,</span> <span class="pre">&quot;ALL&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#mDNS.AllowedQueryTypes" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">AllowedQueryTypes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;A&quot;,</span> <span class="pre">&quot;AAAA&quot;,</span> <span class="pre">&quot;ALL&quot;</span> <span class="pre">]</span></span><a class="headerlink" href="#mDNS.AllowedQueryTypes" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#mDNS.mdns.MDNSConfig.mdns_qtypes" title="mDNS.mdns.MDNSConfig.mdns_qtypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mdns.MDNSConfig.mdns_qtypes</span></code></a></p>
 <p>Specifies the list of DNS query types to respond to.
 This attribute has lower priority than <a class="reference internal" href="#mDNS.MaxLabels" title="mDNS.MaxLabels"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.MaxLabels</span></code></a>, but higher priority than global or local blacklist/whitelist rules.</p>
@@ -281,7 +281,7 @@ This attribute has lower priority than <a class="reference internal" href="#mDNS
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.Ignore">
-<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mDNS.Ignore" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#mDNS.Ignore" title="Link to this definition">¶</a></dt>
 <dd><p>Specifies a list of hosts to be blacklisted. For additional context, see <a class="reference internal" href="globals.html#Globals.Ignore" title="Globals.Ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Ignore</span></code></a>.
 When this attribute is defined, it overrides the global blacklist configuration.
 If not explicitly set, this attribute has no effect.
@@ -290,7 +290,7 @@ For a comprehensive explanation of how the blacklist is applied, refer to <code 
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.Targets">
-<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mDNS.Targets" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mDNS.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#mDNS.Targets" title="Link to this definition">¶</a></dt>
 <dd><div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev16: </span>Renamed from <cite>AnswerTo</cite></p>
 </div>
@@ -306,14 +306,14 @@ For detailed behavior and usage, refer to <code class="xref py py-class docutils
 <h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="mDNS.mdns.MDNSConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mdns.</span></span><span class="sig-name descname"><span class="pre">MDNSConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mDNS.mdns.MDNSConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">mdns.</span></span><span class="sig-name descname"><span class="pre">MDNSConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mDNS.mdns.MDNSConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Represents the configuration for the corresponding <cite>[mdns]</cite> section in the TOML file.
 This class incorporates both <code class="xref py py-class docutils literal notranslate"><span class="pre">WhitelistConfigMixin</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">BlacklistConfigMixin</span></code>,
 which introduce two additional configuration fields. For further details on their behavior and usage,
 refer to the respective mixin class documentation.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.mdns.MDNSConfig.enabled">
-<span class="sig-name descname"><span class="pre">enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#mDNS.mdns.MDNSConfig.enabled" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">enabled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#mDNS.mdns.MDNSConfig.enabled" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="main.html#Dementor.mDNS" title="Dementor.mDNS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.mDNS</span></code></a></p>
 <p>Controls whether mDNS poisoning is enabled.
 See <a class="reference internal" href="main.html#Dementor.mDNS" title="Dementor.mDNS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.mDNS</span></code></a> for guidance on configuring this option in the TOML file.</p>
@@ -321,19 +321,19 @@ See <a class="reference internal" href="main.html#Dementor.mDNS" title="Dementor
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.mdns.MDNSConfig.mdns_ttl">
-<span class="sig-name descname"><span class="pre">mdns_ttl</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></em><a class="headerlink" href="#mDNS.mdns.MDNSConfig.mdns_ttl" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mdns_ttl</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></span><a class="headerlink" href="#mDNS.mdns.MDNSConfig.mdns_ttl" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#mDNS.TTL" title="mDNS.TTL"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.TTL</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.mdns.MDNSConfig.mdns_max_labels">
-<span class="sig-name descname"><span class="pre">mdns_max_labels</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#mDNS.mdns.MDNSConfig.mdns_max_labels" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mdns_max_labels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#mDNS.mdns.MDNSConfig.mdns_max_labels" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#mDNS.MaxLabels" title="mDNS.MaxLabels"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.MaxLabels</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mDNS.mdns.MDNSConfig.mdns_qtypes">
-<span class="sig-name descname"><span class="pre">mdns_qtypes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[1,</span> <span class="pre">28,</span> <span class="pre">255]</span></em><a class="headerlink" href="#mDNS.mdns.MDNSConfig.mdns_qtypes" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mdns_qtypes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[1,</span> <span class="pre">28,</span> <span class="pre">255]</span></span><a class="headerlink" href="#mDNS.mdns.MDNSConfig.mdns_qtypes" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#mDNS.AllowedQueryTypes" title="mDNS.AllowedQueryTypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mDNS.AllowedQueryTypes</span></code></a></p>
 </dd></dl>
 
@@ -398,8 +398,8 @@ See <a class="reference internal" href="main.html#Dementor.mDNS" title="Dementor
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

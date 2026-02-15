@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -250,14 +250,14 @@ data-aria-dark="Switch to auto color mode">
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.Port">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50001</span></em><a class="headerlink" href="#UPnP.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50001</span></span><a class="headerlink" href="#UPnP.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_port</span></code></p>
 <p>Specifies the port used by the UPNP server instance.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.UUID">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">UUID</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#UPnP.UUID" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">UUID</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#UPnP.UUID" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_uuid</span></code></p>
 <p>Specifies the device UUID to use for this UPnP device. If not set, a random UUID at startup
 will be used.</p>
@@ -265,7 +265,7 @@ will be used.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.TemplatesPath">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">TemplatesPath</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#UPnP.TemplatesPath" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">TemplatesPath</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#UPnP.TemplatesPath" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_templates_path</span></code></p>
 <p>A list of directories that store extra UPnP profiles to be used by the web server. Note that
 only the target directory specified in <a class="reference internal" href="#UPnP.Template" title="UPnP.Template"><code class="xref py py-attr docutils literal notranslate"><span class="pre">UPnP.Template</span></code></a> will be used.</p>
@@ -273,7 +273,7 @@ only the target directory specified in <a class="reference internal" href="#UPnP
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.Template">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">Template</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;upnp-default&quot;</span></em><a class="headerlink" href="#UPnP.Template" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">Template</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;upnp-default&quot;</span></span><a class="headerlink" href="#UPnP.Template" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_template</span></code></p>
 <p>The directory name under one of the template directories specified in <a class="reference internal" href="#UPnP.TemplatesPath" title="UPnP.TemplatesPath"><code class="xref py py-attr docutils literal notranslate"><span class="pre">UPnP.TemplatesPath</span></code></a>
 that stores the device description, service description and presentation HTML.</p>
@@ -286,7 +286,7 @@ the current UUID (<code class="docutils literal notranslate"><span class="pre">u
 and a factory method for random values (<code class="docutils literal notranslate"><span class="pre">random</span></code>) are accessible within the template.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.DDUri">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">DDUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/dd.xml&quot;</span></em><a class="headerlink" href="#UPnP.DDUri" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">DDUri</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/dd.xml&quot;</span></span><a class="headerlink" href="#UPnP.DDUri" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_dd_path</span></code></p>
 <p>Defines the URI and path to the local device description template. By default, the device description
 is expected to be found in <code class="docutils literal notranslate"><span class="pre">dd.xml</span></code> within the template directory.</p>
@@ -331,7 +331,7 @@ is expected to be found in <code class="docutils literal notranslate"><span clas
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.SCPDUri">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">SCPDUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/scpd.xml&quot;</span></em><a class="headerlink" href="#UPnP.SCPDUri" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">SCPDUri</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/scpd.xml&quot;</span></span><a class="headerlink" href="#UPnP.SCPDUri" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_scpd_path</span></code></p>
 <p>Defines the URI and path to the local service control description template. By default, the service description
 is expected to be found in <code class="docutils literal notranslate"><span class="pre">scpd.xml</span></code> within the template directory.</p>
@@ -339,7 +339,7 @@ is expected to be found in <code class="docutils literal notranslate"><span clas
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="UPnP.PresentationUri">
-<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">PresentationUri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/present.html&quot;</span></em><a class="headerlink" href="#UPnP.PresentationUri" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">UPnP.</span></span><span class="sig-name descname"><span class="pre">PresentationUri</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;/present.html&quot;</span></span><a class="headerlink" href="#UPnP.PresentationUri" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">upnp.UPNPConfig.upnp_present_path</span></code></p>
 <p>Defines the URI and path to the presentation page template.</p>
 </dd></dl>
@@ -406,8 +406,8 @@ is expected to be found in <code class="docutils literal notranslate"><span clas
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

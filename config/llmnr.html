@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -247,7 +247,7 @@ data-aria-dark="Switch to auto color mode">
 <span id="config-llmnr-sectioncfg"></span><h2>Section: <code class="docutils literal notranslate"><span class="pre">[LLMNR]</span></code><a class="headerlink" href="#section-llmnr" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LLMNR.AnswerName">
-<span class="sig-prename descclassname"><span class="pre">LLMNR.</span></span><span class="sig-name descname"><span class="pre">AnswerName</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LLMNR.AnswerName" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">LLMNR.</span></span><span class="sig-name descname"><span class="pre">AnswerName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#LLMNR.AnswerName" title="Link to this definition">¶</a></dt>
 <dd><p>Name to return when responding to queries (can be used for kerberos relay). Example use
 case can be seen in: <a class="reference internal" href="../examples/multicast.html#examples-multicast-llmnr-answername"><span class="std std-ref">LLMNR Answer-Name Spoofing</span></a></p>
 <div class="admonition seealso">
@@ -259,7 +259,7 @@ kerberos relay: <a class="reference external" href="https://www.synacktiv.com/pu
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LLMNR.Ignore">
-<span class="sig-prename descclassname"><span class="pre">LLMNR.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#LLMNR.Ignore" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">LLMNR.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#LLMNR.Ignore" title="Link to this definition">¶</a></dt>
 <dd><p>Specifies a list of hosts to be blacklisted. For additional context, see <a class="reference internal" href="globals.html#Globals.Ignore" title="Globals.Ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Ignore</span></code></a>.
 When this attribute is defined, it overrides the global blacklist configuration.
 If not explicitly set, this attribute has no effect.
@@ -268,7 +268,7 @@ For a comprehensive explanation of how the blacklist is applied, refer to <code 
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LLMNR.Targets">
-<span class="sig-prename descclassname"><span class="pre">LLMNR.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#LLMNR.Targets" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">LLMNR.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#LLMNR.Targets" title="Link to this definition">¶</a></dt>
 <dd><p>Defines a list of hosts to which responses should be sent.
 See <a class="reference internal" href="globals.html#Globals.Targets" title="Globals.Targets"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Targets</span></code></a> for more information.
 When specified, this attribute takes precedence over the global whitelist.
@@ -281,13 +281,13 @@ For detailed behavior and usage, refer to <code class="xref py py-class docutils
 <h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="LLMNR.llmnr.LLMNRConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">llmnr.</span></span><span class="sig-name descname"><span class="pre">LLMNRConfig</span></span><a class="headerlink" href="#LLMNR.llmnr.LLMNRConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">llmnr.</span></span><span class="sig-name descname"><span class="pre">LLMNRConfig</span></span><a class="headerlink" href="#LLMNR.llmnr.LLMNRConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Defines the configuration for the <cite>[llmnr]</cite> section in the TOML file.
 This class extends both <code class="xref py py-class docutils literal notranslate"><span class="pre">WhitelistConfigMixin</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">BlacklistConfigMixin</span></code>,
 introducing two additional fields. Refer to the respective mixins for a detailed explanation of their functionality.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LLMNR.llmnr.LLMNRConfig.llmnr_answer_name">
-<span class="sig-name descname"><span class="pre">llmnr_answer_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#LLMNR.llmnr.LLMNRConfig.llmnr_answer_name" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">llmnr_answer_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#LLMNR.llmnr.LLMNRConfig.llmnr_answer_name" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#LLMNR.AnswerName" title="LLMNR.AnswerName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">LLMNR.AnswerName</span></code></a></p>
 <p>Specifies a custom name to use in spoofed LLMNR responses.
 The default value is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which disables spoofed answer names.</p>
@@ -352,8 +352,8 @@ The default value is <code class="docutils literal notranslate"><span class="pre
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

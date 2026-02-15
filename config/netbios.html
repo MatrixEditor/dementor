@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -242,7 +242,7 @@ data-aria-dark="Switch to auto color mode">
 <span id="config-netbios-sectioncfg"></span><h2>Section <code class="docutils literal notranslate"><span class="pre">[NetBIOS]</span></code><a class="headerlink" href="#section-netbios" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NetBIOS.Ignore">
-<span class="sig-prename descclassname"><span class="pre">NetBIOS.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#NetBIOS.Ignore" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">NetBIOS.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#NetBIOS.Ignore" title="Link to this definition">¶</a></dt>
 <dd><p>Specifies a list of hosts to be blacklisted. For further context, refer to <a class="reference internal" href="globals.html#Globals.Ignore" title="Globals.Ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Ignore</span></code></a>.
 When defined, this attribute overrides the global blacklist configuration.
 If not set, it has no effect.
@@ -251,7 +251,7 @@ For a detailed explanation of how blacklist rules are applied, see <code class="
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NetBIOS.Targets">
-<span class="sig-prename descclassname"><span class="pre">NetBIOS.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#NetBIOS.Targets" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">NetBIOS.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#NetBIOS.Targets" title="Link to this definition">¶</a></dt>
 <dd><div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev16: </span>Renamed from <cite>AnswerTo</cite></p>
 </div>
@@ -267,7 +267,7 @@ For details on how these rules are applied, see <code class="xref py py-class do
 <h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="NetBIOS.netbios.NBTNSConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">netbios.</span></span><span class="sig-name descname"><span class="pre">NBTNSConfig</span></span><a class="headerlink" href="#NetBIOS.netbios.NBTNSConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">netbios.</span></span><span class="sig-name descname"><span class="pre">NBTNSConfig</span></span><a class="headerlink" href="#NetBIOS.netbios.NBTNSConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Represents the configuration for the <code class="docutils literal notranslate"><span class="pre">[NetBIOS]</span></code> section in the TOML file.
 This class incorporates both <code class="xref py py-class docutils literal notranslate"><span class="pre">WhitelistConfigMixin</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">BlacklistConfigMixin</span></code>,
 adding two additional configuration fields.
@@ -322,8 +322,8 @@ For detailed behavior and usage, refer to the respective mixin documentation.</p
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

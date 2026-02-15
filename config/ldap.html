@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -250,13 +250,13 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code><a class="headerlink" href="#section-ldap" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server">
-<span class="sig-prename descclassname"><span class="pre">LDAP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#LDAP.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">LDAP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#LDAP.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Each entry maps to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig</span></code></p>
 <p>Defines a list of LDAP server configuration sections. For details on configuring section lists,
 see the general configuration guide <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a> for TOML.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.Port">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#LDAP.Server.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#LDAP.Server.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_port</span></code></p>
 <p>Specifies the port on which the LDAP server instance listens. <strong>This option is required and must be
 defined within each individual **``[[LDAP.Server]]`` **section.</strong></p>
@@ -264,7 +264,7 @@ defined within each individual **``[[LDAP.Server]]`` **section.</strong></p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.Connectionless">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Connectionless</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#LDAP.Server.Connectionless" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Connectionless</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#LDAP.Server.Connectionless" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_udp</span></code></p>
 <p>Configures the LDAP server to operate over UDP (CLDAP), rather than the default TCP transport.
 <strong>This option must be set within each individual server section and is not allowed in the global ``[LDAP]`` section.</strong></p>
@@ -274,7 +274,7 @@ defined within each individual **``[[LDAP.Server]]`` **section.</strong></p>
 as default values for all individual server entries — unless explicitly overridden.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.Capabilities">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Capabilities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#LDAP.Server.Capabilities" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Capabilities</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#LDAP.Server.Capabilities" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_caps</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
 <p>Lists LDAP capabilities returned by the server when queried. Default values include:</p>
 <ul class="simple">
@@ -299,7 +299,7 @@ and can handle subsequent binds over secure channels. <a class="footnote-referen
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.SASLMechanisms">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">SASLMechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#LDAP.Server.SASLMechanisms" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">SASLMechanisms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#LDAP.Server.SASLMechanisms" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_mech</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
 <p>Defines the list of supported SASL authentication mechanisms. By default, the server supports:
 GSSAPI, GSS-SPNEGO, and simple binds.</p>
@@ -307,7 +307,7 @@ GSSAPI, GSS-SPNEGO, and simple binds.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.Timeout">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Timeout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#LDAP.Server.Timeout" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Timeout</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#LDAP.Server.Timeout" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_timeout</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
 <p>Configures the LDAP operation timeout in seconds. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> disables the timeout (default),
 which may cause issues during tool shutdown. Any non-zero value sets the maximum allowed duration
@@ -316,7 +316,7 @@ for operations.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.FQDN">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LDAP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#LDAP.Server.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_fqdn</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
 <p>Specifies the server’s hostname or fully qualified domain name (FQDN). The domain portion is optional.
 Example: <code class="docutils literal notranslate"><span class="pre">&quot;HOSTNAME.domain.local&quot;</span></code>.</p>
@@ -324,7 +324,7 @@ Example: <code class="docutils literal notranslate"><span class="pre">&quot;HOST
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.ErrorCode">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#LDAP.Server.ErrorCode" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#LDAP.Server.ErrorCode" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_error_code</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
 <p>Sets the LDAP error code to return upon successful authentication. It is recommended to return a valid error
 (rather than success). By default, the server returns <code class="docutils literal notranslate"><span class="pre">&quot;unwillingToPerform&quot;</span></code>.</p>
@@ -332,21 +332,21 @@ Example: <code class="docutils literal notranslate"><span class="pre">&quot;HOST
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.TLS">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#LDAP.Server.TLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#LDAP.Server.TLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_tls</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code></p>
 <p>Enables SSL/TLS encryption using a custom certificate.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.Cert">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LDAP.Server.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#LDAP.Server.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_tls_cert</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the certificate file used when TLS is enabled.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="LDAP.Server.Key">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#LDAP.Server.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#LDAP.Server.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ldap.LDAPServerConfig.ldap_tls_key</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[LDAP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the private key file associated with the TLS certificate.</p>
 </dd></dl>
@@ -429,8 +429,8 @@ Example: <code class="docutils literal notranslate"><span class="pre">&quot;HOST
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

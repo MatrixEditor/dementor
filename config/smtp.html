@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -266,7 +266,7 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section: <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code><a class="headerlink" href="#section-smtp" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server">
-<span class="sig-prename descclassname"><span class="pre">SMTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#SMTP.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SMTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#SMTP.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Each server entry is mapped to an instance of</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig" title="SMTP.smtp.SMTPServerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig</span></code></a></p>
 <p>Represents a list of SMTP server configuration sections. For guidance on defining
 section lists, refer to the general configuration documentation <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a> of TOML.</p>
@@ -274,7 +274,7 @@ section lists, refer to the general configuration documentation <a class="refere
 a default value to all server entries.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.Port">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#SMTP.Server.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#SMTP.Server.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_port" title="SMTP.smtp.SMTPServerConfig.smtp_port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_port</span></code></a></p>
 <p>Defines the port used by the SMTP server instance. <strong>This option is mandatory.</strong></p>
 <div class="admonition important">
@@ -285,7 +285,7 @@ a default value to all server entries.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.FQDN">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#SMTP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></span><a class="headerlink" href="#SMTP.Server.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_fqdn" title="SMTP.smtp.SMTPServerConfig.smtp_fqdn"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_fqdn</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Specifies the Fully Qualified Domain Name (FQDN) hostname used by the SMTP server.
 The hostname portion of the FQDN will be included in server responses. The domain part is optional.</p>
@@ -293,7 +293,7 @@ The hostname portion of the FQDN will be included in server responses. The domai
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.Ident">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Ident</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor</span> <span class="pre">1.0&quot;</span></em><a class="headerlink" href="#SMTP.Server.Ident" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Ident</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor</span> <span class="pre">1.0&quot;</span></span><a class="headerlink" href="#SMTP.Server.Ident" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_ident" title="SMTP.smtp.SMTPServerConfig.smtp_ident"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_ident</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Defines the SMTP server banner (typically identifier and version) sent to clients.
 This value may influence detection; some antivirus and EDR solutions inspect banners for known patterns.</p>
@@ -301,7 +301,7 @@ This value may influence detection; some antivirus and EDR solutions inspect ban
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.AuthMechanisms">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#SMTP.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></span><a class="headerlink" href="#SMTP.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_auth_mechanisms" title="SMTP.smtp.SMTPServerConfig.smtp_auth_mechanisms"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_auth_mechanisms</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Lists the supported SMTP authentication mechanisms. Currently implemented options:</p>
 <ul class="simple">
@@ -314,7 +314,7 @@ This value may influence detection; some antivirus and EDR solutions inspect ban
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.Downgrade">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#SMTP.Server.Downgrade" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#SMTP.Server.Downgrade" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_downgrade" title="SMTP.smtp.SMTPServerConfig.smtp_downgrade"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_downgrade</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Attempts to downgrade authentication from NTLM to weaker methods like LOGIN. This is only effective
 if the client is configured to permit plaintext authentication. See <a class="reference internal" href="../examples/smtp_downgrade.html#example-smtp-downgrade"><span class="std std-ref">SMTP/IMAP/POP3 Downgrade</span></a> for practical usage.</p>
@@ -322,35 +322,35 @@ if the client is configured to permit plaintext authentication. See <a class="re
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.TLS">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#SMTP.Server.TLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#SMTP.Server.TLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_tls" title="SMTP.smtp.SMTPServerConfig.smtp_tls"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_tls</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Enables SSL/TLS support using a custom certificate.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.Cert">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMTP.Server.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SMTP.Server.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_tls_cert" title="SMTP.smtp.SMTPServerConfig.smtp_tls_cert"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_tls_cert</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the certificate used when TLS is enabled.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.Key">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMTP.Server.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SMTP.Server.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_tls_key" title="SMTP.smtp.SMTPServerConfig.smtp_tls_key"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_tls_key</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the private key file corresponding to the certificate used for TLS.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.RequireSTARTTLS">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">RequireSTARTTLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#SMTP.Server.RequireSTARTTLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">RequireSTARTTLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#SMTP.Server.RequireSTARTTLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_require_starttls" title="SMTP.smtp.SMTPServerConfig.smtp_require_starttls"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_require_starttls</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Enforces STARTTLS negotiation before any SMTP commands are accepted.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.Server.RequireAUTH">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">RequireAUTH</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#SMTP.Server.RequireAUTH" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">RequireAUTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#SMTP.Server.RequireAUTH" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMTP.smtp.SMTPServerConfig.smtp_require_auth" title="SMTP.smtp.SMTPServerConfig.smtp_require_auth"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smtp.SMTPServerConfig.smtp_require_auth</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMTP]</span></code></p>
 <p>Requires SMTP authentication before the client is permitted to send mail.</p>
 </dd></dl>
@@ -362,23 +362,23 @@ if the client is configured to permit plaintext authentication. See <a class="re
 <h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smtp.</span></span><span class="sig-name descname"><span class="pre">SMTPServerConfig</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smtp.</span></span><span class="sig-name descname"><span class="pre">SMTPServerConfig</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Represents the configuration for a single SMTP server instance.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_port">
-<span class="sig-name descname"><span class="pre">smtp_port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_port" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.Port" title="SMTP.Server.Port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Port</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_tls">
-<span class="sig-name descname"><span class="pre">smtp_tls</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_tls" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_tls</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_tls" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.TLS" title="SMTP.Server.TLS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.TLS</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_fqdn">
-<span class="sig-name descname"><span class="pre">smtp_fqdn</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_fqdn" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_fqdn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_fqdn" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.FQDN" title="SMTP.Server.FQDN"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.FQDN</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -391,19 +391,19 @@ However, the domain is purely optional and won’t be used if not present.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_ident">
-<span class="sig-name descname"><span class="pre">smtp_ident</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor</span> <span class="pre">1.0dev0&quot;</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_ident" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_ident</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor</span> <span class="pre">1.0dev0&quot;</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_ident" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.Ident" title="SMTP.Server.Ident"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Ident</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_downgrade">
-<span class="sig-name descname"><span class="pre">smtp_downgrade</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_downgrade" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_downgrade</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_downgrade" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.Downgrade" title="SMTP.Server.Downgrade"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Downgrade</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_auth_mechanisms">
-<span class="sig-name descname"><span class="pre">smtp_auth_mechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_auth_mechanisms" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_auth_mechanisms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_auth_mechanisms" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.AuthMechanisms" title="SMTP.Server.AuthMechanisms"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.AuthMechanisms</span></code></a>.</p>
 <div class="demo docutils container">
 <div class="literal-block-wrapper docutils container" id="id1">
@@ -425,25 +425,25 @@ However, the domain is purely optional and won’t be used if not present.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_require_auth">
-<span class="sig-name descname"><span class="pre">smtp_require_auth</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_require_auth" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_require_auth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_require_auth" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.RequireAUTH" title="SMTP.Server.RequireAUTH"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.RequireAUTH</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_require_starttls">
-<span class="sig-name descname"><span class="pre">smtp_require_starttls</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_require_starttls" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_require_starttls</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_require_starttls" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.RequireSTARTTLS" title="SMTP.Server.RequireSTARTTLS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.RequireSTARTTLS</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_tls_cert">
-<span class="sig-name descname"><span class="pre">smtp_tls_cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_tls_cert" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_tls_cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_tls_cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.Cert" title="SMTP.Server.Cert"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Cert</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMTP.smtp.SMTPServerConfig.smtp_tls_key">
-<span class="sig-name descname"><span class="pre">smtp_tls_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_tls_key" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">smtp_tls_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SMTP.smtp.SMTPServerConfig.smtp_tls_key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMTP.Server.Key" title="SMTP.Server.Key"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMTP.Server.Key</span></code></a>.</p>
 </dd></dl>
 
@@ -522,8 +522,8 @@ However, the domain is purely optional and won’t be used if not present.</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

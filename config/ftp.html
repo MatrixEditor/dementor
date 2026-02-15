@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -248,7 +248,7 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section: <code class="docutils literal notranslate"><span class="pre">[FTP]</span></code><a class="headerlink" href="#section-ftp" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="FTP.Server">
-<span class="sig-prename descclassname"><span class="pre">FTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#FTP.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">FTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#FTP.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Each server entry is mapped to an instance of</em> <a class="reference internal" href="#FTP.ftp.FTPServerConfig" title="FTP.ftp.FTPServerConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ftp.FTPServerConfig</span></code></a></p>
 <p>Represents a list of FTP server configuration sections. For guidance on specifying
 a list of configuration sections, refer to the general configuration documentation:
@@ -256,7 +256,7 @@ a list of configuration sections, refer to the general configuration documentati
 <p>Each server entry supports the following configuration attribute:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="FTP.Server.Port">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#FTP.Server.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#FTP.Server.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#FTP.ftp.FTPServerConfig.ftp_port" title="FTP.ftp.FTPServerConfig.ftp_port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ftp.FTPServerConfig.ftp_port</span></code></a></p>
 <p>Specifies the port number for the FTP server.
 This attribute is <strong>required</strong> and must be explicitly defined.</p>
@@ -269,13 +269,13 @@ This attribute is <strong>required</strong> and must be explicitly defined.</p>
 <h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="FTP.ftp.FTPServerConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ftp.</span></span><span class="sig-name descname"><span class="pre">FTPServerConfig</span></span><a class="headerlink" href="#FTP.ftp.FTPServerConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ftp.</span></span><span class="sig-name descname"><span class="pre">FTPServerConfig</span></span><a class="headerlink" href="#FTP.ftp.FTPServerConfig" title="Link to this definition">¶</a></dt>
 <dd><p><em>Configuration class for entries under</em> <a class="reference internal" href="#FTP.Server" title="FTP.Server"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FTP.Server</span></code></a></p>
 <p>Represents the configuration for a single FTP server instance. Currently, the
 FTP server implementation is minimal, and only the port number is configurable.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="FTP.ftp.FTPServerConfig.ftp_port">
-<span class="sig-name descname"><span class="pre">ftp_port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#FTP.ftp.FTPServerConfig.ftp_port" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">ftp_port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#FTP.ftp.FTPServerConfig.ftp_port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#FTP.Server.Port" title="FTP.Server.Port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FTP.Server.Port</span></code></a></p>
 </dd></dl>
 
@@ -339,8 +339,8 @@ FTP server implementation is minimal, and only the port number is configurable.<
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

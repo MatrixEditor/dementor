@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -246,7 +246,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSDP.Location">
-<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SSDP.Location" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SSDP.Location" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ssdp.SSDPConfig.ssdp_location</span></code></p>
 <p>Specifies the target location of the UPnP webserver (will automatically point to the current host if not
 specified). By default the target location will consist of:</p>
@@ -259,21 +259,21 @@ request. The target device description path is also taken from the UPnP configur
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSDP.Server">
-<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;OS/1.0</span> <span class="pre">UPnP/1.0</span> <span class="pre">Dementor/1.0&quot;</span></em><a class="headerlink" href="#SSDP.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;OS/1.0</span> <span class="pre">UPnP/1.0</span> <span class="pre">Dementor/1.0&quot;</span></span><a class="headerlink" href="#SSDP.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ssdp.SSDPConfig.ssdp_server</span></code></p>
 <p>Specifies the server type (<code class="docutils literal notranslate"><span class="pre">Server</span></code> header) that will be returned in SSDP M-SEARCH responses.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSDP.MaxAge">
-<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">MaxAge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1800</span></em><a class="headerlink" href="#SSDP.MaxAge" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">MaxAge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1800</span></span><a class="headerlink" href="#SSDP.MaxAge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ssdp.SSDPConfig.ssdp_max_age</span></code></p>
 <p>Defines the duration a response to a multicast search should be valid.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSDP.ExtraHeaders">
-<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#SSDP.ExtraHeaders" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SSDP.ExtraHeaders" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">ssdp.SSDPConfig.ssdp_extra_headers</span></code></p>
 <p>Specifies additional headers to include in all server responses. Each entry must be a fully qualified
 SSDP header line without CRLF at the end.</p>
@@ -281,7 +281,7 @@ SSDP header line without CRLF at the end.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSDP.Ignore">
-<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#SSDP.Ignore" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Ignore</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SSDP.Ignore" title="Link to this definition">¶</a></dt>
 <dd><p>Specifies a list of hosts or UDNs to be blacklisted. For additional context, see <a class="reference internal" href="globals.html#Globals.Ignore" title="Globals.Ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Globals.Ignore</span></code></a>.
 When this attribute is defined, it overrides the global blacklist configuration.
 If not explicitly set, this attribute has no effect.
@@ -290,7 +290,7 @@ For a comprehensive explanation of how the blacklist is applied, refer to <code 
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSDP.Targets">
-<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#SSDP.Targets" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSDP.</span></span><span class="sig-name descname"><span class="pre">Targets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#SSDP.Targets" title="Link to this definition">¶</a></dt>
 <dd><div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev16: </span>Renamed from <cite>AnswerTo</cite></p>
 </div>
@@ -369,8 +369,8 @@ For detailed behavior and usage, refer to <code class="xref py py-class docutils
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

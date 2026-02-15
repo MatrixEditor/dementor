@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -265,14 +265,14 @@ authentication. The default returned code is <a class="reference external" href=
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server">
-<span class="sig-prename descclassname"><span class="pre">HTTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#HTTP.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">HTTP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#HTTP.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Each entry maps to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">http.HTTPServerConfig</span></code></p>
 <p>Defines a list of HTTP servers. For details on configuring section lists,
 see the general configuration guide on <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a>
 for TOML.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.Port">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#HTTP.Server.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#HTTP.Server.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_port</span></code></p>
 <p>Specifies the port on which the HTTP server instance listens. <strong>This option is required and must be
 defined within each individual</strong> <code class="docutils literal notranslate"><span class="pre">[[HTTP.Server]]</span></code> <strong>section.</strong></p>
@@ -282,7 +282,7 @@ defined within each individual</strong> <code class="docutils literal notranslat
 as default values for all individual server entries — unless explicitly overridden.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.ServerType">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerType</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Microsoft-IIS/10.0&quot;</span></em><a class="headerlink" href="#HTTP.Server.ServerType" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ServerType</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Microsoft-IIS/10.0&quot;</span></span><a class="headerlink" href="#HTTP.Server.ServerType" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_server_type</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>Specifies the server name returned in the <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server">Server</a>
 header.</p>
@@ -301,7 +301,7 @@ More information about <em>formatted-strings</em> are coming up in future releas
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.ExtraHeaders">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HTTP.Server.ExtraHeaders" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtraHeaders</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#HTTP.Server.ExtraHeaders" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_extra_headers</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>A list of headers to include in all server responses. Each entry must be
 a fully qualified HTTP header line without CRLF at the end.</p>
@@ -309,7 +309,7 @@ a fully qualified HTTP header line without CRLF at the end.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.TemplatesPath">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TemplatesPath</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HTTP.Server.TemplatesPath" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TemplatesPath</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#HTTP.Server.TemplatesPath" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_templates</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>A list of directories containing templates for custom web pages. You can override the default
 error page template <code class="docutils literal notranslate"><span class="pre">error_page.html</span></code> with your own. The default template mimics an IIS error page.</p>
@@ -323,7 +323,7 @@ error page template <code class="docutils literal notranslate"><span class="pre"
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.Methods">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Methods</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;GET&quot;,</span> <span class="pre">&quot;POST&quot;,</span> <span class="pre">&quot;PUT&quot;,</span> <span class="pre">&quot;DELETE&quot;]</span></em><a class="headerlink" href="#HTTP.Server.Methods" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Methods</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;GET&quot;,</span> <span class="pre">&quot;POST&quot;,</span> <span class="pre">&quot;PUT&quot;,</span> <span class="pre">&quot;DELETE&quot;]</span></span><a class="headerlink" href="#HTTP.Server.Methods" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_methods</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>Defines which HTTP methods are supported. Note: <code class="docutils literal notranslate"><span class="pre">OPTIONS</span></code>, <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> and <code class="docutils literal notranslate"><span class="pre">PROPFIND</span></code> are reserved for internal use.</p>
 <div class="versionchanged">
@@ -333,7 +333,7 @@ error page template <code class="docutils literal notranslate"><span class="pre"
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.AuthSchemes">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthSchemes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;Basic&quot;,</span> <span class="pre">&quot;Negotiate&quot;,</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;Bearer&quot;]</span></em><a class="headerlink" href="#HTTP.Server.AuthSchemes" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthSchemes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&quot;Basic&quot;,</span> <span class="pre">&quot;Negotiate&quot;,</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;Bearer&quot;]</span></span><a class="headerlink" href="#HTTP.Server.AuthSchemes" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_auth_schemes</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>A list of supported authentication schemes. These are returned via the
 <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate">WWW-Authenticate</a> header.</p>
@@ -341,14 +341,14 @@ error page template <code class="docutils literal notranslate"><span class="pre"
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.WebDAV">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WebDAV</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.WebDAV" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WebDAV</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#HTTP.Server.WebDAV" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_webdav_enabled</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>Enables WebDAV protocol support. If disabled, requests using <code class="docutils literal notranslate"><span class="pre">PROPFIND</span></code> will result in an error page.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.WPAD">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WPAD</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.WPAD" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WPAD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#HTTP.Server.WPAD" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_wpad_enabled</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>Enables hosting of a WPAD configuration file. You can control whether this file requires authentication
 using <a class="reference internal" href="#HTTP.Server.WPADAuthRequired" title="HTTP.Server.WPADAuthRequired"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.WPADAuthRequired</span></code></a>. The actual WPAD script content is controlled by <code class="xref py py-attr docutils literal notranslate"><span class="pre">Proxy.Script</span></code>.</p>
@@ -356,14 +356,14 @@ using <a class="reference internal" href="#HTTP.Server.WPADAuthRequired" title="
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.WPADAuthRequired">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WPADAuthRequired</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.WPADAuthRequired" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">WPADAuthRequired</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#HTTP.Server.WPADAuthRequired" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_wpad_auth</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>Determines whether access to the WPAD script requires authentication.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.ExtendedSessionSecurity">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#HTTP.Server.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#HTTP.Server.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_ess</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed from <code class="docutils literal notranslate"><span class="pre">http_ess</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_ess</span></code></p>
@@ -379,7 +379,7 @@ are captured instead of raw NTLM hashes. Resolution precedence:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.Challenge">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#HTTP.Server.Challenge" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></span><a class="headerlink" href="#HTTP.Server.Challenge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.ntlm_challenge</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed frmo <code class="docutils literal notranslate"><span class="pre">http_challenge</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_challenge</span></code></p>
@@ -394,7 +394,7 @@ are captured instead of raw NTLM hashes. Resolution precedence:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.FQDN">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#HTTP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></span><a class="headerlink" href="#HTTP.Server.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_fqdn</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion is
 used in NTLM responses. The domain portion is optional.</p>
@@ -405,7 +405,7 @@ used in NTLM responses. The domain portion is optional.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.TLS">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#HTTP.Server.TLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#HTTP.Server.TLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_use_ssl</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
 <p>Enables SSL/TLS support using a custom certificate.</p>
 <div class="versionadded">
@@ -415,7 +415,7 @@ used in NTLM responses. The domain portion is optional.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.Cert">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#HTTP.Server.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#HTTP.Server.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_cert</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the certificate used when TLS is enabled.</p>
 <div class="versionadded">
@@ -425,7 +425,7 @@ used in NTLM responses. The domain portion is optional.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.Key">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#HTTP.Server.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#HTTP.Server.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_cert_key</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the private key file corresponding to the certificate used for TLS.</p>
 <div class="versionadded">
@@ -505,8 +505,8 @@ used in NTLM responses. The domain portion is optional.</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

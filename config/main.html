@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -268,7 +268,7 @@ configuration, refer to <code class="xref py py-class docutils literal notransla
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[Dementor]</span></code><a class="headerlink" href="#section-dementor" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.Workspace">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">Workspace</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;~/.dementor/&quot;</span></em><a class="headerlink" href="#Dementor.Workspace" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">Workspace</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;~/.dementor/&quot;</span></span><a class="headerlink" href="#Dementor.Workspace" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.workspace_path</span></code></p>
 <p>Specifies the directory where the database is stored and where additional modules
 can be placed. By default, this path points to <code class="docutils literal notranslate"><span class="pre">~/.dementor</span></code> in the user’s home
@@ -278,7 +278,7 @@ directory. For guidance on how to include custom protocols, refer to
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.ExtraModules">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">ExtraModules</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#Dementor.ExtraModules" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">ExtraModules</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#Dementor.ExtraModules" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.extra_modules</span></code></p>
 <p>A list of directories containing custom protocol modules. For instructions on
 including additional protocols, see <a class="reference internal" href="../proto.html#howto-custom-protocol"><span class="std std-ref">Example: POP3 Protocol Extension</span></a>. The loading
@@ -290,7 +290,7 @@ mechanism and its priorities are described in <code class="xref py py-class docu
 <p>The following options control servers that perform poisoning in the local network:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.LLMNR">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">LLMNR</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.LLMNR" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">LLMNR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.LLMNR" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.llmnr_enbled</span></code></p>
 <p>Enables or disables LLMNR multicast poisoning. Valid values must be convertible
 to boolean types as described above. Protocol-specific configuration is available
@@ -299,7 +299,7 @@ in <a class="reference internal" href="llmnr.html#config-llmnr-sectioncfg"><span
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.mDNS">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">mDNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.mDNS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">mDNS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.mDNS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.mdns_enbled</span></code></p>
 <p>Enables or disables mDNS multicast poisoning. For mDNS protocol configuration
 details, see <a class="reference internal" href="mdns.html#config-mdns-sectioncfg"><span class="std std-ref">Section: [mDNS]</span></a>.</p>
@@ -307,7 +307,7 @@ details, see <a class="reference internal" href="mdns.html#config-mdns-sectioncf
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.NBTNS">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">NBTNS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.NBTNS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">NBTNS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.NBTNS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.nbtns_enbled</span></code></p>
 <p>Enables or disables NetBIOS Name Service (NBT-NS) poisoning. For further
 configuration options, see <a class="reference internal" href="netbios.html#config-netbios-sectioncfg"><span class="std std-ref">Section [NetBIOS]</span></a>.</p>
@@ -315,7 +315,7 @@ configuration options, see <a class="reference internal" href="netbios.html#conf
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.SSRP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SSRP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.SSRP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SSRP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.SSRP" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ssrp_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev4.</span></p>
@@ -330,19 +330,19 @@ configuration options, see <a class="reference internal" href="netbios.html#conf
 attacks, but instead passively capture credentials:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.SMTP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SMTP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.SMTP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SMTP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.SMTP" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.SMB">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SMB</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.SMB" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SMB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.SMB" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.NBTDS">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">NBTDS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.NBTDS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">NBTDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.NBTDS" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.FTP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">FTP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.FTP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">FTP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.FTP" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.KDC">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">KDC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.KDC" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">KDC</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.KDC" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.LDAP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">LDAP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.LDAP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">LDAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.LDAP" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.QUIC">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">QUIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.QUIC" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">QUIC</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.QUIC" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.XXX_enbled</span></code> <em>(lowercase)</em></p>
 <p>Enables or disables the specified protocol service. For details on each protocol,
 refer to the respective documentation section. (Note: <code class="docutils literal notranslate"><span class="pre">KDC</span></code> corresponds to the
@@ -351,7 +351,7 @@ Kerberos service).</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.HTTP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">HTTP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.HTTP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">HTTP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.HTTP" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.http_enbled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev1.</span></p>
@@ -361,7 +361,7 @@ Kerberos service).</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.RPC">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">RPC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.RPC" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">RPC</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.RPC" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.rpc_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev2.</span></p>
@@ -374,7 +374,7 @@ Kerberos service).</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.WinRM">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">WinRM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.WinRM" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">WinRM</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.WinRM" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.winrm_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev3.</span></p>
@@ -385,7 +385,7 @@ Configuration is the same as described in <a class="reference internal" href="ht
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.MSSQL">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">MSSQL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.MSSQL" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">MSSQL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.MSSQL" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.mssql_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev4.</span></p>
@@ -395,9 +395,9 @@ Configuration is the same as described in <a class="reference internal" href="ht
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.POP3">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">POP3</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.POP3" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">POP3</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.POP3" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.IMAP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">IMAP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.IMAP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">IMAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.IMAP" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.xxx_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev5.</span></p>
@@ -408,7 +408,7 @@ or <a class="reference internal" href="imap.html#config-imap"><span class="std s
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.MySQL">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">MySQL</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.MySQL" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">MySQL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.MySQL" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.mysql_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev7.</span></p>
@@ -418,7 +418,7 @@ or <a class="reference internal" href="imap.html#config-imap"><span class="std s
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.X11">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">X11</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.X11" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">X11</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.X11" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.x11_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev9.</span></p>
@@ -429,7 +429,7 @@ refer to <a class="reference internal" href="x11.html#config-x11"><span class="s
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.IPP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">IPP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.IPP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">IPP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.IPP" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ipp_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev10.</span></p>
@@ -439,9 +439,9 @@ refer to <a class="reference internal" href="x11.html#config-x11"><span class="s
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Dementor.SSDP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SSDP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.SSDP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">SSDP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.SSDP" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="Dementor.UPnP">
-<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">UPnP</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Dementor.UPnP" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Dementor.</span></span><span class="sig-name descname"><span class="pre">UPnP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Dementor.UPnP" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.xxx_enabled</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev11.</span></p>
@@ -498,8 +498,8 @@ to <a class="reference internal" href="ssdp.html#config-ssdp"><span class="std s
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

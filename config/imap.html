@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -254,13 +254,13 @@ data-aria-dark="Switch to auto color mode">
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server">
-<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#IMAP.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#IMAP.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Each server entry is mapped to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">imap.IMAPServerConfig</span></code>.</p>
 <p>Represents a list of IMAP server configuration sections. For general guidance on defining
 section lists, refer to the TOML documentation for <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.Port">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#IMAP.Server.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#IMAP.Server.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_port</span></code></p>
 <p>Defines the port used by the IMAP server instance. <strong>This option is mandatory.</strong></p>
 <div class="admonition important">
@@ -273,7 +273,7 @@ section lists, refer to the TOML documentation for <a class="reference external"
 as defaults for all individual server entries — unless explicitly overridden.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.Capabilities">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Capabilities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;IMAP4rev1&quot;,</span> <span class="pre">&quot;IMAP4rev2&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#IMAP.Server.Capabilities" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Capabilities</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;IMAP4rev1&quot;,</span> <span class="pre">&quot;IMAP4rev2&quot;</span> <span class="pre">]</span></span><a class="headerlink" href="#IMAP.Server.Capabilities" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_caps</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
 <p>Defines the server capabilities to advertise to the client. According to the IMAP specification, the revision
 (such as <cite>IMAP4rev1</cite>) <strong>must</strong> be returned.</p>
@@ -281,7 +281,7 @@ as defaults for all individual server entries — unless explicitly overridden.<
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.FQDN">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></em><a class="headerlink" href="#IMAP.Server.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></span><a class="headerlink" href="#IMAP.Server.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_fqdn</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code>.</p>
 <p>Specifies the Fully Qualified Domain Name (FQDN) hostname used by the IMAP server.
 The hostname portion appears in server responses; the domain part is optional.</p>
@@ -289,14 +289,14 @@ The hostname portion appears in server responses; the domain part is optional.</
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.Banner">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Banner</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;IMAP</span> <span class="pre">Server</span> <span class="pre">ready&quot;</span></em><a class="headerlink" href="#IMAP.Server.Banner" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Banner</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;IMAP</span> <span class="pre">Server</span> <span class="pre">ready&quot;</span></span><a class="headerlink" href="#IMAP.Server.Banner" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_banner</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
 <p>Defines a custom banner message sent in the server’s greeting upon client connection.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.AuthMechanisms">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#IMAP.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></span><a class="headerlink" href="#IMAP.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_auth_mechs</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
 <p>Lists the authentication mechanisms supported by the server. Currently implemented options:</p>
 <ul class="simple">
@@ -310,7 +310,7 @@ For downgrade attacks, refer to <a class="reference internal" href="smtp.html#SM
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.Downgrade">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#IMAP.Server.Downgrade" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#IMAP.Server.Downgrade" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.imap_downgrade</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
 <p>Attempts to downgrade authentication from NTLM to weaker methods like <code class="docutils literal notranslate"><span class="pre">LOGIN</span></code>.
 Effective only if the client permits plaintext authentication. See <a class="reference internal" href="../examples/smtp_downgrade.html#example-smtp-downgrade"><span class="std std-ref">SMTP/IMAP/POP3 Downgrade</span></a> for
@@ -319,28 +319,28 @@ usage examples.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.TLS">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#IMAP.Server.TLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#IMAP.Server.TLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.use_ssl</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code>.</p>
 <p>Enables SSL/TLS for the IMAP server using a custom certificate.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.Cert">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#IMAP.Server.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#IMAP.Server.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.certfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code>.</p>
 <p>Specifies the path to the TLS certificate file.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Server.Key">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#IMAP.Server.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#IMAP.Server.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.keyfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[IMAP]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code>.</p>
 <p>Specifies the path to the private key file associated with the TLS certificate.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.ExtendedSessionSecurity">
-<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#IMAP.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#IMAP.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.ntlm_ess</span></code>.</p>
 <p>Enables NTLM Extended Session Security (ESS).
 When enabled, NTLMv1/NTLMv2-SSP hashes are captured instead of raw NTLM hashes.
@@ -353,7 +353,7 @@ Resolution precedence:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="IMAP.Challenge">
-<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#IMAP.Challenge" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></span><a class="headerlink" href="#IMAP.Challenge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">imap.IMAPServerConfig.ntlm_challenge</span></code>.</p>
 <p>Sets the NTLM challenge value used during authentication.
 Resolution order:</p>
@@ -445,8 +445,8 @@ To configure a server with TLS enabled, use:</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

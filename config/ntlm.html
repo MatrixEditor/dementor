@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -239,7 +239,7 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[NTLM]</span></code><a class="headerlink" href="#section-ntlm" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NTLM.Challenge">
-<span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">HexStr</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;1337LEET&quot;</span></em><a class="headerlink" href="#NTLM.Challenge" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">HexStr</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;1337LEET&quot;</span></span><a class="headerlink" href="#NTLM.Challenge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ntlm_challenge</span></code></p>
 <p>Specifies the NTLM challenge value to use during authentication. The value must be exactly <code class="docutils literal notranslate"><span class="pre">8</span></code> characters in length
 and can be provided as a hexadecimal string or a plain ASCII string.</p>
@@ -276,7 +276,7 @@ and can be provided as a hexadecimal string or a plain ASCII string.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="NTLM.ExtendedSessionSecurity">
-<span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#NTLM.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#NTLM.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ntlm_ess</span></code></p>
 <p>Enable Extended Session Security (ESS) for NTLM authentication. ESS results in NTLMv1/v2-SSP
 hashes instead of regular NTLMv1/v2 hashes.</p>
@@ -340,8 +340,8 @@ hashes instead of regular NTLMv1/v2 hashes.</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

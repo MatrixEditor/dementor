@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -257,7 +257,7 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[Log]</span></code><a class="headerlink" href="#section-log" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Enabled">
-<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">Enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Log.Enabled" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">Enabled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Log.Enabled" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_enabled</span></code></p>
 <p>Enables writing logs to a file. The logfile name is automatically generated using the
 format <code class="docutils literal notranslate"><span class="pre">log_%Y-%m-%d-%H-%M-%S.log</span></code> and cannot be customized. This setting does <strong>not</strong>
@@ -266,7 +266,7 @@ affect terminal output.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.LogDir">
-<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">LogDir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;logs&quot;</span></em><a class="headerlink" href="#Log.LogDir" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">LogDir</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;logs&quot;</span></span><a class="headerlink" href="#Log.LogDir" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_dir</span></code></p>
 <p>Specifies the subdirectory (relative to <a class="reference internal" href="main.html#Dementor.Workspace" title="Dementor.Workspace"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Dementor.Workspace</span></code></a> or absolute) where log files
 will be stored. Absolute paths are currently not supported.</p>
@@ -274,7 +274,7 @@ will be stored. Absolute paths are currently not supported.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.DebugLoggers">
-<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">DebugLoggers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#Log.DebugLoggers" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">DebugLoggers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#Log.DebugLoggers" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_debug_loggers</span></code></p>
 <p>Defines a list of additional loggers to enable when the <code class="docutils literal notranslate"><span class="pre">--debug</span></code> flag is used
 on the command line. These loggers produce more verbose output useful for troubleshooting.</p>
@@ -282,7 +282,7 @@ on the command line. These loggers produce more verbose output useful for troubl
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Timestamps">
-<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">Timestamps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#Log.Timestamps" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">Timestamps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#Log.Timestamps" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_timestamps</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev16.</span></p>
@@ -293,7 +293,7 @@ timestamps are printed.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.TimestampFmt">
-<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">TimestampFmt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;%H:%M:%S&quot;</span></em><a class="headerlink" href="#Log.TimestampFmt" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.</span></span><span class="sig-name descname"><span class="pre">TimestampFmt</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;%H:%M:%S&quot;</span></span><a class="headerlink" href="#Log.TimestampFmt" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">logger.LoggingConfig.log_timestamp_fmt</span></code></p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 1.0.0.dev16.</span></p>
@@ -314,7 +314,7 @@ enabled.</p>
 <h3>Hosts Logging<a class="headerlink" href="#hosts-logging" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hosts.Path">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><a class="headerlink" href="#Log.Stream.Hosts.Path" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></span><a class="headerlink" href="#Log.Stream.Hosts.Path" title="Link to this definition">¶</a></dt>
 <dd><p>Enables writing all identified hosts (direct connections or multicast
 queries) to a separate log file. Can be an absolute path (“/” prefixed), a
 relative path to the current working directory (“./” prefixed) or a path
@@ -323,13 +323,13 @@ relative to the workspace directory.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hosts.IPv4">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">IPv4</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Log.Stream.Hosts.IPv4" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">IPv4</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Log.Stream.Hosts.IPv4" title="Link to this definition">¶</a></dt>
 <dd><p>Enables logging IPv4 addresses (default value is <code class="docutils literal notranslate"><span class="pre">true</span></code>).</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hosts.IPv6">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">IPv6</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#Log.Stream.Hosts.IPv6" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hosts.</span></span><span class="sig-name descname"><span class="pre">IPv6</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#Log.Stream.Hosts.IPv6" title="Link to this definition">¶</a></dt>
 <dd><p>Enables logging IPv6 addresses (default value is <code class="docutils literal notranslate"><span class="pre">true</span></code>).</p>
 </dd></dl>
 
@@ -338,7 +338,7 @@ relative to the workspace directory.</p>
 <h3>DNS Logging<a class="headerlink" href="#dns-logging" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.DNS.Path">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.DNS.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><a class="headerlink" href="#Log.Stream.DNS.Path" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.DNS.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></span><a class="headerlink" href="#Log.Stream.DNS.Path" title="Link to this definition">¶</a></dt>
 <dd><p>Enables writing all captured multicast/broadcast name queries to a separate
 log file. Can be an absolute path (“/” prefixed), a relative path to the
 current working directory (“./” prefixed) or a path relative to the
@@ -350,7 +350,7 @@ workspace directory.</p>
 <h3>Hash Logging<a class="headerlink" href="#hash-logging" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hashes.Path">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></em><a class="headerlink" href="#Log.Stream.Hashes.Path" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">RelativePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">RelativeWorkspacePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbsolutePath</span></span><a class="headerlink" href="#Log.Stream.Hashes.Path" title="Link to this definition">¶</a></dt>
 <dd><p>Enables writing all captured hashes to a separate log file or directory.</p>
 <p>Can be an absolute path (“/” prefixed), a relative path to the current
 working directory (“./” prefixed) or a path relative to the workspace
@@ -360,7 +360,7 @@ directory.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hashes.Split">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">Split</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#Log.Stream.Hashes.Split" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">Split</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#Log.Stream.Hashes.Split" title="Link to this definition">¶</a></dt>
 <dd><p>Creates a separate log file for each hash type using the naming scheme
 defined by <a class="reference internal" href="#Log.Stream.Hashes.FilePrefix" title="Log.Stream.Hashes.FilePrefix"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FilePrefix</span></code></a> and
 <a class="reference internal" href="#Log.Stream.Hashes.FileSuffix" title="Log.Stream.Hashes.FileSuffix"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FileSuffix</span></code></a>. The default file naming scheme is
@@ -372,7 +372,7 @@ as follows:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hashes.FilePrefix">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">FilePrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Log.Stream.Hashes.FilePrefix" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">FilePrefix</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#Log.Stream.Hashes.FilePrefix" title="Link to this definition">¶</a></dt>
 <dd><p>File prefix to use for each hash type. Make sure this value returns a unique
 string for each hash type to avoid overwriting existing files.</p>
 <div class="admonition note">
@@ -388,7 +388,7 @@ string for each hash type to avoid overwriting existing files.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Log.Stream.Hashes.FileSuffix">
-<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">FileSuffix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;.txt&quot;</span></em><a class="headerlink" href="#Log.Stream.Hashes.FileSuffix" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Log.Stream.Hashes.</span></span><span class="sig-name descname"><span class="pre">FileSuffix</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;.txt&quot;</span></span><a class="headerlink" href="#Log.Stream.Hashes.FileSuffix" title="Link to this definition">¶</a></dt>
 <dd><p>File suffix to use for each hash type.</p>
 </dd></dl>
 
@@ -440,8 +440,8 @@ string for each hash type to avoid overwriting existing files.</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

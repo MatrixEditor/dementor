@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -253,13 +253,13 @@ data-aria-dark="Switch to auto color mode">
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server">
-<span class="sig-prename descclassname"><span class="pre">POP3.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#POP3.Server" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">POP3.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#POP3.Server" title="Link to this definition">¶</a></dt>
 <dd><p><em>Each server entry is mapped to an instance of</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig</span></code></p>
 <p>Represents a list of POP3 server configuration sections. For guidance on defining
 section lists, refer to the general configuration documentation <a class="reference external" href="https://toml.io/en/v1.0.0#array-of-tables">Array Tables</a> of TOML.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.Port">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#POP3.Server.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#POP3.Server.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.pop3_port</span></code></p>
 <p>Defines the port used by the POP3 server instance. <strong>This option is mandatory.</strong></p>
 <div class="admonition important">
@@ -272,7 +272,7 @@ section lists, refer to the general configuration documentation <a class="refere
 as default values for all individual server entries — unless explicitly overridden.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.FQDN">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></em><a class="headerlink" href="#POP3.Server.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></span><a class="headerlink" href="#POP3.Server.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.pop3_fqdn</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the Fully Qualified Domain Name (FQDN) hostname used by the POP3 server.
 The hostname portion of the FQDN will be included in server responses. The domain part is optional.</p>
@@ -280,14 +280,14 @@ The hostname portion of the FQDN will be included in server responses. The domai
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.Banner">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Banner</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;POP3</span> <span class="pre">Server</span> <span class="pre">ready&quot;</span></em><a class="headerlink" href="#POP3.Server.Banner" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Banner</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;POP3</span> <span class="pre">Server</span> <span class="pre">ready&quot;</span></span><a class="headerlink" href="#POP3.Server.Banner" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.pop3_banner</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code></p>
 <p>Defines a custom banner to send in the server’s greeting message.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.AuthMechanisms">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></em><a class="headerlink" href="#POP3.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">AuthMechanisms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[</span> <span class="pre">&quot;NTLM&quot;,</span> <span class="pre">&quot;PLAIN&quot;,</span> <span class="pre">&quot;LOGIN&quot;</span> <span class="pre">]</span></span><a class="headerlink" href="#POP3.Server.AuthMechanisms" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.pop3_auth_mechs</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code></p>
 <p>Lists the supported SMTP authentication mechanisms. Currently implemented options:</p>
 <ul class="simple">
@@ -300,7 +300,7 @@ The hostname portion of the FQDN will be included in server responses. The domai
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.Downgrade">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#POP3.Server.Downgrade" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Downgrade</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#POP3.Server.Downgrade" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.pop3_downgrade</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code></p>
 <p>Attempts to downgrade authentication from NTLM to weaker methods like LOGIN. This is only effective
 if the client is configured to permit plaintext authentication. See <a class="reference internal" href="../examples/smtp_downgrade.html#example-smtp-downgrade"><span class="std std-ref">SMTP/IMAP/POP3 Downgrade</span></a> for
@@ -309,28 +309,28 @@ practical usage.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.TLS">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></em><a class="headerlink" href="#POP3.Server.TLS" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">TLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#POP3.Server.TLS" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.use_ssl</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code></p>
 <p>Enables SSL/TLS support using a custom certificate.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.Cert">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#POP3.Server.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#POP3.Server.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.certfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the certificate used when TLS is enabled.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Server.Key">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#POP3.Server.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#POP3.Server.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.keyfile</span></code>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[POP3]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the private key file corresponding to the certificate used for TLS.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.ExtendedSessionSecurity">
-<span class="sig-prename descclassname"><span class="pre">POP3.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#POP3.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">POP3.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#POP3.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.ntlm_ess</span></code></p>
 <p>Enables NTLM Extended Session Security (ESS). When enabled, NTLMv1/NTLMv2-SSP hashes are
 captured instead of raw NTLM hashes. Resolution precedence:</p>
@@ -342,7 +342,7 @@ captured instead of raw NTLM hashes. Resolution precedence:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="POP3.Challenge">
-<span class="sig-prename descclassname"><span class="pre">POP3.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#POP3.Challenge" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">POP3.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></span><a class="headerlink" href="#POP3.Challenge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">pop3.POP3ServerConfig.ntlm_challenge</span></code></p>
 <p>Sets the NTLM challenge value. Resolution order:</p>
 <ol class="arabic simple">
@@ -434,8 +434,8 @@ specify a custom POP3 server with TLS enabled like this:</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

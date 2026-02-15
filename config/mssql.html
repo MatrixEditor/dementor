@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -276,21 +276,21 @@ implementation will terminate the connection.</p>
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.Port">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1433</span></em><a class="headerlink" href="#MSSQL.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1433</span></span><a class="headerlink" href="#MSSQL.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_port</span></code></p>
 <p>Specifies the port the MSSQL server listens on.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.Version">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;9.00.1399.06&quot;</span></em><a class="headerlink" href="#MSSQL.Version" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Version</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;9.00.1399.06&quot;</span></span><a class="headerlink" href="#MSSQL.Version" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_server_version</span></code></p>
 <p>Sets the server version string returned to clients.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.InstanceName">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">InstanceName</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;MSSQLServer&quot;</span></em><a class="headerlink" href="#MSSQL.InstanceName" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">InstanceName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;MSSQLServer&quot;</span></span><a class="headerlink" href="#MSSQL.InstanceName" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_instance</span></code></p>
 <p>Specifies the MSSQL instance name returned in SSRP responses. This can be overridden
 via <a class="reference internal" href="#SSRP.InstanceName" title="SSRP.InstanceName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SSRP.InstanceName</span></code></a>.</p>
@@ -298,7 +298,7 @@ via <a class="reference internal" href="#SSRP.InstanceName" title="SSRP.Instance
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ExtendedSessionSecurity">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></em><a class="headerlink" href="#MSSQL.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#MSSQL.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.ntlm_ess</span></code></p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed frmo <code class="docutils literal notranslate"><span class="pre">mssql_ess</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_ess</span></code></p>
@@ -313,7 +313,7 @@ captured instead of raw NTLM hashes. Resolution precedence:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.Challenge">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></em><a class="headerlink" href="#MSSQL.Challenge" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></span><a class="headerlink" href="#MSSQL.Challenge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLServerConfig.ntlm_challenge</span></code></p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed frmo <code class="docutils literal notranslate"><span class="pre">mssql_challenge</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_challenge</span></code></p>
@@ -327,7 +327,7 @@ captured instead of raw NTLM hashes. Resolution precedence:</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.FQDN">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></em><a class="headerlink" href="#MSSQL.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></span><a class="headerlink" href="#MSSQL.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLServerConfig.mssql_fqdn</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion
 is used in NTLM responses; the domain portion is optional.</p>
@@ -337,28 +337,28 @@ is used in NTLM responses; the domain portion is optional.</p>
 <h3>Error Configuration<a class="headerlink" href="#error-configuration" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ErrorCode">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1205</span></em><a class="headerlink" href="#MSSQL.ErrorCode" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorCode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1205</span></span><a class="headerlink" href="#MSSQL.ErrorCode" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_error_code</span></code></p>
 <p>Sets the MS-SQL-Server error code to return to clients.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ErrorState">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorState</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#MSSQL.ErrorState" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorState</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#MSSQL.ErrorState" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_error_state</span></code></p>
 <p>Sets the error state value returned to clients.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ErrorClass">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorClass</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1205</span></em><a class="headerlink" href="#MSSQL.ErrorClass" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorClass</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1205</span></span><a class="headerlink" href="#MSSQL.ErrorClass" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_error_class</span></code></p>
 <p>Sets the error class value returned to clients.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="MSSQL.ErrorMessage">
-<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorMessage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#MSSQL.ErrorMessage" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">MSSQL.</span></span><span class="sig-name descname"><span class="pre">ErrorMessage</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#MSSQL.ErrorMessage" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.MSSQLConfig.mssql_error_msg</span></code></p>
 <p>Sets the error message value returned to clients.</p>
 </dd></dl>
@@ -372,7 +372,7 @@ is used in NTLM responses; the domain portion is optional.</p>
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSRP.InstanceConfig">
-<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">InstanceConfig</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;&quot;</span></em><a class="headerlink" href="#SSRP.InstanceConfig" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">InstanceConfig</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;&quot;</span></span><a class="headerlink" href="#SSRP.InstanceConfig" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.SSRPConfig.ssrp_instance_config</span></code></p>
 <p>Defines extra instance configuration values for SSRP responses. The format must follow
 the <code class="docutils literal notranslate"><span class="pre">RESP_DATA</span></code> structure from section <em>2.2.5 SVR_RESP</em>. The string <strong>must begin with a
@@ -387,21 +387,21 @@ semicolon and MUST NOT end with one</strong>. For example:</p>
 <h3>Inherited from <code class="docutils literal notranslate"><span class="pre">[MSSQL]</span></code><a class="headerlink" href="#inherited-from-mssql" title="Link to this heading">¶</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSRP.FQDN">
-<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MSSQL.FQDN</span></em><a class="headerlink" href="#SSRP.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MSSQL.FQDN</span></span><a class="headerlink" href="#SSRP.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.SSRPConfig.ssrp_server_name</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Defines the server name as described in <a class="reference internal" href="#MSSQL.FQDN" title="MSSQL.FQDN"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MSSQL.FQDN</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSRP.Version">
-<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">Version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MSSQL.Version</span></em><a class="headerlink" href="#SSRP.Version" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">Version</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MSSQL.Version</span></span><a class="headerlink" href="#SSRP.Version" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.SSRPConfig.ssrp_server_version</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[MSSQL]</span></code></p>
 <p>Defines the server version string as described in <a class="reference internal" href="#MSSQL.Version" title="MSSQL.Version"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MSSQL.Version</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SSRP.InstanceName">
-<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">InstanceName</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MSSQL.InstanceName</span></em><a class="headerlink" href="#SSRP.InstanceName" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SSRP.</span></span><span class="sig-name descname"><span class="pre">InstanceName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MSSQL.InstanceName</span></span><a class="headerlink" href="#SSRP.InstanceName" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">mssql.SSRPConfig.ssrp_server_instance</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[MSSQL]</span></code></p>
 <p>Sets the server instance name, as described in <a class="reference internal" href="#MSSQL.InstanceName" title="MSSQL.InstanceName"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MSSQL.InstanceName</span></code></a>.</p>
 </dd></dl>
@@ -469,8 +469,8 @@ semicolon and MUST NOT end with one</strong>. For example:</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>

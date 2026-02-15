@@ -7,7 +7,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=a318c5d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
@@ -253,7 +253,7 @@ data-aria-dark="Switch to auto color mode">
 <h2>Section <code class="docutils literal notranslate"><span class="pre">[QUIC]</span></code><a class="headerlink" href="#section-quic" title="Link to this heading">¶</a></h2>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.Port">
-<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">443</span></em><a class="headerlink" href="#QUIC.Port" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">Port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">443</span></span><a class="headerlink" href="#QUIC.Port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <a class="reference internal" href="#QUIC.quic.QuicServerConfig.quic_port" title="QUIC.quic.QuicServerConfig.quic_port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">quic.QuicServerConfig.quic_port</span></code></a></p>
 <p>Defines the port on which the QUIC server instance listens.</p>
 <div class="admonition note">
@@ -265,7 +265,7 @@ multiple instances is not available.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.TargetSMBHost">
-<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">TargetSMBHost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#QUIC.TargetSMBHost" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">TargetSMBHost</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#QUIC.TargetSMBHost" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <a class="reference internal" href="#QUIC.quic.QuicServerConfig.quic_smb_host" title="QUIC.quic.QuicServerConfig.quic_smb_host"><code class="xref py py-attr docutils literal notranslate"><span class="pre">quic.QuicServerConfig.quic_smb_host</span></code></a></p>
 <p>Specifies the address or hostname of the target SMB server to which connections are forwarded. By
 default, the server forwards to the internal SMB service on port 445.</p>
@@ -273,7 +273,7 @@ default, the server forwards to the internal SMB service on port 445.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.TargetSMBPort">
-<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">TargetSMBPort</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">445</span></em><a class="headerlink" href="#QUIC.TargetSMBPort" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">TargetSMBPort</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">445</span></span><a class="headerlink" href="#QUIC.TargetSMBPort" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <a class="reference internal" href="#QUIC.quic.QuicServerConfig.quic_smb_port" title="QUIC.quic.QuicServerConfig.quic_smb_port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">quic.QuicServerConfig.quic_smb_port</span></code></a></p>
 <p>Specifies the port number of the target SMB server for forwarding purposes. If not set,
 the default is port 445.</p>
@@ -281,14 +281,14 @@ the default is port 445.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.Cert">
-<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#QUIC.Cert" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">Cert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#QUIC.Cert" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <a class="reference internal" href="#QUIC.quic.QuicServerConfig.quic_cert_path" title="QUIC.quic.QuicServerConfig.quic_cert_path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">quic.QuicServerConfig.quic_cert_path</span></code></a>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the absolute or relative path to the TLS certificate file. <strong>This setting is required.</strong></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.Key">
-<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#QUIC.Key" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">QUIC.</span></span><span class="sig-name descname"><span class="pre">Key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#QUIC.Key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Maps to</em> <a class="reference internal" href="#QUIC.quic.QuicServerConfig.quic_cert_key" title="QUIC.quic.QuicServerConfig.quic_cert_key"><code class="xref py py-attr docutils literal notranslate"><span class="pre">quic.QuicServerConfig.quic_cert_key</span></code></a>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the path to the private key file corresponding to the provided TLS certificate. <strong>This setting is required.</strong></p>
 </dd></dl>
@@ -298,35 +298,35 @@ the default is port 445.</p>
 <h2>Python Config<a class="headerlink" href="#python-config" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="QUIC.quic.QuicServerConfig">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quic.</span></span><span class="sig-name descname"><span class="pre">QuicServerConfig</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">quic.</span></span><span class="sig-name descname"><span class="pre">QuicServerConfig</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Represents the configuration for a single QUIC server instance.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.quic.QuicServerConfig.quic_port">
-<span class="sig-name descname"><span class="pre">quic_port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">443</span></em><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_port" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">quic_port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">443</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#QUIC.Port" title="QUIC.Port"><code class="xref py py-attr docutils literal notranslate"><span class="pre">QUIC.Port</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.quic.QuicServerConfig.quic_smb_host">
-<span class="sig-name descname"><span class="pre">quic_smb_host</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_smb_host" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">quic_smb_host</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_smb_host" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#QUIC.TargetSMBHost" title="QUIC.TargetSMBHost"><code class="xref py py-attr docutils literal notranslate"><span class="pre">QUIC.TargetSMBHost</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.quic.QuicServerConfig.quic_smb_port">
-<span class="sig-name descname"><span class="pre">quic_smb_port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">445</span></em><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_smb_port" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">quic_smb_port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">445</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_smb_port" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#QUIC.TargetSMBPort" title="QUIC.TargetSMBPort"><code class="xref py py-attr docutils literal notranslate"><span class="pre">QUIC.TargetSMBPort</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.quic.QuicServerConfig.quic_cert_path">
-<span class="sig-name descname"><span class="pre">quic_cert_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_cert_path" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">quic_cert_path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_cert_path" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#QUIC.Cert" title="QUIC.Cert"><code class="xref py py-attr docutils literal notranslate"><span class="pre">QUIC.Cert</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="QUIC.quic.QuicServerConfig.quic_cert_key">
-<span class="sig-name descname"><span class="pre">quic_cert_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_cert_key" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">quic_cert_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#QUIC.quic.QuicServerConfig.quic_cert_key" title="Link to this definition">¶</a></dt>
 <dd><p><em>Corresponds to</em> <a class="reference internal" href="#QUIC.Key" title="QUIC.Key"><code class="xref py py-attr docutils literal notranslate"><span class="pre">QUIC.Key</span></code></a>.</p>
 </dd></dl>
 
@@ -392,8 +392,8 @@ the default is port 445.</p>
   </div>
 </footer>
       <script src="../_static/documentation_options.js?v=b9134340"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
       <script src="../_static/design-tabs.js?v=f930bc37"></script>
