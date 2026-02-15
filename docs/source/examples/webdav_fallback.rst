@@ -18,9 +18,9 @@ precedence over WebDAV. The protocol resolution order on Windows is:
 
 To leverage this behavior, modify the configuration for *Dementor* as shown below:
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Dementor.toml
+    .. tab-item:: Dementor.toml
 
         .. code-block:: toml
             :linenos:
@@ -41,7 +41,7 @@ To leverage this behavior, modify the configuration for *Dementor* as shown belo
             # Make sure WebDAV support is enabled
             WebDAV = true
 
-    .. tab:: CLI
+    .. tab-item:: CLI
 
         .. code-block:: console
 

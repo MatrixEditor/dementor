@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# pyright: reportUninitializedInstanceVariable=false
+# pyright: basic
 import uuid
 import calendar
 import time
@@ -36,6 +36,15 @@ from impacket import (
     spnego,
     smbserver,
 )
+from caterpillar.py import (
+    LittleEndian,
+    f,
+    struct,
+    struct_factory,
+    this,
+    uint16,
+)
+from caterpillar.types import uint16_t
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
@@ -55,7 +64,7 @@ from dementor.protocols.spnego import (
 )
 from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
 
-
+# --- Constants ---------------------------------------------------------------
 SMB2_DIALECTS = {
     smb2.SMB2_DIALECT_002: "SMB 2.002",
     smb2.SMB2_DIALECT_21: "SMB 2.1",
@@ -68,7 +77,18 @@ SMB2_DIALECTS = {
 
 SMB2_DIALECT_REV = {v: k for k, v in SMB2_DIALECTS.items()}
 
+SMB2_INTEGRITY_SHA512 = uint16.to_bytes(0x0001, order=LittleEndian)
 
+
+# (missing in impackets struct definitions)
+# 2.2.3.1.7 SMB2_SIGNING_CAPABILITIES
+@struct(order=LittleEndian)
+class SMB2SigningCapabilities(struct_factory.mixin):
+    SigningAlgorithmCount: uint16_t
+    SigningAlgorithms: f[list[int], uint16[this.SigningAlgorithmCount]]
+
+
+# --- Config ------------------------------------------------------------------
 class SMBServerConfig(TomlConfig):
     _section_ = "SMB"
     _fields_ = [
@@ -125,6 +145,7 @@ def create_server_threads(session: SessionConfig):
     return servers
 
 
+# --- Functions ---------------------------------------------------------------
 def SMB_get_server_time():
     value = calendar.timegm(time.gmtime())
     value *= 10000000
@@ -149,10 +170,62 @@ def SMB_get_command_name(command: int, smb_version: int) -> str:
     return "Unknown"
 
 
-# --- SMB2/3 ---
-def smb2_negotiate(handler: "SMBHandler", target_revision: int):
+# --- SMB3 --------------------------------------------------------------------
+def SMB3_get_neg_context_pad(data_len: int) -> bytes:
+    return b"\xff" * ((8 - (data_len % 8)) % 8)
+
+
+def SMB3_build_neg_context_list(context_objects: list[tuple[int, bytes]]) -> bytes:
+    # build Negotiate Contexts
+    context_list = b""
+    for caps_type, caps in context_objects:
+        context = smb3.SMB2NegotiateContext()
+        context["ContextType"] = caps_type
+        context["Data"] = caps
+        context["DataLength"] = len(caps)
+
+        context_list += context.getData()
+        context_list += SMB3_get_neg_context_pad(context["DataLength"])
+    return context_list
+
+
+def SMB3_get_target_capabilities(
+    handler: "SMBHandler", request: smb2.SMB2Negotiate
+) -> tuple[int, ...]:
+    target_cipher = smb3.SMB2_ENCRYPTION_AES128_GCM
+    target_sign = 0x001  # SMB2_SIGNING_AES_CMAC
+    try:
+        context_data = smb3.SMB311ContextData(request["ClientStartTime"])
+        raw_context_list = request.rawData[context_data["NegotiateContextOffset"] :]
+        offset = 0
+        for _ in range(context_data["NegotiateContextCount"]):
+            context = smb3.SMB2NegotiateContext(raw_context_list)
+            match context["ContextType"]:
+                case smb3.SMB2_ENCRYPTION_CAPABILITIES:
+                    req_enc_caps = smb3.SMB2EncryptionCapabilities(context["Data"])
+                    target_cipher = uint16.from_bytes(
+                        req_enc_caps["Ciphers"],
+                        order=LittleEndian,
+                    )
+                case 0x008:
+                    req_sign_caps = SMB2SigningCapabilities.from_bytes(context["Data"])
+                    target_sign = req_sign_caps.SigningAlgorithms[0]
+
+            offset += context["DataLength"] + 8
+            offset += (8 - (offset % 8)) % 8
+    except Exception as e:
+        handler.logger.debug(f"Warning: invalid negotiate context list: {e}")
+    return target_cipher, target_sign
+
+
+# --- SMB2 --------------------------------------------------------------------
+def smb2_negotiate(
+    handler: "SMBHandler",
+    target_revision: int,
+    request: smb2.SMB2Negotiate | None = None,
+) -> smb2.SMB2Negotiate_Response:
     command = smb2.SMB2Negotiate_Response()
-    command["SecuityMode"] = 0x01  # signing enabled, but not enforced
+    command["SecurityMode"] = 0x01  # signing enabled, but not enforced
     command["DialectRevision"] = target_revision
     command["ServerGuid"] = secrets.token_bytes(16)
     command["Capabilities"] = 0x00
@@ -166,6 +239,50 @@ def smb2_negotiate(handler: "SMBHandler", target_revision: int):
     blob = negTokenInit([SPNEGO_NTLMSSP_MECH])
     command["Buffer"] = blob.getData()
     command["SecurityBufferLength"] = len(command["Buffer"])
+
+    if target_revision == smb2.SMB2_DIALECT_311:
+        # 2.2.3.1.1 SMB2_PREAUTH_INTEGRITY_CAPABILITIES
+        # The format of the data in the Data field of this SMB2_NEGOTIATE_CONTEXT MUST
+        # take the same form specified in section 2.2.3.1.1 except that the
+        # HashAlgorithmCount field MUST be 1.
+        int_caps = smb3.SMB2PreAuthIntegrityCapabilities()
+        int_caps["HashAlgorithmCount"] = 1
+        int_caps["SaltLength"] = 32
+        int_caps["HashAlgorithms"] = SMB2_INTEGRITY_SHA512
+        int_caps["Salt"] = secrets.token_bytes(32)
+
+        # 2.2.3.1.2 SMB2_ENCRYPTION_CAPABILITIES
+        # The format of the data in the Data field of this SMB2_NEGOTIATE_CONTEXT MUST take
+        # the same form specified in section 2.2.3.1.2 except that the CipherCount field
+        # MUST be 1
+        target_cipher = smb3.SMB2_ENCRYPTION_AES128_GCM
+        target_sign = 0x001  # SMB2_SIGNING_AES_CMAC
+        if request:
+            target_cipher, target_sign = SMB3_get_target_capabilities(handler, request)
+
+        enc_caps = smb3.SMB2EncryptionCapabilities()
+        enc_caps["CipherCount"] = 1
+        enc_caps["Ciphers"] = uint16.to_bytes(target_cipher, order=LittleEndian)
+
+        # 2.2.3.1.7 SMB2_SIGNING_CAPABILITIES are missing in impackets collection
+        sign_caps = SMB2SigningCapabilities(
+            SigningAlgorithmCount=1, SigningAlgorithms=[target_sign]
+        )
+
+        # build Negotiate Contexts
+        context_data = SMB3_build_neg_context_list(
+            [
+                (smb3.SMB2_PREAUTH_INTEGRITY_CAPABILITIES, int_caps.getData()),
+                (smb3.SMB2_ENCRYPTION_CAPABILITIES, enc_caps.getData()),
+                (0x0008, sign_caps.to_bytes()),
+            ]
+        )
+
+        # print(len(command["Buffer"]))
+        command["NegotiateContextOffset"] = 0x80 + command["SecurityBufferLength"] + 2
+        command["NegotiateContextList"] = b"\xff\xff" + context_data
+        command["NegotiateContextCount"] = 3
+
     return command
 
 
@@ -180,10 +297,10 @@ def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> N
     )
 
     # REVISIT
-    dialect = None
-    for candidate in req_dialects:
-        if candidate < 0x300:  # SMBv3 not supported
-            dialect = candidate
+    dialect = req_dialects[-1]
+    # for candidate in req_dialects:
+    #     if candidate < 0x300:
+    #         dialect = candidate
 
     if dialect is None:
         handler.logger.fail(
@@ -191,7 +308,7 @@ def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> N
         )
         raise BaseProtoHandler.TerminateConnection
 
-    command = smb2_negotiate(handler, dialect)
+    command = smb2_negotiate(handler, dialect, req)
     handler.log_server(
         f"selected dialect: {SMB2_DIALECTS.get(dialect, hex(dialect))}",
         "SMB2_NEGOTIATE",
@@ -229,7 +346,7 @@ def smb2_logoff(handler: "SMBHandler", packet: smb2.SMB2Packet) -> None:
     )
 
 
-# --- SMB1 ---
+# --- SMB1 --------------------------------------------------------------------
 def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
     resp = smb.NewSMBPacket()
     resp["Flags1"] = smb.SMB.FLAGS1_REPLY

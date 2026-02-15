@@ -17,12 +17,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# pyright: reportInvalidTypeForm=false, reportCallIssue=false
+# pyright: basic
 #
 # Notes:
 #   - Implementation of the MySQL protocol according to the online documentation.
 #     https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html
-# pyright: reportUninitializedInstanceVariable=false
 import typing
 import enum
 
@@ -32,10 +31,13 @@ from collections import OrderedDict
 from caterpillar.py import (
     CString,
     Const,
+    Invisible,
     Prefixed,
     String,
+    f,
     pack,
     struct,
+    struct_factory,
     this,
     uint24,
     uint8,
@@ -48,6 +50,7 @@ from caterpillar.py import (
     unpack,
 )
 from caterpillar.exception import DynamicSizeError, StructException
+from caterpillar.types import cstr_t, uint16_t, uint24_t, uint32_t, uint8_t
 
 from dementor.config.session import SessionConfig
 from dementor.log.hexdump import hexdump
@@ -176,7 +179,7 @@ class LengthEncodedInteger:
     def __size__(self, context):
         raise DynamicSizeError("LengthEncodedInteger is dynamic")
 
-    def __unpack__(self, context):
+    def __unpack__(self, context) -> int:
         (size,) = context._io.read(1)
         if 0 <= size < 251:
             return size
@@ -194,14 +197,14 @@ class LengthEncodedInteger:
             case _:
                 raise StructException("invalid length-encoded integer")
 
-    def __pack__(self, value: int, context):
+    def __pack__(self, obj: int, context):
         prefix = None
-        if value < 251:
+        if obj < 251:
             target = uint8
-        elif value < 0x10000:
+        elif obj < 0x10000:
             prefix = b"\xfc"
             target = uint16
-        elif value < 0x1000000:
+        elif obj < 0x1000000:
             prefix = b"\xfd"
             target = uint24
         else:
@@ -211,7 +214,7 @@ class LengthEncodedInteger:
         if prefix:
             context._io.write(prefix)
 
-        target.pack_single(value, context)
+        target.pack_single(obj, context)
 
 
 # [Protocol::Packet]
@@ -219,23 +222,23 @@ class LengthEncodedInteger:
 class Packet:
     # Length of the payload. The number of bytes in the packet beyond the
     # initial 4 bytes that make up the packet header.
-    payload_length: uint24
+    payload_length: uint24_t
 
     # The sequence-id is incremented with each packet and may wrap around.
     # It starts at 0 and is reset to 0 when a new command begins in the
     # Command Phase.
-    sequence_id: uint8
+    sequence_id: uint8_t
 
     # payload of the packet
-    payload: Bytes(this.payload_length)
+    payload: f[bytes, Bytes(this.payload_length)]
 
 
 # [ERR_Packet]
 @struct(order=LittleEndian)
 class ERR_Packet:
-    header: Const(0xFF, uint8)
-    error_code: uint16
-    error_message: String(...)
+    header: f[int, Const(0xFF, uint8)] = Invisible()
+    error_code: uint16_t
+    error_message: f[str, String(...)]
 
 
 def _auth_plugin_length(context):
@@ -252,40 +255,40 @@ def _has_auth_plugin_data(context):
 
 
 # [Protocol::HandshakeV10]
-@struct(order=LittleEndian)
+@struct(order=LittleEndian, kw_only=True)
 class HandshakeV10:
-    protocol_version: Const(10, uint8)
-    server_version: CString()
+    protocol_version: f[int, Const(10, uint8)] = Invisible()
+    server_version: cstr_t
 
     # a.k.a. connection id
-    thread_id: uint32 = 0
+    thread_id: uint32_t = 0
 
     # first 8 bytes of the plugin provided data (scramble)
-    salt: Bytes(8)
+    salt: f[bytes, Bytes(8)]
 
     # 0x00 byte, terminating the first part of a scramble
-    filler: Const(0x00, uint8)
+    filler: f[int, Const(0x00, uint8)] = Invisible()
 
     # Why does it have to be that complicated?
     # The lower 2 bytes of the Capabilities Flags
-    flags_lower: uint16 = 0x000
+    flags_lower: uint16_t = 0x000
 
     # default server a_protocol_character_set, only the lower 8-bits
-    character_set: uint8 = 0x3F
+    character_set: uint8_t = 0x3F
     status_flags: SERVER_STATUS_flags_enum = 0x00
-    flags_upper: uint16 = 0x000
+    flags_upper: uint16_t = 0x000
 
     # length of the combined auth_plugin_data (scramble), if
     # auth_plugin_data_len is > 0
-    auth_plugin_data_len: uint8 = 0x00
-    reserved: Bytes(10) = b"\0" * 10
+    auth_plugin_data_len: uint8_t = 0x00
+    reserved: f[bytes, Bytes(10)] = b"\0" * 10
 
     # Rest of the plugin provided data (scramble), $len=MAX(13, length of
     # auth-plugin-data - 8)
-    salt2: Bytes(_auth_plugin_length)
+    salt2: f[bytes, Bytes(_auth_plugin_length)]
 
     # name of the auth_method that the auth_plugin_data belongs to
-    auth_plugin_name: CString() // _has_auth_plugin_data
+    auth_plugin_name: f[str | None, CString() // _has_auth_plugin_data]
 
     def set_flags(self, flags):
         self.flags_lower = flags & 0xFFFF
@@ -310,41 +313,41 @@ def _client_connect_attrs(context):
 # [Protocol::SSLRequest]
 @struct(order=LittleEndian)
 class SSLRequest:
-    capabilities: uint32
-    max_packet_size: uint32
-    character_set: uint8
+    capabilities: uint32_t
+    max_packet_size: uint32_t
+    character_set: uint8_t
     # everything else is not used
 
 
 @struct(order=LittleEndian)
-class ConnectionAttribute:
+class ConnectionAttribute(struct_factory.mixin):
     # will be stored as bytes rather than string
-    key: Prefixed(LengthEncodedInteger)
-    value: Prefixed(LengthEncodedInteger)
+    key: f[bytes, Prefixed(LengthEncodedInteger)]
+    value: f[bytes, Prefixed(LengthEncodedInteger)]
 
 
 # [Protocol::HandshakeResponse]
-@struct(order=LittleEndian)
+@struct(order=LittleEndian, kw_only=True)
 class HandshakeResponse:
-    client_flags: uint32
-    max_packet_size: uint32
-    charset: uint8
+    client_flags: uint32_t
+    max_packet_size: uint32_t
+    charset: uint8_t
 
     # filler to the size of the handhshake response packet. All 0s.
-    filler: Bytes(23) = b"\0" * 23
+    filler: f[bytes, Bytes(23)] = b"\0" * 23
 
     # 	login user name
-    username: CString()
+    username: cstr_t
 
     # opaque authentication response data generated by Authentication Method
     # indicated by the plugin name field.
     # NOTE: we always assume a length encoded integer
-    auth_response: Prefixed(LengthEncodedInteger)
+    auth_response: f[bytes, Prefixed(LengthEncodedInteger)]
 
     # initial database for the connection. This string should be interpreted
     # using the character set indicated by character set field.
-    database: CString() // _client_connect_db
-    client_plugin_name: CString() // _client_auth_plugin
+    database: f[str | None, CString() // _client_connect_db]
+    client_plugin_name: f[str | None, CString() // _client_auth_plugin]
 
     # From the docs:
     # if capabilities & CLIENT_CONNECT_ATTRS {
@@ -353,9 +356,11 @@ class HandshakeResponse:
     #   string<lenenc> Value of the 1st client attribute
     # .. (if more data in length of all key-values, more keys and values parts)
     # }
-    conn_attrs: (
+    conn_attrs: f[
+        list[ConnectionAttribute] | None,
         Prefixed(LengthEncodedInteger, ConnectionAttribute[...])
-    ) // _client_connect_attrs
+        // _client_connect_attrs,
+    ]
     # zstd_compression_level is dropped here
 
 

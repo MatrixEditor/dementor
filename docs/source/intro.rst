@@ -21,15 +21,15 @@ Installation
 The *Dementor* package can be installed either via ``pip`` from `PyPI <https://pypi.org/project/dementor/>`_
 or directly from the `GitHub repository <https://github.com/MatrixEditor/dementor>`_.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: pip
+    .. tab-item:: pip
 
         .. code-block:: bash
 
             pip install dementor
 
-    .. tab:: pip via git
+    .. tab-item:: pip via git
 
         .. code-block:: bash
 

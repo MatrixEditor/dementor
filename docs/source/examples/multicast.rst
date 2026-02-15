@@ -11,9 +11,9 @@ Classic Multicast Poisoning
 To enable multicast poisoning, activate the poisoners in the configuration file
 (:attr:`Dementor.mDNS`, :attr:`Dementor.NBTNS`, and :attr:`Dementor.LLMNR`).
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Dementor.toml
+    .. tab-item:: Dementor.toml
 
         .. code-block:: toml
             :emphasize-lines: 3-5
@@ -25,7 +25,7 @@ To enable multicast poisoning, activate the poisoners in the configuration file
             NBTNS = true
             # [...]
 
-    .. tab:: CLI
+    .. tab-item:: CLI
 
         .. code-block:: console
 
@@ -62,9 +62,9 @@ Multicast poisoning can also be used to capture NTLM hashes via DCE/RPC requests
 built-in :ref:`config_dcerpc` service. By default, any call involving DCOM or the Endpoint Mapper (EPM)
 is available.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Dementor.toml
+    .. tab-item:: Dementor.toml
 
         .. code-block:: toml
             :emphasize-lines: 3
@@ -74,7 +74,7 @@ is available.
             RPC = true
             # [...]
 
-    .. tab:: CLI
+    .. tab-item:: CLI
 
         .. code-block:: console
 
@@ -127,9 +127,9 @@ Beyond traditional multicast poisoning, Synacktiv introduced a technique that en
 relaying via spoofed response names. This can be triggered by setting a custom
 :attr:`LLMNR.AnswerName`.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Dementor.toml
+    .. tab-item:: Dementor.toml
 
         .. code-block:: toml
             :emphasize-lines: 2
@@ -137,7 +137,7 @@ relaying via spoofed response names. This can be triggered by setting a custom
             [LLMNR]
             AnswerName = "other-srv"
 
-    .. tab:: CLI
+    .. tab-item:: CLI
 
         .. code-block:: console
 

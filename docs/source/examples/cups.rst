@@ -36,9 +36,9 @@ send an HTTP request back to us:
 
 The configuration necessary to capture IPP requests with *Dementor* is:
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Dementor.toml
+    .. tab-item:: Dementor.toml
 
         .. code-block:: toml
             :emphasize-lines: 3
@@ -48,7 +48,7 @@ The configuration necessary to capture IPP requests with *Dementor* is:
             IPP = true
             # [...]
 
-    .. tab:: CLI
+    .. tab-item:: CLI
 
         .. code-block:: console
 
@@ -77,9 +77,9 @@ Abusing CVE-2024-47175 / CVE-2024-47076
 To exploit these vulnerabilities, we must configure the command to be injected. (*Dementor* will
 display this configured command in the IPP response)
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Dementor.toml
+    .. tab-item:: Dementor.toml
 
         .. code-block:: toml
             :emphasize-lines: 3
@@ -92,7 +92,7 @@ display this configured command in the IPP response)
             [IPP]
             RemoteCmd = "echo 1 > /tmp/I_AM_VULNERABLE"
 
-    .. tab:: CLI
+    .. tab-item:: CLI
 
         .. code-block:: console
 
