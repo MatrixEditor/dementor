@@ -180,17 +180,17 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <i class="i-lucide check-check sd-text-success l"></i>
                 <table>
                 <tbody>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                 </tbody>
                 </table>
@@ -235,7 +235,7 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <i class="i-lucide check-check sd-text-success l"></i>
                 <table>
                 <tbody>
                     <tr>
@@ -245,7 +245,7 @@ in development. The legend for each symbol is as follows:
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                 </tbody>
                 </table>
@@ -351,17 +351,17 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <i class="i-lucide check-check sd-text-success l"></i>
                 <table>
                 <tbody>
                     <tr>
-                         <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                 </tbody>
                 </table>
