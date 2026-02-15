@@ -17,12 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: basic
 import asyncio
 import tomllib
 import json
 import typer
 import pathlib
 
+from threading import Thread
 from typing import Any
 from typing_extensions import Annotated
 
@@ -49,6 +51,7 @@ from dementor.log import dm_console, logger, stream as log_stream
 from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
+from dementor.repl import Repl
 
 
 def serve(
@@ -60,7 +63,8 @@ def serve(
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
     éxtra_options: dict[str, Any] | None = None,
-) -> tuple | None:
+    run_repl: bool = False,
+) -> tuple[SessionConfig, dict[str, list[Thread]]] | None:
     if config_path:
         try:
             config.init_from_file(config_path)
@@ -135,22 +139,26 @@ def serve(
         session.loop = loop or asyncio.get_event_loop()
 
     asyncio.set_event_loop(session.loop)
-    threads = []
+    threads: dict[str, list[Thread]] = {}
     for name, protocol in protocols.items():
         try:
             servers = loader.create_servers(protocol, session)
-            threads.extend(servers)
+            threads[name.lower()] = list(servers)
         except Exception as e:
             dm_logger.exception(f"Failed to create server for protocol {name}: {e}")
 
     # Start threads
-    for thread in threads:
-        thread.daemon = True
-        thread.start()
+    for thread_list in threads.values():
+        for thread in thread_list:
+            thread.daemon = True
+            thread.start()
 
     if run_forever:
         try:
-            session.loop.run_forever()
+            if run_repl:
+                Repl(session, threads, protocols).run()
+            else:
+                session.loop.run_forever()
         except KeyboardInterrupt:
             pass
         finally:
@@ -159,13 +167,16 @@ def serve(
     return (session, threads)
 
 
-def stop_session(session: SessionConfig, threads=None) -> None:
+def stop_session(
+    session: SessionConfig, threads: dict[str, list[Thread]] | None = None
+) -> None:
     # 1. stop event loop
     session.loop.stop()
 
     # 2. close threads
-    for thread in threads or []:
-        del thread
+    for thread_list in (threads or {}).values():
+        for thread in thread_list:
+            del thread
 
     # 3. close database
     session.db.close()
@@ -415,7 +426,7 @@ def main(
         typer.Option(
             "--ts",
             help="Log timestamps to the terminal too",
-        )
+        ),
     ] = False,
     show_paths: Annotated[
         bool,
@@ -423,7 +434,15 @@ def main(
             "--paths",
             help="Displays the default configuration paths",
             show_default=False,
-        )
+        ),
+    ] = False,
+    repl: Annotated[
+        bool,
+        typer.Option(
+            "--repl",
+            help="Starts Dementor in interactive mode supporting runtime configuration",
+            show_default=False,
+        ),
     ] = False,
 ) -> None:
     if show_paths:
@@ -508,7 +527,7 @@ def main(
         if result.lower() != "y":
             return
 
-    serve(interface=interface, session=session, analyze_only=analyze)
+    serve(interface=interface, session=session, analyze_only=analyze, run_repl=repl)
 
 
 def run_from_cli() -> None:

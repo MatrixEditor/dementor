@@ -17,12 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from dementor.config.session import SessionConfig
-
-
-from dementor.config.session import SessionConfig
-
-
+# pyright: basic
 import traceback
 import pathlib
 import socket
@@ -34,7 +29,7 @@ import ssl
 
 from io import StringIO
 from typing import Any, Tuple
-from socketserver import BaseRequestHandler
+from socketserver import BaseRequestHandler, BaseServer
 
 from dementor import db
 from dementor.log import hexdump
@@ -81,6 +76,18 @@ class ServerThread(threading.Thread):
             dm_logger.exception(
                 f"Failed to start server for {self.service_name} ({address}:{port}): {e}"
             )
+
+
+def stop_server_thread(thread: threading.Thread) -> None:
+    server: Any | None = getattr(thread, "server", None)
+    if isinstance(server, BaseServer):
+        server.shutdown()
+    else:
+        # the server must define a 'stop_flag' attribute to request
+        # a shutdown
+        stop_flag: threading.Event | None = getattr(server, "stop_flag", None)
+        if stop_flag:
+            stop_flag.set()
 
 
 class BaseProtoHandler(BaseRequestHandler, ProtocolLoggerMixin):
@@ -183,6 +190,7 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
     ) -> None:
         self.config = config
         self.ipv4_only = getattr(config, "ipv4_only", False)
+        self.stop_flag = threading.Event()
         if config.ipv6 and not self.ipv4_only:
             self.address_family = socket.AF_INET6
 
@@ -196,7 +204,10 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
         socketserver.UDPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:
-        self.RequestHandlerClass(self.config, request, client_address, self)
+        if self.stop_flag.is_set():
+            self.shutdown()
+        else:
+            self.RequestHandlerClass(self.config, request, client_address, self)
 
 
 def bind_server(server, session):
@@ -221,6 +232,7 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     ) -> None:
         self.config = config
         self.ipv4_only = getattr(config, "ipv4_only", False)
+        self.stop_flag = threading.Event()
         if config.ipv6 and not self.ipv4_only:
             self.address_family = socket.AF_INET6
         super().__init__(
@@ -233,7 +245,10 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         socketserver.TCPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:
-        self.RequestHandlerClass(self.config, request, client_address, self)
+        if self.stop_flag.is_set():
+            self.shutdown()
+        else:
+            self.RequestHandlerClass(self.config, request, client_address, self)
 
 
 def create_tls_context(
