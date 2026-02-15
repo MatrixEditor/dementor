@@ -26,8 +26,8 @@ in development. The legend for each symbol is as follows:
     <thead>
         <tr>
             <th>Supported Protocols</th>
-            <th><a href="https://github.com/lgandx/Responder">Responder</a></th>
-            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor</a></th>
+            <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
+            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev17)</a></th>
         </tr>
     </thead>
     <tbody>
@@ -85,16 +85,22 @@ in development. The legend for each symbol is as follows:
                         <td>LM</td>
                     </tr>
                     <tr>
-                        <td>NTLMv1</td>
+                        <td>SMB 2.002</td>
                     </tr>
                     <tr>
-                        <td>NTLMv2</td>
+                        <td>SMB 2.1</td>
                     </tr>
                     <tr>
-                        <td>NTLMv1-SSP</td>
+                        <td>SMB 2.???</td>
                     </tr>
                     <tr>
-                        <td>NTLMv2-SSP</td>
+                        <td>SMB 3.0</td>
+                    </tr>
+                    <tr>
+                        <td>SMB 3.0.2</td>
+                    </tr>
+                    <tr>
+                        <td>SMB 3.1.1</td>
                     </tr>
                 </tbody>
                 </table>
@@ -116,7 +122,13 @@ in development. The legend for each symbol is as follows:
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                 </tbody>
                 </table>
@@ -127,6 +139,12 @@ in development. The legend for each symbol is as follows:
                 <tbody>
                     <tr>
                         <td><i class="i-lucide cancelled sd-text-secondary l"></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -552,13 +570,13 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#confusion">[1]</a></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
                     </tr>
                 </tbody>
                 </table>
