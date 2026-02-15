@@ -39,12 +39,14 @@ from dementor.config.session import SessionConfig
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters
 
+# --- Constants ---------------------------------------------------------------
 MDNS_IPV4_ADDR = "224.0.0.251"
 MDNS_IPV6_ADDR = "ff02::fb"
 
 QTYPES = {name: value for value, name in dns.dnsqtypes.items()}
 
 
+# --- Configuration -----------------------------------------------------------
 def apply_config(session: SessionConfig) -> None:
     session.mdns_config = TomlConfig.build_config(MDNSConfig)
 
@@ -54,13 +56,6 @@ def create_server_threads(session: SessionConfig) -> list[ServerThread]:
         return []
 
     return [ServerThread(session, MDNSServer)]
-
-
-def normalized_name(host: str | bytes) -> str:
-    if isinstance(host, (bytes, bytearray)):
-        host = host.decode("utf-8", errors="replace")
-
-    return str(host).strip().removesuffix(".").removesuffix(".local")
 
 
 class MDNSConfig(TomlConfig):
@@ -83,6 +78,14 @@ class MDNSConfig(TomlConfig):
     def set_mdns_qtypes(self, value: list[str | int]):
         # REVISIT: maybe add error check here
         self.mdns_qtypes = [x if isinstance(x, int) else QTYPES[x] for x in value]
+
+
+# --- Utilities -----------------------------------------------------------
+def normalized_name(host: str | bytes) -> str:
+    if isinstance(host, (bytes, bytearray)):
+        host = host.decode("utf-8", errors="replace")
+
+    return str(host).strip().removesuffix(".").removesuffix(".local")
 
 
 # MDNS / LLMNR Answer Packet
@@ -112,6 +115,7 @@ def build_dns_answer(req_id: int, question: dns.DNSQR, config: SessionConfig):
     )
 
 
+# --- Poisoner/Server ---------------------------------------------------------
 class MDNSPoisoner(BaseProtoHandler):
     def proto_logger(self):
         return ProtocolLogger(
@@ -150,6 +154,7 @@ class MDNSPoisoner(BaseProtoHandler):
                 if "._tcp" not in normalized_qname and "._udp" not in normalized_qname:
                     if not normalized_qname.endswith(".arpa"):
                         log_to("dns", type="MDNS", name=normalized_qname)
+
                 name = markup.escape(normalized_qname)
                 self.logger.display(
                     f"Request for [i]{name}[/i] (class: {qclass}, type: {qtype})"
