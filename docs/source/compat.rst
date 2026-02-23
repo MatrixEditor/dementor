@@ -27,7 +27,7 @@ in development. The legend for each symbol is as follows:
         <tr>
             <th>Supported Protocols</th>
             <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
-            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev17)</a></th>
+            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev18)</a></th>
         </tr>
     </thead>
     <tbody>
