@@ -36,7 +36,8 @@ from dementor.protocols.ntlm import (
     NTLM_report_auth,
     NTLM_split_fqdn,
     ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_ESS,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
 )
 from dementor.servers import (
     ServerThread,
@@ -92,7 +93,8 @@ class IMAPServerConfig(TomlConfig):
         A("imap_banner", "Banner", "IMAP4rev2 service ready"),
         A("imap_downgrade", "Downgrade", True),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
         ATTR_KEY,
         ATTR_CERT,
         ATTR_TLS,
@@ -106,7 +108,8 @@ class IMAPServerConfig(TomlConfig):
         imap_banner: str
         imap_downgrade: bool
         ntlm_challenge: bytes
-        ntlm_ess: bool
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
         ntlm_key: str
         ntlm_cert: str
         ntlm_tls: bool
@@ -344,7 +347,8 @@ class IMAPHandler(BaseProtoHandler):
             negotiate,
             *NTLM_split_fqdn(self.server_config.imap_fqdn),
             challenge=self.server_config.ntlm_challenge,
-            disable_ess=not self.server_config.ntlm_ess,
+            disable_ess=self.server_config.ntlm_disable_ess,
+            disable_ntlmv2=self.server_config.ntlm_disable_ntlmv2,
         )
 
         # IMAP4_AUTHENTICATE_NTLM_Blob_Command

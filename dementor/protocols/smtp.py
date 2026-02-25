@@ -41,6 +41,7 @@ from aiosmtpd.smtp import (
 )
 from aiosmtpd.controller import Controller
 
+from impacket import ntlm
 from impacket.ntlm import (
     NTLMAuthChallengeResponse,
     NTLMAuthNegotiate,
@@ -100,6 +101,9 @@ class SMTPServerConfig(TomlConfig):
         smtp_require_starttls: bool
         smtp_tls_cert: str
         smtp_tls_key: str
+        ntlm_challenge: bytes
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -265,8 +269,9 @@ class SMTPServerHandler:
             negotiate_message,
             name,
             domain,
-            self.config.ntlm_challange,
-            disable_ess=not self.config.ntlm_ess,
+            challenge=self.config.ntlm_challenge,
+            disable_ess=self.config.ntlm_disable_ess,
+            disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
         )
 
         # 6. The server sends an SMTP_AUTH_NTLM_BLOB_Response message containing a base64-encoded
@@ -279,7 +284,7 @@ class SMTPServerHandler:
         auth_message.fromString(blob)
         NTLM_report_auth(
             auth_message,
-            self.config.ntlm_challange,
+            self.config.ntlm_challenge,
             server.session.peer,
             self.config,
             self.logger,

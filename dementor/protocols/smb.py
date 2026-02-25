@@ -54,7 +54,8 @@ from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,
     ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_ESS,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
     NTLM_split_fqdn,
 )
 from dementor.protocols.spnego import (
@@ -100,7 +101,8 @@ class SMBServerConfig(TomlConfig):
         # proposed: protocol transition from smb1 to smb2
         A("smb2_support", "SMB2Support", True),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -110,7 +112,8 @@ class SMBServerConfig(TomlConfig):
         smb_error_code: int
         smb2_support: bool
         ntlm_challenge: bytes
-        ntlm_ess: bool
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
     def set_smb_error_code(self, value: str | int):
         if isinstance(value, int):
@@ -754,7 +757,8 @@ class SMBHandler(BaseProtoHandler):
                     negotiate,
                     *NTLM_split_fqdn(self.smb_config.smb_fqdn),
                     challenge=self.smb_config.ntlm_challenge,
-                    disable_ess=not self.smb_config.ntlm_ess,
+                    disable_ess=self.smb_config.ntlm_disable_ess,
+                    disable_ntlmv2=self.smb_config.ntlm_disable_ntlmv2,
                 )
                 self.log_server("NTLMSSP_CHALLENGE_MESSAGE", command_name)
                 if is_gssapi:

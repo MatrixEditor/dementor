@@ -35,8 +35,9 @@ from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    ATTR_NTLM_ESS,
     ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
     NTLM_report_auth,
     NTLM_split_fqdn,
 )
@@ -84,7 +85,8 @@ class RPCConfig(TomlConfig):
         A("rpc_modules", "Interfaces", list),
         A("rpc_error_code", "ErrorCode", "rpc_s_access_denied"),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -94,7 +96,8 @@ class RPCConfig(TomlConfig):
         rpc_modules: list[RPCModule]
         rpc_error_code: int
         ntlm_challenge: bytes
-        ntlm_ess: bool
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
     def set_rcp_error_code(self, value: str | int):
         if isinstance(value, str):
@@ -298,7 +301,8 @@ class RPCHandler(BaseProtoHandler):
                     negotiate,
                     *NTLM_split_fqdn(self.rpc_config.rpc_fqdn),
                     challenge=self.rpc_config.ntlm_challenge,
-                    disable_ess=not self.rpc_config.ntlm_ess,
+                    disable_ess=self.rpc_config.ntlm_disable_ess,
+                    disable_ntlmv2=self.rpc_config.ntlm_disable_ntlmv2,
                 )
                 bind_ack["auth_data"] = challenge.getData()
                 bind_ack["auth_len"] = len(bind_ack["auth_data"])

@@ -35,6 +35,7 @@ from impacket.ldap.ldapasn1 import (
     UnbindRequest,
 )
 from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
+from rich.logging import divide
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
@@ -182,8 +183,9 @@ class LDAPHandler(BaseProtoHandler):
             negotiate,
             name,
             domain,
-            self.config.ntlm_challange,
-            disable_ess=not self.config.ntlm_ess,
+            challenge=self.config.ntlm_challenge,
+            disable_ess=self.config.ntlm_disable_ess,
+            disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
         )
         # return bind success with challenge message
         self.send(self.server.bind_result(req, matched_dn=ntlm_challenge.getData()))
@@ -194,7 +196,7 @@ class LDAPHandler(BaseProtoHandler):
         auth_message.fromString(blob)
         NTLM_report_auth(
             auth_token=auth_message,
-            challenge=self.config.ntlm_challange,
+            challenge=self.config.ntlm_challenge,
             client=self.client_address,
             logger=self.logger,
             session=self.config,
@@ -269,8 +271,9 @@ class LDAPHandler(BaseProtoHandler):
             ntlm_challenge = NTLM_AUTH_CreateChallenge(
                 token,
                 *NTLM_split_fqdn(self.server.server_config.ldap_fqdn),
-                challenge=self.config.ntlm_challange,
-                disable_ess=not self.config.ntlm_ess,
+                challenge=self.config.ntlm_challenge,
+                disable_ess=self.config.ntlm_disable_ess,
+                disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
             )
             return self.send(
                 self.server.bind_result(
@@ -285,7 +288,7 @@ class LDAPHandler(BaseProtoHandler):
             token.fromString(data)
             NTLM_report_auth(
                 auth_token=token,
-                challenge=self.config.ntlm_challange,
+                challenge=self.config.ntlm_challenge,
                 client=self.client_address,
                 logger=self.logger,
                 session=self.config,
