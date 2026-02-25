@@ -123,8 +123,9 @@ class SessionConfig(TomlConfig):
         upnp_config: upnp.UPNPConfig
         x11_config: x11.X11Config
 
-        ntlm_challange: bytes
-        ntlm_ess: bool
+        ntlm_challenge: bytes
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
         analysis: bool
         loop: asyncio.AbstractEventLoop
 
@@ -165,8 +166,8 @@ class SessionConfig(TomlConfig):
         self.smtp_servers = []
 
         # NTLM configuration
-        self.ntlm_challange = b"1337LEET"
-        self.ntlm_ess = True
+        self.ntlm_disable_ess = True
+        self.ntlm_disable_ntlmv2 = False
 
     def is_bound_to_all(self) -> bool:
         # REVISIT: this should raise an exception
