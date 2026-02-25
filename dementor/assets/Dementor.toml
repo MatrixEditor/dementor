@@ -329,15 +329,23 @@ Port = 25
 [NTLM]
 
 # Server challenge value used in NTLM authentication.
-# Should be a fixed 8-byte string.
+# Needs to be a 8 byte ascii or hex encoded string
+# Examples "1337LEET" or "1122334455667788" or "1a2b3c4d5e6f7a8b"
 
 Challenge = "1337LEET"
 
-# Enable Extended Session Security (ESS) for NTLM authentication.
-# ESS results in NTLMv1/v2-SSP hashes instead of regular NTLMv1/v2 hashes.
+# Disable Extended Session Security (ESS) for NTLM authentication.
+# ESS enabled results in NTLMv1-SSP hashes instead of regular NTLMv1 hashes.
+# Default is false (ESS is enabled)
 
-ExtendedSessionSecurity = true
+DisableExtendedSessionSecurity = false
 
+# Force NTLMv2 to not be allowed
+# Clients who can not perform NTLMv1 silently fail with ZERO hashes captured
+# This is advanced and in most cases is not needed
+# Default is false (NTLMv2 is enabled)
+
+DisableNTLMv2 = false
 
 # =============================================================================
 # FTP Server(s)
