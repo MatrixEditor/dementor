@@ -3,6 +3,7 @@ name = "dementor"
 version = "1.0.0.dev18"
 license = { file = "LICENSE" }
 
+requires-python = ">=3.10"
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
 authors = [{ name = "MatrixEditor" }]
 maintainers = [{ name = "MatrixEditor" }]
@@ -51,3 +52,7 @@ include = ["dementor*"]
 
 [tool.setuptools.package-data]
 dementor = ["assets/**"]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
