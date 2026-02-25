@@ -35,7 +35,6 @@ from impacket.ldap.ldapasn1 import (
     UnbindRequest,
 )
 from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
-from rich.logging import divide
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
