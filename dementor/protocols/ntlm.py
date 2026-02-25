@@ -167,7 +167,7 @@ def apply_config(session: SessionConfig) -> None:
     Reads [NTLM] section values and populates:
 
         session.ntlm_challenge       8-byte ServerChallenge (bytes)
-        session.ntlm_ess             Enable ESS flag in CHALLENGE_MESSAGE (bool)
+        session.ntlm_disable_ess     Enable ESS flag in CHALLENGE_MESSAGE (bool)
         session.ntlm_disable_ntlmv2  Omit TargetInfoFields to block NTLMv2 (bool)
 
     The ServerChallenge can be specified as:
@@ -194,7 +194,7 @@ def apply_config(session: SessionConfig) -> None:
     """
     # Safe defaults first (session remains valid even if config parsing fails)
     session.ntlm_challenge = secrets.token_bytes(NTLM_CHALLENGE_LEN)
-    session.ntlm_ess = True
+    session.ntlm_disable_ess = True
     session.ntlm_disable_ntlmv2 = False
 
     challenge_source = "random (default)"
@@ -314,15 +314,15 @@ def apply_config(session: SessionConfig) -> None:
 
     # -- Extended Session Security -----------------------------------------
     try:
-        raw_ess = get_value("NTLM", "ExtendedSessionSecurity", default=True)
-        session.ntlm_ess = bool(is_true(raw_ess))
+        raw_ess = get_value("NTLM", "DisableExtendedSessionSecurity", default=True)
+        session.ntlm_disable_ess = bool(is_true(raw_ess))
     except Exception:
-        session.ntlm_ess = True
+        session.ntlm_disable_ess = False
         dm_logger.exception(
-            "Failed to apply NTLM ExtendedSessionSecurity; defaulting to True"
+            "Failed to apply NTLM DisableExtendedSessionSecurity; defaulting to False"
         )
     else:
-        dm_logger.debug("NTLM ExtendedSessionSecurity set to: %s", session.ntlm_ess)
+        dm_logger.debug("NTLM DisableExtendedSessionSecurity set to: %s", session.ntlm_disable_ess)
 
     # -- Disable NTLMv2 ----------------------------------------------------
     try:
@@ -330,13 +330,13 @@ def apply_config(session: SessionConfig) -> None:
         session.ntlm_disable_ntlmv2 = bool(is_true(raw_disable_ntlmv2))
     except Exception:
         session.ntlm_disable_ntlmv2 = False
-        dm_logger.exception("Failed to apply NTLM DisableNTLMv2; defaulting to False")
+        dm_logger.exception("Failed to apply NTLM Disable NTLMv2; defaulting to False")
     else:
-        dm_logger.debug("NTLM DisableNTLMv2 set to: %s", session.ntlm_disable_ntlmv2)
+        dm_logger.debug("NTLM Disable NTLMv2 set to: %s", session.ntlm_disable_ntlmv2)
 
     if session.ntlm_disable_ntlmv2:
         dm_logger.warning(
-            "NTLM DisableNTLMv2 is enabled — Level 3+ clients (all modern Windows) "
+            "NTLM Disable NTLMv2 is enabled — Level 3+ clients (all modern Windows) "
             "will FAIL authentication and NO hashes will be captured. "
             "This only helps against pre-Vista / manually-configured Level 0-2 clients. "
             "Use with caution."
