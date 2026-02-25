@@ -82,7 +82,7 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td>LM</td>
+                        <td>SMB 1.0</td>
                     </tr>
                     <tr>
                         <td>SMB 2.002</td>
@@ -110,7 +110,7 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -134,17 +134,85 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                NTLM
+                <table>
+                <tbody>
+                    <tr>
+                        <td>LMv1</td>
+                    </tr>
+                    <tr>
+                        <td>NTLMv1</td>
+                    </tr>
+                    <tr>
+                        <td>NTLMv1-SSP</td>
+                    </tr>
+                    <tr>
+                        <td>LMv2</td>
+                    </tr>
+                    <tr>
+                        <td>NTLMv2</td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
                 <i class="i-lucide triangle-alert sd-text-warning l"></i>
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide cancelled sd-text-secondary l"></td>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -355,7 +423,7 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
