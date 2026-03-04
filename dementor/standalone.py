@@ -206,15 +206,15 @@ def parse_options(options: list[str]) -> dict:
             case _:
                 raw_value = raw_value.strip()
                 value = None
-                if raw_value[0] == "[":
+                if raw_value and raw_value[0] == "[":
                     value = json.loads(raw_value)
-                elif raw_value[0] not in ('"', "'"):
+                elif raw_value and raw_value[0] not in ('"', "'"):
                     try:
                         value = int(raw_value)
                     except ValueError:
                         pass
 
-                if value is None:
+                if value is None and raw_value:
                     value = raw_value.removeprefix('"').removesuffix('"')
 
         if append_value:
