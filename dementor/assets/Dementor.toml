@@ -10,11 +10,16 @@
 #
 # Value Resolution:
 # -----------------
-# All values are resolved in the following order:
-#   1. Most local section (e.g. [[SMB.Server]] or [QUIC])
-#   2. Local (protocol) section (e.g. [SMB] or [Log])
-#   3. Global section ([Globals]) — used only in specific cases.
-#      Refer to the online documentation for a complete list.
+# All values are resolved in the following order (highest priority first):
+#   1. Per-server entry  (e.g. [[SMB.Server]], [[HTTP.Server]])
+#   2. Protocol section  (e.g. [SMB], [HTTP])
+#
+# The three NTLM settings (Challenge, DisableExtendedSessionSecurity,
+# DisableNTLMv2) additionally fall back through two more levels:
+#   3. [NTLM] section    — shared default for all NTLM-enabled protocols
+#   4. [Globals] section — last resort
+#
+# All other settings stop at step 2.
 #
 # Note: Some settings can only be used in the most local section (e.g. "Port").
 # These are also described in the docs.
@@ -266,6 +271,14 @@ SMB2Support = true
 
 ErrorCode = "STATUS_SMB_BAD_UID"
 
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   SMB servers, or inside [[SMB.Server]] to override for a single server only.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
+
 # You can define multiple SMB server instances to listen on different ports or use
 # different configurations.
 [[SMB.Server]]
@@ -308,6 +321,14 @@ Downgrade = true
 
 RequireSTARTTLS = false
 
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   SMTP servers, or inside [[SMTP.Server]] to override for a single server only.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
+
 # Example servers
 [[SMTP.Server]]
 Port = 25
@@ -324,26 +345,62 @@ Port = 25
 
 
 # =============================================================================
-# NTLM Configuration
+# NTLM Authentication
 # =============================================================================
+# This section provides shared defaults for all NTLM-enabled protocols:
+# SMB, HTTP, SMTP, LDAP, RPC, MSSQL, POP3, and IMAP.
+#
+# Resolution order for these three settings (highest priority first):
+#   1. [[Protocol.Server]] entry — per-server override (list-based protocols only:
+#                                  SMB, HTTP, SMTP, LDAP, POP3, IMAP)
+#   2. [Protocol] section        — per-protocol override (e.g. [SMB], [HTTP])
+#   3. [NTLM] section            — this section; the shared default
+#   4. [Globals] section         — broadest fallback
+#
+# If a protocol section does not define Challenge, DisableExtendedSessionSecurity,
+# or DisableNTLMv2, it inherits the values set here. This lets you configure one
+# shared challenge for all protocols while still being able to override it for a
+# specific protocol or a single server instance within that protocol.
+#
+
 [NTLM]
 
-# Server challenge value used in NTLM authentication.
-# Needs to be a 8 byte ascii or hex encoded string
-# Examples "1337LEET" or "1122334455667788" or "1a2b3c4d5e6f7a8b"
+# The 8-byte ServerChallenge nonce placed in the NTLM CHALLENGE_MESSAGE.
+# Also used verbatim when formatting captured hashes for hashcat.
+#
+# Accepted formats:
+#   "hex:1122334455667788"   explicit hex (preferred, unambiguous)
+#   "ascii:1337LEET"         explicit ASCII (preferred)
+#   "1122334455667788"       16 hex characters — auto-detected as hex
+#   "1337LEET"               8 ASCII characters — auto-detected as ASCII
+#   omitted / not set        cryptographically random 8 bytes per run
+#
+# A fixed Challenge combined with DisableExtendedSessionSecurity = true makes
+# NTLMv1 hashes crackable with precomputed rainbow tables.
 
 Challenge = "1337LEET"
 
-# Disable Extended Session Security (ESS) for NTLM authentication.
-# ESS enabled results in NTLMv1-ESS hashes instead of plain NTLMv1 hashes.
-# Default is false (ESS is enabled)
+# When true, the ESS flag (NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY) is
+# stripped from the CHALLENGE_MESSAGE sent to the client.
+#
+# false (default): ESS is echoed back when the client requests it. Clients
+#   that support ESS produce NTLMv1-ESS hashes (hashcat mode 5500 with
+#   MD5-mixed challenge). This is the modern, common NTLMv1 variant.
+#
+# true: ESS is suppressed regardless of what the client requests. Clients
+#   fall back to plain NTLMv1 (DES-only). With a fixed Challenge above,
+#   these hashes are vulnerable to precomputed rainbow table attacks.
 
 DisableExtendedSessionSecurity = false
 
-# Force NTLMv2 to not be allowed
-# Clients who can not perform NTLMv1 silently fail with ZERO hashes captured
-# This is advanced and in most cases is not needed
-# Default is false (NTLMv2 is enabled)
+# When true, TargetInfoFields are omitted from the CHALLENGE_MESSAGE.
+# Without TargetInfoFields clients cannot construct the NTLMv2 Blob
+# (MS-NLMP §3.3.2), which has the following effect by client security level:
+#   Level 0–2 (older Windows, manually downgraded): fall back to NTLMv1.
+#   Level 3+  (all modern Windows defaults): refuse to authenticate — zero
+#             hashes captured from these clients.
+#
+# Leave false unless specifically targeting legacy NTLMv1-only environments.
 
 DisableNTLMv2 = false
 
@@ -410,6 +467,14 @@ TLS = false
 # returned.
 
 # ErrorCode = "unwillingToPerform"
+
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   LDAP servers, or inside [[LDAP.Server]] to override for a single server only.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 [[LDAP.Server]]
 Connectionless = false
@@ -484,9 +549,13 @@ AuthSchemes = ["Basic", "Negotiate", "NTLM", "Bearer"]
 
 WebDAV = true
 
-# Challenge and ExtendedSessionSecurity are defined in the NTLM section and can
-# be applied here too.
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   HTTP servers, or inside [[HTTP.Server]] to override for a single server only.
 
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 # Indicates whether WPAD/PAC file serving is enabled. This setting is enabled by
 # default.Refer to the [Proxy] section for configuring the WPAD script source.
@@ -532,9 +601,13 @@ Port = 80
 # =============================================================================
 [RPC]
 
-# Similar to HTTP, SMTP, and SMB services, the RPC service also utilizes
-# the FQDN, Challenge, and ExtendedSessionSecurity settings defined in the
-# [NTLM] section.
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. RPC uses a single server instance so
+#   there is no per-server item level; only [RPC] or [NTLM] apply.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 # Specifies the RPC error code to be returned upon successful authentication.
 
@@ -576,10 +649,13 @@ TargetPort = 49000
 # =============================================================================
 [MSSQL]
 
-# The following NTLM-related settings can be inherited from the [NTLM] section:
-#   - FQDN
-#   - Challenge
-#   - ExtendedSessionSecurity
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. MSSQL uses a single server instance so
+#   there is no per-server item level; only [MSSQL] or [NTLM] apply.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 # Defines the error response configuration used to simulate MSSQL authentication
 # failure or control behavior.
@@ -636,10 +712,13 @@ InstanceName = "MSSQLServer"
 # =============================================================================
 [POP3]
 
-# The following NTLM-related settings can be inherited from the [NTLM] section:
-#   - FQDN (global)
-#   - Challenge
-#   - ExtendedSessionSecurity
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   POP3 servers, or inside [[POP3.Server]] to override for a single server only.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 # TLS configuration is also available and will be applied if TLS is set to true.
 # Therefore, it is recommended to use the TLS setting only within a server block.
@@ -678,10 +757,13 @@ Port = 110
 # =============================================================================
 [IMAP]
 
-# The following NTLM-related settings can be inherited from the [NTLM] section:
-#   - FQDN (global)
-#   - Challenge
-#   - ExtendedSessionSecurity
+# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
+#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   IMAP servers, or inside [[IMAP.Server]] to override for a single server only.
+
+# Challenge = "1337LEET"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 # TLS configuration is also available and will be applied if TLS is set to true.
 # Therefore, it is recommended to use the TLS setting only within a server block.
