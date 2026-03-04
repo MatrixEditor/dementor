@@ -18,9 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false, reportUnusedCallResult=false
-from typing import Any
-
-
+# pyright: reportAny=false, reportExplicitAny=false
 import argparse
 import inspect
 import logging
@@ -29,8 +27,9 @@ import datetime
 import sys
 import typing
 
-from abc import abstractmethod
+from typing import Any, ClassVar
 from logging.handlers import RotatingFileHandler
+from typing_extensions import override
 
 from rich.logging import RichHandler
 from rich.markup import render
@@ -40,12 +39,36 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log import dm_print, dm_console
 
+# -------------------------------------------------------------------------
+# Global constants
+# -------------------------------------------------------------------------
 LOG_DEFAULT_TIMEFMT = "%H:%M:%S"
 
 
+# -------------------------------------------------------------------------
+# Configuration wrapper
+# -------------------------------------------------------------------------
 class LoggingConfig(TomlConfig):
-    _section_ = "Log"
-    _fields_ = [
+    """
+    Configuration holder for the ``[Log]`` section of the ``dementor`` TOML file.
+
+    :ivar log_debug_loggers: Names of loggers that can be switched on when
+                            ``--debug`` is used.
+    :type log_debug_loggers: list[str]
+    :ivar log_dir: Directory where rotating log files are created.
+    :type log_dir: str
+    :ivar log_enable: Master switch - when ``False`` no file handlers are added.
+    :type log_enable: bool
+    :ivar log_timestamps: If ``True`` prepend a timestamp to every formatted
+                          message.
+    :type log_timestamps: bool
+    :ivar log_timestamp_fmt: ``datetime.strftime`` format used for the timestamp
+                             prefix.
+    :type log_timestamp_fmt: str
+    """
+
+    _section_: ClassVar[str] = "Log"
+    _fields_: ClassVar[list[A]] = [
         A("log_debug_loggers", "DebugLoggers", list),
         A("log_dir", "LogDir", "logs"),
         A("log_enable", "Enabled", True),
@@ -53,7 +76,7 @@ class LoggingConfig(TomlConfig):
         A("log_timestamp_fmt", "TimestampFmt", LOG_DEFAULT_TIMEFMT),
     ]
 
-    if typing.TYPE_CHECKING:
+    if typing.TYPE_CHECKING:  # pragma: no cover
         log_debug_loggers: list[str]
         log_dir: str
         log_enable: bool
@@ -61,7 +84,13 @@ class LoggingConfig(TomlConfig):
         log_timestamp_fmt: str
 
 
-def init():
+def init() -> None:
+    """
+    Initialise the global logging configuration.
+
+    Called once at application startup.
+    """
+
     debug_parser = argparse.ArgumentParser(add_help=False)
     debug_parser.add_argument("--debug", action="store_true")
     debug_parser.add_argument("--verbose", action="store_true")
@@ -69,7 +98,6 @@ def init():
 
     config = TomlConfig.build_config(LoggingConfig)
     loggers = {name: logging.getLogger(name) for name in config.log_debug_loggers}
-
     for debug_logger in loggers.values():
         debug_logger.disabled = True
 
@@ -81,10 +109,11 @@ def init():
         markup=False,
         keywords=[],
         omit_repeated_times=False,
-        # show_path=False,
     )
-    # should be disabled
-    handler.highlighter = None
+    # Explicitly disable any highlighter - the ProtocolLogger performs its
+    # own colour handling.
+    handler.highlighter = None  # pyright: ignore[reportAttributeAccessIssue]
+
     logging.basicConfig(
         format="(%(name)s) %(message)s",
         datefmt="[%X]",
@@ -99,7 +128,6 @@ def init():
     elif argv.debug:
         dm_logger.logger.setLevel(logging.DEBUG)
         root_logger.setLevel(logging.DEBUG)
-
         for debug_logger in loggers.values():
             debug_logger.disabled = False
     else:
@@ -107,92 +135,222 @@ def init():
         root_logger.setLevel(logging.INFO)
 
 
-class ProtocolLogger(logging.LoggerAdapter):
-    def __init__(self, extra=None) -> None:
-        super().__init__(logging.getLogger("dementor"), extra or {})
-        self._log_config = None
+# -------------------------------------------------------------------------
+# Protocol-aware logger
+# -------------------------------------------------------------------------
+class ProtocolLogger(logging.LoggerAdapter[Any]):
+    """Custom logger adapter for protocol-specific context-aware logging.
 
+    Enhances standard logs with protocol name, host, port, and color-coded prefixes.
+    Supports both console output (via `dm_print`) and file logging (via `RotatingFileHandler`).
+
+    :ivar _log_config: Cached `LoggingConfig` instance.
+    :vartype _log_config: LoggingConfig
+    """
+
+    def __init__(self, extra: dict[str, Any] | None = None) -> None:
+        """
+        Initialise the adapter.
+
+        :param extra: Dictionary of contextual values that will be merged with
+                      per-call ``extra`` mappings.  Typical keys are
+                      ``protocol``, ``protocol_color``, ``host`` and ``port``.
+        :type extra: dict | None
+        """
+        super().__init__(logging.getLogger("dementor"), extra or {})
+        self._log_config: LoggingConfig | None = None
+
+    # -----------------------------------------------------------------
+    # Helper properties
+    # -----------------------------------------------------------------
     @property
     def log_config(self) -> LoggingConfig:
+        """Lazily load and cache the :class:`LoggingConfig`."""
         if not self._log_config:
             self._log_config = TomlConfig.build_config(LoggingConfig)
         return self._log_config
 
-    def _get_extra(self, name: str, extra=None, default=None):
+    def _get_extra(
+        self,
+        name: str,
+        extra: dict[str, Any] | None = None,
+        default: Any = None,
+    ) -> Any:
+        """
+        Fetch ``name`` from *extra* or from the adapter's default mapping.
+
+        :param name: Key to look up.
+        :type name: str
+        :param extra: Per-call extra mapping (may be ``None``).
+        :type extra: dict | None
+        :param default: Fallback value if the key is missing.
+        :type default: Any
+        :return: Resolved value.
+        :rtype: Any
+        """
         value = (self.extra or {}).get(name, default)
         return extra.pop(name, value) if extra else value
 
-    def get_protocol_name(self, extra=None) -> str:
+    # -----------------------------------------------------------------
+    # Accessors used by the formatting helpers
+    # -----------------------------------------------------------------
+    def get_protocol_name(self, extra: dict[str, Any] | None = None) -> str:
+        """
+        Return the protocol name (or an empty string).
+
+        :param extra: Optional per-call extra mapping.
+        :type extra: dict | None
+        :return: Protocol name.
+        :rtype: str
+        """
         return str(self._get_extra("protocol", extra, ""))
 
-    def get_protocol_color(self, extra=None) -> str:
+    def get_protocol_color(self, extra: dict[str, Any] | None = None) -> str:
+        """
+        Return the colour used for the protocol prefix - defaults to ``white``.
+
+        :param extra: Optional per-call extra mapping.
+        :type extra: dict | None
+        :return: Colour name.
+        :rtype: str
+        """
         return str(self._get_extra("protocol_color", extra, "white"))
 
-    def get_host(self, extra=None) -> str:
+    def get_host(self, extra: dict[str, Any] | None = None) -> str:
+        """
+        Return the host string (or empty).
+
+        :param extra: Optional per-call extra mapping.
+        :type extra: dict | None
+        :return: Host.
+        :rtype: str
+        """
         return str(self._get_extra("host", extra, ""))
 
-    def get_port(self, extra=None) -> str:
+    def get_port(self, extra: dict[str, Any] | None = None) -> str:
+        """
+        Return the port string (or empty).
+
+        :param extra: Optional per-call extra mapping.
+        :type extra: dict | None
+        :return: Port.
+        :rtype: str
+        """
         return str(self._get_extra("port", extra, ""))
 
-    def format(
-        self, msg: str, *args: typing.Any, **kwargs: typing.Any
-    ) -> tuple[str, dict[str, Any]]:
+    # -----------------------------------------------------------------
+    # Message formatting ----------------------------------------------
+    # -----------------------------------------------------------------
+    def format(self, msg: str, **kwargs: Any) -> tuple[str, dict[str, Any]]:
+        """Format message with timestamp, protocol, host, and port prefixes.
+
+        Uses `log_timestamps` and `log_timestamp_fmt` from config.
+
+        :param msg: Log message.
+        :type msg: str
+        :param args: Unused positional args.
+        :param kwargs: Contextual metadata (e.g., `host`, `protocol`).
+        :return: Formatted message and modified kwargs.
+        :rtype: tuple[str, dict[str, Any]]
+        """
         ts_prefix = ""
         if self.log_config.log_timestamps:
+            # [ is escaped because later the string is passed through rich.
             ts_prefix = r"\["
-            time_now = datetime.datetime.now()
+            now = datetime.datetime.now()
             try:
-                ts_prefix = f"{ts_prefix}{time_now.strftime(self.log_config.log_timestamp_fmt)}] "
-            except Exception as e:
-                # TODO: log that exception
-                ts_prefix = f"{ts_prefix}{time_now.strftime(LOG_DEFAULT_TIMEFMT)}] "
+                ts_prefix = (
+                    f"{ts_prefix}{now.strftime(self.log_config.log_timestamp_fmt)}] "
+                )
+            except Exception:  # pragma: no cover - fallback to default format
+                ts_prefix = f"{ts_prefix}{now.strftime(LOG_DEFAULT_TIMEFMT)}] "
 
         if self.extra is None:
+            # No context - simply prepend the timestamp (if any) and return.
             return f"{ts_prefix}{msg}", kwargs
 
-        mod = self.get_protocol_name(kwargs)
+        # Build the rich-style prefix: ``[bold colour]PROTOCOL[/] host port``.
+        proto = self.get_protocol_name(kwargs)
         host = self.get_host(kwargs) or "<no-host>"
         port = self.get_port(kwargs) or "<no-port>"
-        color = self.get_protocol_color(kwargs)
-        return (
-            f"{ts_prefix}[bold {color}]{mod:<10}[/] {host:<25} {port:<6} {msg}",
-            kwargs,
+        colour = self.get_protocol_color(kwargs)
+
+        formatted = (
+            f"{ts_prefix}[bold {colour}]{proto:<10}[/] {host:<25} {port:<6} {msg}"
         )
+        return formatted, kwargs
 
     def format_inline(
         self, msg: str, kwargs: dict[str, Any]
     ) -> tuple[str, dict[str, Any]]:
-        mod = self.get_protocol_name(kwargs)
+        """
+        Produce a compact inline representation used by the convenience
+        methods (``success``, ``display``, ...).
+
+        The format resembles ``(PROTO) (host:port) <direction> message``.
+
+        :param msg: The original log message.
+        :type msg: str
+        :param kwargs: Mapping that may contain ``protocol``, ``host``,
+                       ``port``, ``is_server`` and ``is_client`` flags.
+        :type kwargs: dict[str, Any]
+        :return: Rendered line and the (potentially mutated) ``kwargs``.
+        :rtype: tuple[str, dict[str, Any]]
+        """
+        proto = self.get_protocol_name(kwargs)
         host = self.get_host(kwargs)
         port = self.get_port(kwargs) or "-"
         is_server = kwargs.pop("is_server", False)
         is_client = kwargs.pop("is_client", False)
-        line = msg
 
+        line = msg
         if is_client:
             line = f"C: {line}"
         elif is_server:
             line = f"S: {line}"
-
         if host:
             line = f"({host}:{port}) {line}"
-
-        if mod:
-            line = f"({mod}) {line}"
+        if proto:
+            line = f"({proto}) {line}"
         return line, kwargs
 
+    @override
     def log(
         self,
         level: int,
         msg: str,
-        *args,
+        *args: Any,
         exc_info: Any | None = None,
         stack_info: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
+        """
+        Emit a log record.
+
+        The method first formats the message for *inline* output, then:
+
+        * If the logger is disabled for the supplied ``level`` we still write
+          the entry to the file handler(s) via :meth:`_emit_log_entry`.
+        * Otherwise the standard ``LoggerAdapter.log`` implementation is used.
+
+        :param level: Logging level (e.g. ``logging.INFO``).
+        :type level: int
+        :param msg: Log message.
+        :type msg: str
+        :param args: Positional arguments forwarded to the underlying ``Logger``.
+        :type args: tuple
+        :param exc_info: Exception info, passed unchanged to ``Logger.log``.
+        :type exc_info: Any | None
+        :param stack_info: ``True`` to include stack information.
+        :type stack_info: bool
+        :param kwargs: Additional keyword arguments (e.g. ``protocol``,
+                       ``host``) that influence formatting.
+        :type kwargs: dict
+        """
         msg, kwargs = self.format_inline(msg, kwargs)
+
         if not self.isEnabledFor(level):
-            # always emit log entries to the file handler
+            # Message filtered for console - still persist it.
             return self._emit_log_entry(msg, level, *args, **kwargs)
 
         return super().log(
@@ -205,37 +363,102 @@ class ProtocolLogger(logging.LoggerAdapter):
             **kwargs,
         )
 
-    def success(self, msg: str, color: str | None = None, *args, **kwargs):
-        color = color or "green"
-        prefix = r"[bold %s]\[+][/bold %s]" % (color, color)
+    # -----------------------------------------------------------------
+    # Convenience helpers
+    # -----------------------------------------------------------------
+    def success(
+        self, msg: str, color: str | None = None, *args: Any, **kwargs: Any
+    ) -> None:
+        """
+        Log a successful operation (green ``[+]`` prefix).
+
+        :param msg: Message to display.
+        :type msg: str
+        :param color: Override the colour used for the ``[+]`` marker.
+        :type color: str | None
+        :param _args: Positional arguments forwarded to :func:`dm_print`.
+        :type _args: typing.Any
+        :param _kwargs: Keyword arguments forwarded to :func:`dm_print`.
+        :type _kwargs: dict
+        :example:
+            >>> logger = ProtocolLogger()
+            >>> logger.success("Handshake completed")
+        """
+        colour = color or "green"
+        prefix = r"[bold %s]\[+][/bold %s]" % (colour, colour)
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
-        self._emit_log_entry(msg, *args, **kwargs)
+        self._emit_log_entry(msg, logging.INFO, *args)
 
-    def display(self, msg: str, *args, **kwargs):
+    def display(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """
+        Log a generic informational message (blue ``[*]`` prefix).
+
+        :param msg: Message to display.
+        :type msg: str
+        :param _args: Positional arguments forwarded to :func:`dm_print`.
+        :type _args: typing.Any
+        :param _kwargs: Keyword arguments forwarded to :func:`dm_print`.
+        :type _kwargs: dict
+        :example:
+            >>> logger.display("Waiting for data...")
+        """
         prefix = r"[bold %s]\[*][/bold %s]" % ("blue", "blue")
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
-        self._emit_log_entry(msg, *args, **kwargs)
+        self._emit_log_entry(msg, logging.INFO, *args)
 
-    def highlight(self, msg: str, *args, **kwargs):
+    def highlight(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """
+        Render a highlighted line (yellow, bold).
+
+        :param msg: Message to highlight.
+        :type msg: str
+        :param _args: Positional arguments forwarded to :func:`dm_print`.
+        :type _args: typing.Any
+        :param _kwargs: Keyword arguments forwarded to :func:`dm_print`.
+        :type _kwargs: dict
+        """
         msg, kwargs = self.format(f"[bold yellow]{msg}[/yellow bold]", **kwargs)
         dm_print(msg, *args, **kwargs)
-        self._emit_log_entry(msg, *args, **kwargs)
+        self._emit_log_entry(msg, logging.INFO, *args)
 
-    def fail(self, msg: str, color=None, *args, **kwargs):
-        color = color or "red"
-        prefix = r"[bold %s]\[-][/bold %s]" % (color, color)
+    def fail(
+        self, msg: str, color: str | None = None, *args: Any, **kwargs: Any
+    ) -> None:
+        """
+        Log an error condition (red ``[-]`` prefix).
+
+        :param msg: Error description.
+        :type msg: str
+        :param color: Override the colour of the ``[-]`` marker.
+        :type color: str | None
+        :param _args: Positional arguments forwarded to :func:`dm_print`.
+        :type _args: typing.Any
+        :param _kwargs: Keyword arguments forwarded to :func:`dm_print`.
+        :type _kwargs: dict
+        """
+        colour = color or "red"
+        prefix = r"[bold %s]\[-][/bold %s]" % (colour, colour)
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
-        self._emit_log_entry(msg, *args, **kwargs)
+        self._emit_log_entry(msg, logging.ERROR, *args)
 
-    def _emit_log_entry(
-        self, text: str, level: int = logging.INFO, *args, **kwargs
-    ) -> None:
+    def _emit_log_entry(self, text: str, level: int = logging.INFO, *args: Any) -> None:
+        """Emit log entry to file handler only.
+
+        Strips Rich markup and writes raw text to all file handlers.
+
+        :param text: Formatted message (rich markup may be present).
+        :type text: str
+        :param level: Logging level - defaults to ``logging.INFO``.
+        :type level: int
+        :param _args: Positional arguments (kept for compatibility).
+        :type _args: typing.Any
+        """
         caller = inspect.currentframe().f_back.f_back.f_back
-        text = render(text).plain
-        if len(self.logger.handlers) > 0:  # file handler
+        plain = render(text).plain
+        if self.logger.handlers and caller:
             for handler in self.logger.handlers:
                 handler.handle(
                     logging.LogRecord(
@@ -243,38 +466,48 @@ class ProtocolLogger(logging.LoggerAdapter):
                         level,
                         pathname=caller.f_code.co_filename,
                         lineno=caller.f_lineno,
-                        msg=text,
+                        msg=plain,
                         args=args,
-                        # kwargs=kwargs,
                         exc_info=None,
                     )
                 )
 
+    # -----------------------------------------------------------------
+    # Rotating file support
+    # -----------------------------------------------------------------
     def add_logfile(self, log_file_path: str) -> None:
+        """Add a rotating file handler for persistent logging.
+
+        Creates log directory if needed. Appends startup metadata to existing files.
+
+        :param log_file_path: Path to log file.
+        :type log_file_path: str
+        """
         formatter = logging.Formatter(
             "%(asctime)s | %(filename)s:%(lineno)s - %(levelname)s (%(name)s): %(message)s",
             datefmt="[%X]",
         )
+
         outfile = pathlib.Path(log_file_path)
         file_exists = outfile.exists()
+
         if not file_exists:
-            if not outfile.parent.exists():
-                outfile.parent.mkdir(parents=True, exist_ok=True)
+            outfile.parent.mkdir(parents=True, exist_ok=True)
+            # Create an empty file atomically
             open(str(outfile), "x").close()
 
         handler = RotatingFileHandler(
             outfile,
-            maxBytes=100000,
+            maxBytes=100_000,
             encoding="utf-8",
         )
-        with handler._open() as fp:
-            time = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+        # Write a small header the first time the file is created.
+        with handler._open() as fp:  # pylint: disable=protected-access
+            now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
             args = " ".join(sys.argv[1:])
-            line = f"[{time}]> LOG_START\n[{time}]> ARGS: {args}\n"
-            if not file_exists:
-                fp.write(line)
-            else:
-                fp.write(f"\n{line}")
+            header = f"[{now}]> LOG_START\n[{now}]> ARGS: {args}\n"
+            fp.write(header if not file_exists else f"\n{header}")
 
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
@@ -282,23 +515,57 @@ class ProtocolLogger(logging.LoggerAdapter):
 
     @staticmethod
     def init_logfile(session: SessionConfig) -> None:
+        """Initialize log file based on global config and session path resolution.
+
+        Called during application startup if logging is enabled.
+
+        :param session: Session configuration containing log directory.
+        :type session: SessionConfig
+        """
         config = TomlConfig.build_config(LoggingConfig)
         if not config.log_enable:
             return
 
         log_dir: pathlib.Path = session.resolve_path(config.log_dir or "logs")
         log_dir.mkdir(parents=True, exist_ok=True)
+
         log_name = f"dm_log-{util.now()}.log"
         dm_logger.add_logfile(str(log_dir / log_name))
 
 
 class ProtocolLoggerMixin:
+    """
+    Mixin that adds a ready-to-use ``self.logger`` attribute of type
+    :class:`ProtocolLogger`.
+
+    Sub-classes must implement :meth:`proto_logger` to provide the concrete
+    logger instance (usually ``dm_logger`` or a customised variant).
+    """
+
     def __init__(self) -> None:
+        """
+        Initialise the mixin - fetches the concrete logger via
+        :meth:`proto_logger` and stores it on ``self.logger``.
+        """
         self.logger: ProtocolLogger = self.proto_logger()
 
-    @abstractmethod
     def proto_logger(self) -> ProtocolLogger:
-        pass
+        """
+        Return the :class:`ProtocolLogger` instance that will be exposed as
+        ``self.logger``.
+
+        Concrete classes typically return ``dm_logger`` or a subclass
+        customised for a specific protocol.
+        """
+        raise NotImplementedError
 
 
+# -------------------------------------------------------------------------
+# Global logger instance used throughout the package
+# -------------------------------------------------------------------------
 dm_logger = ProtocolLogger()
+"""Global instance of `ProtocolLogger` for application-wide logging.
+
+Used by modules without explicit context (e.g., core startup, utilities).
+Context should be added via `extra` or overridden in subclasses.
+"""
