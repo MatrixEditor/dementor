@@ -55,6 +55,9 @@ from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_AUTH_format_host,
     NTLM_report_auth,
+    ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
 )
 from dementor.db import _CLEARTEXT
 
@@ -88,6 +91,9 @@ class SMTPServerConfig(TomlConfig):
         A("smtp_require_starttls", "RequireSTARTTLS", False),
         A("smtp_tls_cert", "Cert", "", section_local=False),
         A("smtp_tls_key", "Key", "", section_local=False),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -269,9 +275,9 @@ class SMTPServerHandler:
             negotiate_message,
             name,
             domain,
-            challenge=self.config.ntlm_challenge,
-            disable_ess=self.config.ntlm_disable_ess,
-            disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            challenge=self.server_config.ntlm_challenge,
+            disable_ess=self.server_config.ntlm_disable_ess,
+            disable_ntlmv2=self.server_config.ntlm_disable_ntlmv2,
         )
 
         # 6. The server sends an SMTP_AUTH_NTLM_BLOB_Response message containing a base64-encoded
@@ -284,7 +290,7 @@ class SMTPServerHandler:
         auth_message.fromString(blob)
         NTLM_report_auth(
             auth_message,
-            self.config.ntlm_challenge,
+            self.server_config.ntlm_challenge,
             server.session.peer,
             self.config,
             self.logger,

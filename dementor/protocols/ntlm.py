@@ -68,7 +68,7 @@ from impacket import ntlm
 
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
-from dementor.config.util import is_true, get_value, BytesValue
+from dementor.config.util import is_true, get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 
 # ===========================================================================
@@ -165,8 +165,7 @@ NTLM_V2_LM: str = "LMv2"  # Always paired with NTLMv2; both use hashcat -m 5600.
 def NTLM_AUTH_classify(
     nt_response: bytes, lm_response: bytes, negotiate_flags: int
 ) -> str:
-    """Classify the hash type from an AUTHENTICATE_MESSAGE response.
-    """
+    """Classify the hash type from an AUTHENTICATE_MESSAGE response."""
     # Fallback to NTLMv1 on TypeError (None or non-bytes input) rather than raising.
     try:
         nt_len = len(nt_response)
@@ -216,6 +215,85 @@ def NTLM_AUTH_classify(
     return NTLM_V1_ESS if ess_by_lm else NTLM_V1
 
 
+def parse_ntlm_challenge(value, length: int = NTLM_CHALLENGE_LEN) -> bytes:
+    """Parse an NTLM ServerChallenge config value to exactly ``length`` bytes.
+
+    The ServerChallenge can be specified as:
+
+        - "hex:1122334455667788"   -- explicit hex (preferred)
+        - "ascii:1337LEET"         -- explicit ASCII (preferred)
+        - 16 hex characters        -- backward-compatible auto-detect hex
+        - 8 ASCII characters       -- backward-compatible auto-detect ASCII
+        - None / omitted           -- 8 cryptographically random bytes
+
+    Notes
+    -----
+    - Explicit prefixes are preferred because they remove ambiguity.
+    - Backward-compatible auto-detect tries hex first only when the string is
+      exactly 16 characters; otherwise it tries strict ASCII.
+    - 16-character digit-only strings (e.g. "1234567890123456") are treated
+      as HEX in auto-detect mode.
+
+    Returns
+    -------
+    bytes
+        Exactly ``length`` bytes.  Returns random bytes for ``None`` input.
+
+    Raises
+    ------
+    ValueError
+        If the value is present but cannot be parsed as a valid challenge.
+    """
+    if value is None:
+        return secrets.token_bytes(length)
+
+    challenge_str = str(value).strip()  # handles int -> str conversion
+
+    if not challenge_str:
+        raise ValueError("NTLM Challenge: empty value")
+
+    lowered = challenge_str.lower()
+
+    # Preferred explicit forms
+    if lowered.startswith("hex:"):
+        payload = challenge_str[4:].strip()
+        candidate = bytes.fromhex(payload)
+        if len(candidate) != length:
+            raise ValueError(
+                f"hex challenge decoded to {len(candidate)} bytes, need {length}"
+            )
+        return candidate
+
+    if lowered.startswith("ascii:"):
+        payload = challenge_str[6:]
+        candidate = payload.encode(
+            "ascii"
+        )  # strict ASCII; raises UnicodeEncodeError on non-ASCII
+        if len(candidate) != length:
+            raise ValueError(
+                f"ascii challenge is {len(candidate)} chars, need {length}"
+            )
+        return candidate
+
+    # Backward-compatible auto-detect: 16-char string → try hex first
+    if len(challenge_str) == 2 * length:
+        try:
+            candidate = bytes.fromhex(challenge_str)
+            if len(candidate) == length:
+                return candidate
+        except ValueError:
+            pass  # not valid hex — fall through to ASCII
+
+    # Auto-detect ASCII: must be exactly ``length`` chars
+    candidate = challenge_str.encode("ascii")  # raises UnicodeEncodeError on non-ASCII
+    if len(candidate) != length:
+        raise ValueError(
+            f"challenge must be {length} ASCII chars or {2 * length} hex chars,"
+            f" got {len(challenge_str)}: {challenge_str!r}"
+        )
+    return candidate
+
+
 # ===========================================================================
 # Configuration Attributes
 #
@@ -233,7 +311,7 @@ ATTR_NTLM_CHALLENGE = Attribute(
     "NTLM.Challenge",
     default_val=None,  # None -> random 8-byte ServerChallenge at startup
     section_local=False,
-    factory=BytesValue(NTLM_CHALLENGE_LEN),
+    factory=parse_ntlm_challenge,  # handles hex:/ascii: prefix + auto-detect + length validation
 )
 
 ATTR_NTLM_DISABLE_ESS = Attribute(
@@ -259,185 +337,63 @@ ATTR_NTLM_DISABLE_NTLMV2 = Attribute(
 
 
 def apply_config(session: SessionConfig) -> None:
-    """Apply NTLM settings from the TOML config to the session.
+    """Apply global NTLM settings from [NTLM] to the session.
 
-    Reads [NTLM] section values and populates:
+    Reads [NTLM] section values and populates session-level NTLM attributes.
+    Individual protocol server configs inherit these as defaults via ATTR_NTLM_*
+    and can override any of the three options in their own config section.
 
-        session.ntlm_challenge       8-byte ServerChallenge (bytes)
-        session.ntlm_disable_ess     Disable ESS flag in CHALLENGE_MESSAGE (bool)
-        session.ntlm_disable_ntlmv2  Omit TargetInfoFields to block NTLMv2 (bool)
-
-    The ServerChallenge can be specified as:
-
-        - "hex:1122334455667788"   -- explicit hex (preferred)
-        - "ascii:1337LEET"         -- explicit ASCII (preferred)
-        - 16 hex characters        -- backward-compatible auto-detect hex
-        - 8 ASCII characters       -- backward-compatible auto-detect ASCII
-        - Omitted/None             -- 8 cryptographically random bytes
-
-    Notes
-    -----
-    - Explicit prefixes are preferred because they remove ambiguity.
-    - Backward-compatible auto-detect tries hex first only when the string is
-      exactly 16 characters; otherwise it tries strict ASCII.
-    - 16-character digit-only strings (e.g. "1234567890123456") are treated
-      as HEX in auto-detect mode.
-    - On any parsing/reading error, safe defaults are kept so startup continues.
+    On any parsing error, safe defaults are kept so startup continues.
 
     Parameters
     ----------
     session : SessionConfig
         Session object whose NTLM attributes will be populated.
     """
-    # Safe defaults first (session remains valid even if config parsing fails).
-    # ESS is enabled by default (disable_ess=False) so NTLMv1 clients produce
-    # NTLMv1-ESS hashes (mixed challenge) rather than plain NTLMv1.
+    # Safe defaults (session remains valid even if config parsing fails).
     session.ntlm_challenge = secrets.token_bytes(NTLM_CHALLENGE_LEN)
     session.ntlm_disable_ess = False
     session.ntlm_disable_ntlmv2 = False
 
-    challenge_source = "random (default)"
-
     # -- ServerChallenge ---------------------------------------------------
     try:
         raw_challenge = get_value("NTLM", "Challenge", default=None)
+        session.ntlm_challenge = parse_ntlm_challenge(raw_challenge, NTLM_CHALLENGE_LEN)
     except Exception:
-        dm_logger.exception("Failed to read NTLM Challenge; using random bytes")
-        challenge_source = "random (read error)"
-    else:
-        if raw_challenge is None:
-            dm_logger.debug("NTLM Challenge not configured; using random bytes")
-            challenge_source = "random (not configured)"
-        else:
-            try:
-                challenge_str = str(
-                    raw_challenge
-                ).strip()  # fixes int -> len(int) crash
-            except Exception:
-                dm_logger.exception(
-                    "Failed to normalize NTLM Challenge; using random bytes"
-                )
-                challenge_source = "random (normalize error)"
-            else:
-                if challenge_str == "":
-                    dm_logger.warning(
-                        "Invalid NTLM Challenge: empty value; using random bytes"
-                    )
-                    challenge_source = "random (empty value)"
-                else:
-                    parsed: bytes | None = None
-                    lowered = challenge_str.lower()
-
-                    # Preferred explicit forms
-                    if lowered.startswith("hex:"):
-                        payload = challenge_str[4:].strip()
-                        try:
-                            candidate = bytes.fromhex(payload)
-                            if len(candidate) != NTLM_CHALLENGE_LEN:
-                                raise ValueError(
-                                    f"decoded length {len(candidate)} != {NTLM_CHALLENGE_LEN}"
-                                )
-                        except ValueError as exc:
-                            dm_logger.warning(
-                                "Invalid NTLM Challenge (hex): %r (%s); using random bytes",
-                                challenge_str,
-                                exc,
-                            )
-                            challenge_source = "random (invalid hex)"
-                        else:
-                            parsed = candidate
-                            challenge_source = "hex"
-
-                    elif lowered.startswith("ascii:"):
-                        payload = challenge_str[6:]
-                        try:
-                            candidate = payload.encode("ascii")  # strict ASCII
-                            if len(candidate) != NTLM_CHALLENGE_LEN:
-                                raise ValueError(
-                                    f"length {len(candidate)} != {NTLM_CHALLENGE_LEN}"
-                                )
-                        except (UnicodeEncodeError, ValueError) as exc:
-                            dm_logger.warning(
-                                "Invalid NTLM Challenge (ascii): %r (%s); using random bytes",
-                                challenge_str,
-                                exc,
-                            )
-                            challenge_source = "random (invalid ascii)"
-                        else:
-                            parsed = candidate
-                            challenge_source = "ascii"
-
-                    # Backward-compatible auto-detect
-                    else:
-                        if len(challenge_str) == 2 * NTLM_CHALLENGE_LEN:
-                            try:
-                                candidate = bytes.fromhex(challenge_str)
-                                if len(candidate) != NTLM_CHALLENGE_LEN:
-                                    raise ValueError(
-                                        f"decoded length {len(candidate)} != {NTLM_CHALLENGE_LEN}"
-                                    )
-                            except ValueError:
-                                dm_logger.debug(
-                                    "NTLM Challenge auto-detect hex parse failed; trying ASCII"
-                                )
-                            else:
-                                parsed = candidate
-                                challenge_source = "hex (auto-detect)"
-
-                        if parsed is None:
-                            try:
-                                candidate = challenge_str.encode(
-                                    "ascii"
-                                )  # strict ASCII
-                                if len(candidate) != NTLM_CHALLENGE_LEN:
-                                    raise ValueError(
-                                        f"length {len(candidate)} != {NTLM_CHALLENGE_LEN}"
-                                    )
-                            except (UnicodeEncodeError, ValueError) as exc:
-                                dm_logger.warning(
-                                    "Invalid NTLM Challenge (auto-detect): %r (%s); using random bytes",
-                                    challenge_str,
-                                    exc,
-                                )
-                                challenge_source = "random (invalid auto-detect)"
-                            else:
-                                parsed = candidate
-                                challenge_source = "ascii (auto-detect)"
-
-                    if parsed is not None:
-                        session.ntlm_challenge = parsed
-
-    # Always log the final challenge value (including random fallback cases)
-    dm_logger.debug("Applying NTLM Challenge as: %s", challenge_source)
-    dm_logger.debug("NTLM Challenge set to value: %s", session.ntlm_challenge.hex())
+        dm_logger.exception("Failed to parse NTLM Challenge; using random bytes")
+    dm_logger.debug(
+        "NTLM Challenge set to value: %s with len %d",
+        session.ntlm_challenge.hex(),
+        len(session.ntlm_challenge),
+    )
 
     # -- Extended Session Security -----------------------------------------
     try:
-        raw_ess = get_value("NTLM", "DisableExtendedSessionSecurity", default=False)
-        session.ntlm_disable_ess = bool(is_true(raw_ess))
+        raw = get_value("NTLM", "DisableExtendedSessionSecurity", default=False)
+        session.ntlm_disable_ess = bool(is_true(raw))
     except Exception:
         session.ntlm_disable_ess = False
         dm_logger.exception(
-            "Failed to apply NTLM DisableExtendedSessionSecurity; defaulting to False (ESS enabled)"
+            "Failed to apply NTLM.DisableExtendedSessionSecurity; defaulting to False"
         )
     else:
         dm_logger.debug(
-            "NTLM DisableExtendedSessionSecurity set to: %s", session.ntlm_disable_ess
+            "NTLM DisableExtendedSessionSecurity: %s", session.ntlm_disable_ess
         )
 
     # -- Disable NTLMv2 ----------------------------------------------------
     try:
-        raw_disable_ntlmv2 = get_value("NTLM", "DisableNTLMv2", default=False)
-        session.ntlm_disable_ntlmv2 = bool(is_true(raw_disable_ntlmv2))
+        raw = get_value("NTLM", "DisableNTLMv2", default=False)
+        session.ntlm_disable_ntlmv2 = bool(is_true(raw))
     except Exception:
         session.ntlm_disable_ntlmv2 = False
-        dm_logger.exception("Failed to apply NTLM Disable NTLMv2; defaulting to False")
+        dm_logger.exception("Failed to apply NTLM.DisableNTLMv2; defaulting to False")
     else:
-        dm_logger.debug("NTLM Disable NTLMv2 set to: %s", session.ntlm_disable_ntlmv2)
+        dm_logger.debug("NTLM DisableNTLMv2: %s", session.ntlm_disable_ntlmv2)
 
     if session.ntlm_disable_ntlmv2:
         dm_logger.warning(
-            "NTLM Disable NTLMv2 is enabled — Level 3+ clients (all modern Windows) "
+            "NTLM DisableNTLMv2 is enabled — Level 3+ clients (all modern Windows) "
             "will FAIL authentication and NO hashes will be captured. "
             "This only helps against pre-Vista / manually-configured Level 0-2 clients. "
             "Use with caution."
