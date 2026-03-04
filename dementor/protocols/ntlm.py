@@ -710,8 +710,7 @@ def NTLM_AUTH_to_hashcat_formats(
         if len(lm_response) == NTLMV1_RESPONSE_LEN:
             if lm_response == b"\x00" * NTLMV1_RESPONSE_LEN:
                 dm_logger.debug(
-                    "LmChallengeResponse is null (MsvAvTimestamp present "
-                    "per [MS-NLMP section 3.1.5.1.2]); skipping LMv2"
+                    "LmChallengeResponse is null; skipping LMv2"
                 )
             else:
                 lm_proof_str_hex: str = lm_response[
