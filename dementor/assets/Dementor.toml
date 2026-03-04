@@ -335,7 +335,7 @@ Port = 25
 Challenge = "1337LEET"
 
 # Disable Extended Session Security (ESS) for NTLM authentication.
-# ESS enabled results in NTLMv1-SSP hashes instead of regular NTLMv1 hashes.
+# ESS enabled results in NTLMv1-ESS hashes instead of plain NTLMv1 hashes.
 # Default is false (ESS is enabled)
 
 DisableExtendedSessionSecurity = false
