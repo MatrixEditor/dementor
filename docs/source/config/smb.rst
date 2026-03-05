@@ -52,7 +52,7 @@ Section ``[SMB]``
 
     .. py:attribute:: Server.FQDN
         :type: str
-        :value: "Dementor"
+        :value: "DEMENTOR"
 
         *Linked to* :attr:`smb.SMBServerConfig.smb_fqdn`. *Can also be set in* ``[SMB]`` *or* ``[Globals]``
 
@@ -90,35 +90,51 @@ Section ``[SMB]``
         Enables support for the SMB2 protocol. Recommended for improved client compatibility.
 
 
-    .. py:attribute:: Server.ExtendedSessionSecurity
-        :type: bool
-        :value: true
-
-        *Maps to* :attr:`smb.SMBServerConfig.smb_ess`. *May also be set in* ``[SMB]``
-
-        Enables Extended Session Security (ESS) during NTLM authentication. When ESS is enabled,
-        the server captures NTLMv1/v2-SSP hashes instead of standard NTLMv1/v2 hashes. Resolution
-        precedence:
-
-        1. If defined, :attr:`SMB.Server.ExtendedSessionSecurity` takes precedence.
-        2. If not, :attr:`SMB.ExtendedSessionSecurity` is used.
-        3. Finally, falls back to :attr:`NTLM.ExtendedSessionSecurity` if the above are unset.
-
     .. py:attribute:: Server.Challenge
         :type: str
         :value: NTLM.Challenge
 
-        *Maps to* :attr:`smb.SMBServerConfig.smb_challenge`. *May also be set in* ``[SMB]``
+        *Maps to* :attr:`smb.SMBServerConfig.ntlm_challenge`
 
-        Defines the challenge value used during NTLM authentication. Resolution precedence:
+        The ServerChallenge nonce used during NTLM authentication. Inherited from
+        :attr:`NTLM.Challenge`; set it there to apply a fixed challenge to all
+        protocols including SMB.  Set it here (in ``[SMB]`` or ``[[SMB.Server]]``) to
+        override the global value for SMB specifically.
 
-        1. :attr:`SMB.Server.Challenge` (if defined)
-        2. :attr:`SMB.Challenge` (fallback)
-        3. :attr:`NTLM.Challenge` (final fallback)
+        .. seealso:: :attr:`NTLM.Challenge` for accepted formats and behaviour.
 
-        .. note::
-            If none of the above attributes are set, the SMB server will generate a random challenge
-            value for each session.
+
+    .. py:attribute:: Server.DisableExtendedSessionSecurity
+        :type: bool
+        :value: false
+
+        *Linked to* :attr:`smb.SMBServerConfig.ntlm_disable_ess`. *Can also be set in* ``[SMB]``
+
+        Per-SMB override for :attr:`NTLM.DisableExtendedSessionSecurity`.  When set in
+        ``[SMB]`` it applies to every ``[[SMB.Server]]`` instance; when set inside a
+        single ``[[SMB.Server]]`` block it applies only to that port.  Falls back to
+        :attr:`NTLM.DisableExtendedSessionSecurity` when not set here.
+
+        .. seealso:: :attr:`NTLM.DisableExtendedSessionSecurity` for full behavioural details.
+
+
+    .. py:attribute:: Server.DisableNTLMv2
+        :type: bool
+        :value: false
+
+        *Linked to* :attr:`smb.SMBServerConfig.ntlm_disable_ntlmv2`. *Can also be set in* ``[SMB]``
+
+        Per-SMB override for :attr:`NTLM.DisableNTLMv2`.  When set in ``[SMB]`` it
+        applies to every ``[[SMB.Server]]`` instance; when set inside a single
+        ``[[SMB.Server]]`` block it applies only to that port.  Falls back to
+        :attr:`NTLM.DisableNTLMv2` when not set here.
+
+        .. warning::
+            Enabling this against modern Windows clients (``LmCompatibilityLevel`` 3+)
+            will produce **zero captured hashes**.  See :attr:`NTLM.DisableNTLMv2` for
+            full details.
+
+        .. seealso:: :attr:`NTLM.DisableNTLMv2` for full behavioural details.
 
 
 .. py:class:: smb.SMBServerConfig
@@ -185,20 +201,96 @@ Section ``[SMB]``
         *Corresponds to* :attr:`SMB.Server.SMB2Support`
 
 
-    .. py:attribute:: smb_ess
+    .. py:attribute:: ntlm_challenge
+        :type: bytes
+
+        *Corresponds to* :attr:`NTLM.Challenge`
+
+        Populated at startup from the global ``[NTLM]`` section. A cryptographically
+        random value is used if :attr:`NTLM.Challenge` is not configured.
+
+
+    .. py:attribute:: ntlm_disable_ess
         :type: bool
-        :value: True
+        :value: False
 
-        *Corresponds to* :attr:`SMB.Server.ExtendedSessionSecurity`
+        *Corresponds to* :attr:`NTLM.DisableExtendedSessionSecurity`
+
+        When ``True``, ESS is suppressed in the ``CHALLENGE_MESSAGE`` and clients
+        produce plain **NTLMv1** hashes instead of **NTLMv1-ESS**.
 
 
-    .. py:attribute:: smb_challenge
-        :type: bytes = b""
+    .. py:attribute:: ntlm_disable_ntlmv2
+        :type: bool
+        :value: False
 
-        *Corresponds to* :attr:`SMB.Server.Challenge`
+        *Corresponds to* :attr:`NTLM.DisableNTLMv2`
 
-        By default, a random challenge will be generated based on the rules described
-        in :attr:`SMB.Server.Challenge`.
+        When ``True``, ``TargetInfoFields`` is omitted from the ``CHALLENGE_MESSAGE``.
+        Level 0–2 clients fall back to NTLMv1; level 3+ clients fail with no capture.
+
+
+Protocol Behaviour
+------------------
+
+Authentication Flow
+~~~~~~~~~~~~~~~~~~~
+
+The SMB handler accepts NTLM tokens in two forms:
+
+- **Raw NTLM** — the security buffer begins with ``NTLMSSP\0`` and is consumed
+  directly by the three-message NTLM handshake (``NEGOTIATE → CHALLENGE → AUTHENTICATE``).
+- **GSSAPI / SPNEGO** — the buffer is wrapped in a ``negTokenInit`` (tag ``0x60``) or
+  ``negTokenTarg`` (tag ``0xA1``) envelope.  Dementor unwraps the SPNEGO layer,
+  performs the NTLM handshake internally, and returns appropriately wrapped
+  ``negTokenTarg`` responses.
+
+In both cases the captured hash is passed to :func:`~ntlm.NTLM_report_auth` and stored
+in the session database.
+
+Protocol Version Negotiation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All SMB connections start with an ``SMB_COM_NEGOTIATE`` / ``SMB2_NEGOTIATE``
+exchange.  When :attr:`SMB.Server.SMB2Support` is enabled (the default):
+
+- An SMB1 client that includes any SMB2 or SMB3 dialect string receives an
+  ``SMB2_NEGOTIATE_RESPONSE`` and the connection is silently upgraded to SMB2/SMB3.
+  If the client advertises the wildcard ``"SMB 2.???"`` dialect, Dementor selects
+  the highest dialect it supports (``3.1.1``); otherwise it selects the last SMB2
+  dialect in the client's list.
+- A native SMB2/SMB3 client (``SMB2_NEGOTIATE``) receives a response selecting
+  the **highest common dialect** from the supported set (``2.002``, ``2.1``,
+  ``3.0``, ``3.0.2``, ``3.1.1``).
+- A pure SMB1 client (no SMB2 dialect strings) receives the SMB1 extended-security
+  negotiate response and continues over SMB1.
+
+SMB 3.1.1 Negotiate Contexts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the negotiated dialect is **SMB 3.1.1**, the ``SMB2_NEGOTIATE_RESPONSE``
+includes the mandatory negotiate context list:
+
+- **SMB2_PREAUTH_INTEGRITY_CAPABILITIES** — SHA-512 integrity algorithm with a
+  cryptographically random 32-byte salt.
+- **SMB2_ENCRYPTION_CAPABILITIES** — echoes the cipher the client advertised
+  (falls back to AES-128-GCM if the context is absent or unparseable).
+- **SMB2_SIGNING_CAPABILITIES** — echoes the signing algorithm the client
+  advertised (falls back to AES-CMAC).
+
+Session Logoff
+~~~~~~~~~~~~~~
+
+``SMB2_LOGOFF`` requests are handled: Dementor clears the local authenticated
+flag, returns an ``SMB2_LOGOFF_RESPONSE`` with ``STATUS_SUCCESS``, and logs the
+event via the protocol logger.
+
+.. note::
+
+    **Tree Connect** (``SMB_COM_TREE_CONNECT_ANDX`` / ``SMB2_TREE_CONNECT``) is
+    not currently implemented. Connections are terminated after authentication,
+    which is sufficient for credential capture but may prevent some clients from
+    retrying via alternative protocols.
 
 
 Default Configuration
@@ -206,19 +298,30 @@ Default Configuration
 
 .. code-block:: toml
     :linenos:
-    :caption: SMB configuration section (default values)
+    :caption: SMB configuration section (all options)
 
     [SMB]
+    # FQDN = "DEMENTOR"                       # also settable in [Globals]
     ServerOS = "Windows"
-    FQDN = "DEMENTOR"
     SMB2Support = true
     ErrorCode = "STATUS_SMB_BAD_UID"
+    # Challenge = "1337LEET"                  # overrides [NTLM] for all SMB servers
+    # DisableExtendedSessionSecurity = false  # overrides [NTLM] for all SMB servers
+    # DisableNTLMv2 = false                   # overrides [NTLM] for all SMB servers
 
     [[SMB.Server]]
     Port = 139
 
     [[SMB.Server]]
     Port = 445
+    # Per-server overrides (highest priority):
+    # FQDN = "other.corp.com"
+    # ServerOS = "Windows Server 2022"
+    # ErrorCode = "STATUS_ACCESS_DENIED"
+    # SMB2Support = true
+    # Challenge = "hex:aabbccddeeff0011"
+    # DisableExtendedSessionSecurity = false
+    # DisableNTLMv2 = false
 
 
 .. _Tricking Windows SMB clients into falling back to WebDav: https://www.synacktiv.com/publications/taking-the-relaying-capabilities-of-multicast-poisoning-to-the-next-level-tricking

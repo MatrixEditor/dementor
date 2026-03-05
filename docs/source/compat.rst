@@ -82,7 +82,10 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td>SMB 1.0</td>
+                        <td>SMB 1.0 SSP</td>
+                    </tr>
+                    <tr>
+                        <td>SMB 1.0 Raw</td>
                     </tr>
                     <tr>
                         <td>SMB 2.002</td>
@@ -102,6 +105,24 @@ in development. The legend for each symbol is as follows:
                     <tr>
                         <td>SMB 3.1.1</td>
                     </tr>
+                    <tr>
+                        <td>Tree Connect</td>
+                    </tr>
+                    <tr>
+                        <td>Logoff</td>
+                    </tr>
+                    <tr>
+                        <td>NT4 clear-text capture</td>
+                    </tr>
+                    <tr>
+                        <td>Multi-credential loop</td>
+                    </tr>
+                    <tr>
+                        <td>Configurable ErrorCode</td>
+                    </tr>
+                    <tr>
+                        <td>Configurable ServerOS</td>
+                    </tr>
                 </tbody>
                 </table>
             </td>
@@ -116,6 +137,9 @@ in development. The legend for each symbol is as follows:
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
@@ -123,6 +147,24 @@ in development. The legend for each symbol is as follows:
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
@@ -134,13 +176,22 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide check-check sd-text-success l"></i>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
                 <table>
                 <tbody>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
@@ -151,6 +202,18 @@ in development. The legend for each symbol is as follows:
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -168,13 +231,10 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td>LMv1</td>
-                    </tr>
-                    <tr>
                         <td>NTLMv1</td>
                     </tr>
                     <tr>
-                        <td>NTLMv1-SSP</td>
+                        <td>NTLMv1-ESS</td>
                     </tr>
                     <tr>
                         <td>LMv2</td>
@@ -182,6 +242,45 @@ in development. The legend for each symbol is as follows:
                     <tr>
                         <td>NTLMv2</td>
                     </tr>
+                    <tr>
+                        <td>Dummy LM filtering</td>
+                    </tr>
+                    <tr>
+                        <td>LM dedup filtering</td>
+                    </tr>
+                    <tr>
+                        <td>Anonymous detection</td>
+                    </tr>
+                    <tr>
+                        <td>Flag mirroring</td>
+                    </tr>
+                    <tr>
+                        <td>NTLMv2 threshold (≥ 48 B)</td>
+                    </tr>
+                    <tr>
+                        <td>AV_PAIRS correctness</td>
+                    </tr>
+                    <tr>
+                        <td>Hash label accuracy</td>
+                    </tr>
+                    <tr>
+                        <td>Configurable challenge</td>
+                    </tr>
+                    <tr>
+                        <td>NTLMv1 capture (raw SMB1)</td>
+                    </tr>
+                    <tr>
+                        <td>SPNEGO unwrapping</td>
+                    </tr>
+                    <tr>
+                        <td>Non-NTLM mech redirect</td>
+                    </tr>
+                    <tr>
+                        <td>ESS configurable</td>
+                    </tr>
+                    <tr>
+                        <td>NTLMv2 configurable</td>
+                    </tr>
                 </tbody>
                 </table>
             </td>
@@ -190,19 +289,55 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#confusion">[1]</a></td>
+                    </tr>
+                    <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#anon">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#ntlmv2thresh">[3]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#avpairs">[4]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#chalconf">[5]</a></td>
+                    </tr>
+                    <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                 </tbody>
                 </table>
@@ -211,6 +346,42 @@ in development. The legend for each symbol is as follows:
                 <i class="i-lucide triangle-alert sd-text-warning l"></i>
                 <table>
                 <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
@@ -535,7 +706,7 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide check-check sd-text-success l"></i>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
                 <table>
                 <tbody>
                     <tr>
@@ -684,4 +855,8 @@ in development. The legend for each symbol is as follows:
     </tbody>
     </table>
 
-    <p id="confusion">[1]: Responder is not able to distinguish between NTLMv1/v2-SSP and NTLMv1/v2</p>
+    <p id="confusion">[1]: Responder cannot distinguish NTLMv1 from NTLMv1-ESS, labelling both as "NTLMv1-SSP". ESS changes the effective challenge (MD5(ServerChallenge ‖ ClientChallenge)[0:8]) and must be detected separately for correct hashcat cracking.</p>
+    <p id="anon">[2]: Responder's <code>Is_Anonymous</code> branches on <code>SecBlobLen &lt; 260</code> or <code>&gt; 260</code> using hardcoded byte offsets. When <code>SecBlobLen == 260</code> exactly, neither branch executes and the function returns <code>None</code> (falsy), so the session is treated as authenticated when it is actually anonymous. Dementor checks the <code>NTLMSSP_NEGOTIATE_ANONYMOUS</code> flag and structural fields (empty UserName, NtChallengeResponse, and LmChallengeResponse) explicitly.</p>
+    <p id="ntlmv2thresh">[3]: Responder's NTLMv2 detection threshold is <code>&gt; 60</code> bytes in <code>ParseSMBHash</code> and <code>&gt; 25</code> bytes in <code>ParseLMNTHash</code>. Per MS-NLMP §3.3.2, the minimum NTLMv2 NT response is 16 bytes (NTProofStr) + 32 bytes (blob header) = 48 bytes; the meaningful classification boundary is <code>&gt; 24</code>. Any NTLMv2 response between 25 and 60 bytes is misclassified as NTLMv1 and formatted with the wrong hashcat mode, producing an uncrackable hash line.</p>
+    <p id="avpairs">[4]: Responder's <code>packets.py</code> swaps AV_PAIR IDs 0x0003 (<code>MsvAvDnsComputerName</code>) and 0x0004 (<code>MsvAvDnsDomainName</code>), emitting them with reversed AvIds relative to MS-NLMP §2.2.2.1. Additionally, <code>MsvAvNbDomainName</code> (0x0002) is populated from the server hostname value rather than the NetBIOS domain name. Dementor derives each AV_PAIR value independently from the configured FQDN and follows the spec ordering exactly.</p>
+    <p id="chalconf">[5]: Responder supports a global fixed challenge via <code>Challenge = &lt;16 hex chars&gt;</code> in <code>Responder.conf</code> (<code>[Responder Core]</code> section). Only a 16-character hex string is accepted — ASCII notation is not supported, and there is no per-protocol or per-server override. The default (<code>Challenge = Random</code>) generates a fresh cryptographically random challenge per connection. Dementor additionally accepts ASCII and explicit-prefix formats and allows the challenge to be overridden per protocol section or per server instance.</p>

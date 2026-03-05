@@ -286,8 +286,14 @@ Port = 139
 
 [[SMB.Server]]
 Port = 445
-# e.g.
-# ExtendedSessionSecurity = false
+# Per-server overrides (highest priority — override [SMB] and [NTLM] for this port only):
+# FQDN = "other.corp.com"
+# ServerOS = "Windows Server 2022"
+# ErrorCode = "STATUS_ACCESS_DENIED"
+# SMB2Support = true
+# Challenge = "hex:aabbccddeeff0011"
+# DisableExtendedSessionSecurity = false
+# DisableNTLMv2 = false
 
 
 # =============================================================================

@@ -53,6 +53,14 @@ include = ["dementor*"]
 [tool.setuptools.package-data]
 dementor = ["assets/**"]
 
+[dependency-groups]
+docs = [
+    "sphinx",
+    "shibuya",
+    "sphinx-copybutton",
+    "sphinx-design",
+]
+
 [build-system]
 requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
