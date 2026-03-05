@@ -19,8 +19,6 @@
 # SOFTWARE.
 # pyright: basic
 import uuid
-import calendar
-import time
 import secrets
 import typing
 
@@ -52,6 +50,7 @@ from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
+    NTLM_new_timestamp,
     NTLM_report_auth,
     ATTR_NTLM_CHALLENGE,
     ATTR_NTLM_DISABLE_ESS,
@@ -151,9 +150,7 @@ def create_server_threads(session: SessionConfig):
 
 # --- Functions ---------------------------------------------------------------
 def SMB_get_server_time():
-    value = calendar.timegm(time.gmtime())
-    value *= 10000000
-    return value + 116444736000000000
+    return NTLM_new_timestamp()
 
 
 def SMB_get_command_name(command: int, smb_version: int) -> str:
@@ -585,7 +582,6 @@ class SMBHandler(BaseProtoHandler):
                 "MessageID": 0,
                 "TreeID": 0xFFFF,
             }
-        resp["CreditRequestResponse"] = 1
         resp["Command"] = packet["Command"]
         resp["CreditCharge"] = packet["CreditCharge"]
         resp["Reserved"] = packet["Reserved"]

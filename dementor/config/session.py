@@ -166,7 +166,7 @@ class SessionConfig(TomlConfig):
         self.smtp_servers = []
 
         # NTLM configuration
-        self.ntlm_disable_ess = True
+        self.ntlm_disable_ess = False
         self.ntlm_disable_ntlmv2 = False
 
     def is_bound_to_all(self) -> bool:
