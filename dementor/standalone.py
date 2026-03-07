@@ -132,7 +132,7 @@ def serve(
         pass
 
     if not getattr(session, "loop", None):
-        session.loop = loop or asyncio.get_event_loop()
+        session.loop = loop or asyncio.new_event_loop()
 
     asyncio.set_event_loop(session.loop)
     threads = []

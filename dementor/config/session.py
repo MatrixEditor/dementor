@@ -159,7 +159,7 @@ class SessionConfig(TomlConfig):
         self.ipv4 = None
         self.interface = None
         self.analysis = False
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.new_event_loop()
         self.protocols = {}
 
         # SMTP configuration
