@@ -95,7 +95,7 @@ NTLM_CHALLENGE_MSG_DOMAIN_OFFSET: int = 56
 NTLM_ESS_ZERO_PAD: bytes = b"\x00" * 16
 
 # Placeholder VERSION structure emitted in CHALLENGE_MESSAGE.
-NTLM_VERSION_PLACEHOLDER: bytes = b"\xff" * 8
+NTLM_VERSION_PLACEHOLDER: bytes = b"\x00" * 8
 
 # VERSION structure per [MS-NLMP section 2.2.2.10]
 NTLM_VERSION_LEN: int = 8
@@ -129,7 +129,7 @@ NTLM_TRANSPORT_NTLMSSP: str = "ntlmssp"
 #  NTLMv1      24       any / non-dummy      5500     §3.3.1 plain DES
 #  NTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    §3.3.1 + ESS
 #  NTLMv2      > 24     n/a                  5600     §3.3.2 HMAC-MD5 blob
-#  LMv2        > 24†    24 / non-null         5600†    §3.3.2 LMv2 companion
+#  LMv2        > 24†    24 / non-null        5600†    §3.3.2 LMv2 companion
 #
 #  * Mode 5500 auto-detects ESS via LM[8:24]==Z(16); always emit raw ServerChallenge.
 #  † LMv2 is always paired with NTLMv2; both use -m 5600.
@@ -900,9 +900,10 @@ def NTLM_split_fqdn(fqdn: str) -> tuple[str, str]:
 def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
     """Return True if the AUTHENTICATE_MESSAGE is an anonymous (null session) auth.
 
-    Per §3.2.5.1.2, anonymous when NTLMSSP_NEGOTIATE_ANONYMOUS is set, OR
-    UserName is empty, NtChallengeResponse is empty, and LmChallengeResponse
-    is empty or Z(1).  Returns True on any parse error to avoid bad captures.
+    Per §3.2.5.1.2 server-side logic, null session is structural:
+    UserName empty, NtChallengeResponse empty, and LmChallengeResponse
+    empty or Z(1). For capture-first operation, do not trust the anonymous
+    flag alone, and do not fail-closed on parsing exceptions.
 
     Parameters
     ----------
@@ -914,11 +915,8 @@ def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
     bool
     """
     try:
-        if token["flags"] & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS:
-            dm_logger.debug("Anonymous flag set in AUTHENTICATE_MESSAGE")
-            return True
-
         # Structural anonymous: all response fields empty or Z(1)
+        flags: int = token["flags"]
         user_name: bytes = token["user_name"] or b""
         nt_response: bytes = token["ntlm"] or b""
         lm_response: bytes = token["lanman"] or b""
@@ -930,15 +928,21 @@ def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
         )
         if is_anon:
             dm_logger.debug("Structurally anonymous AUTHENTICATE_MESSAGE detected")
+            return True
+
+        if flags & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS:
+            dm_logger.debug(
+                "Anonymous flag set but responses present; treating as non-anonymous"
+            )
         return is_anon
 
     except Exception:
         dm_logger.debug(
             "Failed to check anonymous status in AUTHENTICATE_MESSAGE; "
-            "assuming anonymous to avoid bad captures",
+            "treating as non-anonymous to avoid dropping captures",
             exc_info=True,
         )
-        return True
+        return False
 
 
 # ===========================================================================
@@ -1033,8 +1037,7 @@ def NTLM_AUTH_CreateChallenge(
 
     # -- Build the response flags for CHALLENGE_MESSAGE ----------------------
     response_flags: int = (
-        ntlm.NTLMSSP_NEGOTIATE_VERSION  # Include VERSION structure
-        | ntlm.NTLMSSP_REQUEST_TARGET  # TargetName is supplied
+        ntlm.NTLMSSP_REQUEST_TARGET  # TargetName is supplied
         | ntlm.NTLMSSP_TARGET_TYPE_SERVER  # Target is a server, not domain
     )
 
@@ -1073,6 +1076,15 @@ def NTLM_AUTH_CreateChallenge(
         if client_flags & ntlm.NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY:
             response_flags |= ntlm.NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY
             dm_logger.debug("ESS flag echoed into CHALLENGE_MESSAGE")
+        elif client_flags & ntlm.NTLMSSP_NEGOTIATE_LM_KEY:
+            response_flags |= ntlm.NTLMSSP_NEGOTIATE_LM_KEY
+            dm_logger.debug("LM_KEY flag echoed into CHALLENGE_MESSAGE")
+
+    # -- VERSION negotiation -------------------------------------------------
+    # Per §2.2.1.2 and §3.2.5.1.1, Version should be populated only when
+    # NTLMSSP_NEGOTIATE_VERSION is negotiated; otherwise it must be all-zero.
+    if client_flags & ntlm.NTLMSSP_NEGOTIATE_VERSION:
+        response_flags |= ntlm.NTLMSSP_NEGOTIATE_VERSION
 
     # -- ESS / LM_KEY mutual exclusivity -----------------------------------
     if response_flags & ntlm.NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY:
