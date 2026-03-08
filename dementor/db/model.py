@@ -42,7 +42,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.selectable import TypedReturnsRows
 
 from dementor.config.session import SessionConfig
-from dementor.db import _CLEARTEXT, _NO_USER, normalize_client_address
+from dementor.db import _CLEARTEXT, _NO_USER, normalize_client_address, _HOST_INFO
 from dementor.log.logger import dm_logger
 from dementor.log import dm_console_lock
 from dementor.log.stream import log_to
@@ -391,7 +391,7 @@ class DementorDB:
             if domain
             else f" for [b]{username_text}[/]"
         )
-        host_info: str | None = extras.pop("host_info") if extras else None
+        host_info: str | None = extras.pop(_HOST_INFO, None) if extras else None
         if host_info:
             full_name += f" on [b]{markup.escape(host_info)}[/]"
 
