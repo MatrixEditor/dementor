@@ -533,33 +533,6 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
         dm_logger.add_logfile(str(log_dir / log_name))
 
 
-class ProtocolLoggerMixin:
-    """
-    Mixin that adds a ready-to-use ``self.logger`` attribute of type
-    :class:`ProtocolLogger`.
-
-    Sub-classes must implement :meth:`proto_logger` to provide the concrete
-    logger instance (usually ``dm_logger`` or a customised variant).
-    """
-
-    def __init__(self) -> None:
-        """
-        Initialise the mixin - fetches the concrete logger via
-        :meth:`proto_logger` and stores it on ``self.logger``.
-        """
-        self.logger: ProtocolLogger = self.proto_logger()
-
-    def proto_logger(self) -> ProtocolLogger:
-        """
-        Return the :class:`ProtocolLogger` instance that will be exposed as
-        ``self.logger``.
-
-        Concrete classes typically return ``dm_logger`` or a subclass
-        customised for a specific protocol.
-        """
-        raise NotImplementedError
-
-
 # -------------------------------------------------------------------------
 # Global logger instance used throughout the package
 # -------------------------------------------------------------------------

@@ -21,7 +21,7 @@
 import asyncio
 import typing
 
-from typing import Any
+from typing import Any, override
 from pathlib import Path
 
 from dementor.config.toml import TomlConfig, Attribute
@@ -158,7 +158,7 @@ class SessionConfig(TomlConfig):
         self.ipv4 = None
         self.interface = None
         self.analysis = False
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.new_event_loop()
         self.protocols = {}
 
         # SMTP configuration
@@ -188,3 +188,17 @@ class SessionConfig(TomlConfig):
             return Path(raw_path).resolve()
 
         return (Path(self.workspace_path) / raw_path).resolve()
+
+    @override
+    def __getitem__(self, key: str) -> Any:
+        section, *parts = key.split(".")
+        attr = f"{section.lower()}_config"
+        if not hasattr(self, attr):
+            raise KeyError(f"unknown protocol: {attr}")
+
+        config: TomlConfig = getattr(self, attr)
+        if not parts:
+            return config
+
+        return config[".".join(parts)]
+

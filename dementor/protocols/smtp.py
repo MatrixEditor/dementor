@@ -242,7 +242,7 @@ class SMTPServerHandler:
         if blob is None:
             # 4. The server sends the SMTP_NTLM_Supported_Response message, indicating that it can perform
             # NTLM authentication.
-            blob = server.challenge_auth(SMTP_NTLM_Supported_Response_Message)
+            blob = await server.challenge_auth(SMTP_NTLM_Supported_Response_Message)
             if blob is MISSING:
                 # authentication failed
                 await server.push("501 5.7.0 Auth aborted")
@@ -315,7 +315,7 @@ class SMTPServerThread(threading.Thread):
             }
         )
 
-    async def start_server(self, controller, config: SessionConfig, smtp_config):
+    async def start_server(self, controller: Controller, config: SessionConfig, smtp_config):
         controller.port = smtp_config.smtp_port
 
         # NOTE: hostname on the controller points to the local address that will be
