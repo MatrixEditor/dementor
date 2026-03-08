@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Multicast Poisoning ⚙️ - Dementor 1.0.0.dev18 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Rogue Kerberos KDC" href="kdc.html" /><link rel="prev" title="Custom Protocols ⚙️" href="../proto.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Multicast Poisoning ⚙️ - Dementor 1.0.0.dev19 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Rogue Kerberos KDC" href="kdc.html" /><link rel="prev" title="Custom Protocols ⚙️" href="../proto.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/examples/multicast.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -161,7 +161,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#llmnr-answer-name-spoofing">LLMNR Answer-Name Spoofing</a></li>
 </ul>
 </div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/examples/multicast.rst">Edit this page</a>
+  <a href="https://github.com/MatrixEditor/dementor/blob/master/docs/source/examples/multicast.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -195,7 +195,7 @@ data-aria-dark="Switch to auto color mode">
     <button
       type="button"
       class="js-copy px-3 py-1 inline-flex items-center gap-1"
-      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/multicast.rst"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/examples/multicast.rst"
     >
       <i class="i-lucide" data-icon="copy"></i>
       <span>Copy page</span>
@@ -209,17 +209,17 @@ data-aria-dark="Switch to auto color mode">
     <div role="presentation">
       <div class="flex flex-col" role="group">
         <button class="js-copy" type="button" role="menuitem"
-          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/multicast.rst">
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/examples/multicast.rst">
           <span class="iconify-icon">
             <i class="i-lucide" data-icon="copy"></i>
           </span>
           <span>Copy page</span>
         </button>
-        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/multicast.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
-            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/multicast.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/examples/multicast.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/examples/multicast.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:openai"></iconify-icon>
           <span>Open in ChatGPT</span>
-        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/examples/multicast.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/examples/multicast.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:claude"></iconify-icon>
           <span>Open in Claude</span>
         </a></div>
@@ -297,7 +297,7 @@ CLI</label><div class="sd-tab-content docutils">
 </div>
 <div class="admonition hint">
 <p class="admonition-title">Hint</p>
-<p>You can attempt to downgrade the captured NTLM hash using <code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code>.
+<p>You can attempt to downgrade the captured NTLM hash using <a class="reference internal" href="../config/ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a>.
 To test this via the CLI:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">$ </span>Dementor<span class="w"> </span>-I<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INTERFACE</span><span class="s2">&quot;</span><span class="w"> </span>-O<span class="w"> </span><span class="nv">RPC</span><span class="o">=</span>On<span class="w"> </span>-O<span class="w"> </span>RPC.ExtendedSessionSecurity<span class="o">=</span>Off
 </span></pre></div>
@@ -421,7 +421,7 @@ CLI</label><div class="sd-tab-content docutils">
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=a85e2a3b"></script>
+      <script src="../_static/documentation_options.js?v=cc91fa7f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

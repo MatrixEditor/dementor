@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMB - Dementor 1.0.0.dev18 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="SMTP" href="smtp.html" /><link rel="prev" title="QUIC" href="quic.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SMB - Dementor 1.0.0.dev19 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="SMTP" href="smtp.html" /><link rel="prev" title="QUIC" href="quic.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/smb.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -166,6 +166,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#SMB.Server.ErrorCode"><code class="docutils literal notranslate">ErrorCode</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.SMB2Support"><code class="docutils literal notranslate">SMB2Support</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.Challenge"><code class="docutils literal notranslate">Challenge</span></code></a></li>
+<li><a class="reference internal" href="#SMB.Server.ExtendedSessionSecurity"><code class="docutils literal notranslate">ExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.DisableExtendedSessionSecurity"><code class="docutils literal notranslate">DisableExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.DisableNTLMv2"><code class="docutils literal notranslate">DisableNTLMv2</span></code></a></li>
 </ul>
@@ -195,7 +196,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
 </ul>
 </div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/smb.rst">Edit this page</a>
+  <a href="https://github.com/MatrixEditor/dementor/blob/master/docs/source/config/smb.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -233,7 +234,7 @@ data-aria-dark="Switch to auto color mode">
     <button
       type="button"
       class="js-copy px-3 py-1 inline-flex items-center gap-1"
-      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/smb.rst"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/smb.rst"
     >
       <i class="i-lucide" data-icon="copy"></i>
       <span>Copy page</span>
@@ -247,17 +248,17 @@ data-aria-dark="Switch to auto color mode">
     <div role="presentation">
       <div class="flex flex-col" role="group">
         <button class="js-copy" type="button" role="menuitem"
-          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/smb.rst">
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/smb.rst">
           <span class="iconify-icon">
             <i class="i-lucide" data-icon="copy"></i>
           </span>
           <span>Copy page</span>
         </button>
-        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/smb.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
-            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/smb.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/smb.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/smb.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:openai"></iconify-icon>
           <span>Open in ChatGPT</span>
-        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/smb.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/smb.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:claude"></iconify-icon>
           <span>Open in Claude</span>
         </a></div>
@@ -358,9 +359,20 @@ override the global value for SMB specifically.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="SMB.Server.ExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#SMB.Server.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev19: </span><strong>Deprecated</strong>: renamed to <a class="reference internal" href="#SMB.Server.DisableExtendedSessionSecurity" title="SMB.Server.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="SMB.Server.DisableExtendedSessionSecurity">
 <span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">DisableExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#SMB.Server.DisableExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_disable_ess" title="SMB.smb.SMBServerConfig.ntlm_disable_ess"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.ntlm_disable_ess</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev19: </span>Renamed from <code class="docutils literal notranslate"><span class="pre">ExtendedSessionSecurity</span></code> to explicit <code class="docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></p>
+</div>
 <p>Per-SMB override for <a class="reference internal" href="ntlm.html#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableExtendedSessionSecurity</span></code></a>.  When set in
 <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code> it applies to every <code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code> instance; when set inside a
 single <code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code> block it applies only to that port.  Falls back to
@@ -613,7 +625,7 @@ retrying via alternative protocols.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=a85e2a3b"></script>
+      <script src="../_static/documentation_options.js?v=cc91fa7f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

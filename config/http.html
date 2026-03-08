@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev18 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="IMAP" href="imap.html" /><link rel="prev" title="FTP ⚙️" href="ftp.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HTTP - Dementor 1.0.0.dev19 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="IMAP" href="imap.html" /><link rel="prev" title="FTP ⚙️" href="ftp.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/http.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -168,6 +168,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#HTTP.Server.WPAD"><code class="docutils literal notranslate">WPAD</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.WPADAuthRequired"><code class="docutils literal notranslate">WPADAuthRequired</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.ExtendedSessionSecurity"><code class="docutils literal notranslate">ExtendedSessionSecurity</span></code></a></li>
+<li><a class="reference internal" href="#HTTP.Server.DisableExtendedSessionSecurity"><code class="docutils literal notranslate">DisableExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.Challenge"><code class="docutils literal notranslate">Challenge</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
 <li><a class="reference internal" href="#HTTP.Server.TLS"><code class="docutils literal notranslate">TLS</span></code></a></li>
@@ -180,7 +181,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
 </ul>
 </div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/http.rst">Edit this page</a>
+  <a href="https://github.com/MatrixEditor/dementor/blob/master/docs/source/config/http.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -218,7 +219,7 @@ data-aria-dark="Switch to auto color mode">
     <button
       type="button"
       class="js-copy px-3 py-1 inline-flex items-center gap-1"
-      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/http.rst"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/http.rst"
     >
       <i class="i-lucide" data-icon="copy"></i>
       <span>Copy page</span>
@@ -232,17 +233,17 @@ data-aria-dark="Switch to auto color mode">
     <div role="presentation">
       <div class="flex flex-col" role="group">
         <button class="js-copy" type="button" role="menuitem"
-          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/http.rst">
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/http.rst">
           <span class="iconify-icon">
             <i class="i-lucide" data-icon="copy"></i>
           </span>
           <span>Copy page</span>
         </button>
-        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/http.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
-            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/http.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/http.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/http.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:openai"></iconify-icon>
           <span>Open in ChatGPT</span>
-        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/http.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/http.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:claude"></iconify-icon>
           <span>Open in Claude</span>
         </a></div>
@@ -364,16 +365,27 @@ using <a class="reference internal" href="#HTTP.Server.WPADAuthRequired" title="
 <dl class="py attribute">
 <dt class="sig sig-object py" id="HTTP.Server.ExtendedSessionSecurity">
 <span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#HTTP.Server.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.http_ess</span></code>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[HTTP]</span></code></p>
+<dd><div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev19: </span><strong>Deprecated</strong>: renamed to <a class="reference internal" href="#HTTP.Server.DisableExtendedSessionSecurity" title="HTTP.Server.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HTTP.Server.DisableExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">DisableExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#HTTP.Server.DisableExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">http.HTTPServerConfig.ntlm_disable_ess</span></code></p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed from <code class="docutils literal notranslate"><span class="pre">http_ess</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_ess</span></code></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev19: </span>Renamed from <code class="docutils literal notranslate"><span class="pre">ExtendedSessionSecurity</span></code> to explicit <code class="docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></p>
 </div>
 <p>Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NetNTLMv1-ESS/NetNTLMv2 hashes
 are captured instead of raw NTLM hashes. Resolution precedence:</p>
 <ol class="arabic simple">
-<li><p><a class="reference internal" href="#HTTP.Server.ExtendedSessionSecurity" title="HTTP.Server.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.ExtendedSessionSecurity</span></code></a> (per-instance)</p></li>
-<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.ExtendedSessionSecurity</span></code> (global HTTP fallback)</p></li>
-<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code> (final fallback)</p></li>
+<li><p><a class="reference internal" href="#HTTP.Server.DisableExtendedSessionSecurity" title="HTTP.Server.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.DisableExtendedSessionSecurity</span></code></a> (per-instance)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.DisableExtendedSessionSecurity</span></code> (global HTTP fallback)</p></li>
+<li><p><a class="reference internal" href="ntlm.html#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableExtendedSessionSecurity</span></code></a> (final fallback)</p></li>
 </ol>
 </dd></dl>
 
@@ -504,7 +516,7 @@ used in NTLM responses. The domain portion is optional.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=a85e2a3b"></script>
+      <script src="../_static/documentation_options.js?v=cc91fa7f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

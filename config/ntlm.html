@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="cyan" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NTLM - Dementor 1.0.0.dev18 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="POP3" href="pop3.html" /><link rel="prev" title="NBTNS" href="netbios.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NTLM - Dementor 1.0.0.dev19 documentation</title><link rel="shortcut icon" href="../_static/favicon.ico"/><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="POP3" href="pop3.html" /><link rel="prev" title="NBTNS" href="netbios.html" />
       <link rel="canonical" href="https://matrixeditor.github.io/dementor/config/ntlm.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"dark");
@@ -158,14 +158,12 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#section-ntlm">Section <code class="docutils literal notranslate"><span class="pre">[NTLM]</span></code></a><ul>
 <li><a class="reference internal" href="#NTLM.Challenge"><code class="docutils literal notranslate"><span class="pre">Challenge</span></code></a></li>
+<li><a class="reference internal" href="#NTLM.ExtendedSessionSecurity"><code class="docutils literal notranslate"><span class="pre">ExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#NTLM.DisableExtendedSessionSecurity"><code class="docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#NTLM.DisableNTLMv2"><code class="docutils literal notranslate"><span class="pre">DisableNTLMv2</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#protocol-behaviour">Protocol Behaviour</a><ul>
-<li><a class="reference internal" href="#three-message-handshake">Three-Message Handshake</a></li>
-<li><a class="reference internal" href="#hash-type-classification">Hash Type Classification</a></li>
-<li><a class="reference internal" href="#hashcat-output-formats">Hashcat Output Formats</a></li>
 <li><a class="reference internal" href="#challenge-message-construction">CHALLENGE_MESSAGE Construction</a></li>
 <li><a class="reference internal" href="#av-pairs-targetinfofields">AV_PAIRS (<code class="docutils literal notranslate"><span class="pre">TargetInfoFields</span></code>)</a></li>
 <li><a class="reference internal" href="#lm-response-filtering">LM Response Filtering</a></li>
@@ -173,11 +171,10 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 </li>
 <li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
-<li><a class="reference internal" href="#capture-prerequisites">Capture Prerequisites</a></li>
 <li><a class="reference internal" href="#lmcompatibilitylevel-reference">LmCompatibilityLevel Reference</a></li>
 </ul>
 </div><div class="edit-this-page">
-  <a href="https://github.com/MatrixEditor/dementor/blob/main/docs/config/ntlm.rst">Edit this page</a>
+  <a href="https://github.com/MatrixEditor/dementor/blob/master/docs/source/config/ntlm.rst">Edit this page</a>
 </div></div>
   </aside>
   <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
@@ -215,7 +212,7 @@ data-aria-dark="Switch to auto color mode">
     <button
       type="button"
       class="js-copy px-3 py-1 inline-flex items-center gap-1"
-      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/ntlm.rst"
+      data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/ntlm.rst"
     >
       <i class="i-lucide" data-icon="copy"></i>
       <span>Copy page</span>
@@ -229,17 +226,17 @@ data-aria-dark="Switch to auto color mode">
     <div role="presentation">
       <div class="flex flex-col" role="group">
         <button class="js-copy" type="button" role="menuitem"
-          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/ntlm.rst">
+          data-url="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/ntlm.rst">
           <span class="iconify-icon">
             <i class="i-lucide" data-icon="copy"></i>
           </span>
           <span>Copy page</span>
         </button>
-        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/ntlm.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
-            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/ntlm.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        <a role="menuitem" href="https://raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/ntlm.rst" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/ntlm.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:openai"></iconify-icon>
           <span>Open in ChatGPT</span>
-        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/main/docs/config/ntlm.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/MatrixEditor/dementor/refs/heads/master/docs/source/config/ntlm.rst%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
           <iconify-icon icon="bi:claude"></iconify-icon>
           <span>Open in Claude</span>
         </a></div>
@@ -254,6 +251,9 @@ data-aria-dark="Switch to auto color mode">
 <dt class="sig sig-object py" id="NTLM.Challenge">
 <span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">HexStr</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span> <span class="pre">(random</span> <span class="pre">at</span> <span class="pre">startup)</span></span><a class="headerlink" href="#NTLM.Challenge" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ntlm_challenge</span></code></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev19: </span>The challenge now accepts different configuration formats.</p>
+</div>
 <p>Specifies the NTLM ServerChallenge nonce sent in the <code class="docutils literal notranslate"><span class="pre">CHALLENGE_MESSAGE</span></code>.
 The value must represent exactly <code class="docutils literal notranslate"><span class="pre">8</span></code> bytes and can be given in any of the
 following formats:</p>
@@ -302,9 +302,20 @@ random (unset) challenge unless you specifically need a fixed value.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="NTLM.ExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#NTLM.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><div class="versionremoved">
+<p><span class="versionmodified removed">Removed in version 1.0.0.dev19: </span><strong>Deprecated</strong>: renamed to <a class="reference internal" href="#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="NTLM.DisableExtendedSessionSecurity">
 <span class="sig-prename descclassname"><span class="pre">NTLM.</span></span><span class="sig-name descname"><span class="pre">DisableExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#NTLM.DisableExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">config.SessionConfig.ntlm_disable_ess</span></code></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.0.0.dev19: </span>Renamed from <code class="docutils literal notranslate"><span class="pre">ExtendedSessionSecurity</span></code> to explicit <code class="docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></p>
+</div>
 <p>When <code class="docutils literal notranslate"><span class="pre">true</span></code>, strips the <code class="docutils literal notranslate"><span class="pre">NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY</span></code>
 flag from the <code class="docutils literal notranslate"><span class="pre">CHALLENGE_MESSAGE</span></code>, preventing ESS negotiation.</p>
 <p><strong>Effect on captured hashes:</strong></p>
@@ -321,7 +332,6 @@ these without GPU resources.</p></li>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Dementor detects ESS from the <code class="docutils literal notranslate"><span class="pre">LmChallengeResponse</span></code> byte structure
-(<code class="docutils literal notranslate"><span class="pre">len</span> <span class="pre">==</span> <span class="pre">24</span></code> and <code class="docutils literal notranslate"><span class="pre">LM[8:24]</span> <span class="pre">==</span> <span class="pre">Z(16)</span></code> per <code class="docutils literal notranslate"><span class="pre">[MS-NLMP</span> <span class="pre">§3.3.1]</span></code>)
 rather than solely from the flag, so classification is accurate even
 when this setting is toggled.</p>
 </div>
@@ -340,14 +350,14 @@ construct an NTLMv2 response and produce <strong>NetNTLMv2</strong> and <strong>
 (hashcat <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">5600</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">true</span></code> — <code class="docutils literal notranslate"><span class="pre">TargetInfoFields</span></code> is empty.  Without it, clients cannot
 build the NTLMv2 blob per <code class="docutils literal notranslate"><span class="pre">[MS-NLMP</span> <span class="pre">§3.3.2]</span></code>.
-LmCompatibilityLevel 0–2 clients fall back to NTLMv1.
+LmCompatibilityLevel 0-2 clients fall back to NTLMv1.
 Level 3+ clients (all modern Windows) will <strong>fail authentication</strong> and
 produce <strong>zero captured hashes</strong>.</p></li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This setting is almost never needed.  Clients at
-<code class="docutils literal notranslate"><span class="pre">LmCompatibilityLevel</span></code> 0–2 already send <strong>NTLMv1 unconditionally</strong>
+<code class="docutils literal notranslate"><span class="pre">LmCompatibilityLevel</span></code> 0-2 already send <strong>NTLMv1 unconditionally</strong>
 and will never send NTLMv2 regardless of whether <code class="docutils literal notranslate"><span class="pre">TargetInfoFields</span></code>
 is present.  This option therefore only affects level 3+ clients (all
 modern Windows defaults), which <strong>require</strong> <code class="docutils literal notranslate"><span class="pre">TargetInfoFields</span></code> to
@@ -360,24 +370,19 @@ when exclusively targeting known legacy NTLMv1-only environments.</p>
 </section>
 <section id="protocol-behaviour">
 <h2>Protocol Behaviour<a class="headerlink" href="#protocol-behaviour" title="Link to this heading">¶</a></h2>
-<section id="three-message-handshake">
-<h3>Three-Message Handshake<a class="headerlink" href="#three-message-handshake" title="Link to this heading">¶</a></h3>
 <p>Dementor acts as a <strong>capture server</strong>, not an authentication server.  Per
 <code class="docutils literal notranslate"><span class="pre">[MS-NLMP</span> <span class="pre">§1.3.1.1]</span></code>, the handshake proceeds as follows:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">Client                              Server (Dementor)
 </span><span data-line="2">  |                                       |
 </span><span data-line="3">  |--- NEGOTIATE_MESSAGE ---------------► |  inspect client flags
 </span><span data-line="4">  |◄-- CHALLENGE_MESSAGE ---------------- |  Dementor controls entirely
-</span><span data-line="5">  |--- AUTHENTICATE_MESSAGE -----------►  |  extract &amp; store hashes
+</span><span data-line="5">  |--- AUTHENTICATE_MESSAGE ------------► |  extract &amp; store hashes
 </span><span data-line="6">  |                                       |
 </span></pre></div>
 </div>
 <p>Dementor does not verify responses, compute session keys, or participate in
 signing or sealing.  The connection is terminated (or returned to the calling
 protocol handler) immediately after the <code class="docutils literal notranslate"><span class="pre">AUTHENTICATE_MESSAGE</span></code> is received.</p>
-</section>
-<section id="hash-type-classification">
-<h3>Hash Type Classification<a class="headerlink" href="#hash-type-classification" title="Link to this heading">¶</a></h3>
 <p>Four hash types are extracted, classified from the <code class="docutils literal notranslate"><span class="pre">AUTHENTICATE_MESSAGE</span></code>
 using NT and LM response byte structure per <code class="docutils literal notranslate"><span class="pre">[MS-NLMP</span> <span class="pre">§3.3]</span></code>.  The ESS flag
 is cross-checked but the <strong>byte structure is authoritative</strong>:</p>
@@ -412,7 +417,7 @@ is cross-checked but the <strong>byte structure is authoritative</strong>:</p>
 <td><p>n/a</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">5600</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NetLMv2</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LMv2</span></code></p></td>
 <td><p>&gt; 24 bytes †</p></td>
 <td><p>24 bytes, non-null</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">5600</span></code></p></td>
@@ -420,13 +425,7 @@ is cross-checked but the <strong>byte structure is authoritative</strong>:</p>
 </tbody>
 </table>
 </div>
-<p>† NetLMv2 is always paired with NetNTLMv2 and uses the same hashcat mode.</p>
-<p>ESS detection relies on <code class="docutils literal notranslate"><span class="pre">len(LM)</span> <span class="pre">==</span> <span class="pre">24</span> <span class="pre">and</span> <span class="pre">LM[8:24]</span> <span class="pre">==</span> <span class="pre">Z(16)</span></code> per §3.3.1.
-This is reliable even when <a class="reference internal" href="#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">DisableExtendedSessionSecurity</span></code></a> is toggled —
-the flag is supplementary, not authoritative.</p>
-</section>
-<section id="hashcat-output-formats">
-<h3>Hashcat Output Formats<a class="headerlink" href="#hashcat-output-formats" title="Link to this heading">¶</a></h3>
+<p>† LMv2 is always paired with NetNTLMv2 and uses the same hashcat mode.</p>
 <p>Each captured hash is written in hashcat-compatible format:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1"># NetNTLMv1 / NetNTLMv1-ESS  (-m 5500)
 </span><span data-line="2">User::Domain:LmResponse(48 hex):NtResponse(48 hex):ServerChallenge(16 hex)
@@ -441,7 +440,6 @@ the flag is supplementary, not authoritative.</p>
 <p>For <strong>NetNTLMv1-ESS</strong>, the raw <code class="docutils literal notranslate"><span class="pre">ServerChallenge</span></code> is emitted (not the derived
 <code class="docutils literal notranslate"><span class="pre">MD5(Server</span> <span class="pre">‖</span> <span class="pre">Client)[0:8]</span></code>).  Hashcat <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">5500</span></code> auto-detects ESS from
 <code class="docutils literal notranslate"><span class="pre">LM[8:24]</span> <span class="pre">==</span> <span class="pre">Z(16)</span></code> and derives the mixed challenge internally.</p>
-</section>
 <section id="challenge-message-construction">
 <h3>CHALLENGE_MESSAGE Construction<a class="headerlink" href="#challenge-message-construction" title="Link to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">CHALLENGE_MESSAGE</span></code> is built directly from the client’s
@@ -541,7 +539,7 @@ response unless the client set <code class="docutils literal notranslate"><span 
 only send <code class="docutils literal notranslate"><span class="pre">Z(24)</span></code> here when the server included <code class="docutils literal notranslate"><span class="pre">MsvAvTimestamp</span></code>
 (<code class="docutils literal notranslate"><span class="pre">0x0007</span></code>) in the <code class="docutils literal notranslate"><span class="pre">CHALLENGE_MESSAGE</span></code>, which instructs them to suppress the
 LM slot.  Dementor intentionally omits <code class="docutils literal notranslate"><span class="pre">MsvAvTimestamp</span></code>, so this suppression
-never occurs and both NetNTLMv2 and NetLMv2 are always captured.</p>
+never occurs and both NetNTLMv2 and LMv2 are always captured.</p>
 </section>
 <section id="anonymous-authentication">
 <h3>Anonymous Authentication<a class="headerlink" href="#anonymous-authentication" title="Link to this heading">¶</a></h3>
@@ -577,33 +575,12 @@ avoid writing a malformed capture.  Anonymous tokens are silently discarded.</p>
 </span><span data-line="15"><span class="linenos">15</span>
 </span><span data-line="16"><span class="linenos">16</span><span class="c1"># Omit TargetInfoFields (AV_PAIRS) from CHALLENGE_MESSAGE.</span>
 </span><span data-line="17"><span class="linenos">17</span><span class="c1"># false (default): NetNTLMv2 + NetLMv2 captured from all modern clients.</span>
-</span><span data-line="18"><span class="linenos">18</span><span class="c1"># true:            Level 0–2 clients fall back to NTLMv1; level 3+ clients</span>
+</span><span data-line="18"><span class="linenos">18</span><span class="c1"># true:            Level 0-2 clients fall back to NTLMv1; level 3+ clients</span>
 </span><span data-line="19"><span class="linenos">19</span><span class="c1">#                  (all modern Windows) will refuse and produce NO captures.</span>
 </span><span data-line="20"><span class="linenos">20</span><span class="n">DisableNTLMv2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </span></pre></div>
 </div>
 </div>
-</section>
-<section id="capture-prerequisites">
-<h2>Capture Prerequisites<a class="headerlink" href="#capture-prerequisites" title="Link to this heading">¶</a></h2>
-<p>For a hash to be written to the session database, the following conditions
-must all hold once Dementor receives the <code class="docutils literal notranslate"><span class="pre">AUTHENTICATE_MESSAGE</span></code>:</p>
-<ol class="arabic simple">
-<li><p><strong>Non-anonymous</strong> — the token must not carry the
-<code class="docutils literal notranslate"><span class="pre">NTLMSSP_NEGOTIATE_ANONYMOUS</span></code> flag and must include a non-empty
-<code class="docutils literal notranslate"><span class="pre">UserName</span></code> and a non-null <code class="docutils literal notranslate"><span class="pre">NtChallengeResponse</span></code>.</p></li>
-<li><p><strong>Parseable</strong> — the NTLM token must be structurally valid; any parse
-error causes the token to be treated as anonymous and discarded.</p></li>
-<li><p><strong>NT response present</strong> — the <code class="docutils literal notranslate"><span class="pre">NtChallengeResponse</span></code> field must be
-non-empty; a missing or zero-length NT response means there is nothing
-to capture.</p></li>
-</ol>
-<p>The LM slot in a NetNTLMv1 hashcat line is additionally subject to the three
-filtering conditions described under <a class="reference internal" href="#lm-response-filtering">LM Response Filtering</a>.  Filtering the
-LM slot does <strong>not</strong> discard the capture — the NT response is still written;
-only the LM field is omitted from the output line.</p>
-<p>When a capture is discarded Dementor logs the event but writes nothing to
-disk.</p>
 </section>
 <section id="lmcompatibilitylevel-reference">
 <h2>LmCompatibilityLevel Reference<a class="headerlink" href="#lmcompatibilitylevel-reference" title="Link to this heading">¶</a></h2>
@@ -661,7 +638,7 @@ to the hash type Dementor captures and the relevant hashcat mode.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Windows Vista and later default to <strong>level 3</strong>.  Levels 0–2 are only
+<p>Windows Vista and later default to <strong>level 3</strong>.  Levels 0-2 are only
 found on legacy systems or when explicitly downgraded via Group Policy.
 Leave <a class="reference internal" href="#NTLM.DisableNTLMv2" title="NTLM.DisableNTLMv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">DisableNTLMv2</span></code></a> at <code class="docutils literal notranslate"><span class="pre">false</span></code> (the default) to capture hashes
 from clients at any level.</p>
@@ -712,7 +689,7 @@ from clients at any level.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=a85e2a3b"></script>
+      <script src="../_static/documentation_options.js?v=cc91fa7f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
