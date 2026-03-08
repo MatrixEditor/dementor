@@ -60,7 +60,7 @@ Section ``[MSSQL]``
     .. versionchanged:: 1.0.0.dev5
         Internal mapping changed frmo ``mssql_ess`` to ``ntlm_ess``
 
-    Enables NTLM Extended Session Security (ESS). When enabled, NTLMv1/NTLMv2-SSP hashes are
+    Enables NTLM Extended Session Security (ESS). When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are
     captured instead of raw NTLM hashes. Resolution precedence:
 
     1. :attr:`MSSQL.ExtendedSessionSecurity`

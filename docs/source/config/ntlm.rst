@@ -29,7 +29,7 @@ Section ``[NTLM]``
     .. note::
 
         A fixed challenge such as ``"1122334455667788"`` combined with rainbow
-        tables can crack NTLMv1 hashes offline without GPU resources.  Use a
+        tables can crack NetNTLMv1 hashes offline without GPU resources.  Use a
         random (unset) challenge unless you specifically need a fixed value.
 
     .. container:: demo
@@ -74,12 +74,12 @@ Section ``[NTLM]``
     **Effect on captured hashes:**
 
     - ``false`` (default) — ESS is negotiated when the client requests it.
-      NTLMv1 clients produce **NTLMv1-ESS** hashes (hashcat ``-m 5500``).
+      NTLMv1 clients produce **NetNTLMv1-ESS** hashes (hashcat ``-m 5500``).
       ESS uses ``MD5(ServerChallenge ‖ ClientChallenge)[0:8]`` as the effective
       challenge; hashcat derives this internally from the emitted ``ClientChallenge``
       field.
 
-    - ``true`` — ESS is suppressed.  NTLMv1 clients produce plain **NTLMv1**
+    - ``true`` — ESS is suppressed.  NTLMv1 clients produce plain **NetNTLMv1**
       hashes.  A fixed :attr:`Challenge` combined with rainbow tables can crack
       these without GPU resources.
 
@@ -102,7 +102,7 @@ Section ``[NTLM]``
     **Effect on captured hashes:**
 
     - ``false`` (default) — ``TargetInfoFields`` is populated.  Clients can
-      construct an NTLMv2 response and produce **NTLMv2** and **LMv2** hashes
+      construct an NTLMv2 response and produce **NetNTLMv2** and **NetLMv2** hashes
       (hashcat ``-m 5600``).
 
     - ``true`` — ``TargetInfoFields`` is empty.  Without it, clients cannot
@@ -160,24 +160,24 @@ is cross-checked but the **byte structure is authoritative**:
      - NT length
      - LM condition
      - HC mode
-   * - ``NTLMv1``
+   * - ``NetNTLMv1``
      - 24 bytes
      - any (real or absent)
      - ``-m 5500``
-   * - ``NTLMv1-ESS``
+   * - ``NetNTLMv1-ESS``
      - 24 bytes
      - ``LM[8:24] == Z(16)``
      - ``-m 5500``
-   * - ``NTLMv2``
+   * - ``NetNTLMv2``
      - > 24 bytes
      - n/a
      - ``-m 5600``
-   * - ``LMv2``
+   * - ``NetLMv2``
      - > 24 bytes †
      - 24 bytes, non-null
      - ``-m 5600``
 
-† LMv2 is always paired with NTLMv2 and uses the same hashcat mode.
+† NetLMv2 is always paired with NetNTLMv2 and uses the same hashcat mode.
 
 ESS detection relies on ``len(LM) == 24 and LM[8:24] == Z(16)`` per §3.3.1.
 This is reliable even when :attr:`DisableExtendedSessionSecurity` is toggled —
@@ -190,16 +190,16 @@ Each captured hash is written in hashcat-compatible format:
 
 .. code-block:: text
 
-    # NTLMv1 / NTLMv1-ESS  (-m 5500)
+    # NetNTLMv1 / NetNTLMv1-ESS  (-m 5500)
     User::Domain:LmResponse(48 hex):NtResponse(48 hex):ServerChallenge(16 hex)
 
-    # NTLMv2  (-m 5600)
+    # NetNTLMv2  (-m 5600)
     User::Domain:ServerChallenge(16 hex):NTProofStr(32 hex):Blob(var hex)
 
-    # LMv2  (-m 5600)
+    # NetLMv2  (-m 5600)
     User::Domain:ServerChallenge(16 hex):LMProof(32 hex):ClientChallenge(16 hex)
 
-For **NTLMv1-ESS**, the raw ``ServerChallenge`` is emitted (not the derived
+For **NetNTLMv1-ESS**, the raw ``ServerChallenge`` is emitted (not the derived
 ``MD5(Server ‖ Client)[0:8]``).  Hashcat ``-m 5500`` auto-detects ESS from
 ``LM[8:24] == Z(16)`` and derives the mixed challenge internally.
 
@@ -267,13 +267,13 @@ the hostname and ``corp.example.com`` becomes the domain and forest name.
 
 ``MsvAvTimestamp`` (``0x0007``) is **intentionally omitted**.  Per §3.3.2
 rule 7, if the server includes ``MsvAvTimestamp`` the client MUST suppress its
-``LmChallengeResponse`` (set to ``Z(24)``), which eliminates LMv2 capture from
+``LmChallengeResponse`` (set to ``Z(24)``), which eliminates NetLMv2 capture from
 all modern Windows clients.
 
 LM Response Filtering
 ~~~~~~~~~~~~~~~~~~~~~~
 
-For **NTLMv1** captures, the LM slot in the hashcat line is omitted when any
+For **NetNTLMv1** captures, the LM slot in the hashcat line is omitted when any
 of the following conditions hold:
 
 - **Identical response** — ``LmChallengeResponse == NtChallengeResponse``.
@@ -286,12 +286,12 @@ of the following conditions hold:
 - **Empty-password placeholder** — ``LmChallengeResponse == DESL(LMOWFv1(""))``.
   The LM derivative of an empty password; equally uncrackable.
 
-For **NTLMv2**, the LMv2 companion hash is captured alongside the NTLMv2
+For **NetNTLMv2**, the NetLMv2 companion hash is captured alongside the NetNTLMv2
 response unless the client set ``LmChallengeResponse`` to ``Z(24)``.  Clients
 only send ``Z(24)`` here when the server included ``MsvAvTimestamp``
 (``0x0007``) in the ``CHALLENGE_MESSAGE``, which instructs them to suppress the
 LM slot.  Dementor intentionally omits ``MsvAvTimestamp``, so this suppression
-never occurs and both NTLMv2 and LMv2 are always captured.
+never occurs and both NetNTLMv2 and NetLMv2 are always captured.
 
 Anonymous Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -324,13 +324,13 @@ Default Configuration
     Challenge = "1337LEET"
 
     # Strip NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY from CHALLENGE_MESSAGE.
-    # false (default): ESS negotiated → NTLMv1-ESS hashes (hashcat -m 5500).
-    # true:            ESS suppressed → plain NTLMv1; crackable with rainbow
+    # false (default): ESS negotiated → NetNTLMv1-ESS hashes (hashcat -m 5500).
+    # true:            ESS suppressed → plain NetNTLMv1; crackable with rainbow
     #                  tables when combined with a fixed Challenge above.
     DisableExtendedSessionSecurity = false
 
     # Omit TargetInfoFields (AV_PAIRS) from CHALLENGE_MESSAGE.
-    # false (default): NTLMv2 + LMv2 captured from all modern clients.
+    # false (default): NetNTLMv2 + NetLMv2 captured from all modern clients.
     # true:            Level 0–2 clients fall back to NTLMv1; level 3+ clients
     #                  (all modern Windows) will refuse and produce NO captures.
     DisableNTLMv2 = false
@@ -351,7 +351,7 @@ must all hold once Dementor receives the ``AUTHENTICATE_MESSAGE``:
    non-empty; a missing or zero-length NT response means there is nothing
    to capture.
 
-The LM slot in a NTLMv1 hashcat line is additionally subject to the three
+The LM slot in a NetNTLMv1 hashcat line is additionally subject to the three
 filtering conditions described under `LM Response Filtering`_.  Filtering the
 LM slot does **not** discard the capture — the NT response is still written;
 only the LM field is omitted from the output line.
@@ -377,27 +377,27 @@ to the hash type Dementor captures and the relevant hashcat mode.
      - HC mode
    * - 0
      - LMv1 + NTLMv1
-     - NTLMv1 (+ NTLMv1-ESS when ESS negotiated)
+     - NetNTLMv1 (+ NetNTLMv1-ESS when ESS negotiated)
      - ``-m 5500``
    * - 1
      - LMv1 + NTLMv1 (NTLMv1-ESS if ESS is negotiated)
-     - NTLMv1 / NTLMv1-ESS
+     - NetNTLMv1 / NetNTLMv1-ESS
      - ``-m 5500``
    * - 2
      - NTLMv1 in both LM and NT slots
-     - NTLMv1 (LM slot filtered — see `LM Response Filtering`_)
+     - NetNTLMv1 (LM slot filtered — see `LM Response Filtering`_)
      - ``-m 5500``
    * - 3
      - NTLMv2 + LMv2
-     - NTLMv2 + LMv2
+     - NetNTLMv2 + NetLMv2
      - ``-m 5600``
    * - 4
      - NTLMv2 + LMv2
-     - NTLMv2 + LMv2
+     - NetNTLMv2 + NetLMv2
      - ``-m 5600``
    * - 5
      - NTLMv2 + LMv2
-     - NTLMv2 + LMv2
+     - NetNTLMv2 + NetLMv2
      - ``-m 5600``
 
 .. note::

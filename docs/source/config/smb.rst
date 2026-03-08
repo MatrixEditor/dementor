@@ -217,7 +217,7 @@ Section ``[SMB]``
         *Corresponds to* :attr:`NTLM.DisableExtendedSessionSecurity`
 
         When ``True``, ESS is suppressed in the ``CHALLENGE_MESSAGE`` and clients
-        produce plain **NTLMv1** hashes instead of **NTLMv1-ESS**.
+        produce plain **NetNTLMv1** hashes instead of **NetNTLMv1-ESS**.
 
 
     .. py:attribute:: ntlm_disable_ntlmv2

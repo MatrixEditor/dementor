@@ -105,24 +105,6 @@ in development. The legend for each symbol is as follows:
                     <tr>
                         <td>SMB 3.1.1</td>
                     </tr>
-                    <tr>
-                        <td>Tree Connect</td>
-                    </tr>
-                    <tr>
-                        <td>Logoff</td>
-                    </tr>
-                    <tr>
-                        <td>NT4 clear-text capture</td>
-                    </tr>
-                    <tr>
-                        <td>Multi-credential loop</td>
-                    </tr>
-                    <tr>
-                        <td>Configurable ErrorCode</td>
-                    </tr>
-                    <tr>
-                        <td>Configurable ServerOS</td>
-                    </tr>
                 </tbody>
                 </table>
             </td>
@@ -154,24 +136,6 @@ in development. The legend for each symbol is as follows:
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
                 </tbody>
                 </table>
             </td>
@@ -196,24 +160,6 @@ in development. The legend for each symbol is as follows:
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -231,16 +177,16 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td>NTLMv1</td>
+                        <td>NetNTLMv1</td>
                     </tr>
                     <tr>
-                        <td>NTLMv1-ESS</td>
+                        <td>NetNTLMv1-ESS</td>
                     </tr>
                     <tr>
-                        <td>LMv2</td>
+                        <td>NetLMv2</td>
                     </tr>
                     <tr>
-                        <td>NTLMv2</td>
+                        <td>NetNTLMv2</td>
                     </tr>
                     <tr>
                         <td>Dummy LM filtering</td>
@@ -255,7 +201,7 @@ in development. The legend for each symbol is as follows:
                         <td>Flag mirroring</td>
                     </tr>
                     <tr>
-                        <td>NTLMv2 threshold (≥ 48 B)</td>
+                        <td>NetNTLMv2 threshold (≥ 48 B)</td>
                     </tr>
                     <tr>
                         <td>AV_PAIRS correctness</td>
@@ -267,7 +213,7 @@ in development. The legend for each symbol is as follows:
                         <td>Configurable challenge</td>
                     </tr>
                     <tr>
-                        <td>NTLMv1 capture (raw SMB1)</td>
+                        <td>NetNTLMv1 capture (raw SMB1)</td>
                     </tr>
                     <tr>
                         <td>SPNEGO unwrapping</td>
@@ -279,7 +225,7 @@ in development. The legend for each symbol is as follows:
                         <td>ESS configurable</td>
                     </tr>
                     <tr>
-                        <td>NTLMv2 configurable</td>
+                        <td>NetNTLMv2 configurable</td>
                     </tr>
                 </tbody>
                 </table>
@@ -307,22 +253,22 @@ in development. The legend for each symbol is as follows:
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#anon">[2]</a></td>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#ntlmv2thresh">[3]</a></td>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#avpairs">[4]</a></td>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#chalconf">[5]</a></td>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -855,8 +801,47 @@ in development. The legend for each symbol is as follows:
     </tbody>
     </table>
 
-    <p id="confusion">[1]: Responder cannot distinguish NTLMv1 from NTLMv1-ESS, labelling both as "NTLMv1-SSP". ESS changes the effective challenge (MD5(ServerChallenge ‖ ClientChallenge)[0:8]) and must be detected separately for correct hashcat cracking.</p>
-    <p id="anon">[2]: Responder's <code>Is_Anonymous</code> branches on <code>SecBlobLen &lt; 260</code> or <code>&gt; 260</code> using hardcoded byte offsets. When <code>SecBlobLen == 260</code> exactly, neither branch executes and the function returns <code>None</code> (falsy), so the session is treated as authenticated when it is actually anonymous. Dementor checks the <code>NTLMSSP_NEGOTIATE_ANONYMOUS</code> flag and structural fields (empty UserName, NtChallengeResponse, and LmChallengeResponse) explicitly.</p>
-    <p id="ntlmv2thresh">[3]: Responder's NTLMv2 detection threshold is <code>&gt; 60</code> bytes in <code>ParseSMBHash</code> and <code>&gt; 25</code> bytes in <code>ParseLMNTHash</code>. Per MS-NLMP §3.3.2, the minimum NTLMv2 NT response is 16 bytes (NTProofStr) + 32 bytes (blob header) = 48 bytes; the meaningful classification boundary is <code>&gt; 24</code>. Any NTLMv2 response between 25 and 60 bytes is misclassified as NTLMv1 and formatted with the wrong hashcat mode, producing an uncrackable hash line.</p>
-    <p id="avpairs">[4]: Responder's <code>packets.py</code> swaps AV_PAIR IDs 0x0003 (<code>MsvAvDnsComputerName</code>) and 0x0004 (<code>MsvAvDnsDomainName</code>), emitting them with reversed AvIds relative to MS-NLMP §2.2.2.1. Additionally, <code>MsvAvNbDomainName</code> (0x0002) is populated from the server hostname value rather than the NetBIOS domain name. Dementor derives each AV_PAIR value independently from the configured FQDN and follows the spec ordering exactly.</p>
-    <p id="chalconf">[5]: Responder supports a global fixed challenge via <code>Challenge = &lt;16 hex chars&gt;</code> in <code>Responder.conf</code> (<code>[Responder Core]</code> section). Only a 16-character hex string is accepted — ASCII notation is not supported, and there is no per-protocol or per-server override. The default (<code>Challenge = Random</code>) generates a fresh cryptographically random challenge per connection. Dementor additionally accepts ASCII and explicit-prefix formats and allows the challenge to be overridden per protocol section or per server instance.</p>
+    <h3>SMB Features</h3>
+    <table>
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
+            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev18)</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Tree Connect</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+        </tr>
+        <tr>
+            <td>Logoff</td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
+            <td>NT4 clear-text capture</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+        </tr>
+        <tr>
+            <td>Multi-credential loop</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+        </tr>
+        <tr>
+            <td>Configurable ErrorCode</td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
+            <td>Configurable ServerOS</td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+    </tbody>
+    </table>
+
+    <p id="confusion">[1]: Responder combines NetNTLMv1 and NetNTLMv1-ESS under a single "NTLMv1-SSP" label. This is not incorrect — hashcat <code>-m 5500</code> handles both — but Dementor distinguishes them for more granular reporting. Applies to all NTLM-capable protocols (SMB, HTTP, MSSQL, LDAP, DCE/RPC).</p>
