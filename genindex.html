@@ -251,10 +251,22 @@ data-aria-dark="Switch to auto color mode">
 </li>
       <li><a href="config/database.html#Database.Directory">Directory (in module Database)</a>
 </li>
-      <li><a href="config/ipp.html#AttributeDict.DocumentFormats">DocumentFormats (in module AttributeDict)</a>
+      <li><a href="config/ntlm.html#NTLM.DisableExtendedSessionSecurity">DisableExtendedSessionSecurity (in module NTLM)</a>
+
+      <ul>
+        <li><a href="config/smb.html#SMB.Server.DisableExtendedSessionSecurity">(SMB.Server attribute)</a>
 </li>
+      </ul></li>
+      <li><a href="config/ntlm.html#NTLM.DisableNTLMv2">DisableNTLMv2 (in module NTLM)</a>
+
+      <ul>
+        <li><a href="config/smb.html#SMB.Server.DisableNTLMv2">(SMB.Server attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="config/ipp.html#AttributeDict.DocumentFormats">DocumentFormats (in module AttributeDict)</a>
+</li>
       <li><a href="config/imap.html#IMAP.Server.Downgrade">Downgrade (IMAP.Server attribute)</a>
 
       <ul>
@@ -316,13 +328,9 @@ data-aria-dark="Switch to auto color mode">
 </li>
         <li><a href="config/mssql.html#MSSQL.ExtendedSessionSecurity">(in module MSSQL)</a>
 </li>
-        <li><a href="config/ntlm.html#NTLM.ExtendedSessionSecurity">(in module NTLM)</a>
-</li>
         <li><a href="config/pop3.html#POP3.ExtendedSessionSecurity">(in module POP3)</a>
 </li>
         <li><a href="config/dcerpc.html#RPC.ExtendedSessionSecurity">(in module RPC)</a>
-</li>
-        <li><a href="config/smb.html#SMB.Server.ExtendedSessionSecurity">(SMB.Server attribute)</a>
 </li>
       </ul></li>
       <li><a href="config/ipp.html#IPP.ExtraAttributes">ExtraAttributes (in module IPP)</a>
@@ -523,13 +531,19 @@ data-aria-dark="Switch to auto color mode">
 </li>
       <li><a href="config/database.html#Database.Name">Name (in module Database)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config/main.html#Dementor.NBTDS">NBTDS (in module Dementor)</a>
 </li>
       <li><a href="config/main.html#Dementor.NBTNS">NBTNS (in module Dementor)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config/netbios.html#NetBIOS.netbios.NBTNSConfig">netbios.NBTNSConfig (class in NetBIOS)</a>
+</li>
+      <li><a href="config/smb.html#SMB.smb.SMBServerConfig.ntlm_challenge">ntlm_challenge (SMB.smb.SMBServerConfig attribute)</a>
+</li>
+      <li><a href="config/smb.html#SMB.smb.SMBServerConfig.ntlm_disable_ess">ntlm_disable_ess (SMB.smb.SMBServerConfig attribute)</a>
+</li>
+      <li><a href="config/smb.html#SMB.smb.SMBServerConfig.ntlm_disable_ntlmv2">ntlm_disable_ntlmv2 (SMB.smb.SMBServerConfig attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -687,14 +701,10 @@ data-aria-dark="Switch to auto color mode">
 </li>
       <li><a href="config/smb.html#SMB.Server.SMB2Support">SMB2Support (SMB.Server attribute)</a>
 </li>
-      <li><a href="config/smb.html#SMB.smb.SMBServerConfig.smb_challenge">smb_challenge (SMB.smb.SMBServerConfig attribute)</a>
-</li>
       <li><a href="config/smb.html#SMB.smb.SMBServerConfig.smb_error_code">smb_error_code (SMB.smb.SMBServerConfig attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config/smb.html#SMB.smb.SMBServerConfig.smb_ess">smb_ess (SMB.smb.SMBServerConfig attribute)</a>
-</li>
       <li><a href="config/smb.html#SMB.smb.SMBServerConfig.smb_fqdn">smb_fqdn (SMB.smb.SMBServerConfig attribute)</a>
 </li>
       <li><a href="config/smb.html#SMB.smb.SMBServerConfig.smb_port">smb_port (SMB.smb.SMBServerConfig attribute)</a>

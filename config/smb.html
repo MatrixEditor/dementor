@@ -165,8 +165,9 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#SMB.Server.FQDN"><code class="docutils literal notranslate">FQDN</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.ErrorCode"><code class="docutils literal notranslate">ErrorCode</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.SMB2Support"><code class="docutils literal notranslate">SMB2Support</span></code></a></li>
-<li><a class="reference internal" href="#SMB.Server.ExtendedSessionSecurity"><code class="docutils literal notranslate">ExtendedSessionSecurity</span></code></a></li>
 <li><a class="reference internal" href="#SMB.Server.Challenge"><code class="docutils literal notranslate">Challenge</span></code></a></li>
+<li><a class="reference internal" href="#SMB.Server.DisableExtendedSessionSecurity"><code class="docutils literal notranslate">DisableExtendedSessionSecurity</span></code></a></li>
+<li><a class="reference internal" href="#SMB.Server.DisableNTLMv2"><code class="docutils literal notranslate">DisableNTLMv2</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig"><code class="docutils literal notranslate">SMBServerConfig</span></code></a><ul>
@@ -177,10 +178,18 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_fqdn"><code class="docutils literal notranslate">SMBServerConfig.smb_fqdn</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_error_code"><code class="docutils literal notranslate">SMBServerConfig.smb_error_code</span></code></a></li>
 <li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb2_support"><code class="docutils literal notranslate">SMBServerConfig.smb2_support</span></code></a></li>
-<li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_ess"><code class="docutils literal notranslate">SMBServerConfig.smb_ess</span></code></a></li>
-<li><a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_challenge"><code class="docutils literal notranslate">SMBServerConfig.smb_challenge</span></code></a></li>
+<li><a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_challenge"><code class="docutils literal notranslate">SMBServerConfig.ntlm_challenge</span></code></a></li>
+<li><a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_disable_ess"><code class="docutils literal notranslate">SMBServerConfig.ntlm_disable_ess</span></code></a></li>
+<li><a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_disable_ntlmv2"><code class="docutils literal notranslate">SMBServerConfig.ntlm_disable_ntlmv2</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a class="reference internal" href="#protocol-behaviour">Protocol Behaviour</a><ul>
+<li><a class="reference internal" href="#authentication-flow">Authentication Flow</a></li>
+<li><a class="reference internal" href="#protocol-version-negotiation">Protocol Version Negotiation</a></li>
+<li><a class="reference internal" href="#smb-3-1-1-negotiate-contexts">SMB 3.1.1 Negotiate Contexts</a></li>
+<li><a class="reference internal" href="#session-logoff">Session Logoff</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#default-configuration">Default Configuration</a></li>
@@ -300,7 +309,7 @@ used in the</strong> <code class="docutils literal notranslate"><span class="pre
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SMB.Server.FQDN">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;Dementor&quot;</span></span><a class="headerlink" href="#SMB.Server.FQDN" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">FQDN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&quot;DEMENTOR&quot;</span></span><a class="headerlink" href="#SMB.Server.FQDN" title="Link to this definition">¶</a></dt>
 <dd><p><em>Linked to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_fqdn" title="SMB.smb.SMBServerConfig.smb_fqdn"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.smb_fqdn</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">[Globals]</span></code></p>
 <p>Specifies the Fully Qualified Domain Name (FQDN) hostname used by the SMB server.
 The hostname portion of the FQDN will be included in server responses. The domain part is optional
@@ -335,33 +344,50 @@ string representations (e.g., <code class="docutils literal notranslate"><span c
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="SMB.Server.ExtendedSessionSecurity">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">ExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">true</span></span><a class="headerlink" href="#SMB.Server.ExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_ess" title="SMB.smb.SMBServerConfig.smb_ess"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.smb_ess</span></code></a>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
-<p>Enables Extended Session Security (ESS) during NTLM authentication. When ESS is enabled,
-the server captures NTLMv1/v2-SSP hashes instead of standard NTLMv1/v2 hashes. Resolution
-precedence:</p>
-<ol class="arabic simple">
-<li><p>If defined, <a class="reference internal" href="#SMB.Server.ExtendedSessionSecurity" title="SMB.Server.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.ExtendedSessionSecurity</span></code></a> takes precedence.</p></li>
-<li><p>If not, <code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.ExtendedSessionSecurity</span></code> is used.</p></li>
-<li><p>Finally, falls back to <a class="reference internal" href="ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a> if the above are unset.</p></li>
-</ol>
+<dt class="sig sig-object py" id="SMB.Server.Challenge">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></span><a class="headerlink" href="#SMB.Server.Challenge" title="Link to this definition">¶</a></dt>
+<dd><p><em>Maps to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_challenge" title="SMB.smb.SMBServerConfig.ntlm_challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.ntlm_challenge</span></code></a></p>
+<p>The ServerChallenge nonce used during NTLM authentication. Inherited from
+<a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a>; set it there to apply a fixed challenge to all
+protocols including SMB.  Set it here (in <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code> or <code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code>) to
+override the global value for SMB specifically.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a> for accepted formats and behaviour.</p>
+</div>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="SMB.Server.Challenge">
-<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">Challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NTLM.Challenge</span></span><a class="headerlink" href="#SMB.Server.Challenge" title="Link to this definition">¶</a></dt>
-<dd><p><em>Maps to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.smb_challenge" title="SMB.smb.SMBServerConfig.smb_challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.smb_challenge</span></code></a>. <em>May also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
-<p>Defines the challenge value used during NTLM authentication. Resolution precedence:</p>
-<ol class="arabic simple">
-<li><p><a class="reference internal" href="#SMB.Server.Challenge" title="SMB.Server.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.Challenge</span></code></a> (if defined)</p></li>
-<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Challenge</span></code> (fallback)</p></li>
-<li><p><a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a> (final fallback)</p></li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If none of the above attributes are set, the SMB server will generate a random challenge
-value for each session.</p>
+<dt class="sig sig-object py" id="SMB.Server.DisableExtendedSessionSecurity">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">DisableExtendedSessionSecurity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#SMB.Server.DisableExtendedSessionSecurity" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_disable_ess" title="SMB.smb.SMBServerConfig.ntlm_disable_ess"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.ntlm_disable_ess</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
+<p>Per-SMB override for <a class="reference internal" href="ntlm.html#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableExtendedSessionSecurity</span></code></a>.  When set in
+<code class="docutils literal notranslate"><span class="pre">[SMB]</span></code> it applies to every <code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code> instance; when set inside a
+single <code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code> block it applies only to that port.  Falls back to
+<a class="reference internal" href="ntlm.html#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableExtendedSessionSecurity</span></code></a> when not set here.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="ntlm.html#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableExtendedSessionSecurity</span></code></a> for full behavioural details.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SMB.Server.DisableNTLMv2">
+<span class="sig-prename descclassname"><span class="pre">Server.</span></span><span class="sig-name descname"><span class="pre">DisableNTLMv2</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">false</span></span><a class="headerlink" href="#SMB.Server.DisableNTLMv2" title="Link to this definition">¶</a></dt>
+<dd><p><em>Linked to</em> <a class="reference internal" href="#SMB.smb.SMBServerConfig.ntlm_disable_ntlmv2" title="SMB.smb.SMBServerConfig.ntlm_disable_ntlmv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smb.SMBServerConfig.ntlm_disable_ntlmv2</span></code></a>. <em>Can also be set in</em> <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code></p>
+<p>Per-SMB override for <a class="reference internal" href="ntlm.html#NTLM.DisableNTLMv2" title="NTLM.DisableNTLMv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableNTLMv2</span></code></a>.  When set in <code class="docutils literal notranslate"><span class="pre">[SMB]</span></code> it
+applies to every <code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code> instance; when set inside a single
+<code class="docutils literal notranslate"><span class="pre">[[SMB.Server]]</span></code> block it applies only to that port.  Falls back to
+<a class="reference internal" href="ntlm.html#NTLM.DisableNTLMv2" title="NTLM.DisableNTLMv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableNTLMv2</span></code></a> when not set here.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Enabling this against modern Windows clients (<code class="docutils literal notranslate"><span class="pre">LmCompatibilityLevel</span></code> 3+)
+will produce <strong>zero captured hashes</strong>.  See <a class="reference internal" href="ntlm.html#NTLM.DisableNTLMv2" title="NTLM.DisableNTLMv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableNTLMv2</span></code></a> for
+full details.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="ntlm.html#NTLM.DisableNTLMv2" title="NTLM.DisableNTLMv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableNTLMv2</span></code></a> for full behavioural details.</p>
 </div>
 </dd></dl>
 
@@ -426,37 +452,118 @@ or an integer.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.smb_ess">
-<span class="sig-name descname"><span class="pre">smb_ess</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#SMB.smb.SMBServerConfig.smb_ess" title="Link to this definition">¶</a></dt>
-<dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMB.Server.ExtendedSessionSecurity" title="SMB.Server.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.ExtendedSessionSecurity</span></code></a></p>
+<dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.ntlm_challenge">
+<span class="sig-name descname"><span class="pre">ntlm_challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span></span><a class="headerlink" href="#SMB.smb.SMBServerConfig.ntlm_challenge" title="Link to this definition">¶</a></dt>
+<dd><p><em>Corresponds to</em> <a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a></p>
+<p>Populated at startup from the global <code class="docutils literal notranslate"><span class="pre">[NTLM]</span></code> section. A cryptographically
+random value is used if <a class="reference internal" href="ntlm.html#NTLM.Challenge" title="NTLM.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.Challenge</span></code></a> is not configured.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.smb_challenge">
-<span class="sig-name descname"><span class="pre">smb_challenge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span> <span class="pre">=</span> <span class="pre">b&quot;&quot;</span></span><a class="headerlink" href="#SMB.smb.SMBServerConfig.smb_challenge" title="Link to this definition">¶</a></dt>
-<dd><p><em>Corresponds to</em> <a class="reference internal" href="#SMB.Server.Challenge" title="SMB.Server.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.Challenge</span></code></a></p>
-<p>By default, a random challenge will be generated based on the rules described
-in <a class="reference internal" href="#SMB.Server.Challenge" title="SMB.Server.Challenge"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.Challenge</span></code></a>.</p>
+<dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.ntlm_disable_ess">
+<span class="sig-name descname"><span class="pre">ntlm_disable_ess</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#SMB.smb.SMBServerConfig.ntlm_disable_ess" title="Link to this definition">¶</a></dt>
+<dd><p><em>Corresponds to</em> <a class="reference internal" href="ntlm.html#NTLM.DisableExtendedSessionSecurity" title="NTLM.DisableExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableExtendedSessionSecurity</span></code></a></p>
+<p>When <code class="docutils literal notranslate"><span class="pre">True</span></code>, ESS is suppressed in the <code class="docutils literal notranslate"><span class="pre">CHALLENGE_MESSAGE</span></code> and clients
+produce plain <strong>NetNTLMv1</strong> hashes instead of <strong>NetNTLMv1-ESS</strong>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SMB.smb.SMBServerConfig.ntlm_disable_ntlmv2">
+<span class="sig-name descname"><span class="pre">ntlm_disable_ntlmv2</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#SMB.smb.SMBServerConfig.ntlm_disable_ntlmv2" title="Link to this definition">¶</a></dt>
+<dd><p><em>Corresponds to</em> <a class="reference internal" href="ntlm.html#NTLM.DisableNTLMv2" title="NTLM.DisableNTLMv2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.DisableNTLMv2</span></code></a></p>
+<p>When <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">TargetInfoFields</span></code> is omitted from the <code class="docutils literal notranslate"><span class="pre">CHALLENGE_MESSAGE</span></code>.
+Level 0–2 clients fall back to NTLMv1; level 3+ clients fail with no capture.</p>
 </dd></dl>
 
 </dd></dl>
 
 </section>
+<section id="protocol-behaviour">
+<h2>Protocol Behaviour<a class="headerlink" href="#protocol-behaviour" title="Link to this heading">¶</a></h2>
+<section id="authentication-flow">
+<h3>Authentication Flow<a class="headerlink" href="#authentication-flow" title="Link to this heading">¶</a></h3>
+<p>The SMB handler accepts NTLM tokens in two forms:</p>
+<ul class="simple">
+<li><p><strong>NTLM SSP</strong> — the security buffer begins with <code class="docutils literal notranslate"><span class="pre">NTLMSSP\0</span></code> and is consumed
+directly by the three-message NTLM handshake (<code class="docutils literal notranslate"><span class="pre">NEGOTIATE</span> <span class="pre">→</span> <span class="pre">CHALLENGE</span> <span class="pre">→</span> <span class="pre">AUTHENTICATE</span></code>).</p></li>
+<li><p><strong>GSSAPI / SPNEGO</strong> — the buffer is wrapped in a <code class="docutils literal notranslate"><span class="pre">negTokenInit</span></code> (tag <code class="docutils literal notranslate"><span class="pre">0x60</span></code>) or
+<code class="docutils literal notranslate"><span class="pre">negTokenTarg</span></code> (tag <code class="docutils literal notranslate"><span class="pre">0xA1</span></code>) envelope.  Dementor unwraps the SPNEGO layer,
+performs the NTLM handshake internally, and returns appropriately wrapped
+<code class="docutils literal notranslate"><span class="pre">negTokenTarg</span></code> responses.</p></li>
+</ul>
+<p>In both cases the captured hash is passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">NTLM_report_auth()</span></code> and stored
+in the session database.</p>
+</section>
+<section id="protocol-version-negotiation">
+<h3>Protocol Version Negotiation<a class="headerlink" href="#protocol-version-negotiation" title="Link to this heading">¶</a></h3>
+<p>All SMB connections start with an <code class="docutils literal notranslate"><span class="pre">SMB_COM_NEGOTIATE</span></code> / <code class="docutils literal notranslate"><span class="pre">SMB2_NEGOTIATE</span></code>
+exchange.  When <a class="reference internal" href="#SMB.Server.SMB2Support" title="SMB.Server.SMB2Support"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SMB.Server.SMB2Support</span></code></a> is enabled (the default):</p>
+<ul class="simple">
+<li><p>An SMB1 client that includes any SMB2 or SMB3 dialect string receives an
+<code class="docutils literal notranslate"><span class="pre">SMB2_NEGOTIATE_RESPONSE</span></code> and the connection is silently upgraded to SMB2/SMB3.
+If the client advertises the wildcard <code class="docutils literal notranslate"><span class="pre">&quot;SMB</span> <span class="pre">2.???&quot;</span></code> dialect, Dementor selects
+the highest dialect it supports (<code class="docutils literal notranslate"><span class="pre">3.1.1</span></code>); otherwise it selects the last SMB2
+dialect in the client’s list.</p></li>
+<li><p>A native SMB2/SMB3 client (<code class="docutils literal notranslate"><span class="pre">SMB2_NEGOTIATE</span></code>) receives a response selecting
+the <strong>highest common dialect</strong> from the supported set (<code class="docutils literal notranslate"><span class="pre">2.002</span></code>, <code class="docutils literal notranslate"><span class="pre">2.1</span></code>,
+<code class="docutils literal notranslate"><span class="pre">3.0</span></code>, <code class="docutils literal notranslate"><span class="pre">3.0.2</span></code>, <code class="docutils literal notranslate"><span class="pre">3.1.1</span></code>).</p></li>
+<li><p>A pure SMB1 client (no SMB2 dialect strings) receives the SMB1 extended-security
+negotiate response and continues over SMB1.</p></li>
+</ul>
+</section>
+<section id="smb-3-1-1-negotiate-contexts">
+<h3>SMB 3.1.1 Negotiate Contexts<a class="headerlink" href="#smb-3-1-1-negotiate-contexts" title="Link to this heading">¶</a></h3>
+<p>When the negotiated dialect is <strong>SMB 3.1.1</strong>, the <code class="docutils literal notranslate"><span class="pre">SMB2_NEGOTIATE_RESPONSE</span></code>
+includes the mandatory negotiate context list:</p>
+<ul class="simple">
+<li><p><strong>SMB2_PREAUTH_INTEGRITY_CAPABILITIES</strong> — SHA-512 integrity algorithm with a
+cryptographically random 32-byte salt.</p></li>
+<li><p><strong>SMB2_ENCRYPTION_CAPABILITIES</strong> — echoes the cipher the client advertised
+(falls back to AES-128-GCM if the context is absent or unparseable).</p></li>
+<li><p><strong>SMB2_SIGNING_CAPABILITIES</strong> — echoes the signing algorithm the client
+advertised (falls back to AES-CMAC).</p></li>
+</ul>
+</section>
+<section id="session-logoff">
+<h3>Session Logoff<a class="headerlink" href="#session-logoff" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">SMB2_LOGOFF</span></code> requests are handled: Dementor clears the local authenticated
+flag, returns an <code class="docutils literal notranslate"><span class="pre">SMB2_LOGOFF_RESPONSE</span></code> with <code class="docutils literal notranslate"><span class="pre">STATUS_SUCCESS</span></code>, and logs the
+event via the protocol logger.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Tree Connect</strong> (<code class="docutils literal notranslate"><span class="pre">SMB_COM_TREE_CONNECT_ANDX</span></code> / <code class="docutils literal notranslate"><span class="pre">SMB2_TREE_CONNECT</span></code>) is
+not currently implemented. Connections are terminated after authentication,
+which is sufficient for credential capture but may prevent some clients from
+retrying via alternative protocols.</p>
+</div>
+</section>
+</section>
 <section id="default-configuration">
 <h2>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading">¶</a></h2>
 <div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-text">SMB configuration section (default values)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="code-block-caption"><span class="caption-text">SMB configuration section (all options)</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="linenos"> 1</span><span class="k">[SMB]</span>
-</span><span data-line="2"><span class="linenos"> 2</span><span class="n">ServerOS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Windows&quot;</span>
-</span><span data-line="3"><span class="linenos"> 3</span><span class="n">FQDN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEMENTOR&quot;</span>
+</span><span data-line="2"><span class="linenos"> 2</span><span class="c1"># FQDN = &quot;DEMENTOR&quot;                       # also settable in [Globals]</span>
+</span><span data-line="3"><span class="linenos"> 3</span><span class="n">ServerOS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Windows&quot;</span>
 </span><span data-line="4"><span class="linenos"> 4</span><span class="n">SMB2Support</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </span><span data-line="5"><span class="linenos"> 5</span><span class="n">ErrorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;STATUS_SMB_BAD_UID&quot;</span>
-</span><span data-line="6"><span class="linenos"> 6</span>
-</span><span data-line="7"><span class="linenos"> 7</span><span class="k">[[SMB.Server]]</span>
-</span><span data-line="8"><span class="linenos"> 8</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">139</span>
+</span><span data-line="6"><span class="linenos"> 6</span><span class="c1"># Challenge = &quot;1337LEET&quot;                  # overrides [NTLM] for all SMB servers</span>
+</span><span data-line="7"><span class="linenos"> 7</span><span class="c1"># DisableExtendedSessionSecurity = false  # overrides [NTLM] for all SMB servers</span>
+</span><span data-line="8"><span class="linenos"> 8</span><span class="c1"># DisableNTLMv2 = false                   # overrides [NTLM] for all SMB servers</span>
 </span><span data-line="9"><span class="linenos"> 9</span>
 </span><span data-line="10"><span class="linenos">10</span><span class="k">[[SMB.Server]]</span>
-</span><span data-line="11"><span class="linenos">11</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">445</span>
+</span><span data-line="11"><span class="linenos">11</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">139</span>
+</span><span data-line="12"><span class="linenos">12</span>
+</span><span data-line="13"><span class="linenos">13</span><span class="k">[[SMB.Server]]</span>
+</span><span data-line="14"><span class="linenos">14</span><span class="n">Port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">445</span>
+</span><span data-line="15"><span class="linenos">15</span><span class="c1"># Per-server overrides (highest priority):</span>
+</span><span data-line="16"><span class="linenos">16</span><span class="c1"># FQDN = &quot;other.corp.com&quot;</span>
+</span><span data-line="17"><span class="linenos">17</span><span class="c1"># ServerOS = &quot;Windows Server 2022&quot;</span>
+</span><span data-line="18"><span class="linenos">18</span><span class="c1"># ErrorCode = &quot;STATUS_ACCESS_DENIED&quot;</span>
+</span><span data-line="19"><span class="linenos">19</span><span class="c1"># SMB2Support = true</span>
+</span><span data-line="20"><span class="linenos">20</span><span class="c1"># Challenge = &quot;hex:aabbccddeeff0011&quot;</span>
+</span><span data-line="21"><span class="linenos">21</span><span class="c1"># DisableExtendedSessionSecurity = false</span>
+</span><span data-line="22"><span class="linenos">22</span><span class="c1"># DisableNTLMv2 = false</span>
 </span></pre></div>
 </div>
 </div>

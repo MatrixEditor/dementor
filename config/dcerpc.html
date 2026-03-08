@@ -338,12 +338,12 @@ code for implementation details.</p>
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed from <code class="docutils literal notranslate"><span class="pre">rpc_ntlm_ess</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_ess</span></code></p>
 </div>
 <p>Enables Extended Session Security (ESS) during NTLM authentication. With ESS enabled,
-NTLMv1/v2-SSP hashes are captured instead of standard NTLM hashes.</p>
+NetNTLMv1-ESS/NetNTLMv2 hashes are captured instead of standard NTLM hashes.</p>
 <p>Resolution precedence:</p>
 <ol class="arabic simple">
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">RPC.Server.ExtendedSessionSecurity</span></code> (per-server)</p></li>
 <li><p><a class="reference internal" href="#RPC.ExtendedSessionSecurity" title="RPC.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">RPC.ExtendedSessionSecurity</span></code></a> (global fallback)</p></li>
-<li><p><a class="reference internal" href="ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a> (final fallback)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code> (final fallback)</p></li>
 </ol>
 </dd></dl>
 

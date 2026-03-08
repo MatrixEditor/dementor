@@ -368,12 +368,12 @@ using <a class="reference internal" href="#HTTP.Server.WPADAuthRequired" title="
 <div class="versionchanged">
 <p><span class="versionmodified changed">Changed in version 1.0.0.dev5: </span>Internal mapping changed from <code class="docutils literal notranslate"><span class="pre">http_ess</span></code> to <code class="docutils literal notranslate"><span class="pre">ntlm_ess</span></code></p>
 </div>
-<p>Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NTLMv1/v2-SSP hashes
+<p>Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NetNTLMv1-ESS/NetNTLMv2 hashes
 are captured instead of raw NTLM hashes. Resolution precedence:</p>
 <ol class="arabic simple">
 <li><p><a class="reference internal" href="#HTTP.Server.ExtendedSessionSecurity" title="HTTP.Server.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.Server.ExtendedSessionSecurity</span></code></a> (per-instance)</p></li>
 <li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">HTTP.ExtendedSessionSecurity</span></code> (global HTTP fallback)</p></li>
-<li><p><a class="reference internal" href="ntlm.html#NTLM.ExtendedSessionSecurity" title="NTLM.ExtendedSessionSecurity"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code></a> (final fallback)</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">NTLM.ExtendedSessionSecurity</span></code> (final fallback)</p></li>
 </ol>
 </dd></dl>
 
