@@ -238,7 +238,7 @@ Authentication Flow
 
 The SMB handler accepts NTLM tokens in two forms:
 
-- **NTLM SSDPp** — the security buffer begins with ``NTLMSSP\0`` and is consumed
+- **NTLM SSP** — the security buffer begins with ``NTLMSSP\0`` and is consumed
   directly by the three-message NTLM handshake (``NEGOTIATE → CHALLENGE → AUTHENTICATE``).
 - **GSSAPI / SPNEGO** — the buffer is wrapped in a ``negTokenInit`` (tag ``0x60``) or
   ``negTokenTarg`` (tag ``0xA1``) envelope.  Dementor unwraps the SPNEGO layer,
