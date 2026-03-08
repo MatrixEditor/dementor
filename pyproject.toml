@@ -34,7 +34,7 @@ dependencies = [
     "aioquic",
     "typer",
     "jinja2",
-    "caterpillar-py",
+    "caterpillar-py>=2.8.1",
     "pyipp",
 ]
 
