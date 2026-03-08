@@ -17,37 +17,73 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportAny=false, reportExplicitAny=false
 import sys
 import pathlib
 import tomllib
 
+from typing import Any
+
 from dementor.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH
 
-# global configuration values
-dm_config: dict
+# --------------------------------------------------------------------------- #
+# Global configuration storage
+# --------------------------------------------------------------------------- #
+dm_config: dict[str, Any]
 
-def _get_global_config() -> dict:
+
+def get_global_config() -> dict[str, Any]:
+    """Return the current global configuration dictionary.
+
+    :return: The configuration mapping, empty if ``init_from_file`` has not
+        been called yet.
+    :rtype: dict
+    """
     return getattr(sys.modules[__name__], "dm_config", {})
 
 
-def _set_global_config(config: dict) -> None:
+def _set_global_config(config: dict[str, Any]) -> None:
+    """Replace the current global configuration with *config*.
+
+    The helper mirrors :func:`get_global_config` and writes the value back to
+    the module namespace.
+
+    :param config: New configuration dictionary.
+    :type config: dict
+    """
     setattr(sys.modules[__name__], "dm_config", config)
 
 
 def init_from_file(path: str) -> None:
+    """Load a TOML configuration file and merge it into the global config.
+
+    The function follows a *replace-then-overwrite* strategy: the file at
+    *path* is parsed with :mod:`tomllib`.  If the file exists and can be
+    read, its content completely replaces the previous ``dm_config`` value.
+    The caller is responsible for ordering calls to obtain the desired
+    precedence.
+
+    If the file does not exist or is not a regular file the function returns
+    silently.
+
+    :param path: Filesystem path to a TOML file.
+    :type path: str
+    :raises tomllib.TOMLDecodeError: Propagated if the file exists but contains
+        invalid TOML.
+    """
     target = pathlib.Path(path)
     if not target.exists() or not target.is_file():
         return
 
-    # by default, we just replace the global config
+    # By default we completely replace the existing configuration.
     with target.open("rb") as f:
         new_config = tomllib.load(f)
         _set_global_config(new_config)
 
 
-# Default initialization procedure is:
-#   1. use default config
-#   2. use config file if it exists
-#   3. use custom config if specified via CLI
-init_from_file(DEFAULT_CONFIG_PATH)
-init_from_file(CONFIG_PATH)
+# --------------------------------------------------------------------------- #
+# Default initialisation - performed on import so that the rest of the
+# package can rely on ``dementor.config.dm_config`` being available.
+# --------------------------------------------------------------------------- #
+init_from_file(DEFAULT_CONFIG_PATH)  # 1. bundled defaults
+init_from_file(CONFIG_PATH)  # 2. user-provided overrides

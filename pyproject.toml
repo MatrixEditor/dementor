@@ -1,7 +1,7 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev18"
-license = { file = "LICENSE" }
+version = "1.0.0.dev19"
+license-files = ["LICENSE"]
 
 requires-python = ">=3.10"
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
@@ -12,7 +12,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only",

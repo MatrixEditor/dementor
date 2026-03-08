@@ -14,6 +14,9 @@ Section ``[NTLM]``
 
     *Linked to* :attr:`config.SessionConfig.ntlm_challenge`
 
+    .. versionchanged:: 1.0.0.dev19
+        The challenge now accepts different configuration formats.
+
     Specifies the NTLM ServerChallenge nonce sent in the ``CHALLENGE_MESSAGE``.
     The value must represent exactly ``8`` bytes and can be given in any of the
     following formats:
@@ -62,11 +65,21 @@ Section ``[NTLM]``
                                         Target Info
                                         Version 255.255 (Build 65535); NTLM Current Revision 255
 
+.. py:attribute:: ExtendedSessionSecurity
+    :value: true
+    :type: bool
+
+    .. versionremoved:: 1.0.0.dev19
+        **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
+
 .. py:attribute:: DisableExtendedSessionSecurity
     :value: false
     :type: bool
 
     *Linked to* :attr:`config.SessionConfig.ntlm_disable_ess`
+
+    .. versionchanged:: 1.0.0.dev19
+        Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
 
     When ``true``, strips the ``NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY``
     flag from the ``CHALLENGE_MESSAGE``, preventing ESS negotiation.
@@ -86,7 +99,6 @@ Section ``[NTLM]``
     .. note::
 
         Dementor detects ESS from the ``LmChallengeResponse`` byte structure
-        (``len == 24`` and ``LM[8:24] == Z(16)`` per ``[MS-NLMP §3.3.1]``)
         rather than solely from the flag, so classification is accurate even
         when this setting is toggled.
 
@@ -107,14 +119,14 @@ Section ``[NTLM]``
 
     - ``true`` — ``TargetInfoFields`` is empty.  Without it, clients cannot
       build the NTLMv2 blob per ``[MS-NLMP §3.3.2]``.
-      LmCompatibilityLevel 0–2 clients fall back to NTLMv1.
+      LmCompatibilityLevel 0-2 clients fall back to NTLMv1.
       Level 3+ clients (all modern Windows) will **fail authentication** and
       produce **zero captured hashes**.
 
     .. warning::
 
         This setting is almost never needed.  Clients at
-        ``LmCompatibilityLevel`` 0–2 already send **NTLMv1 unconditionally**
+        ``LmCompatibilityLevel`` 0-2 already send **NTLMv1 unconditionally**
         and will never send NTLMv2 regardless of whether ``TargetInfoFields``
         is present.  This option therefore only affects level 3+ clients (all
         modern Windows defaults), which **require** ``TargetInfoFields`` to
@@ -126,9 +138,6 @@ Section ``[NTLM]``
 Protocol Behaviour
 ------------------
 
-Three-Message Handshake
-~~~~~~~~~~~~~~~~~~~~~~~~
-
 Dementor acts as a **capture server**, not an authentication server.  Per
 ``[MS-NLMP §1.3.1.1]``, the handshake proceeds as follows:
 
@@ -138,15 +147,12 @@ Dementor acts as a **capture server**, not an authentication server.  Per
       |                                       |
       |--- NEGOTIATE_MESSAGE ---------------► |  inspect client flags
       |◄-- CHALLENGE_MESSAGE ---------------- |  Dementor controls entirely
-      |--- AUTHENTICATE_MESSAGE -----------►  |  extract & store hashes
+      |--- AUTHENTICATE_MESSAGE ------------► |  extract & store hashes
       |                                       |
 
 Dementor does not verify responses, compute session keys, or participate in
 signing or sealing.  The connection is terminated (or returned to the calling
 protocol handler) immediately after the ``AUTHENTICATE_MESSAGE`` is received.
-
-Hash Type Classification
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Four hash types are extracted, classified from the ``AUTHENTICATE_MESSAGE``
 using NT and LM response byte structure per ``[MS-NLMP §3.3]``.  The ESS flag
@@ -172,19 +178,12 @@ is cross-checked but the **byte structure is authoritative**:
      - > 24 bytes
      - n/a
      - ``-m 5600``
-   * - ``NetLMv2``
+   * - ``LMv2``
      - > 24 bytes †
      - 24 bytes, non-null
      - ``-m 5600``
 
-† NetLMv2 is always paired with NetNTLMv2 and uses the same hashcat mode.
-
-ESS detection relies on ``len(LM) == 24 and LM[8:24] == Z(16)`` per §3.3.1.
-This is reliable even when :attr:`DisableExtendedSessionSecurity` is toggled —
-the flag is supplementary, not authoritative.
-
-Hashcat Output Formats
-~~~~~~~~~~~~~~~~~~~~~~~
+† LMv2 is always paired with NetNTLMv2 and uses the same hashcat mode.
 
 Each captured hash is written in hashcat-compatible format:
 
@@ -221,7 +220,7 @@ The ``CHALLENGE_MESSAGE`` is built directly from the client's
   content is not verified by clients per §2.2.2.10.
 
 AV_PAIRS (``TargetInfoFields``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When :attr:`DisableNTLMv2` is ``false`` (the default), ``TargetInfoFields``
 is populated with AV_PAIRs per
@@ -291,7 +290,7 @@ response unless the client set ``LmChallengeResponse`` to ``Z(24)``.  Clients
 only send ``Z(24)`` here when the server included ``MsvAvTimestamp``
 (``0x0007``) in the ``CHALLENGE_MESSAGE``, which instructs them to suppress the
 LM slot.  Dementor intentionally omits ``MsvAvTimestamp``, so this suppression
-never occurs and both NetNTLMv2 and NetLMv2 are always captured.
+never occurs and both NetNTLMv2 and LMv2 are always captured.
 
 Anonymous Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -331,33 +330,9 @@ Default Configuration
 
     # Omit TargetInfoFields (AV_PAIRS) from CHALLENGE_MESSAGE.
     # false (default): NetNTLMv2 + NetLMv2 captured from all modern clients.
-    # true:            Level 0–2 clients fall back to NTLMv1; level 3+ clients
+    # true:            Level 0-2 clients fall back to NTLMv1; level 3+ clients
     #                  (all modern Windows) will refuse and produce NO captures.
     DisableNTLMv2 = false
-
-
-Capture Prerequisites
----------------------
-
-For a hash to be written to the session database, the following conditions
-must all hold once Dementor receives the ``AUTHENTICATE_MESSAGE``:
-
-1. **Non-anonymous** — the token must not carry the
-   ``NTLMSSP_NEGOTIATE_ANONYMOUS`` flag and must include a non-empty
-   ``UserName`` and a non-null ``NtChallengeResponse``.
-2. **Parseable** — the NTLM token must be structurally valid; any parse
-   error causes the token to be treated as anonymous and discarded.
-3. **NT response present** — the ``NtChallengeResponse`` field must be
-   non-empty; a missing or zero-length NT response means there is nothing
-   to capture.
-
-The LM slot in a NetNTLMv1 hashcat line is additionally subject to the three
-filtering conditions described under `LM Response Filtering`_.  Filtering the
-LM slot does **not** discard the capture — the NT response is still written;
-only the LM field is omitted from the output line.
-
-When a capture is discarded Dementor logs the event but writes nothing to
-disk.
 
 
 LmCompatibilityLevel Reference
@@ -402,7 +377,7 @@ to the hash type Dementor captures and the relevant hashcat mode.
 
 .. note::
 
-    Windows Vista and later default to **level 3**.  Levels 0–2 are only
+    Windows Vista and later default to **level 3**.  Levels 0-2 are only
     found on legacy systems or when explicitly downgraded via Group Policy.
     Leave :attr:`DisableNTLMv2` at ``false`` (the default) to capture hashes
     from clients at any level.

@@ -135,20 +135,31 @@ Section ``[HTTP]``
         Determines whether access to the WPAD script requires authentication.
 
     .. py:attribute:: Server.ExtendedSessionSecurity
-        :type: bool
         :value: true
+        :type: bool
 
-        *Maps to* :attr:`http.HTTPServerConfig.http_ess`. *May also be set in* ``[HTTP]``
+        .. versionremoved:: 1.0.0.dev19
+            **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
+
+    .. py:attribute:: Server.DisableExtendedSessionSecurity
+        :value: false
+        :type: bool
+
+        *Linked to* :attr:`http.HTTPServerConfig.ntlm_disable_ess`
 
         .. versionchanged:: 1.0.0.dev5
             Internal mapping changed from ``http_ess`` to ``ntlm_ess``
 
+        .. versionchanged:: 1.0.0.dev19
+            Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
+
+
         Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NetNTLMv1-ESS/NetNTLMv2 hashes
         are captured instead of raw NTLM hashes. Resolution precedence:
 
-        1. :attr:`HTTP.Server.ExtendedSessionSecurity` (per-instance)
-        2. :attr:`HTTP.ExtendedSessionSecurity` (global HTTP fallback)
-        3. :attr:`NTLM.ExtendedSessionSecurity` (final fallback)
+        1. :attr:`HTTP.Server.DisableExtendedSessionSecurity` (per-instance)
+        2. :attr:`HTTP.DisableExtendedSessionSecurity` (global HTTP fallback)
+        3. :attr:`NTLM.DisableExtendedSessionSecurity` (final fallback)
 
     .. py:attribute:: Server.Challenge
         :type: str

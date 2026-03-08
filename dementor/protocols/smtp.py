@@ -41,7 +41,6 @@ from aiosmtpd.smtp import (
 )
 from aiosmtpd.controller import Controller
 
-from impacket import ntlm
 from impacket.ntlm import (
     NTLMAuthChallengeResponse,
     NTLMAuthNegotiate,
@@ -53,7 +52,6 @@ from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_format_host,
     NTLM_report_auth,
     ATTR_NTLM_CHALLENGE,
     ATTR_NTLM_DISABLE_ESS,
@@ -252,7 +250,7 @@ class SMTPServerHandler:
         if blob is None:
             # 4. The server sends the SMTP_NTLM_Supported_Response message, indicating that it can perform
             # NTLM authentication.
-            blob = server.challenge_auth(SMTP_NTLM_Supported_Response_Message)
+            blob = await server.challenge_auth(SMTP_NTLM_Supported_Response_Message)
             if blob is MISSING:
                 # authentication failed
                 await server.push("501 5.7.0 Auth aborted")
@@ -260,10 +258,6 @@ class SMTPServerHandler:
 
         negotiate_message = NTLMAuthNegotiate()
         negotiate_message.fromString(blob)
-        self.logger.debug(
-            "Starting NTLM-auth: %s",
-            NTLM_AUTH_format_host(negotiate_message),
-        )
 
         if self.server_config.smtp_fqdn.count(".") > 0:
             name, domain = self.server_config.smtp_fqdn.split(".", 1)
@@ -326,7 +320,7 @@ class SMTPServerThread(threading.Thread):
             }
         )
 
-    async def start_server(self, controller, config: SessionConfig, smtp_config):
+    async def start_server(self, controller: Controller, config: SessionConfig, smtp_config):
         controller.port = smtp_config.smtp_port
 
         # NOTE: hostname on the controller points to the local address that will be

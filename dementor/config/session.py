@@ -21,7 +21,7 @@
 import asyncio
 import typing
 
-from typing import Any
+from typing import Any, override
 from pathlib import Path
 
 from dementor.config.toml import TomlConfig, Attribute
@@ -153,7 +153,7 @@ class SessionConfig(TomlConfig):
         upnp_enabled: bool
 
     def __init__(self) -> None:
-        super().__init__(config._get_global_config().get("Dementor", {}))
+        super().__init__(config.get_global_config().get("Dementor", {}))
         # global options that are not loaded from configuration
         self.ipv6 = None
         self.ipv4 = None
@@ -189,3 +189,17 @@ class SessionConfig(TomlConfig):
             return Path(raw_path).resolve()
 
         return (Path(self.workspace_path) / raw_path).resolve()
+
+    @override
+    def __getitem__(self, key: str) -> Any:
+        section, *parts = key.split(".")
+        attr = f"{section.lower()}_config"
+        if not hasattr(self, attr):
+            raise KeyError(f"unknown protocol: {attr}")
+
+        config: TomlConfig = getattr(self, attr)
+        if not parts:
+            return config
+
+        return config[".".join(parts)]
+

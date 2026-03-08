@@ -103,12 +103,21 @@ Section ``[SMB]``
 
         .. seealso:: :attr:`NTLM.Challenge` for accepted formats and behaviour.
 
+    .. py:attribute:: Server.ExtendedSessionSecurity
+        :value: true
+        :type: bool
+
+        .. versionremoved:: 1.0.0.dev19
+            **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
 
     .. py:attribute:: Server.DisableExtendedSessionSecurity
         :type: bool
         :value: false
 
         *Linked to* :attr:`smb.SMBServerConfig.ntlm_disable_ess`. *Can also be set in* ``[SMB]``
+
+        .. versionchanged:: 1.0.0.dev19
+            Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
 
         Per-SMB override for :attr:`NTLM.DisableExtendedSessionSecurity`.  When set in
         ``[SMB]`` it applies to every ``[[SMB.Server]]`` instance; when set inside a

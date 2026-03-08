@@ -52,19 +52,29 @@ Section ``[MSSQL]``
     via :attr:`SSRP.InstanceName`.
 
 .. py:attribute:: ExtendedSessionSecurity
-    :type: bool
     :value: true
+    :type: bool
 
-    *Maps to* :attr:`mssql.MSSQLConfig.ntlm_ess`
+    .. versionremoved:: 1.0.0.dev19
+        **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
+
+.. py:attribute:: DisableExtendedSessionSecurity
+    :type: bool
+    :value: false
+
+    *Maps to* :attr:`mssql.MSSQLConfig.ntlm_disable_ess`
 
     .. versionchanged:: 1.0.0.dev5
         Internal mapping changed frmo ``mssql_ess`` to ``ntlm_ess``
 
+    .. versionchanged:: 1.0.0.dev19
+        Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
+
     Enables NTLM Extended Session Security (ESS). When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are
     captured instead of raw NTLM hashes. Resolution precedence:
 
-    1. :attr:`MSSQL.ExtendedSessionSecurity`
-    2. :attr:`NTLM.ExtendedSessionSecurity` (fallback)
+    1. :attr:`MSSQL.DisableExtendedSessionSecurity`
+    2. :attr:`NTLM.DisableExtendedSessionSecurity` (fallback)
 
 .. py:attribute:: Challenge
     :type: str
