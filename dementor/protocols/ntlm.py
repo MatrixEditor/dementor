@@ -50,14 +50,14 @@ Variable names follow [MS-NLMP] specification terminology:
     NtChallengeResponse NT response field from the AUTHENTICATE_MESSAGE
     NTProofStr          First 16 bytes of an NTLMv2 NtChallengeResponse
     Blob                NTLMv2_CLIENT_CHALLENGE -- remainder after NTProofStr
-    ClientChallenge     8-byte client nonce (ESS or LMv2)
+    ClientChallenge     8-byte client nonce (ESS or NetLMv2)
     UserName            Authenticated user identity from AUTHENTICATE_MESSAGE
     DomainName          Authenticated domain identity from AUTHENTICATE_MESSAGE
 
 Hashcat output formats (validated against module_05500.c and module_05600.c):
 
-    Mode 5500 (NTLMv1/NTLMv1-ESS):  User::Domain:LmResponse:NtResponse:ServerChallenge
-    Mode 5600 (NTLMv2/LMv2):        User::Domain:ServerChallenge:NTProofStr:Blob
+    Mode 5500 (NetNTLMv1/NetNTLMv1-ESS):  User::Domain:LmResponse:NtResponse:ServerChallenge
+    Mode 5600 (NetNTLMv2/NetLMv2):        User::Domain:ServerChallenge:NTProofStr:Blob
 """
 
 import time
@@ -68,7 +68,7 @@ from impacket import ntlm
 
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
-from dementor.config.util import is_true, get_value
+from dementor.config.util import is_true, get_value, BytesValue
 from dementor.log.logger import ProtocolLogger, dm_logger
 
 # ===========================================================================
@@ -126,19 +126,19 @@ NTLM_TRANSPORT_NTLMSSP: str = "ntlmssp"
 #
 #  Type        NT len   LM len / content     HC mode  MS-NLMP ref
 #  ─────────── ──────── ─────────────────── ──────── ─────────────────────
-#  NTLMv1      24       any / non-dummy      5500     §3.3.1 plain DES
-#  NTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    §3.3.1 + ESS
-#  NTLMv2      > 24     n/a                  5600     §3.3.2 HMAC-MD5 blob
-#  LMv2        > 24†    24 / non-null        5600†    §3.3.2 LMv2 companion
+#  NetNTLMv1      24       any / non-dummy      5500     §3.3.1 plain DES
+#  NetNTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    §3.3.1 + ESS
+#  NetNTLMv2      > 24     n/a                  5600     §3.3.2 HMAC-MD5 blob
+#  NetLMv2        > 24†    24 / non-null        5600†    §3.3.2 LMv2 companion
 #
 #  * Mode 5500 auto-detects ESS via LM[8:24]==Z(16); always emit raw ServerChallenge.
-#  † LMv2 is always paired with NTLMv2; both use -m 5600.
+#  † NetLMv2 is always paired with NetNTLMv2; both use -m 5600.
 #
 # Hashcat formats (module_05500.c and module_05600.c):
-#   NTLMv1      user::domain:LM(48 hex):NT(48 hex):ServerChallenge(16 hex)
-#   NTLMv1-ESS  user::domain:CChal(16 hex)+Z(32 hex):NT(48 hex):ServerChallenge(16 hex)
-#   NTLMv2      user::domain:ServerChallenge(16 hex):NTProofStr(32 hex):Blob(var hex)
-#   LMv2        user::domain:ServerChallenge(16 hex):LMProof(32 hex):CChal(16 hex)
+#   NetNTLMv1      user::domain:LM(48 hex):NT(48 hex):ServerChallenge(16 hex)
+#   NetNTLMv1-ESS  user::domain:CChal(16 hex)+Z(32 hex):NT(48 hex):ServerChallenge(16 hex)
+#   NetNTLMv2      user::domain:ServerChallenge(16 hex):NTProofStr(32 hex):Blob(var hex)
+#   NetLMv2        user::domain:ServerChallenge(16 hex):LMProof(32 hex):CChal(16 hex)
 #
 # ESS detection (§3.3.1): LmChallengeResponse = ClientChallenge(8) || Z(16).
 #   len==24 and LM[8:]==Z(16) is the sole reliable signal; the ESS negotiate
@@ -149,24 +149,24 @@ NTLM_TRANSPORT_NTLMSSP: str = "ntlmssp"
 # Responder → Dementor label mapping
 # =============================================================================
 #
-#  Responder label   Dementor label    Reason
+#  Responder label   Dementor label      Reason
 #  ─────────────── ─────────────────── ────────────────────────────────────────
-#  NTLMv1-SSP       NTLMv1 or          Responder collapses both; ESS changes the
-#                   NTLMv1-ESS          effective challenge and must be distinct.
-#  NTLMv2-SSP       NTLMv2             Responder threshold: len > 60; spec minimum
-#                                      is 48 bytes. Dementor uses > 24.
+#  NTLMv1-SSP       NetNTLMv1 or        Responder collapses both; ESS changes the
+#                   NetNTLMv1-ESS        effective challenge and must be distinct.
+#  NTLMv2-SSP       NetNTLMv2           Responder threshold: len > 60; spec minimum
+#                                       is 48 bytes. Dementor uses > 24.
 #
-NTLM_V1: str = "NTLMv1"
-NTLM_V1_ESS: str = "NTLMv1-ESS"
-NTLM_V2: str = "NTLMv2"
-NTLM_V2_LM: str = "LMv2"  # Always paired with NTLMv2; both use hashcat -m 5600.
+NTLM_V1: str = "NetNTLMv1"
+NTLM_V1_ESS: str = "NetNTLMv1-ESS"
+NTLM_V2: str = "NetNTLMv2"
+NTLM_V2_LM: str = "NetLMv2"  # Always paired with NetNTLMv2; both use hashcat -m 5600.
 
 
 def NTLM_AUTH_classify(
     nt_response: bytes, lm_response: bytes, negotiate_flags: int
 ) -> str:
     """Classify the hash type from an AUTHENTICATE_MESSAGE response."""
-    # Fallback to NTLMv1 on TypeError (None or non-bytes input) rather than raising.
+    # Fallback to NetNTLMv1 on TypeError (None or non-bytes input) rather than raising.
     try:
         nt_len = len(nt_response)
     except TypeError:
@@ -215,83 +215,10 @@ def NTLM_AUTH_classify(
     return NTLM_V1_ESS if ess_by_lm else NTLM_V1
 
 
-def parse_ntlm_challenge(value, length: int = NTLM_CHALLENGE_LEN) -> bytes:
-    """Parse an NTLM ServerChallenge config value to exactly ``length`` bytes.
-
-    The ServerChallenge can be specified as:
-
-        - "hex:1122334455667788"   -- explicit hex (preferred)
-        - "ascii:1337LEET"         -- explicit ASCII (preferred)
-        - 16 hex characters        -- backward-compatible auto-detect hex
-        - 8 ASCII characters       -- backward-compatible auto-detect ASCII
-        - None / omitted           -- 8 cryptographically random bytes
-
-    Notes
-    -----
-    - Explicit prefixes are preferred because they remove ambiguity.
-    - Backward-compatible auto-detect tries hex first only when the string is
-      exactly 16 characters; otherwise it tries strict ASCII.
-    - 16-character digit-only strings (e.g. "1234567890123456") are treated
-      as HEX in auto-detect mode.
-
-    Returns
-    -------
-    bytes
-        Exactly ``length`` bytes.  Returns random bytes for ``None`` input.
-
-    Raises
-    ------
-    ValueError
-        If the value is present but cannot be parsed as a valid challenge.
-    """
-    if value is None:
-        return secrets.token_bytes(length)
-
-    challenge_str = str(value).strip()  # handles int -> str conversion
-
-    if not challenge_str:
-        raise ValueError("NTLM Challenge: empty value")
-
-    lowered = challenge_str.lower()
-
-    # Preferred explicit forms
-    if lowered.startswith("hex:"):
-        payload = challenge_str[4:].strip()
-        candidate = bytes.fromhex(payload)
-        if len(candidate) != length:
-            raise ValueError(
-                f"hex challenge decoded to {len(candidate)} bytes, need {length}"
-            )
-        return candidate
-
-    if lowered.startswith("ascii:"):
-        payload = challenge_str[6:]
-        candidate = payload.encode(
-            "ascii"
-        )  # strict ASCII; raises UnicodeEncodeError on non-ASCII
-        if len(candidate) != length:
-            raise ValueError(
-                f"ascii challenge is {len(candidate)} chars, need {length}"
-            )
-        return candidate
-
-    # Backward-compatible auto-detect: 16-char string → try hex first
-    if len(challenge_str) == 2 * length:
-        try:
-            candidate = bytes.fromhex(challenge_str)
-            if len(candidate) == length:
-                return candidate
-        except ValueError:
-            pass  # not valid hex — fall through to ASCII
-
-    # Auto-detect ASCII: must be exactly ``length`` chars
-    candidate = challenge_str.encode("ascii")  # raises UnicodeEncodeError on non-ASCII
-    if len(candidate) != length:
-        raise ValueError(
-            f"challenge must be {length} ASCII chars or {2 * length} hex chars,"
-            f" got {len(challenge_str)}: {challenge_str!r}"
-        )
-    return candidate
+# Challenge parsing is handled by BytesValue(NTLM_CHALLENGE_LEN) from
+# dementor.config.util — supports hex:/ascii: prefixes, auto-detect,
+# and length validation in a single reusable helper.
+_parse_challenge = BytesValue(NTLM_CHALLENGE_LEN)
 
 
 # ===========================================================================
@@ -311,13 +238,13 @@ ATTR_NTLM_CHALLENGE = Attribute(
     "NTLM.Challenge",
     default_val=None,  # None -> random 8-byte ServerChallenge at startup
     section_local=False,
-    factory=parse_ntlm_challenge,  # handles hex:/ascii: prefix + auto-detect + length validation
+    factory=_parse_challenge,  # BytesValue: hex:/ascii: prefix + auto-detect + length validation
 )
 
 ATTR_NTLM_DISABLE_ESS = Attribute(
     "ntlm_disable_ess",
     "NTLM.DisableExtendedSessionSecurity",
-    False,  # Default: ESS enabled -> NTLMv1-ESS hashes
+    False,  # Default: ESS enabled -> NetNTLMv1-ESS hashes
     section_local=False,
     factory=is_true,
 )
@@ -358,7 +285,7 @@ def apply_config(session: SessionConfig) -> None:
     # -- ServerChallenge ---------------------------------------------------
     try:
         raw_challenge = get_value("NTLM", "Challenge", default=None)
-        session.ntlm_challenge = parse_ntlm_challenge(raw_challenge, NTLM_CHALLENGE_LEN)
+        session.ntlm_challenge = _parse_challenge(raw_challenge)
     except Exception:
         dm_logger.exception("Failed to parse NTLM Challenge; using random bytes")
     dm_logger.debug(
@@ -581,7 +508,7 @@ def NTLM_AUTH_format_host(token: ntlm.NTLMAuthNegotiate) -> str:
 # Output formats validated against hashcat module source code
 # (module_05500.c and module_05600.c):
 #
-# hashcat -m 5500 (NTLMv1 family) -- 6 colon-delimited tokens:
+# hashcat -m 5500 (NetNTLMv1 family) -- 6 colon-delimited tokens:
 #   [0] UserName             plain text, 0-60 chars
 #   [1] (empty)              fixed 0 length -- the "::" separator
 #   [2] DomainName           plain text, 0-45 chars
@@ -596,7 +523,7 @@ def NTLM_AUTH_format_host(token: ntlm.NTLMAuthNegotiate) -> str:
 #
 #   Identity: UserName is null-expanded to UTF-16LE as-is (no toupper).
 #
-# hashcat -m 5600 (NTLMv2 family) -- 6 colon-delimited tokens:
+# hashcat -m 5600 (NetNTLMv2 family) -- 6 colon-delimited tokens:
 #   [0] UserName             plain text, 0-60 chars
 #   [1] (empty)              fixed 0 length
 #   [2] DomainName           plain text, 0-45 chars (case-sensitive)
@@ -620,7 +547,7 @@ def NTLM_AUTH_to_hashcat_formats(
 ) -> list[tuple[str, str]]:
     """Extract all crackable hashcat lines from an AUTHENTICATE_MESSAGE.
 
-    Returns up to two entries: the primary hash and, for NTLMv2, the LMv2
+    Returns up to two entries: the primary hash and, for NetNTLMv2, the NetLMv2
     companion.  Callers must check for anonymous auth before invoking.
 
     Parameters
@@ -641,8 +568,8 @@ def NTLM_AUTH_to_hashcat_formats(
     Returns
     -------
     list of (str, str)
-        (label, hashcat_line) tuples.  Labels: NTLM_V2 ("NTLMv2"),
-        NTLM_V2_LM ("LMv2"), NTLM_V1_ESS ("NTLMv1-ESS"), NTLM_V1 ("NTLMv1").
+        (label, hashcat_line) tuples.  Labels: NTLM_V2 ("NetNTLMv2"),
+        NTLM_V2_LM ("NetLMv2"), NTLM_V1_ESS ("NetNTLMv1-ESS"), NTLM_V1 ("NetNTLMv1").
 
     Raises
     ------
@@ -656,7 +583,7 @@ def NTLM_AUTH_to_hashcat_formats(
     - Dummy LM responses (DESL of null or empty-string LM hash) are discarded.
     - Level 2 duplication (LM == NT) omits the LM slot.
     - Per §3.3.2 rule 7: when MsvAvTimestamp is present, clients set
-      LmChallengeResponse to Z(24); this null LMv2 is detected and skipped.
+      LmChallengeResponse to Z(24); this null NetLMv2 is detected and skipped.
     """
     if len(server_challenge) != NTLM_CHALLENGE_LEN:
         raise ValueError(
@@ -721,7 +648,7 @@ def NTLM_AUTH_to_hashcat_formats(
 
     server_challenge_hex: str = server_challenge.hex()
 
-    # NTLMv2: NtChallengeResponse = NTProofStr(16) + Blob(var) per §2.2.2.8
+    # NetNTLMv2: NtChallengeResponse = NTProofStr(16) + Blob(var) per §2.2.2.8
     # hashcat -m 5600: User::Domain:ServerChallenge:NTProofStr:Blob
     if hash_type == NTLM_V2:
         try:
@@ -743,7 +670,7 @@ def NTLM_AUTH_to_hashcat_formats(
             )
             return captures
 
-        # LMv2 companion: HMAC-MD5(ResponseKeyLM, Server||Client)[0:16] || CChal(8)
+        # NetLMv2 companion: HMAC-MD5(ResponseKeyLM, Server||Client)[0:16] || CChal(8)
         # Per §3.3.2 rule 7: if MsvAvTimestamp was in the challenge, clients send Z(24).
         # hashcat -m 5600: User::Domain:ServerChallenge:LMProof:ClientChallenge
         try:
@@ -783,7 +710,7 @@ def NTLM_AUTH_to_hashcat_formats(
 
         return captures
 
-    # NTLMv1-ESS: per §3.3.1, ESS uses MD5(Server||Client)[0:8] as the challenge.
+    # NetNTLMv1-ESS: per §3.3.1, ESS uses MD5(Server||Client)[0:8] as the challenge.
     # Hashcat -m 5500 derives the mixed challenge internally; emit raw ServerChallenge.
     # LM field: ClientChallenge(8) || Z(16) = 24 bytes.
     if hash_type == NTLM_V1_ESS:
@@ -808,7 +735,7 @@ def NTLM_AUTH_to_hashcat_formats(
             )
         return captures
 
-    # NTLMv1: hashcat -m 5500: User::Domain:LM:NT:ServerChallenge
+    # NetNTLMv1: hashcat -m 5500: User::Domain:LM:NT:ServerChallenge
     # LM slot is optional (0 or 48 hex chars); including a real LM response
     # enables the DES third-key optimisation. Two cases skip the LM slot:
     #   1. Level 2 duplication: client copies NT into LM (wrong one-way function).
@@ -827,8 +754,7 @@ def NTLM_AUTH_to_hashcat_formats(
             elif lm_response in _compute_dummy_lm_responses(server_challenge):
                 # Case 2: dummy DESL output — no crackable credential material
                 dm_logger.debug(
-                    "LmChallengeResponse matches dummy LM hash "
-                    "(DESL(Z(16)) or DESL(DEFAULT_LM_HASH)); omitting LM slot"
+                    "LmChallengeResponse matches dummy LM hash; omitting LM slot"
                 )
             else:
                 # Real LmChallengeResponse: include for DES third-key optimisation
@@ -1210,8 +1136,8 @@ def NTLM_AUTH_CreateChallenge(
         # MsvAvTimestamp (0x0007) is intentionally NOT included.
         # Per §3.3.2 rule 7: when the server sends MsvAvTimestamp, the
         # client MUST NOT send an LmChallengeResponse (sets it to Z(24)).
-        # Omitting it ensures clients still send a real LMv2 alongside the
-        # NTLMv2 response, maximising the number of captured hash types.
+        # Omitting it ensures clients still send a real NetLMv2 alongside the
+        # NetNTLMv2 response, maximising the number of captured hash types.
         challenge_message["TargetInfoFields_len"] = len(av_pairs)
         challenge_message["TargetInfoFields_max_len"] = len(av_pairs)
         challenge_message["TargetInfoFields"] = av_pairs
@@ -1243,7 +1169,7 @@ def NTLM_report_auth(
     """Extract all crackable hashes from an AUTHENTICATE_MESSAGE and log them.
 
     Top-level entry point called by protocol handlers (SMB, HTTP, LDAP).
-    Extracts every valid hashcat line (NTLMv2 + LMv2, or NTLMv1/NTLMv1-ESS)
+    Extracts every valid hashcat line (NetNTLMv2 + NetLMv2, or NetNTLMv1/NetNTLMv1-ESS)
     and writes each as a separate entry to the session capture database.
 
     Parameters
@@ -1263,14 +1189,18 @@ def NTLM_report_auth(
     transport : str
         NTLM transport identifier (NTLM_TRANSPORT_*); used for logging only.
     """
-    dm_logger.debug(
+    # Use the protocol logger for session-linked messages; fall back to the
+    # module logger when no protocol logger is provided.
+    log = logger or dm_logger
+
+    log.debug(
         "NTLM_report_auth: transport=%s  NT_len=%d  LM_len=%d",
         transport,
         len(auth_token["ntlm"] or b""),
         len(auth_token["lanman"] or b""),
     )
     if NTLM_AUTH_is_anonymous(auth_token):
-        dm_logger.debug("Skipping anonymous AUTHENTICATE_MESSAGE")
+        log.info("Anonymous NTLM login attempt; skipping hash extraction")
         return
 
     try:
@@ -1286,7 +1216,7 @@ def NTLM_report_auth(
         )
 
         if not all_hashes:
-            dm_logger.warning(
+            log.warning(
                 "AUTHENTICATE_MESSAGE produced no crackable hashes "
                 "(user=%r flags=0x%08x)",
                 auth_token["user_name"],
@@ -1303,7 +1233,7 @@ def NTLM_report_auth(
             negotiate_flags,
         )
 
-        dm_logger.debug(
+        log.debug(
             "Writing %d hash(es) to capture database for user=%r domain=%r",
             len(all_hashes),
             user_name,
@@ -1322,9 +1252,9 @@ def NTLM_report_auth(
             )
 
     except ValueError:
-        dm_logger.exception(
+        log.exception(
             "Invalid data in AUTHENTICATE_MESSAGE (bad challenge length or "
             "malformed response fields); skipping capture"
         )
     except Exception:
-        dm_logger.exception("Failed to extract NTLM hashes from AUTHENTICATE_MESSAGE")
+        log.exception("Failed to extract NTLM hashes from AUTHENTICATE_MESSAGE")
