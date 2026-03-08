@@ -27,6 +27,8 @@ _CLEARTEXT = "Cleartext"
 _NO_USER = "<missing-user>"
 """Placeholder string used when username is absent or invalid in credential logging."""
 
+_HOST_INFO = "_host_info"
+"""Key used in extras dict to store host information for credential logging."""
 
 def normalize_client_address(client: str) -> str:
     """Normalize IPv6-mapped IPv4 addresses by stripping IPv6 prefix.

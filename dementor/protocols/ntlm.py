@@ -73,6 +73,7 @@ from impacket.smb3 import WIN_VERSIONS
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
 from dementor.config.util import is_true, get_value, BytesValue
+from dementor.db import _HOST_INFO
 from dementor.log.logger import ProtocolLogger, dm_logger
 
 # ===========================================================================
@@ -472,7 +473,10 @@ def NTLM_AUTH_format_host(token: ntlm.NTLMAuthChallengeResponse) -> str:
             os_version = f"{WIN_VERSIONS[build]}"
 
         if build:
-            os_version = f"{os_version} (build {build})"
+            os_version = f"{os_version} Build {build}"
+
+        if (major, minor, build) == (6, 1, 0):
+            os_version = "Unix - Samba"
 
     except Exception:
         dm_logger.debug(
@@ -1179,11 +1183,10 @@ def NTLM_report_auth(
             domain_name,
         )
         host_info = NTLM_AUTH_format_host(auth_token)
-        extras = {
-            "Host": host_info,
-            # REVISIT: this should be added once SMB1 legacy commands are implemented
-            # "Transport": transport,
-        }
+        extras = extras or {}
+        extras[_HOST_INFO] = host_info
+        # REVISIT: this should be added once SMB1 legacy commands are implemented
+        # "Transport": transport,
         for version_label, hashcat_line in all_hashes:
             session.db.add_auth(
                 client=client,

@@ -391,6 +391,10 @@ class DementorDB:
             if domain
             else f" for [b]{username_text}[/]"
         )
+        host_info: str | None = extras.pop("host_info") if extras else None
+        if host_info:
+            full_name += f" on [b]{markup.escape(host_info)}[/]"
+
         if not results or self.config.db_config.db_duplicate_creds:
             if credtype != _CLEARTEXT:
                 log_to("hashes", type=credtype, value=password)
