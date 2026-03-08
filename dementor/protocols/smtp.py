@@ -41,7 +41,6 @@ from aiosmtpd.smtp import (
 )
 from aiosmtpd.controller import Controller
 
-from impacket import ntlm
 from impacket.ntlm import (
     NTLMAuthChallengeResponse,
     NTLMAuthNegotiate,
@@ -53,7 +52,6 @@ from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_format_host,
     NTLM_report_auth,
     ATTR_NTLM_CHALLENGE,
     ATTR_NTLM_DISABLE_ESS,
@@ -260,10 +258,6 @@ class SMTPServerHandler:
 
         negotiate_message = NTLMAuthNegotiate()
         negotiate_message.fromString(blob)
-        self.logger.debug(
-            "Starting NTLM-auth: %s",
-            NTLM_AUTH_format_host(negotiate_message),
-        )
 
         if self.server_config.smtp_fqdn.count(".") > 0:
             name, domain = self.server_config.smtp_fqdn.split(".", 1)

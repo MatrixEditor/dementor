@@ -455,9 +455,6 @@ def smb1_negotiate_protocol(handler: "SMBHandler", packet: smb.NewSMBPacket) -> 
 
 def smb1_session_setup(handler: "SMBHandler", packet: smb.NewSMBPacket) -> None:
     command = smb.SMBCommand(packet["Data"][0])
-    handler.log_client(f"session setup: {command.fields}", "SMB_COM_SESSION_SETUP_ANDX")
-    # handler.send_data(packet.getData())
-
     # From [MS-SMB]
     # When extended security is being used (see section 3.2.4.2.4), the
     # request MUST take the following form

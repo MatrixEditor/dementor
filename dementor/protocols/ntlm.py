@@ -66,7 +66,9 @@ import calendar
 import secrets
 from typing import Any
 
+from caterpillar.py import LittleEndian, uint16
 from impacket import ntlm
+from impacket.smb3 import WIN_VERSIONS
 
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
@@ -421,21 +423,16 @@ def _compute_dummy_lm_responses(server_challenge: bytes) -> set[bytes]:
 # ===========================================================================
 
 
-def NTLM_AUTH_format_host(token: ntlm.NTLMAuthNegotiate) -> str:
-    """Extract a human-readable host description from a NEGOTIATE_MESSAGE.
+def NTLM_AUTH_format_host(token: ntlm.NTLMAuthChallengeResponse) -> str:
+    """Extract a human-readable host description from a CHALLENGE_MESSAGE.
 
-    All string fields in a NEGOTIATE_MESSAGE are OEM-encoded per [MS-NLMP
-    section 2.2] -- Unicode has not been negotiated yet, so
-    is_negotiate_oem=True is passed to the decoder.
-
-    :param ntlm.NTLMAuthNegotiate token: Parsed NEGOTIATE_MESSAGE from the client
-    :return: "HOSTNAME (domain: DOMAIN) (OS: X.Y.Build)"
-        Uses "<UNKNOWN>" for any missing or unparseable field. Never raises
+    :param ntlm.NTLMAuthChallengeResponse token: Parsed CHALLENGE_MESSAGE from the client
+    :return: "OS [ (name: HOSTNAME) ] [ (domain: DOMAIN) ]" Never raises
     :rtype: str
     """
     flags: int = 0
-    hostname: str = "<UNKNOWN>"
-    domain_name: str = "<UNKNOWN>"
+    hostname: str = ""
+    domain_name: str = ""
     os_version: str = "0.0.0"
 
     try:
@@ -446,7 +443,7 @@ def NTLM_AUTH_format_host(token: ntlm.NTLMAuthNegotiate) -> str:
                 flags,
                 is_negotiate_oem=True,
             )
-            or "<UNKNOWN>"
+            or ""
         )
         domain_name = (
             NTLM_AUTH_decode_string(
@@ -454,7 +451,7 @@ def NTLM_AUTH_format_host(token: ntlm.NTLMAuthNegotiate) -> str:
                 flags,
                 is_negotiate_oem=True,
             )
-            or "<UNKNOWN>"
+            or ""
         )
     except Exception:
         dm_logger.debug(
@@ -465,19 +462,32 @@ def NTLM_AUTH_format_host(token: ntlm.NTLMAuthNegotiate) -> str:
     # Parse the OS VERSION structure separately so a version parse failure
     # does not discard the already-decoded hostname and domain.
     try:
-        ver = token["os_version"]
-        os_version = (
-            f"{ver['ProductMajorVersion']}."
-            f"{ver['ProductMinorVersion']}."
-            f"{ver['ProductBuild']}"
-        )
+        ver_raw: bytes = token["Version"]
+        major: int = ver_raw[0]
+        minor: int = ver_raw[1]
+        build: int = uint16.from_bytes(ver_raw[2:4], order=LittleEndian)
+
+        os_version = f"{major}.{minor}"
+        if build in WIN_VERSIONS:
+            os_version = f"{WIN_VERSIONS[build]}"
+
+        if build:
+            os_version = f"{os_version} (build {build})"
+
     except Exception:
         dm_logger.debug(
             "Failed to parse OS version from NEGOTIATE_MESSAGE; using 0.0.0",
             exc_info=True,
         )
 
-    return f"{hostname} (domain: {domain_name}) (OS: {os_version})"
+    host_info = os_version
+    if hostname:
+        host_info += f" (name: {hostname})"
+
+    if domain_name:
+        host_info += f" (domain: {domain_name})"
+
+    return host_info
 
 
 # ===========================================================================
@@ -812,11 +822,7 @@ def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
             dm_logger.debug("Structurally anonymous AUTHENTICATE_MESSAGE detected")
             return True
 
-        if flags & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS:
-            dm_logger.debug(
-                "Anonymous flag set but responses present; treating as non-anonymous"
-            )
-        return is_anon
+        return is_anon or bool(flags & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS)
 
     except Exception:
         dm_logger.debug(
@@ -1132,7 +1138,8 @@ def NTLM_report_auth(
         len(auth_token["lanman"] or b""),
     )
     if NTLM_AUTH_is_anonymous(auth_token):
-        log.info("Anonymous NTLM login attempt; skipping hash extraction")
+        method = log.display if logger else log.debug
+        method("Anonymous NTLM login attempt; skipping hash extraction")
         return
 
     try:
@@ -1171,7 +1178,12 @@ def NTLM_report_auth(
             user_name,
             domain_name,
         )
-
+        host_info = NTLM_AUTH_format_host(auth_token)
+        extras = {
+            "Host": host_info,
+            # REVISIT: this should be added once SMB1 legacy commands are implemented
+            # "Transport": transport,
+        }
         for version_label, hashcat_line in all_hashes:
             session.db.add_auth(
                 client=client,

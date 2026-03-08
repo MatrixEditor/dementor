@@ -50,7 +50,6 @@ from dementor.servers import (
 from dementor.db import _CLEARTEXT
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_format_host,
     NTLM_report_auth,
     NTLM_split_fqdn,
     ATTR_NTLM_CHALLENGE,
@@ -174,9 +173,6 @@ class LDAPHandler(BaseProtoHandler):
     ) -> None | bool:
         negotiate = NTLMAuthNegotiate()
         negotiate.fromString(nego_token_raw)
-
-        host_format = NTLM_AUTH_format_host(negotiate)
-        self.logger.debug("Starting NTLM-auth: %s", host_format)
 
         fqdn = self.server.server_config.ldap_fqdn
         if "." in fqdn:
