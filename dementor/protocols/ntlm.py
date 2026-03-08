@@ -17,7 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+# pyright: reportAny=false, reportExplicitAny=false, reportUnknownVariableType=false
+# pyright: reportUnknownArgumentType=false
 """NTLM authentication helper module for Dementor.
 
 Implements the server-side CHALLENGE_MESSAGE construction and
@@ -63,6 +64,7 @@ Hashcat output formats (validated against module_05500.c and module_05600.c):
 import time
 import calendar
 import secrets
+from typing import Any
 
 from impacket import ntlm
 
@@ -321,9 +323,9 @@ def apply_config(session: SessionConfig) -> None:
     if session.ntlm_disable_ntlmv2:
         dm_logger.warning(
             "NTLM DisableNTLMv2 is enabled — Level 3+ clients (all modern Windows) "
-            "will FAIL authentication and NO hashes will be captured. "
-            "This only helps against pre-Vista / manually-configured Level 0-2 clients. "
-            "Use with caution."
+            + "will FAIL authentication and NO hashes will be captured. "
+            + "This only helps against pre-Vista / manually-configured Level 0-2 clients. "
+            + "Use with caution."
         )
 
 
@@ -588,7 +590,7 @@ def NTLM_AUTH_to_hashcat_formats(
     if len(server_challenge) != NTLM_CHALLENGE_LEN:
         raise ValueError(
             f"server_challenge must be {NTLM_CHALLENGE_LEN} bytes, "
-            f"got {len(server_challenge)}"
+            + f"got {len(server_challenge)}"
         )
 
     captures: list[tuple[str, str]] = []
@@ -658,9 +660,9 @@ def NTLM_AUTH_to_hashcat_formats(
                 (
                     NTLM_V2,
                     f"{user}::{domain}"
-                    f":{server_challenge_hex}"
-                    f":{nt_proof_str_hex}"
-                    f":{blob_hex}",
+                    + f":{server_challenge_hex}"
+                    + f":{nt_proof_str_hex}"
+                    + f":{blob_hex}",
                 )
             )
             dm_logger.debug("Appended %s hash (nt_len=%d)", NTLM_V2, len(nt_response))
@@ -678,7 +680,7 @@ def NTLM_AUTH_to_hashcat_formats(
                 if lm_response == b"\x00" * NTLMV1_RESPONSE_LEN:
                     dm_logger.debug(
                         "LmChallengeResponse is Z(%d) "
-                        "(MsvAvTimestamp suppression or null LM); skipping %s",
+                        + "(MsvAvTimestamp suppression or null LM); skipping %s",
                         NTLMV1_RESPONSE_LEN,
                         NTLM_V2_LM,
                     )
@@ -691,9 +693,9 @@ def NTLM_AUTH_to_hashcat_formats(
                         (
                             NTLM_V2_LM,
                             f"{user}::{domain}"
-                            f":{server_challenge_hex}"
-                            f":{lm_proof_hex}"
-                            f":{lm_cc_hex}",
+                            + f":{server_challenge_hex}"
+                            + f":{lm_proof_hex}"
+                            + f":{lm_cc_hex}",
                         )
                     )
                     dm_logger.debug("Appended %s companion hash", NTLM_V2_LM)
@@ -723,9 +725,9 @@ def NTLM_AUTH_to_hashcat_formats(
                 (
                     NTLM_V1_ESS,
                     f"{user}::{domain}"
-                    f":{lm_ess_hex}"
-                    f":{nt_response_hex}"
-                    f":{server_challenge_hex}",
+                    + f":{lm_ess_hex}"
+                    + f":{nt_response_hex}"
+                    + f":{server_challenge_hex}",
                 )
             )
             dm_logger.debug("Appended %s hash", NTLM_V1_ESS)
@@ -749,7 +751,7 @@ def NTLM_AUTH_to_hashcat_formats(
                 # Case 1: duplication — LM is a copy of NT, skip it
                 dm_logger.debug(
                     "LmChallengeResponse == NtChallengeResponse "
-                    "(Level 2 duplication); omitting LM slot"
+                    + "(Level 2 duplication); omitting LM slot"
                 )
             elif lm_response in _compute_dummy_lm_responses(server_challenge):
                 # Case 2: dummy DESL output — no crackable credential material
@@ -767,9 +769,9 @@ def NTLM_AUTH_to_hashcat_formats(
             (
                 NTLM_V1,
                 f"{user}::{domain}"
-                f":{lm_slot_hex}"
-                f":{nt_response_hex}"
-                f":{server_challenge_hex}",
+                + f":{lm_slot_hex}"
+                + f":{nt_response_hex}"
+                + f":{server_challenge_hex}",
             )
         )
         dm_logger.debug(
@@ -865,7 +867,7 @@ def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
     except Exception:
         dm_logger.debug(
             "Failed to check anonymous status in AUTHENTICATE_MESSAGE; "
-            "treating as non-anonymous to avoid dropping captures",
+            + "treating as non-anonymous to avoid dropping captures",
             exc_info=True,
         )
         return False
@@ -887,7 +889,7 @@ def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
 
 
 def NTLM_AUTH_CreateChallenge(
-    token: ntlm.NTLMAuthNegotiate | dict,
+    token: ntlm.NTLMAuthNegotiate | dict[str, Any],
     name: str,
     domain: str,
     challenge: bytes,
@@ -1163,7 +1165,7 @@ def NTLM_report_auth(
     client: tuple[str, int],
     session: SessionConfig,
     logger: ProtocolLogger | None = None,
-    extras: dict | None = None,
+    extras: dict[str, Any] | None = None,
     transport: str = NTLM_TRANSPORT_NTLMSSP,
 ) -> None:
     """Extract all crackable hashes from an AUTHENTICATE_MESSAGE and log them.
@@ -1218,7 +1220,7 @@ def NTLM_report_auth(
         if not all_hashes:
             log.warning(
                 "AUTHENTICATE_MESSAGE produced no crackable hashes "
-                "(user=%r flags=0x%08x)",
+                + "(user=%r flags=0x%08x)",
                 auth_token["user_name"],
                 negotiate_flags,
             )
@@ -1254,7 +1256,7 @@ def NTLM_report_auth(
     except ValueError:
         log.exception(
             "Invalid data in AUTHENTICATE_MESSAGE (bad challenge length or "
-            "malformed response fields); skipping capture"
+            + "malformed response fields); skipping capture"
         )
     except Exception:
         log.exception("Failed to extract NTLM hashes from AUTHENTICATE_MESSAGE")
