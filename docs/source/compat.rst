@@ -82,7 +82,10 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td>LM</td>
+                        <td>SMB 1.0 SSP</td>
+                    </tr>
+                    <tr>
+                        <td>SMB 1.0 Raw</td>
                     </tr>
                     <tr>
                         <td>SMB 2.002</td>
@@ -110,10 +113,13 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -138,7 +144,177 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                        <td><i class="i-lucide cancelled sd-text-secondary l"></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                NTLM
+                <table>
+                <tbody>
+                    <tr>
+                        <td>NetNTLMv1</td>
+                    </tr>
+                    <tr>
+                        <td>NetNTLMv1-ESS</td>
+                    </tr>
+                    <tr>
+                        <td>NetLMv2</td>
+                    </tr>
+                    <tr>
+                        <td>NetNTLMv2</td>
+                    </tr>
+                    <tr>
+                        <td>Dummy LM filtering</td>
+                    </tr>
+                    <tr>
+                        <td>LM dedup filtering</td>
+                    </tr>
+                    <tr>
+                        <td>Anonymous detection</td>
+                    </tr>
+                    <tr>
+                        <td>Flag mirroring</td>
+                    </tr>
+                    <tr>
+                        <td>NetNTLMv2 threshold (≥ 48 B)</td>
+                    </tr>
+                    <tr>
+                        <td>AV_PAIRS correctness</td>
+                    </tr>
+                    <tr>
+                        <td>Hash label accuracy</td>
+                    </tr>
+                    <tr>
+                        <td>Configurable challenge</td>
+                    </tr>
+                    <tr>
+                        <td>SPNEGO unwrapping</td>
+                    </tr>
+                    <tr>
+                        <td>Non-NTLM mech redirect</td>
+                    </tr>
+                    <tr>
+                        <td>ESS configurable</td>
+                    </tr>
+                    <tr>
+                        <td>NetNTLMv2 configurable</td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i> <a href="#confusion">[1]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide badge-alert sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -355,7 +531,7 @@ in development. The legend for each symbol is as follows:
                 <table>
                 <tbody>
                     <tr>
-                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
@@ -467,7 +643,7 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide check-check sd-text-success l"></i>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
                 <table>
                 <tbody>
                     <tr>
@@ -616,4 +792,47 @@ in development. The legend for each symbol is as follows:
     </tbody>
     </table>
 
-    <p id="confusion">[1]: Responder is not able to distinguish between NTLMv1/v2-SSP and NTLMv1/v2</p>
+    <h3>SMB Features</h3>
+    <table>
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
+            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev18)</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Tree Connect</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+        </tr>
+        <tr>
+            <td>Logoff</td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
+            <td>NT4 clear-text capture</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+        </tr>
+        <tr>
+            <td>Multi-credential loop</td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+        </tr>
+        <tr>
+            <td>Configurable ErrorCode</td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+        <tr>
+            <td>Configurable ServerOS</td>
+            <td><i class="i-lucide x sd-text-danger l"></i></td>
+            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+        </tr>
+    </tbody>
+    </table>
+
+    <p id="confusion">[1]: Responder combines NetNTLMv1 and NetNTLMv1-ESS under a single "NTLMv1-SSP" label. This is not incorrect — hashcat <code>-m 5500</code> handles both — but Dementor distinguishes them for more granular reporting. Applies to all NTLM-capable protocols (SMB, HTTP, MSSQL, LDAP, DCE/RPC).</p>

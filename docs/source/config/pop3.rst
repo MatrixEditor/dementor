@@ -101,7 +101,7 @@ Section ``[POP3]``
 
         *Maps to* :attr:`pop3.POP3ServerConfig.ntlm_ess`
 
-        Enables NTLM Extended Session Security (ESS). When enabled, NTLMv1/NTLMv2-SSP hashes are
+        Enables NTLM Extended Session Security (ESS). When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are
         captured instead of raw NTLM hashes. Resolution precedence:
 
         1. :attr:`POP3.ExtendedSessionSecurity`
