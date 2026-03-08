@@ -3,6 +3,7 @@ name = "dementor"
 version = "1.0.0.dev18"
 license = { file = "LICENSE" }
 
+requires-python = ">=3.10"
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
 authors = [{ name = "MatrixEditor" }]
 maintainers = [{ name = "MatrixEditor" }]
@@ -33,7 +34,7 @@ dependencies = [
     "aioquic",
     "typer",
     "jinja2",
-    "caterpillar-py",
+    "caterpillar-py>=2.8.1",
     "pyipp",
 ]
 
@@ -51,3 +52,15 @@ include = ["dementor*"]
 
 [tool.setuptools.package-data]
 dementor = ["assets/**"]
+
+[dependency-groups]
+docs = [
+    "sphinx",
+    "shibuya",
+    "sphinx-copybutton",
+    "sphinx-design",
+]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"

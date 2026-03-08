@@ -84,21 +84,17 @@ def is_true(value: str) -> bool:
 
 
 class BytesValue:
-    """
-    Callable factory that produces a ``bytes`` object from a variety of inputs.
+    """Parse a configuration value into a fixed-length ``bytes`` object.
 
-    The callable behaves like a *factory* that can be supplied to an
-    :class:`Attribute` ``factory`` argument.
+    Supports the following input formats (str case):
 
-    Example
-    -------
-    >>> b_factory = BytesValue(length=4)
-    >>> b_factory(None)               # random 4-byte token
-    b'\\x8f\\x12\\xa3\\x7d'
-    >>> b_factory("deadbeef")         # hex string
-    b'\\xde\\xad\\xbe\\xef'
-    >>> b_factory("hello")            # plain string
-    b'hello'
+    - ``"hex:1122334455667788"`` — explicit hex prefix
+    - ``"ascii:1337LEET"`` — explicit ASCII prefix
+    - ``"1122334455667788"`` — auto-detect hex (when length matches ``2 * self.length``)
+    - ``"1337LEET"`` — auto-detect (try hex first, then encode)
+    - ``None`` — generate ``self.length`` cryptographically random bytes
+
+    When ``length`` is set, the result is validated to be exactly that many bytes.
     """
 
     def __init__(self, length: int | None = None) -> None:
@@ -122,14 +118,55 @@ class BytesValue:
             case None:
                 return secrets.token_bytes(self.length or 1)
             case str():
-                try:
-                    return bytes.fromhex(value)
-                except ValueError:
-                    return value.encode()
+                result = self._parse_str(value)
+                if self.length is not None and len(result) != self.length:
+                    raise ValueError(
+                        f"Expected {self.length} bytes, got {len(result)}: {value!r}"
+                    )
+                return result
+
             case bytes():
+                if self.length is not None and len(value) != self.length:
+                    raise ValueError(
+                        f"Expected {self.length} bytes, got {len(value)}"
+                    )
                 return value
             case _:
-                return str(value).encode()
+                return self(str(value))
+
+    def _parse_str(self, value: str) -> bytes:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("Empty string value")
+
+        lowered = stripped.lower()
+
+        # Preferred explicit prefix forms
+        if lowered.startswith("hex:"):
+            return bytes.fromhex(stripped[4:].strip())
+
+        if lowered.startswith("ascii:"):
+            return stripped[6:].encode("ascii")
+
+        # Auto-detect: try hex first when string length matches 2 * expected bytes
+        if self.length is not None and len(stripped) == 2 * self.length:
+            try:
+                candidate = bytes.fromhex(stripped)
+                if len(candidate) == self.length:
+                    return candidate
+            except ValueError:
+                pass  # not valid hex — fall through
+
+        # Fallback: when length is known, the auto-detect hex path above
+        # already handled the 2*length case; encode directly so that strings
+        # like "12345678" are treated as 8 ASCII bytes, not 4 hex bytes.
+        # When length is unknown, try hex first for backwards compatibility.
+        if self.length is not None:
+            return stripped.encode()
+        try:
+            return bytes.fromhex(stripped)
+        except ValueError:
+            return stripped.encode()
 
 
 def random_value(size: int) -> str:

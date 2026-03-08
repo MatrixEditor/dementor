@@ -143,7 +143,7 @@ Section ``[HTTP]``
         .. versionchanged:: 1.0.0.dev5
             Internal mapping changed from ``http_ess`` to ``ntlm_ess``
 
-        Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NTLMv1/v2-SSP hashes
+        Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NetNTLMv1-ESS/NetNTLMv2 hashes
         are captured instead of raw NTLM hashes. Resolution precedence:
 
         1. :attr:`HTTP.Server.ExtendedSessionSecurity` (per-instance)

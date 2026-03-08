@@ -45,7 +45,8 @@ from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_ESS,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
     NTLM_report_auth,
     NTLM_split_fqdn,
 )
@@ -186,7 +187,8 @@ class HTTPServerConfig(TomlConfig):
         A("http_cert_key", "Key", None, section_local=False),
         A("http_use_ssl", "TLS", False, factory=is_true),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -203,8 +205,9 @@ class HTTPServerConfig(TomlConfig):
         http_cert: str | None
         http_cert_key: str | None
         http_use_ssl: bool
-        ntlm_challenge: bytes | None
-        ntlm_ess: bool
+        ntlm_challenge: bytes
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
     def set_http_templates(self, templates_dirs: list[str]):
         dirs: list[str] = []
@@ -422,7 +425,8 @@ class HTTPHandler(BaseHTTPRequestHandler):
                     message,
                     *NTLM_split_fqdn(self.config.http_fqdn),
                     challenge=self.config.ntlm_challenge,
-                    disable_ess=not self.config.ntlm_ess,
+                    disable_ess=self.config.ntlm_disable_ess,
+                    disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
                 )
                 self.send_response(HTTPStatus.UNAUTHORIZED, "Unauthorized")
                 data = base64.b64encode(challenge.getData()).decode()

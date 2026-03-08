@@ -96,7 +96,7 @@ Section ``[RPC]``
         Internal mapping changed from ``rpc_ntlm_ess`` to ``ntlm_ess``
 
     Enables Extended Session Security (ESS) during NTLM authentication. With ESS enabled,
-    NTLMv1/v2-SSP hashes are captured instead of standard NTLM hashes.
+    NetNTLMv1-ESS/NetNTLMv2 hashes are captured instead of standard NTLM hashes.
 
     Resolution precedence:
 
