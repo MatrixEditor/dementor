@@ -138,7 +138,7 @@ Dementor acts as a **capture server**, not an authentication server.  Per
       |                                       |
       |--- NEGOTIATE_MESSAGE ---------------► |  inspect client flags
       |◄-- CHALLENGE_MESSAGE ---------------- |  Dementor controls entirely
-      |--- AUTHENTICATE_MESSAGE -----------► |  extract & store hashes
+      |--- AUTHENTICATE_MESSAGE -----------►  |  extract & store hashes
       |                                       |
 
 Dementor does not verify responses, compute session keys, or participate in
@@ -217,7 +217,7 @@ The ``CHALLENGE_MESSAGE`` is built directly from the client's
   :attr:`DisableExtendedSessionSecurity` is ``false``.  When both ESS and
   ``LM_KEY`` are requested, only ESS is returned (§2.2.2.5 flag P mutual
   exclusivity).
-- **Version** — a placeholder ``\\xff * 8`` is used.  The VERSION structure
+- **Version** — a placeholder ``\\x00 * 8`` is used.  The VERSION structure
   content is not verified by clients per §2.2.2.10.
 
 AV_PAIRS (``TargetInfoFields``)

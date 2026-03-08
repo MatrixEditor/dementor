@@ -213,9 +213,6 @@ in development. The legend for each symbol is as follows:
                         <td>Configurable challenge</td>
                     </tr>
                     <tr>
-                        <td>NetNTLMv1 capture (raw SMB1)</td>
-                    </tr>
-                    <tr>
                         <td>SPNEGO unwrapping</td>
                     </tr>
                     <tr>
@@ -271,9 +268,6 @@ in development. The legend for each symbol is as follows:
                         <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
                     </tr>
                     <tr>
-                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
                         <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
                     </tr>
                     <tr>
@@ -289,7 +283,7 @@ in development. The legend for each symbol is as follows:
                 </table>
             </td>
             <td>
-                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <i class="i-lucide check-check sd-text-success l"></i>
                 <table>
                 <tbody>
                     <tr>
@@ -327,9 +321,6 @@ in development. The legend for each symbol is as follows:
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-                    </tr>
-                    <tr>
-                        <td><i class="i-lucide x sd-text-danger l"></i></td>
                     </tr>
                     <tr>
                         <td><i class="i-lucide checkfb sd-text-success l"></i></td>
