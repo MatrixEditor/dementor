@@ -104,18 +104,28 @@ Section ``[IMAP]``
 
         Specifies the path to the private key file associated with the TLS certificate.
 
-    .. py:attribute:: ExtendedSessionSecurity
-        :type: bool
+    .. py:attribute:: Server.ExtendedSessionSecurity
         :value: true
+        :type: bool
 
-        *Maps to* :attr:`imap.IMAPServerConfig.ntlm_ess`.
+        .. versionremoved:: 1.0.0.dev19
+            **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
+
+    .. py:attribute:: Server.DisableExtendedSessionSecurity
+        :value: false
+        :type: bool
+
+        *Linked to* :attr:`imap.IMAPServerConfig.ntlm_disable_ess`
+
+        .. versionchanged:: 1.0.0.dev19
+            Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
 
         Enables NTLM Extended Session Security (ESS).
-        When enabled, NTLMv1/NTLMv2-SSP hashes are captured instead of raw NTLM hashes.
+        When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are captured instead of raw NTLM hashes.
         Resolution precedence:
 
-        1. :attr:`IMAP.ExtendedSessionSecurity`
-        2. :attr:`NTLM.ExtendedSessionSecurity` (fallback)
+        1. :attr:`IMAP.DisableExtendedSessionSecurity`
+        2. :attr:`NTLM.DisableExtendedSessionSecurity` (fallback)
 
     .. py:attribute:: Challenge
         :type: str

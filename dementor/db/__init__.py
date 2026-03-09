@@ -18,10 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# --------------------------------------------------------------------------- #
+# Public constants
+# --------------------------------------------------------------------------- #
 _CLEARTEXT = "Cleartext"
-_NO_USER = "<missing-user>"
+"""Constant indicating plaintext credentials (as opposed to hashes)."""
 
+_NO_USER = "<missing-user>"
+"""Placeholder string used when username is absent or invalid in credential logging."""
+
+_HOST_INFO = "_host_info"
+"""Key used in extras dict to store host information for credential logging."""
 
 def normalize_client_address(client: str) -> str:
-    return client.removeprefix("::ffff:")
+    """Normalize IPv6-mapped IPv4 addresses by stripping IPv6 prefix.
 
+    Converts addresses like `::ffff:192.168.1.1` to `192.168.1.1` for consistent storage and display.
+
+    :param client: Raw client address string (e.g., from socket).
+    :type client: str
+    :return: Normalized address without IPv6 mapping prefix.
+    :rtype: str
+
+    Example:
+    >>> normalize_client_address("::ffff:192.168.1.1")
+    '192.168.1.1'
+    >>> normalize_client_address("2001:db8::1")
+    '2001:db8::1'
+    """
+    return client.removeprefix("::ffff:")

@@ -36,7 +36,7 @@ from aioquic.quic.connection import QuicConnection
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.log.logger import ProtocolLogger, ProtocolLoggerMixin, dm_logger
+from dementor.log.logger import ProtocolLogger, dm_logger
 
 
 class QuicServerConfig(TomlConfig):
@@ -72,7 +72,7 @@ def create_server_threads(session: SessionConfig):
     return servers
 
 
-class QuicHandler(QuicConnectionProtocol, ProtocolLoggerMixin):
+class QuicHandler(QuicConnectionProtocol):
     def __init__(
         self,
         config: SessionConfig,
@@ -85,7 +85,7 @@ class QuicHandler(QuicConnectionProtocol, ProtocolLoggerMixin):
         self.config = config
         #  stream_id -> (w, r)
         self.conn_data = {}
-        ProtocolLoggerMixin.__init__(self)
+        self.logger = self.proto_logger()
 
     def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(

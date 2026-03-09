@@ -36,7 +36,8 @@ from dementor.protocols.ntlm import (
     NTLM_report_auth,
     NTLM_split_fqdn,
     ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_ESS,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
 )
 from dementor.servers import (
     ServerThread,
@@ -93,7 +94,8 @@ class POP3ServerConfig(TomlConfig):
         ATTR_KEY,
         ATTR_TLS,
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -106,7 +108,8 @@ class POP3ServerConfig(TomlConfig):
         keyfile: str | None
         use_ssl: bool
         ntlm_challenge: bytes
-        ntlm_ess: bool
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
 
 class CloseConnection(Exception):
@@ -356,7 +359,8 @@ class POP3Handler(BaseProtoHandler):
             negotiate,
             *NTLM_split_fqdn(self.server_config.pop3_fqdn),
             challenge=self.server_config.ntlm_challenge,
-            disable_ess=not self.server_config.ntlm_ess,
+            disable_ess=self.server_config.ntlm_disable_ess,
+            disable_ntlmv2=self.server_config.ntlm_disable_ntlmv2,
         )
         token = self.challenge_auth(challenge.getData())
 

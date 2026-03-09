@@ -52,8 +52,10 @@ from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_format_host,
     NTLM_report_auth,
+    ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
 )
 from dementor.db import _CLEARTEXT
 
@@ -87,6 +89,9 @@ class SMTPServerConfig(TomlConfig):
         A("smtp_require_starttls", "RequireSTARTTLS", False),
         A("smtp_tls_cert", "Cert", "", section_local=False),
         A("smtp_tls_key", "Key", "", section_local=False),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -100,6 +105,9 @@ class SMTPServerConfig(TomlConfig):
         smtp_require_starttls: bool
         smtp_tls_cert: str
         smtp_tls_key: str
+        ntlm_challenge: bytes
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -242,7 +250,7 @@ class SMTPServerHandler:
         if blob is None:
             # 4. The server sends the SMTP_NTLM_Supported_Response message, indicating that it can perform
             # NTLM authentication.
-            blob = server.challenge_auth(SMTP_NTLM_Supported_Response_Message)
+            blob = await server.challenge_auth(SMTP_NTLM_Supported_Response_Message)
             if blob is MISSING:
                 # authentication failed
                 await server.push("501 5.7.0 Auth aborted")
@@ -250,10 +258,6 @@ class SMTPServerHandler:
 
         negotiate_message = NTLMAuthNegotiate()
         negotiate_message.fromString(blob)
-        self.logger.debug(
-            "Starting NTLM-auth: %s",
-            NTLM_AUTH_format_host(negotiate_message),
-        )
 
         if self.server_config.smtp_fqdn.count(".") > 0:
             name, domain = self.server_config.smtp_fqdn.split(".", 1)
@@ -265,8 +269,9 @@ class SMTPServerHandler:
             negotiate_message,
             name,
             domain,
-            self.config.ntlm_challange,
-            disable_ess=not self.config.ntlm_ess,
+            challenge=self.server_config.ntlm_challenge,
+            disable_ess=self.server_config.ntlm_disable_ess,
+            disable_ntlmv2=self.server_config.ntlm_disable_ntlmv2,
         )
 
         # 6. The server sends an SMTP_AUTH_NTLM_BLOB_Response message containing a base64-encoded
@@ -279,7 +284,7 @@ class SMTPServerHandler:
         auth_message.fromString(blob)
         NTLM_report_auth(
             auth_message,
-            self.config.ntlm_challange,
+            self.server_config.ntlm_challenge,
             server.session.peer,
             self.config,
             self.logger,
@@ -315,7 +320,7 @@ class SMTPServerThread(threading.Thread):
             }
         )
 
-    async def start_server(self, controller, config: SessionConfig, smtp_config):
+    async def start_server(self, controller: Controller, config: SessionConfig, smtp_config):
         controller.port = smtp_config.smtp_port
 
         # NOTE: hostname on the controller points to the local address that will be

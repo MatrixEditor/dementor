@@ -49,7 +49,8 @@ from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    ATTR_NTLM_ESS,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
     ATTR_NTLM_CHALLENGE,
     NTLM_report_auth,
     NTLM_split_fqdn,
@@ -235,7 +236,8 @@ class MSSQLConfig(TomlConfig):
             "You have been chosen as the deadlock victim",
         ),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -248,7 +250,8 @@ class MSSQLConfig(TomlConfig):
         mssql_error_class: int
         mssql_error_msg: str
         ntlm_challenge: bytes
-        ntlm_ess: bool
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
 
 # 2.2.6.4 PRELOGIN
@@ -444,7 +447,8 @@ class MSSQLHandler(BaseProtoHandler):
                 negotiate,
                 *NTLM_split_fqdn(self.config.mssql_config.mssql_fqdn),
                 challenge=self.config.mssql_config.ntlm_challenge,
-                disable_ess=not self.config.mssql_config.ntlm_ess,
+                disable_ess=self.config.mssql_config.ntlm_disable_ess,
+                disable_ntlmv2=self.config.mssql_config.ntlm_disable_ntlmv2,
             )
 
             sspi = SSPI(buffer=self.challenge.getData())

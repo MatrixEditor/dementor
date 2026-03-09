@@ -9,7 +9,7 @@
 project = "Dementor"
 copyright = "2025-Present, MatrixEditor"
 author = "MatrixEditor"
-release = "1.0.0.dev17"
+release = "1.0.0.dev19"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -53,6 +53,8 @@ html_context = {
     "source_type": "github",
     "source_user": "MatrixEditor",
     "source_repo": "dementor",
+    "source_version": "master",
+    "source_docs_path": "/docs/source/",
 }
 
 html_theme_options = {

@@ -19,8 +19,6 @@
 # SOFTWARE.
 # pyright: basic
 import uuid
-import calendar
-import time
 import secrets
 import typing
 
@@ -52,9 +50,11 @@ from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
+    NTLM_new_timestamp,
     NTLM_report_auth,
     ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_ESS,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
     NTLM_split_fqdn,
 )
 from dementor.protocols.spnego import (
@@ -68,12 +68,13 @@ from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
 SMB2_DIALECTS = {
     smb2.SMB2_DIALECT_002: "SMB 2.002",
     smb2.SMB2_DIALECT_21: "SMB 2.1",
+    smb2.SMB2_DIALECT_WILDCARD: "SMB 2.???",
     smb2.SMB2_DIALECT_30: "SMB 3.0",
     smb2.SMB2_DIALECT_302: "SMB 3.0.2",
     smb2.SMB2_DIALECT_311: "SMB 3.1.1",
-    # used in SMB1 requests
-    0x0000: "SMB 2.???",
 }
+
+SMB2_NEGOTIABLE_DIALECTS = set(SMB2_DIALECTS) - {smb2.SMB2_DIALECT_WILDCARD}
 
 SMB2_DIALECT_REV = {v: k for k, v in SMB2_DIALECTS.items()}
 
@@ -99,7 +100,8 @@ class SMBServerConfig(TomlConfig):
         # proposed: protocol transition from smb1 to smb2
         A("smb2_support", "SMB2Support", True),
         ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_ESS,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -109,7 +111,8 @@ class SMBServerConfig(TomlConfig):
         smb_error_code: int
         smb2_support: bool
         ntlm_challenge: bytes
-        ntlm_ess: bool
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
 
     def set_smb_error_code(self, value: str | int):
         if isinstance(value, int):
@@ -147,9 +150,7 @@ def create_server_threads(session: SessionConfig):
 
 # --- Functions ---------------------------------------------------------------
 def SMB_get_server_time():
-    value = calendar.timegm(time.gmtime())
-    value *= 10000000
-    return value + 116444736000000000
+    return NTLM_new_timestamp()
 
 
 def SMB_get_command_name(command: int, smb_version: int) -> str:
@@ -196,10 +197,12 @@ def SMB3_get_target_capabilities(
     target_sign = 0x001  # SMB2_SIGNING_AES_CMAC
     try:
         context_data = smb3.SMB311ContextData(request["ClientStartTime"])
-        raw_context_list = request.rawData[context_data["NegotiateContextOffset"] :]
+        # remove header size from offset
+        context_list_offset = context_data["NegotiateContextOffset"] - 64
+        raw_context_list = request.rawData[context_list_offset:]
         offset = 0
         for _ in range(context_data["NegotiateContextCount"]):
-            context = smb3.SMB2NegotiateContext(raw_context_list)
+            context = smb3.SMB2NegotiateContext(raw_context_list[offset:])
             match context["ContextType"]:
                 case smb3.SMB2_ENCRYPTION_CAPABILITIES:
                     req_enc_caps = smb3.SMB2EncryptionCapabilities(context["Data"])
@@ -278,9 +281,10 @@ def smb2_negotiate(
             ]
         )
 
-        # print(len(command["Buffer"]))
-        command["NegotiateContextOffset"] = 0x80 + command["SecurityBufferLength"] + 2
-        command["NegotiateContextList"] = b"\xff\xff" + context_data
+        offset: int = 0x80 + command["SecurityBufferLength"]
+        sec_buf_pad = SMB3_get_neg_context_pad(0x80 + command["SecurityBufferLength"])
+        command["NegotiateContextOffset"] = offset + len(sec_buf_pad)
+        command["NegotiateContextList"] = sec_buf_pad + context_data
         command["NegotiateContextCount"] = 3
 
     return command
@@ -289,19 +293,32 @@ def smb2_negotiate(
 def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> None:
     req = smb3.SMB2Negotiate(data=packet["Data"])
     # Let's take the first dialect the clients wan't us to use
-    req_dialects = req["Dialects"][: req["DialectCount"]]
+    dialect_count: int = req["DialectCount"]
+    req_raw_dialects: list[int] = req["Dialects"]
+    if len(req_raw_dialects) < dialect_count:
+        # automatically adjust length
+        dialect_count = len(req_raw_dialects)
+
+    req_dialects: list[int] = req_raw_dialects[:dialect_count]
+    if len(req_dialects) == 0:
+        # 3.3.5.4 Receiving an SMB2 NEGOTIATE Request
+        # If the DialectCount of the SMB2 NEGOTIATE Request is 0, the server MUST fail the request with
+        # STATUS_INVALID_PARAMETER.
+        handler.log_client("Client sent no dialects", "SMB_COM_NEGOTIATE")
+        handler.logger.fail("SMB Negotiation: Client failed to provide any dialects.")
+        raise BaseProtoHandler.TerminateConnection
+
     str_req_dialects = ", ".join([SMB2_DIALECTS.get(d, hex(d)) for d in req_dialects])
     guid = uuid.UUID(bytes_le=req["ClientGuid"])
     handler.log_client(
         f"requested dialects: {str_req_dialects} (client: {guid})", "SMB2_NEGOTIATE"
     )
 
-    # REVISIT
-    dialect = req_dialects[-1]
-    # for candidate in req_dialects:
-    #     if candidate < 0x300:
-    #         dialect = candidate
-
+    # select greatest common dialect
+    dialect = max(
+        (d for d in req_dialects if d in SMB2_NEGOTIABLE_DIALECTS),
+        default=None,
+    )
     if dialect is None:
         handler.logger.fail(
             f"Client requested unsupported dialects: {str_req_dialects}"
@@ -347,7 +364,7 @@ def smb2_logoff(handler: "SMBHandler", packet: smb2.SMB2Packet) -> None:
 
 
 # --- SMB1 --------------------------------------------------------------------
-def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
+def smb1_negotiate_protocol(handler: "SMBHandler", packet: smb.NewSMBPacket) -> None:
     resp = smb.NewSMBPacket()
     resp["Flags1"] = smb.SMB.FLAGS1_REPLY
     resp["Pid"] = packet["Pid"]
@@ -355,19 +372,37 @@ def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
     resp["Mid"] = packet["Mid"]
 
     req = smb.SMBCommand(packet["Data"][0])
-    dialects = [
+    req_data_dialects: list[bytes] = req["Data"].split(b"\x02")[1:]
+    if len(req_data_dialects) == 0:
+        # 3.3.5.4 Receiving an SMB2 NEGOTIATE Request
+        # If the DialectCount of the SMB2 NEGOTIATE Request is 0, the server MUST fail the request with
+        # STATUS_INVALID_PARAMETER.
+        handler.log_client("Client sent no dialects", "SMB_COM_NEGOTIATE")
+        handler.logger.fail("SMB Negotiation: Client failed to provide any dialects.")
+        raise BaseProtoHandler.TerminateConnection
+
+    dialects: list[str] = [
         dialect.rstrip(b"\x00").decode(errors="replace")
-        for dialect in req["Data"].split(b"\x02")[1:]
+        for dialect in req_data_dialects
     ]
     handler.log_client(f"dialects: {', '.join(dialects)}", "SMB_COM_NEGOTIATE")
-    # always select the first one present if SMB2 is not present
-    index = 0
-    for i, dialect in enumerate(dialects):
-        if dialect in SMB2_DIALECT_REV and handler.smb_config.smb2_support:
-            index = i
-            break
+    smb2_entries: dict[str, int] = {
+        dialect: index
+        for index, dialect in enumerate(dialects)
+        if dialect in SMB2_DIALECT_REV and handler.smb_config.smb2_support
+    }
+    if smb2_entries:
+        # 3.3.5.3.1 SMB 2.1 or SMB 3.x Support
+        # Otherwise, the server MUST scan the dialects provided for the dialect string "SMB 2.???". If the string
+        # is not present, continue to section 3.3.5.3.2. If the string is present, the server MUST respond with an
+        # SMB2 NEGOTIATE Response as specified in 2.2.4.
+        index, target_dialect = smb2_entries.get("SMB 2.???"), "SMB 2.???"
+        if index is None:
+            target_dialect = list(smb2_entries)[-1]
+            index = smb2_entries[target_dialect]
+    else:
+        index, target_dialect = 0, dialects[0]
 
-    target_dialect = dialects[index]
     if target_dialect in SMB2_DIALECT_REV:
         # Requested dialect is SMB2 -> respond with SMB2
         command = smb2_negotiate(handler, SMB2_DIALECT_REV[target_dialect])
@@ -418,11 +453,8 @@ def smb1_negotiate_protocol(handler, packet: smb.NewSMBPacket) -> None:
     handler.send_data(resp.getData())
 
 
-def smb1_session_setup(handler, packet: smb.NewSMBPacket) -> None:
+def smb1_session_setup(handler: "SMBHandler", packet: smb.NewSMBPacket) -> None:
     command = smb.SMBCommand(packet["Data"][0])
-    handler.log_client(f"session setup: {command.fields}", "SMB_COM_SESSION_SETUP_ANDX")
-    # handler.send_data(packet.getData())
-
     # From [MS-SMB]
     # When extended security is being used (see section 3.2.4.2.4), the
     # request MUST take the following form
@@ -458,6 +490,11 @@ def smb1_session_setup(handler, packet: smb.NewSMBPacket) -> None:
             packet,
             error_code=error_code,
         )
+    else:
+        handler.logger.warning(
+            f"<SMB_COM_SESSION_SETUP_ANDX> Unsupported WordCount: {command['WordCount']}"
+        )
+        raise BaseProtoHandler.TerminateConnection
 
 
 # --- Handler ---
@@ -542,7 +579,6 @@ class SMBHandler(BaseProtoHandler):
                 "MessageID": 0,
                 "TreeID": 0xFFFF,
             }
-        resp["CreditRequestResponse"] = 1
         resp["Command"] = packet["Command"]
         resp["CreditCharge"] = packet["CreditCharge"]
         resp["Reserved"] = packet["Reserved"]
@@ -696,7 +732,7 @@ class SMBHandler(BaseProtoHandler):
                 token = neg_token["ResponseToken"]
 
         # NTLM authentication below
-        if len(token) < 8:
+        if len(token) <= 8:
             self.logger.fail(
                 f"<{command_name}> Invalid NTLM token length: {len(token)}"
             )
@@ -714,7 +750,8 @@ class SMBHandler(BaseProtoHandler):
                     negotiate,
                     *NTLM_split_fqdn(self.smb_config.smb_fqdn),
                     challenge=self.smb_config.ntlm_challenge,
-                    disable_ess=not self.smb_config.ntlm_ess,
+                    disable_ess=self.smb_config.ntlm_disable_ess,
+                    disable_ntlmv2=self.smb_config.ntlm_disable_ntlmv2,
                 )
                 self.log_server("NTLMSSP_CHALLENGE_MESSAGE", command_name)
                 if is_gssapi:

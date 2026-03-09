@@ -50,9 +50,11 @@ from dementor.servers import (
 from dementor.db import _CLEARTEXT
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
-    NTLM_AUTH_format_host,
     NTLM_report_auth,
     NTLM_split_fqdn,
+    ATTR_NTLM_CHALLENGE,
+    ATTR_NTLM_DISABLE_ESS,
+    ATTR_NTLM_DISABLE_NTLMV2,
 )
 
 # Taken from Microsoft's spec:
@@ -100,6 +102,9 @@ class LDAPServerConfig(TomlConfig):
         A("ldap_tls_key", "Key", None, section_local=False),
         A("ldap_tls_cert", "Cert", None, section_local=False),
         A("ldap_error_code", "ErrorCode", "unwillingToPerform"),
+        ATTR_NTLM_CHALLENGE,
+        ATTR_NTLM_DISABLE_ESS,
+        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -169,9 +174,6 @@ class LDAPHandler(BaseProtoHandler):
         negotiate = NTLMAuthNegotiate()
         negotiate.fromString(nego_token_raw)
 
-        host_format = NTLM_AUTH_format_host(negotiate)
-        self.logger.debug("Starting NTLM-auth: %s", host_format)
-
         fqdn = self.server.server_config.ldap_fqdn
         if "." in fqdn:
             name, domain = fqdn.split(".", 1)
@@ -182,8 +184,9 @@ class LDAPHandler(BaseProtoHandler):
             negotiate,
             name,
             domain,
-            self.config.ntlm_challange,
-            disable_ess=not self.config.ntlm_ess,
+            challenge=self.server.server_config.ntlm_challenge,
+            disable_ess=self.server.server_config.ntlm_disable_ess,
+            disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
         )
         # return bind success with challenge message
         self.send(self.server.bind_result(req, matched_dn=ntlm_challenge.getData()))
@@ -194,7 +197,7 @@ class LDAPHandler(BaseProtoHandler):
         auth_message.fromString(blob)
         NTLM_report_auth(
             auth_token=auth_message,
-            challenge=self.config.ntlm_challange,
+            challenge=self.server.server_config.ntlm_challenge,
             client=self.client_address,
             logger=self.logger,
             session=self.config,
@@ -269,8 +272,9 @@ class LDAPHandler(BaseProtoHandler):
             ntlm_challenge = NTLM_AUTH_CreateChallenge(
                 token,
                 *NTLM_split_fqdn(self.server.server_config.ldap_fqdn),
-                challenge=self.config.ntlm_challange,
-                disable_ess=not self.config.ntlm_ess,
+                challenge=self.server.server_config.ntlm_challenge,
+                disable_ess=self.server.server_config.ntlm_disable_ess,
+                disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
             )
             return self.send(
                 self.server.bind_result(
@@ -285,7 +289,7 @@ class LDAPHandler(BaseProtoHandler):
             token.fromString(data)
             NTLM_report_auth(
                 auth_token=token,
-                challenge=self.config.ntlm_challange,
+                challenge=self.server.server_config.ntlm_challenge,
                 client=self.client_address,
                 logger=self.logger,
                 session=self.config,

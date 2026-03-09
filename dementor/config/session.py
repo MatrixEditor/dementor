@@ -21,7 +21,7 @@
 import asyncio
 import typing
 
-from typing import Any
+from typing import Any, override
 from pathlib import Path
 
 from dementor.config.toml import TomlConfig, Attribute
@@ -123,8 +123,9 @@ class SessionConfig(TomlConfig):
         upnp_config: upnp.UPNPConfig
         x11_config: x11.X11Config
 
-        ntlm_challange: bytes
-        ntlm_ess: bool
+        ntlm_challenge: bytes
+        ntlm_disable_ess: bool
+        ntlm_disable_ntlmv2: bool
         analysis: bool
         loop: asyncio.AbstractEventLoop
 
@@ -152,21 +153,21 @@ class SessionConfig(TomlConfig):
         upnp_enabled: bool
 
     def __init__(self) -> None:
-        super().__init__(config._get_global_config().get("Dementor", {}))
+        super().__init__(config.get_global_config().get("Dementor", {}))
         # global options that are not loaded from configuration
         self.ipv6 = None
         self.ipv4 = None
         self.interface = None
         self.analysis = False
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.new_event_loop()
         self.protocols = {}
 
         # SMTP configuration
         self.smtp_servers = []
 
         # NTLM configuration
-        self.ntlm_challange = b"1337LEET"
-        self.ntlm_ess = True
+        self.ntlm_disable_ess = False
+        self.ntlm_disable_ntlmv2 = False
 
     def is_bound_to_all(self) -> bool:
         # REVISIT: this should raise an exception
@@ -188,3 +189,17 @@ class SessionConfig(TomlConfig):
             return Path(raw_path).resolve()
 
         return (Path(self.workspace_path) / raw_path).resolve()
+
+    @override
+    def __getitem__(self, key: str) -> Any:
+        section, *parts = key.split(".")
+        attr = f"{section.lower()}_config"
+        if not hasattr(self, attr):
+            raise KeyError(f"unknown protocol: {attr}")
+
+        config: TomlConfig = getattr(self, attr)
+        if not parts:
+            return config
+
+        return config[".".join(parts)]
+
