@@ -700,7 +700,7 @@ class SMBHandler(BaseProtoHandler):
                     neg_token = spnego.SPNEGO_NegTokenInit(data=token)
                 except Exception as e:
                     self.logger.debug(f"Invalid GSSAPI token: {e}")
-                    raise BaseProtoHandler.TerminateConnection
+                    raise BaseProtoHandler.TerminateConnection from None
 
                 # There should be exactly one mechanism
                 mech_type = neg_token["MechTypes"][0]
@@ -727,7 +727,7 @@ class SMBHandler(BaseProtoHandler):
                     neg_token = spnego.SPNEGO_NegTokenResp(data=token)
                 except Exception as e:
                     self.logger.debug(f"Invalid GSSAPI token: {e}")
-                    raise BaseProtoHandler.TerminateConnection
+                    raise BaseProtoHandler.TerminateConnection from None
 
                 token = neg_token["ResponseToken"]
 
