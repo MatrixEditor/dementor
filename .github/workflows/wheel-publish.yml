@@ -8,34 +8,62 @@ on:
 
 
 jobs:
-  build_wheels:
-    name: Build wheels and sources
+  build:
+    name: Build distributions
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Requirements and Build
-        run: |
-          pip install build
-          python -m build .
-
-      - uses: actions/upload-artifact@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
         with:
-          path: ./dist/*
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.14"
+          check-latest: true
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7.3.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
+
+      - name: Build distributions
+        run: |
+          set -euo pipefail
+          uv build --sdist --wheel
+
+      - name: Validate distributions
+        run: |
+          set -euo pipefail
+          uv run --with twine twine check --strict dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: release-dists
+          path: dist/*
+          if-no-files-found: error
 
   upload_all:
-    needs: [build_wheels]
+    needs: [build]
     environment: pypi
     permissions:
       id-token: write
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/download-artifact@v5
+      - name: Download distributions
+        uses: actions/download-artifact@v8.0.0
         with:
+          name: release-dists
           path: dist
-          merge-multiple: true
 
-      - uses: pypa/gh-action-pypi-publish@v1.13.0
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.13.0
+        with:
+          packages-dir: dist/
 
