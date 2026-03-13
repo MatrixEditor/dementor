@@ -1,6 +1,8 @@
 [project]
 name = "dementor"
-version = "1.0.0.dev19"
+version = "1.0.0.dev20"
+# REVISIT: dynamic version
+# dynamic = ["version"]
 license-files = ["LICENSE"]
 
 # Python 3.11 required as tomllib was added in 3.11
@@ -72,7 +74,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=80", "wheel", "setuptools-scm[simple]>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
@@ -99,3 +101,7 @@ ignore = [
 
 [tool.ruff.format]
 docstring-code-format = true
+
+# REVISIT: dynamic version
+# [tool.setuptools_scm]
+# version_file = "dementor/version.py"
