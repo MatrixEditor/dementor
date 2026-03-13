@@ -142,7 +142,10 @@ def create_server_threads(session: SessionConfig):
                     session,
                     SMBServer,
                     server_config,
-                    server_address=(session.bind_address, server_config.smb_port),
+                    server_address=(
+                        session.bind_address,
+                        server_config.smb_port,
+                    ),
                 )
             )
     return servers
@@ -176,7 +179,9 @@ def SMB3_get_neg_context_pad(data_len: int) -> bytes:
     return b"\xff" * ((8 - (data_len % 8)) % 8)
 
 
-def SMB3_build_neg_context_list(context_objects: list[tuple[int, bytes]]) -> bytes:
+def SMB3_build_neg_context_list(
+    context_objects: list[tuple[int, bytes]],
+) -> bytes:
     # build Negotiate Contexts
     context_list = b""
     for caps_type, caps in context_objects:
@@ -311,7 +316,8 @@ def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> N
     str_req_dialects = ", ".join([SMB2_DIALECTS.get(d, hex(d)) for d in req_dialects])
     guid = uuid.UUID(bytes_le=req["ClientGuid"])
     handler.log_client(
-        f"requested dialects: {str_req_dialects} (client: {guid})", "SMB2_NEGOTIATE"
+        f"requested dialects: {str_req_dialects} (client: {guid})",
+        "SMB2_NEGOTIATE",
     )
 
     # select greatest common dialect
@@ -320,9 +326,7 @@ def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> N
         default=None,
     )
     if dialect is None:
-        handler.logger.fail(
-            f"Client requested unsupported dialects: {str_req_dialects}"
-        )
+        handler.logger.fail(f"Client requested unsupported dialects: {str_req_dialects}")
         raise BaseProtoHandler.TerminateConnection
 
     command = smb2_negotiate(handler, dialect, req)
@@ -382,8 +386,7 @@ def smb1_negotiate_protocol(handler: "SMBHandler", packet: smb.NewSMBPacket) -> 
         raise BaseProtoHandler.TerminateConnection
 
     dialects: list[str] = [
-        dialect.rstrip(b"\x00").decode(errors="replace")
-        for dialect in req_data_dialects
+        dialect.rstrip(b"\x00").decode(errors="replace") for dialect in req_data_dialects
     ]
     handler.log_client(f"dialects: {', '.join(dialects)}", "SMB_COM_NEGOTIATE")
     smb2_entries: dict[str, int] = {
@@ -426,8 +429,7 @@ def smb1_negotiate_protocol(handler: "SMBHandler", packet: smb.NewSMBPacket) -> 
         _dialects_parameters["ChallengeLength"] = 0
     else:
         handler.logger.fail(
-            "Client requested SMB1 or lower dialect without extended security, "
-            "which is not supported."
+            "Client requested SMB1 or lower dialect without extended security, which is not supported."
         )
         raise BaseProtoHandler.TerminateConnection
 
@@ -464,9 +466,7 @@ def smb1_session_setup(handler: "SMBHandler", packet: smb.NewSMBPacket) -> None:
         parameters = smb.SMBSessionSetupAndX_Extended_Response_Parameters()
         data = smb.SMBSessionSetupAndX_Extended_Response_Data(flags=packet["Flags2"])
 
-        setup_params = smb.SMBSessionSetupAndX_Extended_Parameters(
-            command["Parameters"]
-        )
+        setup_params = smb.SMBSessionSetupAndX_Extended_Parameters(command["Parameters"])
         setup_data = smb.SMBSessionSetupAndX_Extended_Data()
         setup_data["SecurityBlobLength"] = setup_params["SecurityBlobLength"]
         setup_data.fromString(command["Data"])
@@ -700,7 +700,7 @@ class SMBHandler(BaseProtoHandler):
                     neg_token = spnego.SPNEGO_NegTokenInit(data=token)
                 except Exception as e:
                     self.logger.debug(f"Invalid GSSAPI token: {e}")
-                    raise BaseProtoHandler.TerminateConnection
+                    raise BaseProtoHandler.TerminateConnection from None
 
                 # There should be exactly one mechanism
                 mech_type = neg_token["MechTypes"][0]
@@ -715,7 +715,10 @@ class SMBHandler(BaseProtoHandler):
                         0x02,  # reject
                         supported_mech=SPNEGO_NTLMSSP_MECH,
                     )
-                    return resp.getData(), nt_errors.STATUS_MORE_PROCESSING_REQUIRED
+                    return (
+                        resp.getData(),
+                        nt_errors.STATUS_MORE_PROCESSING_REQUIRED,
+                    )
 
                 # great, we have the NTLM token
                 token = neg_token["MechToken"]
@@ -727,15 +730,13 @@ class SMBHandler(BaseProtoHandler):
                     neg_token = spnego.SPNEGO_NegTokenResp(data=token)
                 except Exception as e:
                     self.logger.debug(f"Invalid GSSAPI token: {e}")
-                    raise BaseProtoHandler.TerminateConnection
+                    raise BaseProtoHandler.TerminateConnection from None
 
                 token = neg_token["ResponseToken"]
 
         # NTLM authentication below
         if len(token) <= 8:
-            self.logger.fail(
-                f"<{command_name}> Invalid NTLM token length: {len(token)}"
-            )
+            self.logger.fail(f"<{command_name}> Invalid NTLM token length: {len(token)}")
             raise BaseProtoHandler.TerminateConnection
 
         error_code = self.smb_config.smb_error_code

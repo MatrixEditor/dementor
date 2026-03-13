@@ -258,8 +258,7 @@ class X11Handler(BaseProtoHandler):
             error_message = self.config.x11_config.x11_error_reason
         else:
             self.logger.display(
-                f"[i]Anonymous[/i] X11 request from {self.client_host} (version: "
-                f"{request.majorVersion}.{request.minorVersion})"
+                f"[i]Anonymous[/i] X11 request from {self.client_host} (version: {request.majorVersion}.{request.minorVersion})"
             )
 
         resp = ResponseTy(

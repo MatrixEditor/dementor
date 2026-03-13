@@ -1,0 +1,60 @@
+name: "CI: Run Tests"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.11"
+            check-latest: false
+          - python-version: "3.12"
+            check-latest: false
+          - python-version: "3.13"
+            check-latest: false
+          - python-version: "3.14"
+            check-latest: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          check-latest: ${{ matrix.check-latest }}
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7.3.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
+
+      - name: Run test suite
+        run: |
+          set -euo pipefail
+          uv run --extra dev pytest

@@ -205,9 +205,7 @@ class HostsStream(LoggingFileStream[HostsStreamConfig]):
         self.hosts: set[str] = set()
         self.ipv4: bool = config.log_ipv4
         self.ipv6: bool = config.log_ipv6
-        dm_logger.info(
-            f"Logging host IPs to {path} (IPv4={self.ipv4}, IPv6={self.ipv6})"
-        )
+        dm_logger.info(f"Logging host IPs to {path} (IPv4={self.ipv4}, IPv6={self.ipv6})")
 
     @override
     def add(self, **kwargs: Any) -> None:

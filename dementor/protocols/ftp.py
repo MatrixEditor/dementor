@@ -78,7 +78,7 @@ def apply_config(session: SessionConfig) -> None:
     :param session: Current session object.
     :type session: :class:`dementor.config.session.SessionConfig`
     """
-    session.ftp_config = []  # type: ignore[attr-defined]
+    session.ftp_config = []
     if session.ftp_enabled:  # pragma: no branch
         for server_cfg in get_value("FTP", "Server", default=[]):
             session.ftp_config.append(FTPServerConfig(server_cfg))

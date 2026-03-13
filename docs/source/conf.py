@@ -9,7 +9,7 @@
 project = "Dementor"
 copyright = "2025-Present, MatrixEditor"
 author = "MatrixEditor"
-release = "1.0.0.dev19"
+release = "1.0.0.dev20"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -60,7 +60,6 @@ html_context = {
 html_theme_options = {
     "accent_color": "cyan",
     "color_mode": "dark",
-
     "github_url": "https://github.com/MatrixEditor/Dementor",
     # Logo configuration
     "light_logo": "_static/logo-new-big-transparent.png",

@@ -24,9 +24,7 @@ import json
 import typer
 import pathlib
 
-from threading import Thread
-from typing import Any
-from typing_extensions import Annotated
+from typing import Any, Annotated
 
 from impacket.version import version as ImpacketVersion
 from aiosmtpd import __version__ as AiosmtpdVersion
@@ -101,7 +99,8 @@ def serve(
             return
 
         session.ipv6 = next(
-            (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface), None
+            (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface),
+            None,
         )
         if session.ipv4 == "0.0.0.0" and not session.ipv6:
             # current interface is not available
@@ -338,7 +337,7 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
 
 def main(
     interface: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--interface",
             "-I",
@@ -356,7 +355,7 @@ def main(
         ),
     ] = False,
     config_path: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--config",
             "-c",
@@ -366,7 +365,7 @@ def main(
         ),
     ] = None,
     options: Annotated[
-        list[str],
+        list[str] | None,
         typer.Option(
             "--option",
             "-O",
@@ -385,7 +384,7 @@ def main(
         ),
     ] = False,
     targets: Annotated[
-        list[str],
+        list[str] | None,
         typer.Option(
             "--target",
             "-t",
@@ -394,7 +393,7 @@ def main(
         ),
     ] = None,
     ignored: Annotated[
-        list[str],
+        list[str] | None,
         typer.Option(
             "--ignore",
             "-i",
@@ -449,7 +448,7 @@ def main(
         return paths.main()
 
     if interface is None and not version:
-        return print(f"[bold red]Error:[/] Missing option --interface / -I")
+        return print("[bold red]Error:[/] Missing option --interface / -I")
 
     main_print_banner(quiet)
     if version:

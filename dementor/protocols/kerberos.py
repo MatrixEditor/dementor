@@ -58,7 +58,11 @@ class KerberosConfig(TomlConfig):
     _fields_ = [
         A("krb5_salt", "Salt", ""),
         A("krb5_etype", "EncType", EncryptionTypes.rc4_hmac),
-        A("krb5_error_code", "ErrorCode", ErrorCodes.KDC_ERR_C_PRINCIPAL_UNKNOWN),
+        A(
+            "krb5_error_code",
+            "ErrorCode",
+            ErrorCodes.KDC_ERR_C_PRINCIPAL_UNKNOWN,
+        ),
     ]
 
     if typing.TYPE_CHECKING:

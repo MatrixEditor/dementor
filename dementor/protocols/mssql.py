@@ -62,6 +62,7 @@ from dementor.servers import (
     ThreadingUDPServer,
 )
 from dementor.filters import in_scope, ATTR_BLACKLIST, ATTR_WHITELIST
+
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters
 
@@ -192,20 +193,18 @@ class SSRPPoisoner(BaseProtoHandler):
             resp = SVR_RESP_DAC(tcp_dac_port=port)
             self.send(pack(resp))
 
-        elif data[0] in (SSRP_CLNT_BCAST_EX, SSRP_CLNT_UCAST_EX, SSRP_CLNT_UCAST_INST):
+        elif data[0] in (
+            SSRP_CLNT_BCAST_EX,
+            SSRP_CLNT_UCAST_EX,
+            SSRP_CLNT_UCAST_INST,
+        ):
             self.logger.success(
                 f"Sending SVR_RESP with server config ([i]{instance_name}[/])"
             )
             name, _ = NTLM_split_fqdn(self.config.ssrp_config.ssrp_server_name)
             resp = SVR_RESP(
                 data=(
-                    f"ServerName;{name};"
-                    f"InstanceName;{instance_name};"
-                    "IsClustered;No;"
-                    f"Version;{self.config.ssrp_config.ssrp_server_version};"
-                    f"tcp;{self.config.mssql_config.mssql_port}"
-                    f"{self.config.ssrp_config.ssrp_instance_config}"
-                    ";;"
+                    f"ServerName;{name};InstanceName;{instance_name};IsClustered;No;Version;{self.config.ssrp_config.ssrp_server_version};tcp;{self.config.mssql_config.mssql_port}{self.config.ssrp_config.ssrp_instance_config};;"
                 )
             )
             self.send(pack(resp))
@@ -378,13 +377,11 @@ class MSSQLHandler(BaseProtoHandler):
             tds.TDS_ENCRYPT_ON,
         ):
             self.logger.display(
-                f"Pre-Login request for [i]{escape(instance)}[/] "
-                "([bold red]Encryption requested[/])"
+                f"Pre-Login request for [i]{escape(instance)}[/] ([bold red]Encryption requested[/])"
             )
         else:
             self.logger.display(
-                f"PreLogin request for [i]{escape(instance)}[/] "
-                f"(version: {unpack(PL_OPTION_TOKEN_VERSION, version)})"
+                f"PreLogin request for [i]{escape(instance)}[/] (version: {unpack(PL_OPTION_TOKEN_VERSION, version)})"
             )
 
         pre_login = tds.TDS_PRELOGIN()

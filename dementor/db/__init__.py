@@ -30,6 +30,7 @@ _NO_USER = "<missing-user>"
 _HOST_INFO = "_host_info"
 """Key used in extras dict to store host information for credential logging."""
 
+
 def normalize_client_address(client: str) -> str:
     """Normalize IPv6-mapped IPv4 addresses by stripping IPv6 prefix.
 
