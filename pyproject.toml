@@ -3,7 +3,8 @@ name = "dementor"
 version = "1.0.0.dev19"
 license-files = ["LICENSE"]
 
-requires-python = ">=3.10"
+# Python 3.11 required as tomllib was added in 3.11
+requires-python = ">=3.11"
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
 authors = [{ name = "MatrixEditor" }]
 maintainers = [{ name = "MatrixEditor" }]
@@ -33,11 +34,13 @@ dependencies = [
     "aioquic",
     "typer",
     "jinja2",
+    "typing-extensions",
     "caterpillar-py>=2.8.1",
     "pyipp",
 ]
 
 [project.scripts]
+dementor = "dementor.standalone:run_from_cli"
 Dementor = "dementor.standalone:run_from_cli"
 
 [project.urls]
@@ -52,14 +55,44 @@ include = ["dementor*"]
 [tool.setuptools.package-data]
 dementor = ["assets/**"]
 
-[dependency-groups]
+[project.optional-dependencies]
 docs = [
     "sphinx",
     "shibuya",
     "sphinx-copybutton",
     "sphinx-design",
 ]
+dev = [
+    "pytest",
+    "ruff",
+    "ty",
+]
 
 [build-system]
 requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 90
+src = ["dementor", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+]
+ignore = [
+    "E501",
+    "I001",
+    "B010"
+]
+
+[tool.ruff.format]
+docstring-code-format = true
