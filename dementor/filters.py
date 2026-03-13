@@ -65,7 +65,8 @@ class FilterObj:
             if (sys.version_info.major, sys.version_info.minor) < (3, 13):
                 warnings.warn(
                     "glob.translate is only available since 3.13, "
-                    + "using basic-string instead"
+                    + "using basic-string instead",
+                    stacklevel=2,
                 )
                 self.pattern = None
             else:

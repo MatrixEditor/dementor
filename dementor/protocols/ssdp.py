@@ -39,8 +39,7 @@ from dementor.servers import (
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
-if typing.TYPE_CHECKING:
-    from dementor.filters import Filters
+
 
 def apply_config(session: SessionConfig):
     session.ssdp_config = TomlConfig.build_config(SSDPConfig)

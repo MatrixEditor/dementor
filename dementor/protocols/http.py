@@ -590,7 +590,7 @@ class HTTPServer(ThreadingHTTPServer):
                 session=self.config,
                 server=self.server_config,
             )
-        except TemplateNotFound as e:
+        except TemplateNotFound:
             dm_logger.error("Error rendering page: Could not find template")
             return
 

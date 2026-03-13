@@ -214,7 +214,7 @@ class IMAPHandler(BaseProtoHandler):
             data = base64.b64decode(resp)
         except binascii.Error:
             self.bad("Invalid base64 string")
-            raise StopHandler
+            raise StopHandler from None
 
         return data if not decode else data.decode("utf-8", errors="replace")
 

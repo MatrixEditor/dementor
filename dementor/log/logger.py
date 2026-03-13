@@ -385,7 +385,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
             >>> logger.success("Handshake completed")
         """
         colour = color or "green"
-        prefix = r"[bold %s]\[+][/bold %s]" % (colour, colour)
+        prefix = f"[bold {colour}]" + r"\[+]" + f"[/bold {colour}]"
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, logging.INFO, *args)
@@ -403,7 +403,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
         :example:
             >>> logger.display("Waiting for data...")
         """
-        prefix = r"[bold %s]\[*][/bold %s]" % ("blue", "blue")
+        prefix = r"[bold blue]\[*][/bold blue]"
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, logging.INFO, *args)
@@ -439,7 +439,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
         :type _kwargs: dict
         """
         colour = color or "red"
-        prefix = r"[bold %s]\[-][/bold %s]" % (colour, colour)
+        prefix = f"[bold {colour}]" + r"\[-]" + f"[/bold {colour}]"
         msg, kwargs = self.format(f"{prefix} {msg}", **kwargs)
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, logging.ERROR, *args)

@@ -25,7 +25,8 @@ import threading
 import typing
 
 from collections import defaultdict
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 from dataclasses import dataclass
 
 from impacket.dcerpc.v5 import rpcrt, epm

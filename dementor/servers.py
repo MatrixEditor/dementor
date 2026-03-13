@@ -168,7 +168,7 @@ class BaseProtoHandler(BaseRequestHandler):
         self.server: socketserver.BaseServer = server
         self.config: SessionConfig = config
         self.logger: ProtocolLogger = self.proto_logger()
-        super(BaseProtoHandler, self).__init__(request, client_address, server)
+        super().__init__(request, client_address, server)
         log_host(self.client_host)
         _ = self.config.db.add_host(self.client_host)
 

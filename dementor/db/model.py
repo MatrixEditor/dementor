@@ -156,11 +156,11 @@ class DementorDB:
     for adding hosts, extras, and credentials while handling duplicates and logging.
     """
 
-    def __init__(self, engine: Engine, config: "SessionConfig") -> None:
+    def __init__(self, engine: Engine, config: SessionConfig) -> None:
         self.db_engine: Engine = engine
         self.db_path: str = str(engine.url.database)
         self.metadata: MetaData = ModelBase.metadata
-        self.config: "SessionConfig" = config
+        self.config: SessionConfig = config
 
         # Ensure tables exist; any problem is reported immediately.
         with self.db_engine.connect():

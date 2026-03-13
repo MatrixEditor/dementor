@@ -44,7 +44,6 @@ from caterpillar.py import (
     Bytes,
     LittleEndian,
     uint16,
-    uint32,
     uint64,
     singleton,
     unpack,

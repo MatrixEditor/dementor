@@ -21,8 +21,9 @@
 import asyncio
 import typing
 
-from typing import Any, override
+from typing import Any
 from pathlib import Path
+from typing_extensions import override
 
 from dementor.config.toml import TomlConfig, Attribute
 from dementor.config.util import is_true
