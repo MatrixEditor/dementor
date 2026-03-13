@@ -96,7 +96,8 @@ def serve(
             return
 
         session.ipv6 = next(
-            (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface), None
+            (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface),
+            None,
         )
         if session.ipv4 == "0.0.0.0" and not session.ipv6:
             # current interface is not available

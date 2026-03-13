@@ -99,7 +99,10 @@ def create_server_threads(session: SessionConfig) -> list[ServerThread]:
             ServerThread(
                 session,
                 MySQLServer,
-                server_address=(session.bind_address, session.mysql_config.mysql_port),
+                server_address=(
+                    session.bind_address,
+                    session.mysql_config.mysql_port,
+                ),
             )
         ]
         if session.mysql_enabled
@@ -357,8 +360,7 @@ class HandshakeResponse:
     # }
     conn_attrs: f[
         list[ConnectionAttribute] | None,
-        Prefixed(LengthEncodedInteger, ConnectionAttribute[...])
-        // _client_connect_attrs,
+        Prefixed(LengthEncodedInteger, ConnectionAttribute[...]) // _client_connect_attrs,
     ]
     # zstd_compression_level is dropped here
 
@@ -468,9 +470,7 @@ class MySQLHandler(BaseProtoHandler):
             else:
                 self.logger.display("Client is requesting upgrade to SSL")
 
-            self.context = create_tls_context(
-                self.mysql_config, self.server, force=True
-            )
+            self.context = create_tls_context(self.mysql_config, self.server, force=True)
             if self.context is None:
                 return
 

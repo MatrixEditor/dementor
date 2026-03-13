@@ -60,7 +60,6 @@ html_context = {
 html_theme_options = {
     "accent_color": "cyan",
     "color_mode": "dark",
-
     "github_url": "https://github.com/MatrixEditor/Dementor",
     # Logo configuration
     "light_logo": "_static/logo-new-big-transparent.png",

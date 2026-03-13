@@ -106,7 +106,10 @@ def create_server_threads(session: SessionConfig):
                     HTTPServer,
                     winrm_config,
                     RequestHandlerClass=WinRMHandler,
-                    server_address=(session.bind_address, winrm_config.http_port),
+                    server_address=(
+                        session.bind_address,
+                        winrm_config.http_port,
+                    ),
                     ipv6=bool(session.ipv6),
                 )
             )
@@ -143,15 +146,11 @@ class ProxyAutoConfig(TomlConfig):
 
                 path = pathlib.Path(script["file"])
                 if not path.exists() or not path.is_file():
-                    dm_logger.error(
-                        f"WPAD script at {path} does not exist - ignoring..."
-                    )
+                    dm_logger.error(f"WPAD script at {path} does not exist - ignoring...")
                     return
 
                 if not path.is_file():
-                    dm_logger.error(
-                        f"WPAD script at {path} is not a file - ignoring..."
-                    )
+                    dm_logger.error(f"WPAD script at {path} is not a file - ignoring...")
                     return
 
                 self.proxy_script = path.read_text()
@@ -175,8 +174,18 @@ class HTTPServerConfig(TomlConfig):
             "Microsoft-IIS/10.0",
             factory=format_string,
         ),  # noqa
-        A("http_auth_schemes", "AuthSchemes", ["Negotiate", "NTLM", "Basic", "Bearer"]),
-        A("http_fqdn", "FQDN", "DEMENTOR", section_local=False, factory=format_string),
+        A(
+            "http_auth_schemes",
+            "AuthSchemes",
+            ["Negotiate", "NTLM", "Basic", "Bearer"],
+        ),
+        A(
+            "http_fqdn",
+            "FQDN",
+            "DEMENTOR",
+            section_local=False,
+            factory=format_string,
+        ),
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),
         A("http_wpad_auth", "WPADAuthRequired", True, factory=is_true),
@@ -251,7 +260,11 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 # reserved options
                 continue
 
-            setattr(self, f"do_{http_method}", lambda: self.handle_request(self.logger))
+            setattr(
+                self,
+                f"do_{http_method}",
+                lambda: self.handle_request(self.logger),
+            )
 
         super().__init__(request, client_address, server)
 
@@ -449,9 +462,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             case _:
                 logger.fail(f"Invalid negotiate authentication: {token}")
-                self.send_error(
-                    HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"
-                )
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
 
     def auth_bearer(self, token, logger):
         self.display_request("Bearer", logger)
@@ -552,9 +563,7 @@ class HTTPServer(ThreadingHTTPServer):
             key_path = pathlib.Path(str(self.server_config.http_cert_key))
             if not cert_path.exists() or not key_path.exists():
                 dm_logger.error(
-                    f"({self.service_name}, {self.server_address[:2]}) Certificate or key file not found: "
-                    f"Cert={self.server_config.http_cert} "
-                    f"Key={self.server_config.http_cert_key}"
+                    f"({self.service_name}, {self.server_address[:2]}) Certificate or key file not found: Cert={self.server_config.http_cert} Key={self.server_config.http_cert_key}"
                 )
                 return
             self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

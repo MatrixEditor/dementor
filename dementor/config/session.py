@@ -203,4 +203,3 @@ class SessionConfig(TomlConfig):
             return config
 
         return config[".".join(parts)]
-

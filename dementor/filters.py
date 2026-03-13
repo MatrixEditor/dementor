@@ -123,13 +123,13 @@ class FilterObj:
         filters = []
         path = pathlib.Path(source)
         if path.exists() and path.is_file():
-            filters = [
-                FilterObj(t, extra) for t in path.read_text("utf-8").splitlines()
-            ]
+            filters = [FilterObj(t, extra) for t in path.read_text("utf-8").splitlines()]
         return filters
 
 
-def _optional_filter(value: list[str | dict[str, Any]] | None) -> "Filters | None":
+def _optional_filter(
+    value: list[str | dict[str, Any]] | None,
+) -> "Filters | None":
     """Factory function to convert optional config list into `Filters` instance.
 
     Used with `Attribute` to auto-convert config values. Returns `None` if input is `None`.
@@ -198,7 +198,8 @@ def in_scope(value: str, config: Any) -> bool:
     :rtype: bool
 
     Example:
-    >>> class C: pass
+    >>> class C:
+    ...     pass
     >>> cfg = C()
     >>> cfg.targets = Filters(["host1", "host2"])
     >>> in_scope("host1", cfg)
@@ -245,11 +246,13 @@ class Filters:
         :type config: list[str | dict[str, Any]]
 
         Example:
-        >>> filters = Filters([
-        ...     "re:.*\\.example\\.com",
-        ...     {"File": "targets.txt"},
-        ...     {"Target": "host1", "reason": "admin"}
-        ... ])
+        >>> filters = Filters(
+        ...     [
+        ...         "re:.*\\.example\\.com",
+        ...         {"File": "targets.txt"},
+        ...         {"Target": "host1", "reason": "admin"},
+        ...     ]
+        ... )
         """
         self.filters: list[FilterObj] = []
         for filter_config in config:

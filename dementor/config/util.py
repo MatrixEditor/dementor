@@ -127,9 +127,7 @@ class BytesValue:
 
             case bytes():
                 if self.length is not None and len(value) != self.length:
-                    raise ValueError(
-                        f"Expected {self.length} bytes, got {len(value)}"
-                    )
+                    raise ValueError(f"Expected {self.length} bytes, got {len(value)}")
                 return value
             case _:
                 return self(str(value))

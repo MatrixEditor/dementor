@@ -59,7 +59,10 @@ def create_server_threads(
         yield ServerThread(
             session,
             UPnPServer,
-            server_address=(session.bind_address, session.upnp_config.upnp_port),
+            server_address=(
+                session.bind_address,
+                session.upnp_config.upnp_port,
+            ),
         )
 
 

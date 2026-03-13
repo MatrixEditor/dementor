@@ -275,9 +275,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
         port = self.get_port(kwargs) or "<no-port>"
         colour = self.get_protocol_color(kwargs)
 
-        formatted = (
-            f"{ts_prefix}[bold {colour}]{proto:<10}[/] {host:<25} {port:<6} {msg}"
-        )
+        formatted = f"{ts_prefix}[bold {colour}]{proto:<10}[/] {host:<25} {port:<6} {msg}"
         return formatted, kwargs
 
     def format_inline(
@@ -423,9 +421,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, logging.INFO, *args)
 
-    def fail(
-        self, msg: str, color: str | None = None, *args: Any, **kwargs: Any
-    ) -> None:
+    def fail(self, msg: str, color: str | None = None, *args: Any, **kwargs: Any) -> None:
         """
         Log an error condition (red ``[-]`` prefix).
 

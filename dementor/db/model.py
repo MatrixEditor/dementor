@@ -42,7 +42,12 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.selectable import TypedReturnsRows
 
 from dementor.config.session import SessionConfig
-from dementor.db import _CLEARTEXT, _NO_USER, normalize_client_address, _HOST_INFO
+from dementor.db import (
+    _CLEARTEXT,
+    _NO_USER,
+    normalize_client_address,
+    _HOST_INFO,
+)
 from dementor.log.logger import dm_logger
 from dementor.log import dm_console_lock
 from dementor.log.stream import log_to

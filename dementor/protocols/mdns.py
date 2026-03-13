@@ -177,15 +177,13 @@ class MDNSPoisoner(BaseProtoHandler):
         # check if we can send a response
         if question.qtype == 28 and not self.config.ipv6:
             self.logger.highlight(
-                "Client requested AAAA record (IPv6) but local config does not "
-                "specify IPv6 address. Ignoring..."
+                "Client requested AAAA record (IPv6) but local config does not specify IPv6 address. Ignoring..."
             )
             return
 
         if question.qtype == 1 and not self.config.ipv4:
             self.logger.highlight(
-                "Client requested A record (IPv4) but local config does not "
-                "specify IPv4 address. Ignoring..."
+                "Client requested A record (IPv4) but local config does not specify IPv4 address. Ignoring..."
             )
             return
 
