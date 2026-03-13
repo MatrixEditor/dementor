@@ -1,47 +1,57 @@
+[build-system]
+requires = ["setuptools>=80", "wheel", "setuptools-scm[simple]>=8"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "dementor"
 version = "1.0.0.dev20"
 # REVISIT: dynamic version
 # dynamic = ["version"]
-license-files = ["LICENSE"]
-
+description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
+readme = "docs/README.pypi.md"
+license = "MIT"
 # Python 3.11 required as tomllib was added in 3.11
 requires-python = ">=3.11"
-description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
 authors = [{ name = "MatrixEditor" }]
 maintainers = [{ name = "MatrixEditor" }]
-readme = "docs/README.pypi.md"
+keywords = [
+    "llmnr",
+    "mdns",
+    "nbt-ns",
+    "network-security",
+    "penetration-testing",
+    "poisoner",
+    "rogue-services",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Environment :: Console",
     "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "Programming Language :: Python :: 3",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Security",
     "Topic :: System :: Networking",
-    "Typing :: Typed",
-    "Operating System :: POSIX",
-    "Operating System :: Unix",
 ]
-
 dependencies = [
-    "rich",
-    "impacket",
-    "scapy",
     "aiosmtpd",
-    "sqlalchemy",
-    "pyasn1",
     "aioquic",
-    "typer",
-    "jinja2",
-    "typing-extensions",
     "caterpillar-py>=2.8.1",
+    "impacket",
+    "jinja2",
+    "pyasn1",
     "pyipp",
+    "rich",
+    "scapy",
+    "sqlalchemy",
+    "typer",
+    "typing-extensions",
 ]
 
 [project.scripts]
@@ -49,9 +59,10 @@ dementor = "dementor.standalone:run_from_cli"
 Dementor = "dementor.standalone:run_from_cli"
 
 [project.urls]
-homepage = "https://matrixeditor.github.io/dementor"
-documentation = "https://matrixeditor.github.io/dementor"
-source = "https://github.com/MatrixEditor/dementor"
+Homepage = "https://matrixeditor.github.io/dementor"
+Documentation = "https://matrixeditor.github.io/dementor"
+Source = "https://github.com/MatrixEditor/dementor"
+Issues = "https://github.com/MatrixEditor/dementor/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -60,22 +71,17 @@ include = ["dementor*"]
 [tool.setuptools.package-data]
 dementor = ["assets/**"]
 
-[project.optional-dependencies]
-docs = [
-    "sphinx",
-    "shibuya",
-    "sphinx-copybutton",
-    "sphinx-design",
-]
+[dependency-groups]
 dev = [
     "pytest",
     "ruff",
-    "ty",
 ]
-
-[build-system]
-requires = ["setuptools>=80", "wheel", "setuptools-scm[simple]>=8"]
-build-backend = "setuptools.build_meta"
+docs = [
+    "shibuya",
+    "sphinx",
+    "sphinx-copybutton",
+    "sphinx-design",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -94,9 +100,9 @@ select = [
     "B",
 ]
 ignore = [
-    "E501",
-    "I001",
-    "B010"
+    "E501",  # line too long — handled by formatter
+    "I001",  # import order — project uses custom grouping
+    "B010",  # do not call setattr with constant — used intentionally
 ]
 
 [tool.ruff.format]
