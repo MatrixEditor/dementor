@@ -320,7 +320,9 @@ class SMTPServerThread(threading.Thread):
             }
         )
 
-    async def start_server(self, controller: Controller, config: SessionConfig, smtp_config):
+    async def start_server(
+        self, controller: Controller, config: SessionConfig, smtp_config
+    ):
         controller.port = smtp_config.smtp_port
 
         # NOTE: hostname on the controller points to the local address that will be

@@ -124,7 +124,11 @@ class IPPConfig(TomlConfig):
         A("ipp_port", "Port", 631),
         A("ipp_server_type", "ServerType", "IPP/1.1", factory=format_string),
         A("ipp_supported_formats", "DocumentFormats", IPP_MIME_MEDIA_TYPES),
-        A("ipp_supported_versions", "SupportedVersions", IPP_SUPPORTED_VERSIONS),
+        A(
+            "ipp_supported_versions",
+            "SupportedVersions",
+            IPP_SUPPORTED_VERSIONS,
+        ),
         A("ipp_default_format", "DefaultDocumentFormat", "text/plain"),
         A("ipp_driver_uri", "DriverUri", None),
         A("ipp_printer_name", "PrinterName", None),
@@ -135,7 +139,11 @@ class IPPConfig(TomlConfig):
         A("ipp_extra_headers", "ExtraHeaders", None),
         A("ipp_supported_operations", "SupportedOperations", None),
         A("ipp_remote_cmd", "RemoteCmd", None),
-        A("ipp_remote_cmd_attr", "RemoteCmdAttribute", "printer-privacy-policy-uri"),
+        A(
+            "ipp_remote_cmd_attr",
+            "RemoteCmdAttribute",
+            "printer-privacy-policy-uri",
+        ),
         A("ipp_remote_cmd_filter", "RemoteCmdCupsFilter", None),
     ]
 
@@ -231,9 +239,7 @@ class IPPHandler(BaseHTTPRequestHandler):
 
     def send_response(self, code: int, message=None, document=None) -> None:
         path = getattr(self, "path", "<invalid>")
-        self.logger.debug(
-            markup.escape(f"{self.command} {path} {code}"), is_server=True
-        )
+        self.logger.debug(markup.escape(f"{self.command} {path} {code}"), is_server=True)
         if not hasattr(self, "_headers_buffer"):
             self._headers_buffer = []
 
@@ -264,9 +270,7 @@ class IPPHandler(BaseHTTPRequestHandler):
     @property
     def printer_uri(self) -> str:
         address = self.session.ipv4
-        return (
-            f"ipp://{address}:{self.config.ipp_port}/ipp/printers/{self.printer_name}"
-        )
+        return f"ipp://{address}:{self.config.ipp_port}/ipp/printers/{self.printer_name}"
 
     def log_message(self, format: str, *args: Any) -> None:
         # let us log mssages
@@ -286,8 +290,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         req_id = req["request-id"]
         operation = IppOperation(req["status-code"])
         self.logger.display(
-            f"IPP-Request: <{operation.name}> (Version: {major}.{minor}, "
-            f"ID: {req_id:#x})"
+            f"IPP-Request: <{operation.name}> (Version: {major}.{minor}, ID: {req_id:#x})"
         )
 
         method = getattr(self, f"ipp_{operation.name.lower()}", None)

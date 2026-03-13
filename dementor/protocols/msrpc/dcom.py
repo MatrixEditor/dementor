@@ -53,7 +53,7 @@ def handle_request(rpc, request: rpcrt.MSRPCRequestHeader, _data) -> int | str:
         binding["aNetworkAddr"] = f"{rpc.config.ipv4}\x00"
         data_buf.extend(array("H", binding.getData()))
 
-        data_buf.append(0x00) # end of string bindings
+        data_buf.append(0x00)  # end of string bindings
         sec_offset = len(data_buf)
 
         # We only support NTLM Authentication
@@ -62,7 +62,7 @@ def handle_request(rpc, request: rpcrt.MSRPCRequestHeader, _data) -> int | str:
         binding["aPrincName"] = "\x00"
         binding["Reserved"] = 0xFFFF
         data_buf.extend(array("H", binding.getData()))
-        data_buf.append(0x00) # end of security bindings
+        data_buf.append(0x00)  # end of security bindings
 
         bindings["wNumEntries"] = len(data_buf)
         bindings["wSecurityOffset"] = sec_offset

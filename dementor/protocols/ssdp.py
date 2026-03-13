@@ -39,8 +39,7 @@ from dementor.servers import (
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
-if typing.TYPE_CHECKING:
-    from dementor.filters import Filters
+
 
 def apply_config(session: SessionConfig):
     session.ssdp_config = TomlConfig.build_config(SSDPConfig)
@@ -218,9 +217,7 @@ class SSDPPoisoner(BaseProtoHandler):
                 #   Required. Field value contains Unique Service Name. Identifies a unique
                 #   instance of a device or service
                 usn = UDN(self.message["USN"] or "uuid:<invalid>")
-                self.logger.display(
-                    f"(Notify: [i]alive[/i]) {self.describe_device(usn)}"
-                )
+                self.logger.display(f"(Notify: [i]alive[/i]) {self.describe_device(usn)}")
 
             # [1.2.3 Device unavailable -- NOTIFY with ssdp:byebye]
             case "ssdp::byebye":
@@ -252,9 +249,7 @@ class SSDPPoisoner(BaseProtoHandler):
                     target_text = f"[i]{escape(tokens[1])}[/i]"
                 elif len(tokens) >= 3:
                     search_tyoe = escape(tokens[2])
-                    target_text = (
-                        f"[i]{escape(tokens[1])}[/i]/[b]{escape(tokens[3])}[/b]"
-                    )
+                    target_text = f"[i]{escape(tokens[1])}[/i]/[b]{escape(tokens[3])}[/b]"
                 else:
                     search_tyoe = "service/device"
 
@@ -263,9 +258,7 @@ class SSDPPoisoner(BaseProtoHandler):
         except ValueError:
             mx = 0
 
-        self.logger.display(
-            f"(Search: {search_tyoe}) {target_text or '<root>'} MX={mx}"
-        )
+        self.logger.display(f"(Search: {search_tyoe}) {target_text or '<root>'} MX={mx}")
         if not self.should_respond() or self.config.analysis:
             return  # DO NOT RESPOND
 
@@ -295,16 +288,14 @@ class SSDPPoisoner(BaseProtoHandler):
             if "ff02::" in host:  # IPv6 prefix
                 if not self.config.ipv6:
                     self.logger.highlight(
-                        "Client requested IPv6 address but local config does not "
-                        "specify IPv6 address. Falling back to IPv4..."
+                        "Client requested IPv6 address but local config does not specify IPv6 address. Falling back to IPv4..."
                     )
                 else:
                     host_addr = f"[{self.config.ipv6}]"
             else:
                 if not self.config.ipv4:
                     self.logger.highlight(
-                        "Client requested IPv4 address but local config does not "
-                        "specify IPv4 address. Falling back to IPv6..."
+                        "Client requested IPv4 address but local config does not specify IPv4 address. Falling back to IPv6..."
                     )
                     host_addr = f"[{self.config.ipv6}]"
 

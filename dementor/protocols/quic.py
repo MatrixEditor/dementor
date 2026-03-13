@@ -119,8 +119,7 @@ class QuicHandler(QuicConnectionProtocol):
             # create new connection
             network_path = self._quic._network_paths[0]
             self.logger.display(
-                f"Forwarding QUIC connection to {self.target_smb_host}"
-                f":{self.config.quic_config.quic_smb_port}",
+                f"Forwarding QUIC connection to {self.target_smb_host}:{self.config.quic_config.quic_smb_port}",
                 host=network_path.addr[0],
             )
             read, write = await asyncio.open_connection(

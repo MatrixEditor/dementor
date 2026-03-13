@@ -42,7 +42,12 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.selectable import TypedReturnsRows
 
 from dementor.config.session import SessionConfig
-from dementor.db import _CLEARTEXT, _NO_USER, normalize_client_address, _HOST_INFO
+from dementor.db import (
+    _CLEARTEXT,
+    _NO_USER,
+    normalize_client_address,
+    _HOST_INFO,
+)
 from dementor.log.logger import dm_logger
 from dementor.log import dm_console_lock
 from dementor.log.stream import log_to
@@ -156,11 +161,11 @@ class DementorDB:
     for adding hosts, extras, and credentials while handling duplicates and logging.
     """
 
-    def __init__(self, engine: Engine, config: "SessionConfig") -> None:
+    def __init__(self, engine: Engine, config: SessionConfig) -> None:
         self.db_engine: Engine = engine
         self.db_path: str = str(engine.url.database)
         self.metadata: MetaData = ModelBase.metadata
-        self.config: "SessionConfig" = config
+        self.config: SessionConfig = config
 
         # Ensure tables exist; any problem is reported immediately.
         with self.db_engine.connect():

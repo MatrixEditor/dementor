@@ -216,12 +216,11 @@ def NTLM_AUTH_classify(
         ess_by_flag = False
 
     if ess_by_flag and not ess_by_lm:
-        dm_logger.debug(
-            "ESS flag set but LM[8:24] != Z(16); classifying as %s", NTLM_V1
-        )
+        dm_logger.debug("ESS flag set but LM[8:24] != Z(16); classifying as %s", NTLM_V1)
     elif ess_by_lm and not ess_by_flag:
         dm_logger.debug(
-            "LM[8:24] == Z(16) but ESS flag not set; classifying as %s", NTLM_V1_ESS
+            "LM[8:24] == Z(16) but ESS flag not set; classifying as %s",
+            NTLM_V1_ESS,
         )
 
     return NTLM_V1_ESS if ess_by_lm else NTLM_V1
@@ -599,9 +598,7 @@ def NTLM_AUTH_to_hashcat_formats(
             else (domain_name or "")
         )
     except Exception:
-        dm_logger.debug(
-            "Failed to decode DomainName; using empty string", exc_info=True
-        )
+        dm_logger.debug("Failed to decode DomainName; using empty string", exc_info=True)
         domain = ""
 
     try:
@@ -642,9 +639,7 @@ def NTLM_AUTH_to_hashcat_formats(
             )
             dm_logger.debug("Appended %s hash (nt_len=%d)", NTLM_V2, len(nt_response))
         except Exception:
-            dm_logger.debug(
-                "Failed to format %s hash; skipping", NTLM_V2, exc_info=True
-            )
+            dm_logger.debug("Failed to format %s hash; skipping", NTLM_V2, exc_info=True)
             return captures
 
         # NetLMv2 companion: HMAC-MD5(ResponseKeyLM, Server||Client)[0:16] || CChal(8)
@@ -736,9 +731,7 @@ def NTLM_AUTH_to_hashcat_formats(
             else:
                 # Real LmChallengeResponse: include for DES third-key optimisation
                 lm_slot_hex = lm_response.hex()
-                dm_logger.debug(
-                    "Including real LmChallengeResponse in %s hash", NTLM_V1
-                )
+                dm_logger.debug("Including real LmChallengeResponse in %s hash", NTLM_V1)
 
         captures.append(
             (
@@ -749,9 +742,7 @@ def NTLM_AUTH_to_hashcat_formats(
                 + f":{server_challenge_hex}",
             )
         )
-        dm_logger.debug(
-            "Appended %s hash (lm_slot_empty=%s)", NTLM_V1, lm_slot_hex == ""
-        )
+        dm_logger.debug("Appended %s hash (lm_slot_empty=%s)", NTLM_V1, lm_slot_hex == "")
     except Exception:
         dm_logger.debug("Failed to format %s hash; skipping", NTLM_V1, exc_info=True)
 
@@ -1037,9 +1028,7 @@ def NTLM_AUTH_CreateChallenge(
         # DNS names preserve their original case from the FQDN configuration.
         nb_computer_str = av_name.upper()  # 0x0001: "SERVER1"
         nb_domain_str = (
-            av_domain.split(".", 1)[0].upper()
-            if "." in av_domain
-            else av_domain.upper()
+            av_domain.split(".", 1)[0].upper() if "." in av_domain else av_domain.upper()
         )  # 0x0002: "CORP"
         dns_computer_str = (
             f"{av_name}.{av_domain}" if is_domain_joined else av_name

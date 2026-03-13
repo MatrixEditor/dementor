@@ -1,0 +1,53 @@
+name: "CI: Run Linter"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.14"
+          check-latest: true
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7.3.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
+
+      - name: Run Ruff
+        run: |
+          set -euo pipefail
+          uv run --extra dev ruff check .
+
+      - name: Run Ruff formatter check
+        run: |
+          set -euo pipefail
+          uv run --extra dev ruff format --check .

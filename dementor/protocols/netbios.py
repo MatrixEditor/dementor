@@ -222,7 +222,7 @@ class NetBiosDSPoisoner(BaseProtoHandler):
                 # probably something else, ignore that
                 return
         except Exception:
-            self.logger.fail(f"Invalid NBTDatagram - discarding data...")
+            self.logger.fail("Invalid NBTDatagram - discarding data...")
             return
 
         source_name = datagram.SourceName.decode("utf-8", errors="replace")

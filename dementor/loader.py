@@ -177,9 +177,7 @@ class ProtocolLoader:
         :param session: Session configuration to modify.
         :type session: SessionConfig
         """
-        apply_config_fn: ApplyConfigFunc | None = getattr(
-            protocol, "apply_config", None
-        )
+        apply_config_fn: ApplyConfigFunc | None = getattr(protocol, "apply_config", None)
 
         if apply_config_fn is not None:
             # signature is: apply_config(session: SessionConfig)

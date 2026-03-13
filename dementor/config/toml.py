@@ -18,7 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportAny=false, reportExplicitAny=false
-from typing import ClassVar, NamedTuple, Callable, Any, TypeVar
+from typing import ClassVar, NamedTuple, Any, TypeVar
+from collections.abc import Callable
 
 from dementor.config.util import get_value
 

@@ -57,7 +57,11 @@ class ServerThread(threading.Thread):
     """
 
     def __init__(
-        self, config: SessionConfig, server_class: type, *args: Any, **kwargs: Any
+        self,
+        config: SessionConfig,
+        server_class: type,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         self.config: SessionConfig = config
         self.server_class: type = server_class
@@ -110,8 +114,7 @@ class ServerThread(threading.Thread):
                 )
             elif e.errno == errno.EADDRINUSE:  # Address already in use
                 dm_logger.error(
-                    f"Failed to start server for {self.service_name}: "
-                    f"Address {address}:{port} already in use"
+                    f"Failed to start server for {self.service_name}: Address {address}:{port} already in use"
                 )
             else:
                 dm_logger.error(
@@ -168,7 +171,7 @@ class BaseProtoHandler(BaseRequestHandler):
         self.server: socketserver.BaseServer = server
         self.config: SessionConfig = config
         self.logger: ProtocolLogger = self.proto_logger()
-        super(BaseProtoHandler, self).__init__(request, client_address, server)
+        super().__init__(request, client_address, server)
         log_host(self.client_host)
         _ = self.config.db.add_host(self.client_host)
 
@@ -180,9 +183,7 @@ class BaseProtoHandler(BaseRequestHandler):
         :param transport: Socket object for sending responses
         :type transport: socket.socket
         """
-        raise NotImplementedError(
-            "handle_data must be implemented by protocol handlers"
-        )
+        raise NotImplementedError("handle_data must be implemented by protocol handlers")
 
     def proto_logger(self) -> ProtocolLogger:
         """Return the :class:`ProtocolLogger` instance that will be exposed as ``self.logger``.
@@ -390,7 +391,8 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
 
 
 def bind_server(
-    server: socketserver.TCPServer | socketserver.UDPServer, session: SessionConfig
+    server: socketserver.TCPServer | socketserver.UDPServer,
+    session: SessionConfig,
 ) -> None:
     """Configure socket options for interface binding and IPv6 behavior.
 
@@ -407,9 +409,7 @@ def bind_server(
     if sys.platform == "linux" and hasattr(session, "interface"):
         try:
             interface = (session.interface or "").encode("ascii") + b"\x00"
-            server.socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_BINDTODEVICE, interface
-            )
+            server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, interface)
         except (OSError, AttributeError) as e:
             dm_logger.warning(f"Failed to bind to interface '{session.interface}': {e}")
 

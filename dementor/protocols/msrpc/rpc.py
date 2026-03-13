@@ -25,7 +25,8 @@ import threading
 import typing
 
 from collections import defaultdict
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 from dataclasses import dataclass
 
 from impacket.dcerpc.v5 import rpcrt, epm
@@ -332,9 +333,7 @@ class RPCHandler(BaseProtoHandler):
         auth_type = sec_trailer["auth_type"]
         if auth_type != rpcrt.RPC_C_AUTHN_WINNT:
             # reject everything else
-            self.logger.display(
-                f"Rejecting AUTH3 request using AuthType: {auth_type:#x}"
-            )
+            self.logger.display(f"Rejecting AUTH3 request using AuthType: {auth_type:#x}")
             return rev_rpc_status_codes["nca_s_unsupported_authn_level"]
 
         conn = self.server.get_conn_by_call_id(header["call_id"])
@@ -371,7 +370,11 @@ class MSRPCServer(ThreadingTCPServer):
     service_name = "DCE/RPC"
 
     def __init__(
-        self, config, handles=None, server_address=None, RequestHandlerClass=None
+        self,
+        config,
+        handles=None,
+        server_address=None,
+        RequestHandlerClass=None,
     ) -> None:
         self.conn_data = handles or defaultdict(RPCConnection)
         super().__init__(config, server_address, RequestHandlerClass)
