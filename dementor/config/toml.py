@@ -19,6 +19,7 @@
 # SOFTWARE.
 # pyright: reportAny=false, reportExplicitAny=false
 from typing import ClassVar, NamedTuple, Callable, Any, TypeVar
+from typing_extensions import override
 
 from dementor.config.util import get_value
 

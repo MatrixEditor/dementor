@@ -51,7 +51,7 @@ from dementor.log import dm_console, logger, stream as log_stream
 from dementor.log.logger import dm_logger
 from dementor.loader import ProtocolLoader
 from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
-from dementor.repl import Repl
+from dementor.tui.repl import Repl
 
 
 def serve(
