@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=80", "wheel", "setuptools-scm[simple]>=8"]
+requires = ["setuptools>=80", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,7 +28,6 @@ classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX",
     "Operating System :: Unix",
     "Programming Language :: Python :: 3.11",
