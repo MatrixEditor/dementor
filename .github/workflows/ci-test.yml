@@ -57,4 +57,4 @@ jobs:
       - name: Run test suite
         run: |
           set -euo pipefail
-          uv run --extra dev pytest --tb=short -q
+          uv run --group dev pytest --tb=short -q

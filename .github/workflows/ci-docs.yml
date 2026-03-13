@@ -47,7 +47,7 @@ jobs:
       - name: Build docs
         run: |
           set -euo pipefail
-          uv run --extra docs sphinx-build -M html docs/source docs/build --fail-on-warning
+          uv run --group docs sphinx-build -M html docs/source docs/build --fail-on-warning
           touch docs/build/html/.nojekyll
 
       - name: Configure Pages
