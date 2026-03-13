@@ -1,4 +1,4 @@
-name: Build and Publish wheels
+name: "CI: Build and Publish wheels"
 
 on:
   workflow_dispatch:

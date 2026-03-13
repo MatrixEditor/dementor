@@ -1,4 +1,4 @@
-name: Sphinx Documentation
+name: "CI: Build and Deploy Sphinx Documentation"
 
 on:
   # pull_request:
