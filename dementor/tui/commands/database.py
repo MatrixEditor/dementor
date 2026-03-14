@@ -17,19 +17,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from pathlib import Path
-from dementor.db import _CLEARTEXT
 import argparse
 import sqlalchemy
 
+from pathlib import Path
 from rich import markup
 from rich.table import Table
 
 from typing import TYPE_CHECKING
 from typing_extensions import override
 
+from dementor.db import _CLEARTEXT
 from dementor.tui.action import command, ReplAction
-from dementor.db.model import Credential, HostInfo, HostExtra
+from dementor.db.model import Credential, HostInfo
 
 if TYPE_CHECKING:
     from dementor.config.session import SessionConfig

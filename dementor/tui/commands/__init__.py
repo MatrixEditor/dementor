@@ -19,8 +19,12 @@
 # SOFTWARE.
 
 from .help import HelpCommand, ExitCommand
+from .database import DBCommand
+from .proto import ServiceCommand
 
 __all__ = [
+    "DBCommand",
     "ExitCommand",
     "HelpCommand",
+    "ServiceCommand",
 ]

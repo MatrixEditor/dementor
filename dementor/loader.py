@@ -407,6 +407,8 @@ class ProtocolManager:
             thread.shutdown()
             if thread.is_alive():
                 thread.join(timeout)
+
+            del thread
         self.started.discard(name)
 
     def list_protocols(self) -> list[str]:
@@ -424,9 +426,6 @@ class ProtocolManager:
         :type protocol_name: str
         :return: True if running, False otherwise.
         :rtype: bool
-        :raises ValueError: If protocol not found.
         """
-        name = protocol_name.lower()
-        if name not in self.protocols:
-            raise ValueError(f"Protocol '{protocol_name}' not found")
+        name: str = protocol_name.lower()
         return name in self.started

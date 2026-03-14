@@ -90,7 +90,7 @@ class Repl:
                 except SystemExit:
                     pass
                 except Exception as e:
-                    dm_logger.error(f"Error while interpreting command: {e}")
+                    dm_logger.error(f"Error while interpreting command: {e}", exc_info=self.session.debug)
 
     def _handle_line(self, line: str) -> None:
         line = line.strip()
