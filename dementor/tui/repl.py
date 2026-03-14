@@ -17,8 +17,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from rich.text import Text
-from dementor.db.model import Credential
 import sqlalchemy
 import argparse
 import shlex
@@ -27,9 +25,11 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 from rich.console import Console
 
+from dementor.log.logger import dm_logger
 from dementor.config.session import SessionConfig
 from dementor.tui import action
 from dementor import __version__
+from dementor.db.model import Credential
 
 
 class Repl:
@@ -89,6 +89,8 @@ class Repl:
                     break
                 except SystemExit:
                     pass
+                except Exception as e:
+                    dm_logger.error(f"Error while interpreting command: {e}")
 
     def _handle_line(self, line: str) -> None:
         line = line.strip()
