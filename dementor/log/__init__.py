@@ -62,6 +62,7 @@ def dm_print(msg: str, *args: Any, **kwargs: Any) -> None:
 
     Example:
     >>> dm_print("[bold green]Success![/]", locked=True)
+
     """
     if kwargs.pop("locked", False):
         dm_console.print(msg, *args, **kwargs)

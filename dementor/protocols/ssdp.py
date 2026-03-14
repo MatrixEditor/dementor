@@ -301,12 +301,11 @@ class SSDPPoisoner(BaseProtoHandler):
                     )
                 else:
                     host_addr = f"[{self.config.ipv6}]"
-            else:
-                if not self.config.ipv4:
-                    self.logger.highlight(
-                        "Client requested IPv4 address but local config does not specify IPv4 address. Falling back to IPv6..."
-                    )
-                    host_addr = f"[{self.config.ipv6}]"
+            elif not self.config.ipv4:
+                self.logger.highlight(
+                    "Client requested IPv4 address but local config does not specify IPv4 address. Falling back to IPv6..."
+                )
+                host_addr = f"[{self.config.ipv6}]"
 
             path = self.upnp_config.upnp_dd_path or "dd.xml"
             path = path.lstrip("/")

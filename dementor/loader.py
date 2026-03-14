@@ -201,6 +201,7 @@ class ProtocolLoader:
         >>> loader = ProtocolLoader()
         >>> protocols = loader.get_protocols()
         >>> protocols["smb"]  # -> "/path/to/dementor/protocols/smb.py"
+
         """
         protocols: dict[str, str] = {}
         protocol_paths: list[str] = list(self.search_path)
@@ -248,12 +249,11 @@ class ProtocolLoader:
         if apply_config_fn is not None:
             # signature is: apply_config(session: SessionConfig)
             apply_config_fn(session)
-        else:
-            # Fallback to a nested config module, if present.
-            if hasattr(protocol, "config"):
-                config_mod: ProtocolModule | None = protocol.config
-                if config_mod is not None:
-                    self.apply_config(config_mod, session)
+        # Fallback to a nested config module, if present.
+        elif hasattr(protocol, "config"):
+            config_mod: ProtocolModule | None = protocol.config
+            if config_mod is not None:
+                self.apply_config(config_mod, session)
 
     def create_servers(
         self,

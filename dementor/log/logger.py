@@ -90,7 +90,6 @@ def init() -> None:
 
     Called once at application startup.
     """
-
     debug_parser = argparse.ArgumentParser(add_help=False)
     debug_parser.add_argument("--debug", action="store_true")
     debug_parser.add_argument("--verbose", action="store_true")
@@ -257,7 +256,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
         if self.log_config.log_timestamps:
             # [ is escaped because later the string is passed through rich.
             ts_prefix = r"\["
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(tz=datetime.UTC)
             try:
                 ts_prefix = (
                     f"{ts_prefix}{now.strftime(self.log_config.log_timestamp_fmt)}] "
@@ -281,9 +280,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
     def format_inline(
         self, msg: str, kwargs: dict[str, Any]
     ) -> tuple[str, dict[str, Any]]:
-        """
-        Produce a compact inline representation used by the convenience
-        methods (``success``, ``display``, ...).
+        """Produce a compact inline representation for convenience methods.
 
         The format resembles ``(PROTO) (host:port) <direction> message``.
 
@@ -500,7 +497,7 @@ class ProtocolLogger(logging.LoggerAdapter[Any]):
 
         # Write a small header the first time the file is created.
         with handler._open() as fp:  # pylint: disable=protected-access
-            now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+            now = datetime.datetime.now(tz=datetime.UTC).strftime("%d-%m-%Y %H:%M:%S")
             args = " ".join(sys.argv[1:])
             header = f"[{now}]> LOG_START\n[{now}]> ARGS: {args}\n"
             fp.write(header if not file_exists else f"\n{header}")

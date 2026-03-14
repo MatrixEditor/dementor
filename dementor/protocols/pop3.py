@@ -221,7 +221,7 @@ class POP3Handler(BaseProtoHandler):
     def do_PASS(self, args):
         if len(args) < 1:
             return self.err("Invalid number of arguments")
-            return
+            return None
 
         if not hasattr(self, "username"):
             return self.err("Username not set")
@@ -262,7 +262,7 @@ class POP3Handler(BaseProtoHandler):
     def do_AUTH(self, args):
         if len(args) != 1:
             self.err("Invalid number of arguments")
-            return
+            return None
 
         auth_mechanism = args[0]
         if len(auth_mechanism) == 0:

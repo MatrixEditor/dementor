@@ -16,7 +16,7 @@ defaults:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -57,4 +57,4 @@ jobs:
       - name: Run test suite
         run: |
           set -euo pipefail
-          uv run --extra dev pytest
+          uv run --group dev pytest --tb=short -q

@@ -1,8 +1,8 @@
 name: "CI: Build and Deploy Sphinx Documentation"
 
 on:
-  # pull_request:
-  #   branches: [master]
+  pull_request:
+    branches: [master]
   push:
     branches: [master]
   release:
@@ -17,8 +17,8 @@ defaults:
     shell: bash
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -44,26 +44,28 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "**/pyproject.toml"
 
-      - name: Configure Pages
-        # if: github.event_name == 'release'
-        uses: actions/configure-pages@v5.0.0
-
       - name: Build docs
         run: |
           set -euo pipefail
-          uv run --extra docs sphinx-build -M html docs/source docs/build
+          uv run --group docs sphinx-build -M html docs/source docs/build --fail-on-warning
           touch docs/build/html/.nojekyll
+
+      - name: Configure Pages
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        uses: actions/configure-pages@v5.0.0
+
       - name: Upload Pages artifact
-        # if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: docs/build/html
 
   deploy:
     name: Deploy docs
-    # REVISIT: documentation should be updated on all push events
-    # if: github.event_name == 'release'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     permissions:
       pages: write
@@ -73,7 +75,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

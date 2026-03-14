@@ -6,10 +6,63 @@ on:
     types:
       - published
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: pypi-publish-${{ github.event.release.id }}
+  cancel-in-progress: false
 
 jobs:
+  verify-ci:
+    name: Verify required CI workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'release' && github.event.action == 'published'
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify successful CI runs for release commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          release_sha="$(git rev-list -n 1 "refs/tags/${RELEASE_TAG}")"
+          echo "Checking CI status for ${RELEASE_TAG} at ${release_sha}"
+
+          for workflow in ci-lint.yml ci-test.yml; do
+            conclusion="$(
+              gh api \
+                "repos/${REPOSITORY}/actions/workflows/${workflow}/runs?head_sha=${release_sha}&status=completed&event=push&per_page=1" \
+                --jq '.workflow_runs[0].conclusion // ""'
+            )"
+
+            if [[ "${conclusion}" != "success" ]]; then
+              echo "Required workflow ${workflow} is not green for ${release_sha}."
+              echo "Latest completed push-run conclusion: ${conclusion:-<none>}"
+              exit 1
+            fi
+          done
+
   build:
     name: Build distributions
+    needs: verify-ci
+    if: always() && (needs.verify-ci.result == 'success' || needs.verify-ci.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -47,14 +100,18 @@ jobs:
           name: release-dists
           path: dist/*
           if-no-files-found: error
+          retention-days: 7
 
   upload_all:
-    needs: [build]
+    name: Publish distributions
+    needs: [verify-ci, build]
     environment: pypi
     permissions:
       id-token: write
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'release' && github.event.action == 'published'
+
     steps:
       - name: Download distributions
         uses: actions/download-artifact@v8.0.0
@@ -66,4 +123,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.13.0
         with:
           packages-dir: dist/
-

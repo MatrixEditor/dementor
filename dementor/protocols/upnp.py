@@ -20,6 +20,7 @@
 # pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
+import contextlib
 import posixpath
 import socket
 import uuid
@@ -225,10 +226,8 @@ class UPnPServer(ThreadingHTTPServer):
         return super().server_bind()
 
     def finish_request(self, request, client_address) -> None:
-        try:
+        with contextlib.suppress(ConnectionError):
             self.RequestHandlerClass(self.config, request, client_address, self)
-        except ConnectionError:
-            pass
 
     def render(self, template, **kwargs):
         return self.env.get_template(template).render(

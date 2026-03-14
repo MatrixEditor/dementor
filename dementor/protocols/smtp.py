@@ -149,7 +149,7 @@ class NTLMAuth(NamedTuple):
     hash_string: str
 
     def get_user_string(self) -> str:
-        return "/".join((self.domain_name, self.user_name))
+        return f"{self.domain_name}/{self.user_name}"
 
 
 class SMTPDefaultAuthenticator:

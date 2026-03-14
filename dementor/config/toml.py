@@ -66,9 +66,7 @@ class Attribute(NamedTuple):
 
 
 class TomlConfig:
-    """
-    Base class for configuration objects that are built from a TOML-derived
-    ``dict`` structure.
+    """Base class for configuration objects built from a TOML-derived dict.
 
     Sub-classes must define two class attributes:
 
@@ -77,7 +75,7 @@ class TomlConfig:
     * ``_fields_`` - a list of :class:`Attribute` objects describing how each
       instance attribute is resolved.
 
-    Example
+    Example:
     -------
     >>> class MyConfig(TomlConfig):
     ...     _section_ = "my"
@@ -88,6 +86,7 @@ class TomlConfig:
     >>> cfg = MyConfig({"host": "example.com"})
     >>> cfg.host, cfg.port
     ('example.com', 8080)
+
     """
 
     # Sub-classes are expected to provide these attributes.
@@ -139,9 +138,7 @@ class TomlConfig:
 
     @staticmethod
     def build_config(cls_ty: type[_T], section: str | None = None) -> _T:
-        """
-        Factory that builds a concrete ``TomlConfig`` subclass from the global
-        configuration.
+        """Build a concrete ``TomlConfig`` subclass from the global configuration.
 
         :param cls_ty: Concrete subclass of :class:`TomlConfig` to instantiate.
         :type cls_ty: type[_T]
@@ -235,7 +232,7 @@ class TomlConfig:
         value = config.get(qname, default_val)
         if value is _LOCAL:
             # ``_LOCAL`` means “required but not supplied”.
-            raise Exception(
+            raise ValueError(
                 f"Expected '{qname}' in config or section({section}) for "
                 + f"{self.__class__.__name__}!"
             )

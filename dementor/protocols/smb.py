@@ -134,21 +134,20 @@ def apply_config(session: SessionConfig):
 
 
 def create_server_threads(session: SessionConfig):
-    servers = []
-    if session.smb_enabled:
-        for server_config in session.smb_config:
-            servers.append(
-                ServerThread(
-                    session,
-                    SMBServer,
-                    server_config,
-                    server_address=(
-                        session.bind_address,
-                        server_config.smb_port,
-                    ),
-                )
-            )
-    return servers
+    if not session.smb_enabled:
+        return []
+    return [
+        ServerThread(
+            session,
+            SMBServer,
+            server_config,
+            server_address=(
+                session.bind_address,
+                server_config.smb_port,
+            ),
+        )
+        for server_config in session.smb_config
+    ]
 
 
 # --- Functions ---------------------------------------------------------------
@@ -300,9 +299,8 @@ def smb2_negotiate_protocol(handler: "SMBHandler", packet: smb2.SMB2Packet) -> N
     # Let's take the first dialect the clients wan't us to use
     dialect_count: int = req["DialectCount"]
     req_raw_dialects: list[int] = req["Dialects"]
-    if len(req_raw_dialects) < dialect_count:
-        # automatically adjust length
-        dialect_count = len(req_raw_dialects)
+    # automatically adjust length
+    dialect_count = min(dialect_count, len(req_raw_dialects))
 
     req_dialects: list[int] = req_raw_dialects[:dialect_count]
     if len(req_dialects) == 0:
@@ -668,8 +666,8 @@ class SMBHandler(BaseProtoHandler):
                 handler(self, packet)
             except BaseProtoHandler.TerminateConnection:
                 raise
-            except Exception as e:
-                self.logger.exception(f"Error in {title}: {e}")
+            except Exception:
+                self.logger.exception(f"Error in {title}")
         else:
             self.logger.fail(f"{title} not implemented")
             raise BaseProtoHandler.TerminateConnection
