@@ -16,7 +16,7 @@ defaults:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -45,9 +45,9 @@ jobs:
       - name: Run Ruff
         run: |
           set -euo pipefail
-          uv run --extra dev ruff check .
+          uv run --group dev ruff check .
 
       - name: Run Ruff formatter check
         run: |
           set -euo pipefail
-          uv run --extra dev ruff format --check .
+          uv run --group dev ruff format --check .
