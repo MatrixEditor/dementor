@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: basic
-from rich.spinner import Spinner
+import logging
 import asyncio
 import contextlib
 import tomllib
@@ -26,7 +26,6 @@ import json
 import typer
 import pathlib
 
-from threading import Thread
 from typing import Any, Annotated
 
 from impacket.version import version as ImpacketVersion
@@ -81,6 +80,7 @@ def serve(
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
     log_stream.init_streams(session)
+    session.debug = dm_logger.logger.getEffectiveLevel() < logging.INFO
 
     if extra_options:
         for section, options in extra_options.items():
@@ -158,7 +158,8 @@ def stop_session(session: SessionConfig) -> None:
     )
     # if debug mode active, disable status
     try:
-        status.start()
+        if not session.debug:
+            status.start()
         services = list(session.manager.started)
         servce_count = len(services)
         for i, name in enumerate(services):

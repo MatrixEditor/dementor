@@ -107,7 +107,7 @@ class BaseProtocolModule(Generic[_ConfigTy]):
 
     def create_server_thread(
         self, session: SessionConfig, server_config: _ConfigTy
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[_ConfigTy]:
         server_ty: type | None = getattr(self, "server_ty", None)
         if server_ty is not None:
             return ServerThread(session, server_config, server_ty)
@@ -429,8 +429,8 @@ class ProtocolManager:
             return  # Not started
         thread_list = self.threads[name]
         for thread in thread_list:
+            thread.shutdown()
             if thread.is_alive():
-                thread.shutdown()
                 thread.join(timeout)
         self.started.discard(name)
 

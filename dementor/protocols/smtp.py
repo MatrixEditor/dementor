@@ -20,11 +20,12 @@
 # pyright: reportUninitializedInstanceVariable=false
 # Reference:
 #   - https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import typing
 import warnings
 import base64
 import binascii
-import threading
 import ssl
 
 from typing import Any, NamedTuple
@@ -58,6 +59,9 @@ from dementor.protocols.ntlm import (
     ATTR_NTLM_DISABLE_NTLMV2,
 )
 from dementor.db import _CLEARTEXT
+from dementor.servers import AsyncServerThread
+
+__proto__ = ["SMTP"]
 
 # removes explicit warning messages from aiosmtpd
 warnings.simplefilter("ignore")
@@ -110,34 +114,16 @@ class SMTPServerConfig(TomlConfig):
         ntlm_disable_ntlmv2: bool
 
 
-def apply_config(session: SessionConfig) -> None:
-    # setup SMTP server options
-    if not session.smtp_enabled:
-        return
+class SMTP(BaseProtocolModule[SMTPServerConfig]):
+    name = "SMTP"
+    config_ty = SMTPServerConfig
+    config_attr = "smtp_servers"
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
 
-    ports: set[int] = set()
-    for server in get_value("SMTP", "Server", []):
-        smtp_config = SMTPServerConfig(server)
-
-        if smtp_config.smtp_port is None:
-            dm_logger.warning("Missing port for SMTP server definition!")
-            continue
-
-        if smtp_config.smtp_port in ports:
-            dm_logger.warning(
-                f"Two SMTP servers cannot share the same port! ({smtp_config.smtp_port})"
-            )
-            continue
-
-        ports.add(smtp_config.smtp_port)
-        session.smtp_servers.append(smtp_config)
-
-
-def create_server_threads(session: SessionConfig) -> list[threading.Thread]:
-    if not session.smtp_enabled:
-        return []
-
-    return [SMTPServerThread(session)]
+    @override
+    def create_server_thread(self, session, server_config):
+        return SMTPServerThread(session, server_config)
 
 
 # Authentication class used in the custom authenticator after successful
@@ -304,15 +290,15 @@ class SMTPServerHandler:
         return AuthResult(success=True, handled=False)
 
 
-class SMTPServerThread(threading.Thread):
-    def __init__(self, config: SessionConfig):
-        super().__init__()
-        self.config = config
+class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
+    def __init__(self, config: SessionConfig, server_config: SMTPServerConfig):
+        super().__init__(config, server_config)
+        self.controller: Controller | None = None
 
-    def run(self) -> None:
-        self.config.loop.create_task(self.arun())
+    def get_service_name(self) -> str:
+        return "SMTPS" if self.server_config.smtp_tls else "SMTP"
 
-    def create_logger(self):
+    def create_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             extra={
                 "protocol": "SMTP",
@@ -346,30 +332,34 @@ class SMTPServerThread(threading.Thread):
 
     async def arun(self) -> None:
         # setup server
-        for server in self.config.smtp_servers:
-            logger = self.create_logger()
-            logger.extra["port"] = server.smtp_port
+        server = self.server_config
+        logger = self.create_logger()
+        logger.extra["port"] = server.smtp_port  # ty:ignore[invalid-assignment]
 
-            mechanisms = {"PLAIN", "NTLM", "LOGIN"} - set(server.smtp_auth_mechanisms)
-            mechanisms.update([x.lower() for x in mechanisms])
-            tls_context = None
-            if server.smtp_tls:
-                # TODO: add error handler
-                tls_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-                tls_context.load_cert_chain(server.smtp_tls_cert, server.smtp_tls_key)
+        mechanisms = {"PLAIN", "NTLM", "LOGIN"} - set(server.smtp_auth_mechanisms)
+        mechanisms.update([x.lower() for x in mechanisms])
+        tls_context = None
+        if server.smtp_tls:
+            # TODO: add error handler
+            tls_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            tls_context.load_cert_chain(server.smtp_tls_cert, server.smtp_tls_key)
 
-            controller = Controller(
-                SMTPServerHandler(self.config, server, logger),
-                auth_require_tls=False,
-                authenticator=SMTPDefaultAuthenticator(logger, self.config),
-                ident=server.smtp_ident,
-                auth_exclude_mechanism=mechanisms,
-                auth_required=server.smtp_require_auth,
-                tls_context=tls_context,
-                require_starttls=server.smtp_require_starttls,
-            )
-            await self.start_server(
-                controller,
-                self.config,
-                server,
-            )
+        self.controller = Controller(
+            SMTPServerHandler(self.config, server, logger),
+            auth_require_tls=False,
+            authenticator=SMTPDefaultAuthenticator(logger, self.config),
+            ident=server.smtp_ident,
+            auth_exclude_mechanism=mechanisms,
+            auth_required=server.smtp_require_auth,
+            tls_context=tls_context,
+            require_starttls=server.smtp_require_starttls,
+        )
+        await self.start_server(
+            self.controller,
+            self.config,
+            server,
+        )
+
+    async def ashutdown(self) -> None:
+        if self.controller:
+            self.controller.stop()

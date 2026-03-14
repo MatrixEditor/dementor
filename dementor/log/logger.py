@@ -137,7 +137,7 @@ def init() -> None:
 # -------------------------------------------------------------------------
 # Protocol-aware logger
 # -------------------------------------------------------------------------
-class ProtocolLogger(logging.LoggerAdapter[Any]):
+class ProtocolLogger(logging.LoggerAdapter[logging.Logger]):
     """Custom logger adapter for protocol-specific context-aware logging.
 
     Enhances standard logs with protocol name, host, port, and color-coded prefixes.

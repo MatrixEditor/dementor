@@ -100,6 +100,7 @@ class SessionConfig(TomlConfig):
         interface: str | None
         protocols: dict[str, str]
         manager: ProtocolManager
+        debug: bool
 
         db: DementorDB
         db_config: DatabaseConfig
@@ -164,6 +165,7 @@ class SessionConfig(TomlConfig):
         self.analysis = False
         self.loop = asyncio.new_event_loop()
         self.protocols = {}
+        self.debug = False
 
         # SMTP configuration
         self.smtp_servers = []

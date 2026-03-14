@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportAny=false, reportExplicitAny=false
+import contextlib
+import asyncio
 from dementor.config.toml import TomlConfig
 from asyncio import Task
 import traceback
@@ -31,7 +33,7 @@ import errno
 import sys
 
 from io import StringIO
-from typing import Any, ClassVar, Generic
+from typing import Any, ClassVar, Generic, override
 from socketserver import BaseRequestHandler
 from typing_extensions import override, TypeVar
 
@@ -72,10 +74,10 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
 
     def shutdown(self) -> None:
         """Gracefully shutdown the server thread."""
-        pass  # To be implemented by subclasses if needed
+        # To be implemented by subclasses if needed
 
 
-class AsyncServerThread(BaseServerThread):
+class AsyncServerThread(BaseServerThread[_ConfigTy]):
     """Thread class for running asynchronous protocol servers (e.g., asyncio-based).
 
     This is a placeholder for future async server implementations. It currently
@@ -104,11 +106,25 @@ class AsyncServerThread(BaseServerThread):
 
         This method should be overridden to implement the actual async server logic.
         """
-        pass  # To be implemented with async server logic in the future
+        # To be implemented with async server logic in the future
 
     def run(self) -> None:
         """Start the asynchronous server."""
         self._task = self.config.loop.create_task(self.arun())
+
+    async def ashutdown(self) -> None:
+        """Asynchronously shutdown the server."""
+        if self._task:
+            self._task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._task
+
+    @override
+    def shutdown(self) -> None:
+        """Gracefully shutdown the asynchronous server."""
+        dm_logger.debug(f"Shutting down {self.service_name} Service")
+        if self._task:
+            _ = self.config.loop.run_until_complete(self.ashutdown())
 
 
 class ServerThread(BaseServerThread[_ConfigTy]):
