@@ -276,7 +276,6 @@ class IMAPHandler(BaseProtoHandler):
         )
         self._push(" ".join(capabilities), seq=False)
         self.ok("CAPABILITY completed")
-        pass
 
     #  6.1.2. NOOP Command
     def do_NOOP(self, args):

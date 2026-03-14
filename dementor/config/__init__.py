@@ -51,7 +51,7 @@ def _set_global_config(config: dict[str, Any]) -> None:
     :param config: New configuration dictionary.
     :type config: dict
     """
-    setattr(sys.modules[__name__], "dm_config", config)
+    sys.modules[__name__].dm_config = config
 
 
 def init_from_file(path: str) -> None:

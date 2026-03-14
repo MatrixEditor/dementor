@@ -173,7 +173,7 @@ class HTTPServerConfig(TomlConfig):
             "ServerType",
             "Microsoft-IIS/10.0",
             factory=format_string,
-        ),  # noqa
+        ),
         A(
             "http_auth_schemes",
             "AuthSchemes",
@@ -601,7 +601,7 @@ class HTTPServer(ThreadingHTTPServer):
             )
         except TemplateNotFound:
             dm_logger.error("Error rendering page: Could not find template")
-            return
+            return None
 
 
 class WinRMServer(HTTPServer):

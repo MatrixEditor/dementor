@@ -64,8 +64,6 @@ class ModelBase(DeclarativeBase):
     for ``create_all`` / ``drop_all`` calls.
     """
 
-    pass
-
 
 class HostInfo(ModelBase):
     """Stores basic host information from network scans.

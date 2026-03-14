@@ -90,7 +90,6 @@ def init() -> None:
 
     Called once at application startup.
     """
-
     debug_parser = argparse.ArgumentParser(add_help=False)
     debug_parser.add_argument("--debug", action="store_true")
     debug_parser.add_argument("--verbose", action="store_true")

@@ -457,7 +457,7 @@ class MySQLHandler(BaseProtoHandler):
                 "Received invalid MySQL SSLRequest. Terminating connection: "
             )
             self.logger.debug(
-                f"Invalid MySQL SSLRequest packet: {str(e)}\n{hexdump(packet.payload)}"
+                f"Invalid MySQL SSLRequest packet: {e!s}\n{hexdump(packet.payload)}"
             )
             return
 
@@ -467,8 +467,7 @@ class MySQLHandler(BaseProtoHandler):
                     "Client requested SSL, but MySQL server is not configured to use SSL"
                 )
                 return  # terminate connection
-            else:
-                self.logger.display("Client is requesting upgrade to SSL")
+            self.logger.display("Client is requesting upgrade to SSL")
 
             self.context = create_tls_context(self.mysql_config, self.server, force=True)
             if self.context is None:
@@ -486,7 +485,7 @@ class MySQLHandler(BaseProtoHandler):
                 "Failed to decode MySQL HandshakeResponse. Terminating connection... "
             )
             self.logger.debug(
-                f"Invalid MySQL HandshakeResponse packet: {str(e)}\n{hexdump(packet.payload)}"
+                f"Invalid MySQL HandshakeResponse packet: {e!s}\n{hexdump(packet.payload)}"
             )
             return
 

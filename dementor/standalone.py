@@ -65,7 +65,7 @@ def serve(
             config.init_from_file(config_path)
         except tomllib.TOMLDecodeError as e:
             dm_logger.error(f"Failed to load configuration file: {e}")
-            return
+            return None
 
     if session is None:
         session = SessionConfig()
@@ -93,7 +93,7 @@ def serve(
             dm_logger.error(
                 f"Interface {session.interface} does not exist or is not up, check your configuration"
             )
-            return
+            return None
 
         session.ipv6 = next(
             (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface),
@@ -104,7 +104,7 @@ def serve(
             dm_logger.error(
                 f"Interface {session.interface} is not available, check your configuration"
             )
-            return
+            return None
 
     session.analysis = analyze_only
 
@@ -115,7 +115,7 @@ def serve(
             session.db = create_db(session)
         except Exception as e:
             dm_logger.error(f"Failed to create database: {e}")
-            return
+            return None
 
     # Load protocols
     loader = ProtocolLoader()
@@ -189,12 +189,11 @@ def parse_options(options: list[str]) -> dict:
                 current = current.setdefault(section, {})
 
             section_dict = current
+        elif key.count(".") == 1:
+            section, key = key.rsplit(".", 1)
+            section_dict = result.setdefault(section, {})
         else:
-            if key.count(".") == 1:
-                section, key = key.rsplit(".", 1)
-                section_dict = result.setdefault(section, {})
-            else:
-                section_dict = result.setdefault("Dementor", {})
+            section_dict = result.setdefault("Dementor", {})
 
         append_value = key.endswith("+")
         key = key.removesuffix("+")
@@ -434,7 +433,7 @@ def main(
 
     main_print_banner(quiet)
     if version:
-        return
+        return None
 
     # prepare options
     extras = parse_options(options or [])
@@ -449,7 +448,7 @@ def main(
             config.init_from_file(config_path)
         except tomllib.TOMLDecodeError as e:
             dm_logger.error(f"Failed to load configuration file: {e}")
-            return
+            return None
 
     logger.init()
 
@@ -506,7 +505,7 @@ def main(
             show_choices=False,
         )
         if result.lower() != "y":
-            return
+            return None
 
     serve(interface=interface, session=session, analyze_only=analyze)
 

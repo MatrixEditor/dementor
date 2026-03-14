@@ -76,7 +76,7 @@ class TomlConfig:
     * ``_fields_`` - a list of :class:`Attribute` objects describing how each
       instance attribute is resolved.
 
-    Example
+    Example:
     -------
     >>> class MyConfig(TomlConfig):
     ...     _section_ = "my"
@@ -87,6 +87,7 @@ class TomlConfig:
     >>> cfg = MyConfig({"host": "example.com"})
     >>> cfg.host, cfg.port
     ('example.com', 8080)
+
     """
 
     # Sub-classes are expected to provide these attributes.

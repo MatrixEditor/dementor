@@ -186,7 +186,7 @@ class SessionConfig(TomlConfig):
         raw_path = str(path)
         if raw_path[0] == "/":
             return Path(raw_path)
-        elif raw_path.startswith("./") or raw_path.startswith("../"):
+        if raw_path.startswith("./") or raw_path.startswith("../"):
             return Path(raw_path).resolve()
 
         return (Path(self.workspace_path) / raw_path).resolve()

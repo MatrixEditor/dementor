@@ -86,17 +86,66 @@ line-length = 90
 src = ["dementor", "tests"]
 
 [tool.ruff.lint]
-select = [
-    "E",
-    "F",
-    "I",
-    "UP",
-    "B",
-]
+select = ["ALL"]
 ignore = [
-    "E501",
+    # Type annotations — use ty for gradual typing instead
+    "ANN",
+    # Docstrings — too noisy for security tooling codebase
+    "D100", "D101", "D102", "D103", "D104", "D105", "D107",
+    "D203",  # conflicts with D211
+    "D212",  # conflicts with D213 (must pick one)
+    "D213",  # conflicts with D212 (must pick one)
+    "D401",  # imperative mood too opinionated
+    # Naming — protocol code uses non-standard names (SMB_*, NBT_*, etc.)
+    "N801", "N802", "N803", "N806", "N811", "N812", "N815", "N817",
+    # Formatter conflict
+    "COM812",
+    # Import sorting — custom import grouping
     "I001",
-    "B010"
+    # String concatenation style
+    "ISC003",
+    # Boolean arguments — too strict for config-heavy protocol code
+    "FBT",
+    # Exception messages — too pedantic
+    "TRY003", "EM101", "EM102",
+    # Blind except — too many legitimate uses in protocol handlers
+    "BLE001",
+    # Security — intentional for a network security tool
+    "S104", "S311",
+    # Asserts are fine outside production paths
+    "S101",
+    # Implicit return None is idiomatic Python
+    "RET503",
+    # Complexity — protocol handlers are inherently complex
+    "C901", "PLR0912", "PLR0913", "PLR0915",
+    # Magic values — protocol code uses many numeric constants
+    "PLR2004",
+    # os.path → pathlib migration: low priority
+    "PTH",
+    # f-strings in logging are fine in modern Python
+    "G004",
+    # Shadowing builtins in arguments (type, id, etc.) — common in protocol code
+    "A002",
+    # Unused method arguments — many are interface/callback stubs
+    "ARG002",
+    # Line length — formatter handles what it can; rest are URLs/strings
+    "E501",
+    # Shebang on non-executable files
+    "EXE002",
+    # TODOs are intentional
+    "FIX002", "TD002", "TD003",
+    # Mutable class defaults — false positives with struct-like patterns
+    "RUF012",
+    # Private member access — common in internal wiring
+    "SLF001",
+    # Commented-out code — REVISIT notes, protocol reference tables, placeholders
+    "ERA001",
+    # Exception names like CloseConnection are idiomatic control-flow exceptions
+    "N818",
+    # Intentional non-ASCII in protocol strings/comments
+    "RUF003",
+    # Standalone script directories don't need __init__.py
+    "INP001",
 ]
 
 [tool.ruff.format]

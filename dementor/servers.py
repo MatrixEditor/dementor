@@ -147,8 +147,6 @@ class BaseProtoHandler(BaseRequestHandler):
     class TerminateConnection(Exception):
         """Exception to signal handler should terminate the connection."""
 
-        pass
-
     def __init__(
         self,
         config: SessionConfig,

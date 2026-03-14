@@ -52,12 +52,11 @@ def uuid_name(uuid_bin: bytes) -> str:
     uuid_str, version = rpcrt.bin_to_uuidtup(uuid_bin)
     if uuid_bin == epm.MSRPC_UUID_PORTMAP:
         return f"EPMv4 v{version}"
-    elif uuid_str in epm.KNOWN_PROTOCOLS:
+    if uuid_str in epm.KNOWN_PROTOCOLS:
         return f"{epm.KNOWN_PROTOCOLS[uuid_str]} v{version}"
-    elif uuid_bin in epm.KNOWN_UUIDS:
+    if uuid_bin in epm.KNOWN_UUIDS:
         return f"{epm.KNOWN_UUIDS[uuid_bin]} v{version}"
-    else:
-        return f"UUID {uuid_str} v{version}"
+    return f"UUID {uuid_str} v{version}"
 
 
 class RPCEndpointHandler(typing.Protocol):
@@ -315,11 +314,10 @@ class RPCHandler(BaseProtoHandler):
                 conn.challenge = challenge
             else:
                 self.logger.debug(f"(NTLM) Unhandled message type: {msg_type:#x}")
-        else:
-            if endpoints_fmt:
-                self.logger.display(
-                    f"Bind request for {endpoints_fmt} (TransferSyntax Negotiation)"
-                )
+        elif endpoints_fmt:
+            self.logger.display(
+                f"Bind request for {endpoints_fmt} (TransferSyntax Negotiation)"
+            )
 
         bind_ack["frag_len"] = len(bind_ack.getData())
         self.send(bind_ack.getData())

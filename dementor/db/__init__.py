@@ -46,5 +46,6 @@ def normalize_client_address(client: str) -> str:
     '192.168.1.1'
     >>> normalize_client_address("2001:db8::1")
     '2001:db8::1'
+
     """
     return client.removeprefix("::ffff:")

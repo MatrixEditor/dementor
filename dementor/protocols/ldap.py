@@ -284,7 +284,7 @@ class LDAPHandler(BaseProtoHandler):
                 )
             )
 
-        elif data[8] == 0x03:  # AUTH
+        if data[8] == 0x03:  # AUTH
             token = ntlm.NTLMAuthChallengeResponse()
             token.fromString(data)
             NTLM_report_auth(
@@ -367,9 +367,9 @@ class LDAPHandler(BaseProtoHandler):
         except Exception as e:
             self.logger.fail("Received invalid LDAP - terminating connection...")
             self.logger.debug(
-                f"Invalid LDAP packet: {str(e.__class__)}\n{hexdump.hexdump(data) if data else '<no-data>'}"
+                f"Invalid LDAP packet: {e.__class__!s}\n{hexdump.hexdump(data) if data else '<no-data>'}"
             )
-            return
+            return None
 
         return message
 

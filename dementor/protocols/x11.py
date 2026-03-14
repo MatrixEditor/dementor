@@ -223,7 +223,7 @@ class X11Handler(BaseProtoHandler):
     def handle_data(self, data, transport) -> None:
         data = self.recv(8192)
         if not data:
-            return
+            return None
 
         self.logger.debug(f"({chr(data[0])!r}) {data.hex()}", is_client=True)
         match chr(data[0]):

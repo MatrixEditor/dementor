@@ -99,7 +99,6 @@ class LoggingStream(Generic[_T]):
 
         :param kwargs: Contextual data (e.g., `ip`, `type`, `value`).
         """
-        pass
 
     @classmethod
     def start(cls, session: SessionConfig) -> None:

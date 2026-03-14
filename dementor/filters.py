@@ -89,6 +89,7 @@ class FilterObj:
         >>> f = FilterObj("host1")
         >>> f.matches("host1")
         True
+
         """
         return (
             self.pattern.match(source) is not None
@@ -209,6 +210,7 @@ def in_scope(value: str, config: Any) -> bool:
     >>> cfg.ignored = Filters(["host1"])
     >>> in_scope("host1", cfg)
     False
+
     """
     if hasattr(config, "targets"):
         is_target = value in config.targets if config.targets else True
@@ -253,6 +255,7 @@ class Filters:
         ...         {"Target": "host1", "reason": "admin"},
         ...     ]
         ... )
+
         """
         self.filters: list[FilterObj] = []
         for filter_config in config:
