@@ -75,7 +75,7 @@ class FilterObj:
             self.pattern = None
 
     def matches(self, source: str) -> bool:
-        """Check if the source string matches this filter.
+        r"""Check if the source string matches this filter.
 
         :param source: String to test against the filter.
         :type source: str
@@ -238,7 +238,7 @@ class Filters:
     """
 
     def __init__(self, config: list[str | dict[str, Any]]) -> None:
-        """Initialize filters from a configuration list.
+        r"""Initialize filters from a configuration list.
 
         Each item can be:
         - A string: treated as literal or pattern (`re:...`, `g:...`)

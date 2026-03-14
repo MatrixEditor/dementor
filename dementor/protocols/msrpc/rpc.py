@@ -375,10 +375,11 @@ class MSRPCServer(ThreadingTCPServer):
         RequestHandlerClass=None,
     ) -> None:
         self.conn_data = handles or defaultdict(RPCConnection)
+        self._conn_lock = threading.Lock()
         super().__init__(config, server_address, RequestHandlerClass)
 
     def get_conn_by_call_id(self, call_id: int) -> RPCConnection:
-        with threading.Lock():
+        with self._conn_lock:
             conn = self.conn_data[call_id]
             if conn.call_id == -1:
                 conn.call_id = call_id
@@ -411,11 +412,12 @@ class MSRPCServer(ThreadingTCPServer):
         uuid_str, _ = rpcrt.bin_to_uuidtup(uuid)
         for module in self.config.rpc_config.rpc_modules:
             mod_uuid = getattr(module, "__uuid__", None)
-            if mod_uuid == uuid or mod_uuid == uuid_str:
+            if mod_uuid in (uuid, uuid_str):
                 return self._module_handler(module)
 
-            if isinstance(mod_uuid, list):
-                if uuid in mod_uuid or uuid_str.upper() in mod_uuid:
-                    return self._module_handler(module)
+            if isinstance(mod_uuid, list) and (
+                uuid in mod_uuid or uuid_str.upper() in mod_uuid
+            ):
+                return self._module_handler(module)
 
         return None

@@ -200,7 +200,7 @@ class DementorDB:
                     "Could not execute SQL - you are probably using an outdated Dementor.db"
                 )
             else:
-                raise e
+                raise
 
     def commit(self):
         """Commit the current transaction and handle schema-related errors."""
@@ -212,7 +212,7 @@ class DementorDB:
                     "Could not execute SQL - you are probably using an outdated Dementor.db"
                 )
             else:
-                raise e
+                raise
 
     # --------------------------------------------------------------------- #
     # Public CRUD-style helpers
@@ -363,7 +363,7 @@ class DementorDB:
 
         target_logger.debug(
             f"Adding {credtype} for {username} on {client_address}: "
-            + f"{target_logger} | {protocol} | {domain} | {hostname} | {username} | {password}"
+            f"{target_logger} | {protocol} | {domain} | {hostname} | {username} | {password}"
         )
 
         # Ensure the host exists (or create it) before linking the cred.
@@ -404,7 +404,9 @@ class DementorDB:
 
             cred = Credential(
                 # REVISIT: replace with util.now()
-                timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                timestamp=datetime.datetime.now(tz=datetime.UTC).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
                 protocol=protocol.lower(),
                 credtype=credtype.lower(),
                 client=f"{client_address}:{port}",

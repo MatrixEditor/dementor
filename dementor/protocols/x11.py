@@ -66,17 +66,16 @@ def apply_config(session):
 
 
 def create_server_threads(session):
-    servers = []
-    if session.x11_enabled:
-        for port in session.x11_config.x11_ports:
-            servers.append(
-                ServerThread(
-                    session,
-                    X11Server,
-                    server_address=(session.bind_address, port),
-                )
-            )
-    return servers
+    if not session.x11_enabled:
+        return []
+    return [
+        ServerThread(
+            session,
+            X11Server,
+            server_address=(session.bind_address, port),
+        )
+        for port in session.x11_config.x11_ports
+    ]
 
 
 # --- Protocol definitions ---

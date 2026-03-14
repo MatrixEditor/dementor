@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import asyncio
+import contextlib
 import tomllib
 import json
 import typer
@@ -32,7 +33,7 @@ from scapy import VERSION as ScapyVersion
 from scapy.arch import get_if_addr, in6_getifaddr
 from pyipp.ipp import VERSION as PyippVersion
 
-from rich import print
+from rich import print as rprint
 from rich.console import Console
 from rich.columns import Columns
 from rich.prompt import Prompt
@@ -58,7 +59,7 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
-    éxtra_options: dict[str, Any] | None = None,
+    extra_options: dict[str, Any] | None = None,
 ) -> tuple | None:
     if config_path:
         try:
@@ -76,8 +77,8 @@ def serve(
     logger.ProtocolLogger.init_logfile(session)
     log_stream.init_streams(session)
 
-    if éxtra_options:
-        for section, options in éxtra_options.items():
+    if extra_options:
+        for section, options in extra_options.items():
             if section not in config.dm_config:
                 config.dm_config[section] = {}
 
@@ -208,10 +209,8 @@ def parse_options(options: list[str]) -> dict:
                 if raw_value and raw_value[0] == "[":
                     value = json.loads(raw_value)
                 elif raw_value and raw_value[0] not in ('"', "'"):
-                    try:
+                    with contextlib.suppress(ValueError):
                         value = int(raw_value)
-                    except ValueError:
-                        pass
 
                 if value is None and raw_value:
                     value = raw_value.removeprefix('"').removesuffix('"')
@@ -232,7 +231,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         quiet_mode = True
 
     if quiet_mode:
-        print(
+        rprint(
             f"[bold]Dementor [white]v{DementorVersion}[white][/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
             + f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
@@ -246,7 +245,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         aioquic_version=AioquicVersion,
         pyipp_version=PyippVersion,
     )
-    print(text)
+    rprint(text)
 
 
 def main_format_config(name: str, value: str) -> str:
@@ -429,7 +428,7 @@ def main(
         return paths.main()
 
     if interface is None and not version:
-        return print("[bold red]Error:[/] Missing option --interface / -I")
+        return rprint("[bold red]Error:[/] Missing option --interface / -I")
 
     main_print_banner(quiet)
     if version:
@@ -453,11 +452,11 @@ def main(
     logger.init()
 
     if extras:
-        for section, options in extras.items():
+        for section, section_opts in extras.items():
             if section not in config.dm_config:
                 config.dm_config[section] = {}
 
-            for key, value in options.items():
+            for key, value in section_opts.items():
                 config.dm_config[section][key] = value
 
     if ignored:

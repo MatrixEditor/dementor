@@ -98,7 +98,8 @@ class BytesValue:
     """
 
     def __init__(self, length: int | None = None) -> None:
-        """
+        """Initialize BytesValue.
+
         :param length: Desired length for randomly generated tokens when the
             input is ``None``.  If omitted a single byte is generated.
         :type length: int | None, optional
@@ -217,4 +218,4 @@ def now() -> str:
     :return: Formatted timestamp.
     :rtype: str
     """
-    return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    return datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")

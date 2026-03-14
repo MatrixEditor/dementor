@@ -89,13 +89,18 @@ src = ["dementor", "tests"]
 select = ["ALL"]
 ignore = [
     # --- A: flake8-builtins ---
+    "A001",     # builtin-variable-shadowing — unavoidable in Sphinx conf.py (copyright)
     "A002",     # builtin-argument-shadowing — common in protocol code (type, id)
 
     # --- ANN: flake8-annotations — use ty for gradual typing ---
     "ANN",
 
     # --- ARG: flake8-unused-arguments ---
+    "ARG001",   # unused-function-argument — CLI/callback params required by framework
     "ARG002",   # unused-method-argument — interface/callback stubs
+
+    # --- ASYNC: flake8-async ---
+    "ASYNC240",  # blocking-path-method-in-async — startup-time checks, not hot path
 
     # --- BLE: flake8-blind-except ---
     "BLE001",   # blind-except — legitimate in protocol handlers
@@ -172,6 +177,9 @@ ignore = [
 
     # --- SLF: flake8-self ---
     "SLF001",   # private-member-access — common in internal wiring
+
+    # --- T20: flake8-print ---
+    "T201",     # print — intentional in CLI/diagnostic code
 
     # --- TD: flake8-todos ---
     "TD002",    # missing-todo-author — not needed for small team

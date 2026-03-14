@@ -218,7 +218,7 @@ class BaseProtoHandler(BaseRequestHandler):
         except OSError as e:
             # Only log unexpected OS errors (not broken pipe/connection reset)
             if e.errno not in (errno.EPIPE, errno.ECONNRESET):
-                self.logger.exception(e)
+                self.logger.exception("Unexpected OS error")
         except Exception as e:
             self.logger.fail(
                 f"Error handling request from client ({e.__class__.__name__}) "
@@ -229,7 +229,7 @@ class BaseProtoHandler(BaseRequestHandler):
             data = data or b""
             self.logger.debug(
                 f"Error while handling request. Traceback:\n{out.getvalue()}\n"
-                + f"Client request:\n{hexdump.hexdump(data)}"
+                f"Client request:\n{hexdump.hexdump(data)}"
             )
 
     def recv(self, size: int) -> bytes:

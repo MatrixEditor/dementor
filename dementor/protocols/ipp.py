@@ -33,6 +33,7 @@
 #
 #   The following commands can be used to trigger a printer lookup:
 #      echo '0 3 http://<IP>:<PORT>/printers/test "loc" "info"' | nc -nu <TARGET_IP> 631
+import contextlib
 import socket
 
 from http import HTTPStatus
@@ -376,7 +377,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         # By default, we should support all standard operations
         resp_attrib["operations-supported"] = set(
             self.config.ipp_supported_operations
-        ) | {i for i in range(0x002, 0x0013)}
+        ) | set(range(0x002, 0x0013))
         # | pdl-override-supported      | type2 keyword         | REQUIRED    |
         resp_attrib["pdl-override-supported"] = "not-attempted"
         # | printer-driver-installer    | uri                   |             |
@@ -414,8 +415,7 @@ class IPPHandler(BaseHTTPRequestHandler):
             msg = f"{msg} with remote command: {markup.escape(cmd_text)!r}"
 
         # allow extra configuration
-        for key, value in (self.config.ipp_extra_attrib or {}).items():
-            resp_attrib[key] = value
+        resp_attrib.update(self.config.ipp_extra_attrib or {})
 
         self.logger.success(msg)
         self.send_response(HTTPStatus.OK, "OK", resp)
@@ -445,9 +445,7 @@ class IPPServer(ThreadingHTTPServer):
         return super().server_bind()
 
     def finish_request(self, request, client_address) -> None:
-        try:
+        with contextlib.suppress(ConnectionError):
             self.RequestHandlerClass(
                 self.config, self.server_config, request, client_address, self
             )
-        except ConnectionError:
-            pass

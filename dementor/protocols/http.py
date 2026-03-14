@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
+import contextlib
 import socket
 import base64
 import pathlib
@@ -55,10 +56,10 @@ from dementor.protocols.ntlm import (
 def apply_config(session: SessionConfig):
     session.proxy_config = ProxyAutoConfig(get_value("Proxy", key=None, default={}))
 
-    servers = []
-    for server_config in get_value("HTTP", "Server", default=[]):
-        servers.append(HTTPServerConfig(server_config))
-    session.http_config = servers
+    session.http_config = [
+        HTTPServerConfig(server_config)
+        for server_config in get_value("HTTP", "Server", default=[])
+    ]
 
     winrm_config = []
     config = HTTPServerConfig({"Port": 5985})
@@ -99,20 +100,20 @@ def create_server_threads(session: SessionConfig):
         )
 
     if session.winrm_enabled:
-        for winrm_config in session.winrm_config:
-            servers.append(
-                ServerThread(
-                    session,
-                    HTTPServer,
-                    winrm_config,
-                    RequestHandlerClass=WinRMHandler,
-                    server_address=(
-                        session.bind_address,
-                        winrm_config.http_port,
-                    ),
-                    ipv6=bool(session.ipv6),
-                )
+        servers.extend(
+            ServerThread(
+                session,
+                HTTPServer,
+                winrm_config,
+                RequestHandlerClass=WinRMHandler,
+                server_address=(
+                    session.bind_address,
+                    winrm_config.http_port,
+                ),
+                ipv6=bool(session.ipv6),
             )
+            for winrm_config in session.winrm_config
+        )
 
     return servers
 
@@ -575,12 +576,10 @@ class HTTPServer(ThreadingHTTPServer):
         ThreadingHTTPServer.server_bind(self)
 
     def finish_request(self, request, client_address) -> None:
-        try:
+        with contextlib.suppress(ConnectionResetError):
             self.RequestHandlerClass(
                 self.config, self.server_config, request, client_address, self
             )
-        except ConnectionResetError:
-            pass
 
     def render_error(
         self, code: int, message: str | None = None, explain: str | None = None
