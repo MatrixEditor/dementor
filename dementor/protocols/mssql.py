@@ -22,10 +22,9 @@
 #  - https://winprotocoldoc.z19.web.core.windows.net/MC-SQLR/%5bMC-SQLR%5d.pdf
 # pyright: reportInvalidTypeForm=false, reportCallIssue=false
 # pyright: reportUninitializedInstanceVariable=false
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import typing
 
+from typing_extensions import override
 from impacket import tds, ntlm
 from rich.markup import escape
 
@@ -45,6 +44,7 @@ from caterpillar.py import (
 )
 
 from dementor.config.session import SessionConfig
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.db import _CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.hexdump import hexdump

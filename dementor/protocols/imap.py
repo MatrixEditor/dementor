@@ -23,16 +23,16 @@
 #    https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oximap4/b0f9d5f1-ac42-4b27-a874-0c3bf9e3b9b5
 # - RFC-9501:
 #    https://www.ietf.org/rfc/rfc9051.html
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import base64
 import binascii
 import shlex
 import typing
 
+from typing_extensions import override
 from impacket import ntlm
 
 from dementor.config.session import SessionConfig
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,

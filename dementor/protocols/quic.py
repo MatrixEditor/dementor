@@ -29,9 +29,6 @@ import tempfile
 
 from typing_extensions import override
 
-from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
-from dementor.servers import AsyncServerThread, BaseServerThread
-
 from aioquic.asyncio.server import QuicServer, serve
 from aioquic.asyncio.protocol import QuicConnectionProtocol, QuicStreamHandler
 from aioquic.quic import events
@@ -44,7 +41,8 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 
-
+from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
+from dementor.servers import AsyncServerThread, BaseServerThread
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.log.logger import ProtocolLogger, dm_logger
@@ -337,4 +335,6 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
                 if os.path.exists(self.server_config.quic_cert_key):
                     os.remove(self.server_config.quic_cert_key)
             except OSError as e:
-                dm_logger.warning(f"Failed to delete temporary QUIC certificate files: {e}")
+                dm_logger.warning(
+                    f"Failed to delete temporary QUIC certificate files: {e}"
+                )

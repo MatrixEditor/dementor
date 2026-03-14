@@ -20,8 +20,6 @@
 # pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import contextlib
 import posixpath
 import socket
@@ -33,8 +31,7 @@ import typing
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote
-from collections.abc import Generator
-
+from typing_extensions import override
 from rich.markup import escape
 
 from jinja2.environment import Environment
@@ -50,6 +47,7 @@ from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server, BaseServerThread
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.db import normalize_client_address
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 
 
 __proto__ = ["UPnP"]

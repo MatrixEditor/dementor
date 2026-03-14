@@ -18,11 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule
 import struct
 import typing
 
+from typing_extensions import override
 from datetime import datetime, UTC
 from impacket.krb5.asn1 import (
     AS_REQ,
@@ -44,8 +43,8 @@ from impacket.krb5.types import KerberosTime
 from pyasn1.codec.der import decoder, encoder
 
 from dementor.config.session import SessionConfig
+from dementor.loader import BaseProtocolModule
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import get_value
 from dementor.servers import (
     ThreadingTCPServer,
     ThreadingUDPServer,

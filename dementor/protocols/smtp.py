@@ -20,8 +20,6 @@
 # pyright: reportUninitializedInstanceVariable=false
 # Reference:
 #   - https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import typing
 import warnings
 import base64
@@ -29,6 +27,7 @@ import binascii
 import ssl
 
 from typing import Any, NamedTuple
+from typing_extensions import override
 
 # SMTP server
 from aiosmtpd.smtp import (
@@ -49,7 +48,6 @@ from impacket.ntlm import (
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -60,6 +58,7 @@ from dementor.protocols.ntlm import (
 )
 from dementor.db import _CLEARTEXT
 from dementor.servers import AsyncServerThread
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 
 __proto__ = ["SMTP"]
 

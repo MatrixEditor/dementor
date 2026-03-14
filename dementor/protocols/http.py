@@ -18,8 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import contextlib
 import socket
 import base64
@@ -27,6 +25,7 @@ import pathlib
 import ssl
 import typing
 
+from typing_extensions import override
 from http import HTTPStatus
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
@@ -38,6 +37,7 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import format_string, get_value, is_true

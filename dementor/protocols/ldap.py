@@ -18,11 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import ssl
 import typing
 
+from typing_extensions import override
 from impacket import ntlm
 from impacket.ntlm import NTLMAuthChallengeResponse, NTLMAuthNegotiate
 from impacket.ldap.ldap import BindRequest, SearchRequest
@@ -38,9 +37,9 @@ from impacket.ldap.ldapasn1 import (
 )
 from pyasn1.codec.ber import encoder as BEREncoder, decoder as BERDecoder
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import get_value
 from dementor.log import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.servers import (

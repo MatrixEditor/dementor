@@ -21,13 +21,13 @@
 # Reference:
 #   - https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html
 # pyright: reportInvalidTypeForm=false, reportCallIssue=false, reportGeneralTypeIssues=false
-from dementor.config.session import SessionConfig
-from typing_extensions import override
-from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 import typing
 
+from typing_extensions import override
 from caterpillar import py
 
+from dementor.config.session import SessionConfig
+from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.log.logger import ProtocolLogger
 from dementor.servers import (

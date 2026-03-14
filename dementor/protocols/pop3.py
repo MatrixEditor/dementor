@@ -25,13 +25,14 @@
 #   - https://www.rfc-editor.org/rfc/rfc1734
 #   - https://datatracker.ietf.org/doc/html/rfc4616
 #   - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-pop3/
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import base64
 import binascii
 import typing
 
+from typing_extensions import override
 from impacket import ntlm
+
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -55,7 +56,6 @@ from dementor.config.toml import (
     Attribute as A,
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
-from dementor.config.util import get_value
 
 
 __proto__ = ["POP3"]

@@ -18,13 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import socket
 import typing
 
 from scapy.layers import llmnr, dns
 from rich import markup
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.protocols.mdns import build_dns_answer
 from dementor.servers import (
     ThreadingUDPServer,

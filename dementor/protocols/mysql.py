@@ -22,12 +22,11 @@
 # Notes:
 #   - Implementation of the MySQL protocol according to the online documentation.
 #     https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import typing
 import enum
 
 from typing import Any
+from typing_extensions import override
 from collections import OrderedDict
 
 from caterpillar.py import (
@@ -53,6 +52,7 @@ from caterpillar.py import (
 from caterpillar.exception import DynamicSizeError, StructException
 from caterpillar.types import cstr_t, uint16_t, uint24_t, uint32_t, uint8_t
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.log.hexdump import hexdump
 from dementor.servers import (

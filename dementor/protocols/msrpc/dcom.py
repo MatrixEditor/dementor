@@ -19,6 +19,7 @@
 # SOFTWARE.
 from array import array
 from impacket.dcerpc.v5 import dcomrt, rpcrt
+
 from dementor.protocols.msrpc.rpc import rev_rpc_status_codes
 
 

@@ -18,11 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: basic
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import uuid
 import secrets
 import typing
+
+from typing_extensions import override
 
 from impacket.smbserver import TypesMech, MechTypes
 from scapy.fields import NetBIOSNameField
@@ -48,7 +48,7 @@ from caterpillar.types import uint16_t
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import get_value
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,

@@ -20,8 +20,6 @@
 # pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
-from typing_extensions import override
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import email.message
 import io
 import typing
@@ -30,6 +28,7 @@ import socket
 
 from rich.markup import escape
 from rich.text import Text
+from typing_extensions import override
 
 from dementor.config.session import SessionConfig
 from dementor.servers import (
@@ -42,6 +41,7 @@ from dementor.servers import (
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 
 __proto__ = ["SSDP"]
 

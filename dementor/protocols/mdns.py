@@ -18,7 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import socket
 import typing
 
@@ -31,11 +30,11 @@ from dementor.log.stream import log_to
 from dementor.servers import (
     ThreadingUDPServer,
     BaseProtoHandler,
-    ServerThread,
     add_mcast_membership,
 )
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters

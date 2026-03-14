@@ -19,14 +19,14 @@
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
 # pyright: reportAny=false, reportExplicitAny=false
-from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import contextlib
 import typing
 
 from socket import socket
 from typing import ClassVar
-
 from typing_extensions import override
+
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
