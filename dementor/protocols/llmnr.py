@@ -58,7 +58,6 @@ class LLMNRConfig(TomlConfig):
 
 def apply_config(session: SessionConfig) -> None:
     session.llmnr_config = TomlConfig.build_config(LLMNRConfig)
-    pass
 
 
 def create_server_threads(session: SessionConfig) -> list[ServerThread]:

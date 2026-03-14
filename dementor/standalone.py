@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import asyncio
+import contextlib
 import tomllib
 import json
 import typer
@@ -32,7 +33,7 @@ from scapy import VERSION as ScapyVersion
 from scapy.arch import get_if_addr, in6_getifaddr
 from pyipp.ipp import VERSION as PyippVersion
 
-from rich import print
+from rich import print as rprint
 from rich.console import Console
 from rich.columns import Columns
 from rich.prompt import Prompt
@@ -58,14 +59,14 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
-    éxtra_options: dict[str, Any] | None = None,
+    extra_options: dict[str, Any] | None = None,
 ) -> tuple | None:
     if config_path:
         try:
             config.init_from_file(config_path)
         except tomllib.TOMLDecodeError as e:
             dm_logger.error(f"Failed to load configuration file: {e}")
-            return
+            return None
 
     if session is None:
         session = SessionConfig()
@@ -76,8 +77,8 @@ def serve(
     logger.ProtocolLogger.init_logfile(session)
     log_stream.init_streams(session)
 
-    if éxtra_options:
-        for section, options in éxtra_options.items():
+    if extra_options:
+        for section, options in extra_options.items():
             if section not in config.dm_config:
                 config.dm_config[section] = {}
 
@@ -93,7 +94,7 @@ def serve(
             dm_logger.error(
                 f"Interface {session.interface} does not exist or is not up, check your configuration"
             )
-            return
+            return None
 
         session.ipv6 = next(
             (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface),
@@ -104,7 +105,7 @@ def serve(
             dm_logger.error(
                 f"Interface {session.interface} is not available, check your configuration"
             )
-            return
+            return None
 
     session.analysis = analyze_only
 
@@ -115,7 +116,7 @@ def serve(
             session.db = create_db(session)
         except Exception as e:
             dm_logger.error(f"Failed to create database: {e}")
-            return
+            return None
 
     # Load protocols
     loader = ProtocolLoader()
@@ -189,12 +190,11 @@ def parse_options(options: list[str]) -> dict:
                 current = current.setdefault(section, {})
 
             section_dict = current
+        elif key.count(".") == 1:
+            section, key = key.rsplit(".", 1)
+            section_dict = result.setdefault(section, {})
         else:
-            if key.count(".") == 1:
-                section, key = key.rsplit(".", 1)
-                section_dict = result.setdefault(section, {})
-            else:
-                section_dict = result.setdefault("Dementor", {})
+            section_dict = result.setdefault("Dementor", {})
 
         append_value = key.endswith("+")
         key = key.removesuffix("+")
@@ -209,10 +209,8 @@ def parse_options(options: list[str]) -> dict:
                 if raw_value and raw_value[0] == "[":
                     value = json.loads(raw_value)
                 elif raw_value and raw_value[0] not in ('"', "'"):
-                    try:
+                    with contextlib.suppress(ValueError):
                         value = int(raw_value)
-                    except ValueError:
-                        pass
 
                 if value is None and raw_value:
                     value = raw_value.removeprefix('"').removesuffix('"')
@@ -233,7 +231,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         quiet_mode = True
 
     if quiet_mode:
-        print(
+        rprint(
             f"[bold]Dementor [white]v{DementorVersion}[white][/bold] - Running with Scapy [white bold]v{ScapyVersion}[/] "
             + f"and Impacket [white bold]v{ImpacketVersion}[/]\n",
         )
@@ -247,7 +245,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         aioquic_version=AioquicVersion,
         pyipp_version=PyippVersion,
     )
-    print(text)
+    rprint(text)
 
 
 def main_format_config(name: str, value: str) -> str:
@@ -430,11 +428,11 @@ def main(
         return paths.main()
 
     if interface is None and not version:
-        return print("[bold red]Error:[/] Missing option --interface / -I")
+        return rprint("[bold red]Error:[/] Missing option --interface / -I")
 
     main_print_banner(quiet)
     if version:
-        return
+        return None
 
     # prepare options
     extras = parse_options(options or [])
@@ -449,16 +447,16 @@ def main(
             config.init_from_file(config_path)
         except tomllib.TOMLDecodeError as e:
             dm_logger.error(f"Failed to load configuration file: {e}")
-            return
+            return None
 
     logger.init()
 
     if extras:
-        for section, options in extras.items():
+        for section, section_opts in extras.items():
             if section not in config.dm_config:
                 config.dm_config[section] = {}
 
-            for key, value in options.items():
+            for key, value in section_opts.items():
                 config.dm_config[section][key] = value
 
     if ignored:
@@ -506,7 +504,7 @@ def main(
             show_choices=False,
         )
         if result.lower() != "y":
-            return
+            return None
 
     serve(interface=interface, session=session, analyze_only=analyze)
 

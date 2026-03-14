@@ -270,13 +270,10 @@ class IMAPHandler(BaseProtoHandler):
         # that the server supports. The capability listing MUST include the atom
         # "IMAP4rev2", but note that it doesn't have to be the first capability listed.
         self.logger.display(f"Capabilities requested from {self.client_host}")
-        capabilities = ["CAPABILITY"] + self.server_config.imap_caps
-        capabilities.extend(
-            map(lambda x: f"AUTH={x}", self.server_config.imap_auth_mechanisms)
-        )
+        capabilities = ["CAPABILITY", *self.server_config.imap_caps]
+        capabilities.extend(f"AUTH={x}" for x in self.server_config.imap_auth_mechanisms)
         self._push(" ".join(capabilities), seq=False)
         self.ok("CAPABILITY completed")
-        pass
 
     #  6.1.2. NOOP Command
     def do_NOOP(self, args):

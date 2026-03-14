@@ -101,14 +101,13 @@ def init_engine(session: SessionConfig) -> Engine | None:
         path = session.db_config.db_path
         if not path:
             return dm_logger.error("Database path not specified!")
-        if dialect == "sqlite":
-            # :memory: is a special SQLite in-memory database.
-            if path != ":memory:":
-                real_path = session.resolve_path(path)
-                if not real_path.parent.exists():
-                    dm_logger.debug(f"Creating database directory {real_path.parent}")
-                    real_path.parent.mkdir(parents=True, exist_ok=True)
-                path = f"/{real_path}"
+        # :memory: is a special SQLite in-memory database.
+        if dialect == "sqlite" and path != ":memory:":
+            real_path = session.resolve_path(path)
+            if not real_path.parent.exists():
+                dm_logger.debug(f"Creating database directory {real_path.parent}")
+                real_path.parent.mkdir(parents=True, exist_ok=True)
+            path = f"/{real_path}"
         raw_path = f"{dialect}+{driver}://{path}"
     else:
         # Decompose the user-supplied URL to obtain dialect and driver.
@@ -124,7 +123,7 @@ def init_engine(session: SessionConfig) -> Engine | None:
         if "@" in first_element:
             # keep only the “host:port” part, replace user:pass with stars
             first_element = first_element.split("@")[1]
-            path = "***:***@" + "/".join([first_element] + list(parts))
+            path = "***:***@" + "/".join([first_element, *parts])
 
     dm_logger.debug("Using database [%s:%s] at: %s", dialect, driver, path)
     return create_engine(raw_path, isolation_level="AUTOCOMMIT", future=True)
@@ -142,5 +141,5 @@ def create_db(session: SessionConfig) -> DementorDB:
     """
     engine = init_engine(session)
     if not engine:
-        raise Exception("Failed to create database engine")
+        raise RuntimeError("Failed to create database engine")
     return DementorDB(engine, session)

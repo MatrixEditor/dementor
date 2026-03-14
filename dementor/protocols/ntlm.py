@@ -1150,7 +1150,7 @@ def NTLM_report_auth(
         if not all_hashes:
             log.warning(
                 "AUTHENTICATE_MESSAGE produced no crackable hashes "
-                + "(user=%r flags=0x%08x)",
+                "(user=%r flags=0x%08x)",
                 auth_token["user_name"],
                 negotiate_flags,
             )
@@ -1190,7 +1190,7 @@ def NTLM_report_auth(
     except ValueError:
         log.exception(
             "Invalid data in AUTHENTICATE_MESSAGE (bad challenge length or "
-            + "malformed response fields); skipping capture"
+            "malformed response fields); skipping capture"
         )
     except Exception:
         log.exception("Failed to extract NTLM hashes from AUTHENTICATE_MESSAGE")
