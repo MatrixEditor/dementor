@@ -32,6 +32,7 @@ from dementor.tui.action import command, ReplAction
 ON = r"[bold green]\[ON][/bold green]"
 OFF = r"[bold red]\[OFF][/bold red]"
 
+
 @command
 class ServiceCommand(ReplAction):
     """Configure protocol servers."""
@@ -45,11 +46,11 @@ class ServiceCommand(ReplAction):
         )
         subs = parser.add_subparsers(required=True)
 
-        mod = subs.add_parser("off")
+        mod = subs.add_parser("off", aliases=["stop"])
         mod.add_argument("-y", "--yes", action="store_true")
         mod.set_defaults(fn=self.service_stop)
 
-        mod = subs.add_parser("on")
+        mod = subs.add_parser("on", aliases=["start"])
         mod.set_defaults(fn=self.service_start)
 
         mod = subs.add_parser("status")
@@ -101,7 +102,7 @@ class ServiceCommand(ReplAction):
     def service_status(self, name: str, argv: argparse.Namespace | None = None) -> None:
         console: Console = self.repl.console
         tasks = self.repl.session.manager.threads.get(name.lower())
-        active_tasks = [t for t in tasks or [] if t.is_alive()]
+        active_tasks = [t for t in tasks or [] if t.is_running()]
         console.print(
             f"[b]{name.upper()} [/][white]".ljust(50, "."),
             ON if active_tasks else OFF,
@@ -112,9 +113,27 @@ class ServiceCommand(ReplAction):
         else:
             console.print()
 
-
     def service_start(self, name: str, argv: argparse.Namespace) -> None:
-        pass
+        manager: ProtocolManager = self.repl.session.manager
+        if manager.is_running(name):
+            self.repl.console.print(f"[b yellow]Servers already running for {name}![/]")
+            return
+
+        status = Console().status(
+            f"[bold red]Starting...[/bold red] ([dim]{name}[/])",
+            spinner="aesthetic",
+            spinner_style="red",
+        )
+        is_debug = self.repl.session.debug
+        if not is_debug:
+            status.start()
+        try:
+            manager.create_threads(name)
+            manager.start(name)
+            if not is_debug:
+                status.stop()
+        finally:
+            status.stop()
 
     def service_status_all(self) -> None:
         for name in sorted(self.repl.session.manager.protocols):

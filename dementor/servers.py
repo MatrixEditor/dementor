@@ -76,6 +76,9 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
         """Gracefully shutdown the server thread."""
         # To be implemented by subclasses if needed
 
+    def is_running(self) -> bool:
+        return self.is_alive()
+
 
 class AsyncServerThread(BaseServerThread[_ConfigTy]):
     """Thread class for running asynchronous protocol servers (e.g., asyncio-based).
@@ -124,7 +127,7 @@ class AsyncServerThread(BaseServerThread[_ConfigTy]):
         """Gracefully shutdown the asynchronous server."""
         dm_logger.debug(f"Shutting down {self.service_name} Service")
         if self._task:
-            _ = self.config.loop.run_until_complete(self.ashutdown())
+            _ = self.config.loop.create_task(self.ashutdown())
 
 
 class ServerThread(BaseServerThread[_ConfigTy]):
@@ -214,8 +217,8 @@ class ServerThread(BaseServerThread[_ConfigTy]):
             dm_logger.exception(
                 f"Failed to start server for {self.service_name} ({address}:{port}): {e}"
             )
-        # finally:
-        #     self.shutdown()
+        finally:
+            dm_logger.debug(f"Closed {self.service_name} Service")
 
     def shutdown(self) -> None:
         """Gracefully shutdown the server thread."""

@@ -135,7 +135,7 @@ def serve(
         session.loop = loop or asyncio.new_event_loop()
 
     asyncio.set_event_loop(session.loop)
-    session.manager.create_threads()
+    session.manager.create_all_threads()
     session.manager.start_all()
     if run_forever:
         try:

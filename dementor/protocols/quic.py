@@ -211,6 +211,11 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
         self.is_ipv6: bool = ipv6
         self._server: QuicServer | None = None
         self._generated_temp_cert: bool = False
+        self._running = False
+
+    @override
+    def is_running(self) -> bool:
+        return self._running
 
     def generate_self_signed_cert(self) -> None:
         """Generate a self-signed certificate and private key for QUIC server."""
@@ -317,6 +322,7 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
         dm_logger.debug(
             f"Starting QUIC server on {self.host}:{self.server_config.quic_port}"
         )
+        self._running = True
         self._server = await serve(
             host=self.host,
             port=self.server_config.quic_port,
@@ -328,6 +334,7 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
     async def ashutdown(self) -> None:
         if self._server:
             self._server.close()
+            self._running = False
         if self._generated_temp_cert:
             try:
                 if os.path.exists(self.server_config.quic_cert_path):

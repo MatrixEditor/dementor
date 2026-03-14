@@ -293,6 +293,11 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
     def __init__(self, config: SessionConfig, server_config: SMTPServerConfig):
         super().__init__(config, server_config)
         self.controller: Controller | None = None
+        self._running  = False
+
+    @override
+    def is_running(self):
+        return self._running
 
     def get_service_name(self) -> str:
         return "SMTPS" if self.server_config.smtp_tls else "SMTP"
@@ -323,6 +328,7 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
             dm_logger.debug(
                 f"Starting {label} server on {controller.hostname}:{smtp_config.smtp_port}"
             )
+            self._running = True
             controller.start()
         except OSError as e:
             dm_logger.error(
@@ -362,3 +368,4 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
     async def ashutdown(self) -> None:
         if self.controller:
             self.controller.stop()
+            self._running = False

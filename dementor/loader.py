@@ -290,7 +290,7 @@ class ProtocolLoader:
                         )
 
                     protocol.apply_config(session)
-                    protocols[protocol.name] = protocol
+                    protocols[protocol.name.lower()] = protocol
         return protocols
 
     # --------------------------------------------------------------------- #
@@ -342,7 +342,7 @@ class ProtocolManager:
         self.threads: dict[str, list[BaseServerThread]] = {}
         self.started: set[str] = set()
 
-    def create_threads(self) -> None:
+    def create_all_threads(self) -> None:
         """Create server threads for all loaded protocols."""
         for name, protocol in self.protocols.items():
             try:
@@ -352,6 +352,17 @@ class ProtocolManager:
                 # Log error if needed, but for now pass
                 dm_logger.error(f"Error creating servers for protocol '{name}': {e}")
                 self.threads[name.lower()] = []
+
+    def create_threads(self, name: str) -> None:
+        """Create server threads for all loaded protocols."""
+        protocol = self.protocols[name.lower()]
+        try:
+            servers = self.loader.create_servers(protocol, self.session)
+            self.threads[name.lower()] = list(servers)
+        except Exception as e:
+            # Log error if needed, but for now pass
+            dm_logger.error(f"Error creating servers for protocol '{name}': {e}")
+            self.threads[name.lower()] = []
 
     def start_all(self) -> None:
         """Start all protocol services."""
@@ -428,4 +439,5 @@ class ProtocolManager:
         :rtype: bool
         """
         name: str = protocol_name.lower()
-        return name in self.started
+        threads = self.threads.get(name, [])
+        return any(t.is_running() for t in threads)
