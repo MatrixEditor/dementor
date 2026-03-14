@@ -251,10 +251,7 @@ class TomlConfig:
             setattr(self, field_name, value)
 
     def as_dict(self) -> dict[str, Any]:
-        return {
-            a.attr_name: getattr(self, a.attr_name, None)
-            for a in self._fields_
-        }
+        return {a.attr_name: getattr(self, a.attr_name, None) for a in self._fields_}
 
     @override
     def __repr__(self) -> str:

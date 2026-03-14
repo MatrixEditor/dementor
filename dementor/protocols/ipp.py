@@ -33,6 +33,8 @@
 #
 #   The following commands can be used to trigger a printer lookup:
 #      echo '0 3 http://<IP>:<PORT>/printers/test "loc" "info"' | nc -nu <TARGET_IP> 631
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import contextlib
 import socket
 
@@ -50,8 +52,10 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.config.util import format_string
 from dementor.log.logger import ProtocolLogger, dm_logger
-from dementor.servers import ServerThread, bind_server
+from dementor.servers import ServerThread, bind_server, BaseServerThread
 from dementor.db import normalize_client_address
+
+__proto__ = ["IPP"]
 
 # [5.1.10.  'mimeMediaType']
 IPP_MIME_MEDIA_TYPES = [
@@ -198,15 +202,22 @@ class IPPConfig(TomlConfig):
                 self.ipp_extra_attrib[name] = value
 
 
-def apply_config(session: SessionConfig):
-    session.ipp_config = TomlConfig.build_config(IPPConfig)
+class IPP(BaseProtocolModule[IPPConfig]):
+    name: str = "IPP"
+    config_ty = IPPConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
 
-
-def create_server_threads(session: SessionConfig):
-    address = (session.bind_address, session.ipp_config.ipp_port)
-    if session.ipp_enabled:
-        yield ServerThread(
-            session, IPPServer, server_address=address, ipv6=bool(session.ipv6)
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: IPPConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            IPPServer,
+            server_address=(session.bind_address, session.ipp_config.ipp_port),
+            ipv6=bool(session.ipv6),
         )
 
 

@@ -22,6 +22,8 @@
 #  - https://winprotocoldoc.z19.web.core.windows.net/MC-SQLR/%5bMC-SQLR%5d.pdf
 # pyright: reportInvalidTypeForm=false, reportCallIssue=false
 # pyright: reportUninitializedInstanceVariable=false
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import typing
 
 from impacket import tds, ntlm
@@ -60,27 +62,14 @@ from dementor.servers import (
     ServerThread,
     ThreadingTCPServer,
     ThreadingUDPServer,
+    BaseServerThread,
 )
 from dementor.filters import in_scope, ATTR_BLACKLIST, ATTR_WHITELIST
 
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters
 
-
-def apply_config(session: SessionConfig):
-    session.mssql_config = TomlConfig.build_config(MSSQLConfig)
-    session.ssrp_config = TomlConfig.build_config(SSRPConfig)
-
-
-def create_server_threads(session) -> list[ServerThread]:
-    servers = []
-    if session.ssrp_enabled:
-        servers.append(ServerThread(session, SSRPServer))
-
-    if session.mssql_enabled:
-        servers.append(ServerThread(session, MSSQLServer))
-
-    return servers
+__proto__ = ["MSSQL", "SSRP"]
 
 
 # =============================================================================
@@ -528,3 +517,30 @@ class MSSQLServer(ThreadingTCPServer):
     default_port = 1433
     default_handler_class = MSSQLHandler
     service_name = "MSSQL"
+
+
+class MSSQL(BaseProtocolModule[MSSQLConfig]):
+    name: str = "MSSQL"
+    config_ty = MSSQLConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: MSSQLConfig
+    ) -> BaseServerThread:
+        return ServerThread(session, server_config, MSSQLServer)
+
+
+class SSRP(BaseProtocolModule[SSRPConfig]):
+    name: str = "SSRP"
+    config_ty = SSRPConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    poisoner = True
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: SSRPConfig
+    ) -> BaseServerThread:
+        return ServerThread(session, server_config, SSRPServer)

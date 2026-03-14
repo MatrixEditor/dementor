@@ -222,9 +222,7 @@ class DBAction(ReplAction):
             host_query = sql.select(HostInfo).where(HostInfo.id == credential.host)
             host = session.db.session.scalar(host_query)
             password = str(credential.password or "<EMPTY>")
-            host_info = credential.hostname or (
-                host.ip or host.hostname if host else ""
-            )
+            host_info = credential.hostname or (host.ip or host.hostname if host else "")
             table.add_row(
                 markup.escape(credential.timestamp),
                 markup.escape(f"{credential.protocol}/{credential.credtype}"),
@@ -390,4 +388,3 @@ class ServiceAction(ReplAction):
             protocol = self.repl.protocols[name]
             if hasattr(protocol, "create_server_threads"):
                 self.service_status(name)
-

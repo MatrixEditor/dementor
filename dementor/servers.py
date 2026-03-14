@@ -31,9 +31,9 @@ import errno
 import sys
 
 from io import StringIO
-from typing import Any, ClassVar, Generic, TypeVar
+from typing import Any, ClassVar, Generic
 from socketserver import BaseRequestHandler
-from typing_extensions import override
+from typing_extensions import override, TypeVar
 
 from dementor import db
 from dementor.log import hexdump
@@ -41,7 +41,8 @@ from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.log.stream import log_host
 from dementor.config.session import SessionConfig
 
-_ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig)
+_ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig, default=TomlConfig)
+
 
 class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
     """Base thread class for running protocol servers with graceful shutdown support."""
@@ -68,7 +69,6 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
         :rtype: str
         """
         return self.get_service_name()
-
 
     def shutdown(self) -> None:
         """Gracefully shutdown the server thread."""
@@ -111,7 +111,7 @@ class AsyncServerThread(BaseServerThread):
         self._task = self.config.loop.create_task(self.arun())
 
 
-class ServerThread(threading.Thread):
+class ServerThread(BaseServerThread[_ConfigTy]):
     """
     A thread-based server wrapper for running network protocol handlers.
 
@@ -130,16 +130,19 @@ class ServerThread(threading.Thread):
     def __init__(
         self,
         config: SessionConfig,
+        server_config: _ConfigTy,
         server_class: type,
+        include_server_config: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        self.config: SessionConfig = config
+        super().__init__(config, server_config)
         self.server_class: type = server_class
         self.args: tuple[Any, ...] = args
         self.kwargs: dict[str, Any] = kwargs
         self._server: socketserver.BaseServer | None = None
-        super().__init__(daemon=False)
+        if include_server_config:
+            self.kwargs["server_config"] = server_config
 
     @property
     def service_name(self) -> str:
@@ -195,8 +198,8 @@ class ServerThread(threading.Thread):
             dm_logger.exception(
                 f"Failed to start server for {self.service_name} ({address}:{port}): {e}"
             )
-        finally:
-            self.shutdown()
+        # finally:
+        #     self.shutdown()
 
     def shutdown(self) -> None:
         """Gracefully shutdown the server thread."""

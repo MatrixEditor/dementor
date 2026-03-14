@@ -20,7 +20,8 @@
 # pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
-from dementor.loader import BaseProtocolModule
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import email.message
 import io
 import typing
@@ -36,24 +37,13 @@ from dementor.servers import (
     ServerThread,
     BaseProtoHandler,
     add_mcast_membership,
+    BaseServerThread,
 )
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 
-
-
-
-def apply_config(session: SessionConfig):
-    session.ssdp_config = TomlConfig.build_config(SSDPConfig)
-
-
-def create_server_threads(session: SessionConfig):
-    return (
-        [ServerThread(session, SSDPServer, server_address=(session.bind_address, 1900))]
-        if session.ssdp_enabled
-        else []
-    )
+__proto__ = ["SSDP"]
 
 
 DEFAULT_SERVER = "OS/1.0 UPnP/1.0 Dementor/1.0"
@@ -87,11 +77,24 @@ class SSDPConfig(TomlConfig):
         ssdp_max_age: int
 
 
-class SSDP(BaseProtocolModule):
+class SSDP(BaseProtocolModule[SSDPConfig]):
     name = "SSDP"
     config_ty = SSDPConfig
-    config_attr = "ssdp_config"
-    server_thread_ty = ServerThread
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    poisoner = True
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: SSDPConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            SSDPServer,
+            server_address=(session.bind_address, 1900),
+        )
+
 
 # --- Protocol implementation ---
 

@@ -22,6 +22,8 @@
 # Notes:
 #   - Implementation of the MySQL protocol according to the online documentation.
 #     https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import typing
 import enum
 
@@ -58,11 +60,15 @@ from dementor.servers import (
     ServerThread,
     BaseProtoHandler,
     create_tls_context,
+    BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
 from dementor.config.attr import Attribute as A, ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.toml import TomlConfig
 from dementor.db import _CLEARTEXT
+
+
+__proto__ = ["MySQL"]
 
 
 class MySQLConfig(TomlConfig):
@@ -89,25 +95,25 @@ class MySQLConfig(TomlConfig):
         use_ssl: bool
 
 
-def apply_config(session: SessionConfig):
-    session.mysql_config = TomlConfig.build_config(MySQLConfig)
+class MySQL(BaseProtocolModule[MySQLConfig]):
+    name: str = "MySQL"
+    config_ty = MySQLConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
 
-
-def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    return (
-        [
-            ServerThread(
-                session,
-                MySQLServer,
-                server_address=(
-                    session.bind_address,
-                    session.mysql_config.mysql_port,
-                ),
-            )
-        ]
-        if session.mysql_enabled
-        else []
-    )
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: MySQLConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            MySQLServer,
+            server_address=(
+                session.bind_address,
+                session.mysql_config.mysql_port,
+            ),
+        )
 
 
 # --- MySQL Protocol ---

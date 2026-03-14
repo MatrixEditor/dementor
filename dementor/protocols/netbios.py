@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
+from dementor.loader import BaseProtocolModule
 import typing
 
 from scapy.layers import netbios, smb
@@ -32,6 +33,8 @@ from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters
 
+__proto__ = ["NetBIOS", "Browser"]
+
 
 class NBTNSConfig(TomlConfig):
     _section_ = "NetBIOS"
@@ -42,19 +45,9 @@ class NBTNSConfig(TomlConfig):
         ignored: Filters | None
 
 
-def apply_config(session: SessionConfig) -> None:
-    session.netbiosns_config = TomlConfig.build_config(NBTNSConfig)
-
-
-def create_server_threads(session) -> list[ServerThread]:
-    servers = []
-    if session.nbtns_enabled:
-        servers.append(ServerThread(session, NetBiosNSServer))
-
-    if session.nbtds_enabled:
-        servers.append(ServerThread(session, NetBiosDatagramService))
-
-    return servers
+class BrowserConfig(TomlConfig):
+    _section_ = "Browser"
+    _fields_ = []
 
 
 # Scapy _NETBIOS_SUFFIXES is not complete, See:
@@ -271,8 +264,25 @@ class NetBiosNSServer(ThreadingUDPServer):
     service_name = "NetBIOS-NS"
 
 
+class NetBIOS(BaseProtocolModule[NBTNSConfig]):
+    name: str = "NetBIOS"
+    config_ty = NBTNSConfig
+    config_attr = "netbiosns_config"
+    config_enabled_attr = "nbtns_enabled"
+    server_ty = NetBiosNSServer
+    poisoner = True
+
+
 class NetBiosDatagramService(ThreadingUDPServer):
     default_port = 138  # datagram service
     default_handler_class = NetBiosDSPoisoner
     ipv4_only = True
     service_name = "NetBIOS-DS"
+
+
+class Browser(BaseProtocolModule[BrowserConfig]):
+    name: str = "Browser"
+    config_ty = BrowserConfig
+    config_attr = "browser_config"
+    config_enabled_attr = "nbtds_enabled"
+    server_ty = NetBiosDatagramService

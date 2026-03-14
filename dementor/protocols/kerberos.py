@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule
 import struct
 import typing
 
@@ -49,8 +51,11 @@ from dementor.servers import (
     ThreadingUDPServer,
     BaseProtoHandler,
     ServerThread,
+    BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
+
+__proto__ = ["Kerberos"]
 
 
 class KerberosConfig(TomlConfig):
@@ -95,19 +100,21 @@ class KerberosConfig(TomlConfig):
                 self.krb5_error_code = ErrorCodes[value].value
 
 
-def apply_config(session: SessionConfig):
-    session.krb5_config = KerberosConfig(get_value("Kerberos", key=None, default={}))
+class Kerberos(BaseProtocolModule[KerberosConfig]):
+    name: str = "KDC"
+    config_ty = KerberosConfig
+    config_attr = "krb5_config"
 
-
-def create_server_threads(session: SessionConfig):
-    return (
-        [
-            ServerThread(session, KDCUDP),
-            ServerThread(session, KDCTCP),
-        ]
-        if session.kdc_enabled
-        else []
-    )
+    @override
+    def create_server_threads(self, session: SessionConfig) -> list[BaseServerThread]:
+        return (
+            [
+                ServerThread(session, session.krb5_config, KDCUDP),
+                ServerThread(session, session.krb5_config, KDCTCP),
+            ]
+            if session.kdc_enabled
+            else []
+        )
 
 
 def KRB5_Err(

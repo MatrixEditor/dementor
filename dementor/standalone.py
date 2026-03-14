@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: basic
+from rich.spinner import Spinner
 import asyncio
 import contextlib
 import tomllib
@@ -49,7 +50,7 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
 from dementor.log import dm_console, logger, stream as log_stream
 from dementor.log.logger import dm_logger
-from dementor.loader import ProtocolLoader
+from dementor.loader import ProtocolLoader, ProtocolManager
 from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
 from dementor.tui.repl import Repl
 
@@ -62,8 +63,9 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
+    run_repl: bool = False,
     extra_options: dict[str, Any] | None = None,
-) -> tuple | None:
+) -> SessionConfig | None:
     if config_path:
         try:
             config.init_from_file(config_path)
@@ -123,15 +125,8 @@ def serve(
 
     # Load protocols
     loader = ProtocolLoader()
-    protocols = {}
-    if not session.protocols:
-        session.protocols = loader.get_protocols(session)
-
-    for name, path in session.protocols.items():
-        protocol = loader.load_protocol(path)
-        protocols[name] = protocol
-        loader.apply_config(protocol, session)
-
+    session.manager = ProtocolManager(session, loader)
+    # REVISIT: ?
     if not supress_output:
         pass
 
@@ -139,48 +134,46 @@ def serve(
         session.loop = loop or asyncio.new_event_loop()
 
     asyncio.set_event_loop(session.loop)
-    threads: dict[str, list[Thread]] = {}
-    for name, protocol in protocols.items():
-        try:
-            servers = loader.create_servers(protocol, session)
-            threads[name.lower()] = list(servers)
-        except Exception as e:
-            dm_logger.exception(f"Failed to create server for protocol {name}: {e}")
-
-    # Start threads
-    for thread_list in threads.values():
-        for thread in thread_list:
-            thread.daemon = True
-            thread.start()
-
+    session.manager.create_threads()
+    session.manager.start_all()
     if run_forever:
         try:
             if run_repl:
-                Repl(session, threads, protocols).run()
+                Repl(session).run()
             else:
                 session.loop.run_forever()
         except KeyboardInterrupt:
             pass
         finally:
-            stop_session(session, threads)
+            stop_session(session)
 
-    return (session, threads)
+    return session
 
 
-def stop_session(
-    session: SessionConfig, threads: dict[str, list[Thread]] | None = None
-) -> None:
-    # 1. stop event loop
-    session.loop.stop()
+def stop_session(session: SessionConfig) -> None:
+    status = Console().status(
+        "[bold red]Shutting down - Ctrl+C to force...[/bold red]",
+        spinner="aesthetic",
+        spinner_style="red",
+    )
+    # if debug mode active, disable status
+    try:
+        status.start()
+        services = list(session.manager.started)
+        servce_count = len(services)
+        for i, name in enumerate(services):
+            status.update(
+                f"[bold red]Shutting down - Ctrl+C to force ({i}/{servce_count})...[/bold red] ([dim]{name}[/])"
+            )
+            session.manager.stop(name)
 
-    # 2. close threads
-    for thread_list in (threads or {}).values():
-        for thread in thread_list:
-            del thread
-
-    # 3. close database
-    session.db.close()
-    log_stream.close_streams(session)
+        session.loop.stop()
+        status.update("[bold red]Closing database...[/bold red]")
+        session.db.close()
+        status.update("[bold red]Closing log streams...[/bold red]")
+        log_stream.close_streams(session)
+    finally:
+        status.stop()
 
 
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
@@ -497,7 +490,7 @@ def main(
     workspace_path = pathlib.Path(session.workspace_path)
     workspace_path.mkdir(parents=True, exist_ok=True)
 
-    session.protocols = loader.get_protocols(session)
+    session.protocols = loader.resolve_protocols(session)
     if not quiet:
         main_print_options(session, interface, config_path)
 

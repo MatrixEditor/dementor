@@ -54,6 +54,7 @@ if typing.TYPE_CHECKING:
     from dementor.protocols.msrpc import rpc
     from dementor.db.model import DementorDB
     from dementor.db.connector import DatabaseConfig
+    from dementor.loader import ProtocolManager
 
 
 class SessionConfig(TomlConfig):
@@ -97,7 +98,8 @@ class SessionConfig(TomlConfig):
         ipv6: str | None
         ipv4: str | None
         interface: str | None
-        protocols: dict[str, Any]
+        protocols: dict[str, str]
+        manager: ProtocolManager
 
         db: DementorDB
         db_config: DatabaseConfig

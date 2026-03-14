@@ -36,13 +36,9 @@ class Repl:
     def __init__(
         self,
         session: SessionConfig,
-        tasks: list[ServerThread],
-        protocols: dict[str, ProtocolModule],
     ) -> None:
         self.session: SessionConfig = session
         self.prompt_session: PromptSession[str] = PromptSession()
-        self.tasks: list[ServerThread] = tasks
-        self.protocols: dict[str, ProtocolModule] = protocols
         self.console: Console = Console()
 
     def get_prompt(self):

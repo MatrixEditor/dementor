@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import ssl
 import typing
 
@@ -46,6 +48,7 @@ from dementor.servers import (
     ThreadingUDPServer,
     BaseProtoHandler,
     ServerThread,
+    BaseServerThread,
 )
 from dementor.db import _CLEARTEXT
 from dementor.protocols.ntlm import (
@@ -56,6 +59,8 @@ from dementor.protocols.ntlm import (
     ATTR_NTLM_DISABLE_ESS,
     ATTR_NTLM_DISABLE_NTLMV2,
 )
+
+__proto__ = ["LDAP"]
 
 # Taken from Microsoft's spec:
 # - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/3ed61e6c-cfdc-487d-9f02-5a3397be3772
@@ -127,30 +132,25 @@ class LDAPServerConfig(TomlConfig):
             self.ldap_error_code = ResultCode.namedValues[str(value)]
 
 
-def apply_config(session: SessionConfig) -> None:
-    session.ldap_config = (
-        [
-            LDAPServerConfig(server_config)
-            for server_config in get_value("LDAP", "Server", default=[])
-        ]
-        if session.ldap_enabled
-        else []
-    )
+class LDAP(BaseProtocolModule[LDAPServerConfig]):
+    name: str = "LDAP"
+    config_ty = LDAPServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
 
-
-def create_server_threads(session: SessionConfig):
-    servers: list[ServerThread] = []
-    for config in session.ldap_config if session.ldap_enabled else []:
-        server_cls = CLDAPServer if config.ldap_udp else LDAPServer
-        servers.append(
-            ServerThread(
-                session,
-                server_cls,
-                server_address=("", config.ldap_port),
-                server_config=config,
-            )
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: LDAPServerConfig
+    ) -> BaseServerThread:
+        server_cls = CLDAPServer if server_config.ldap_udp else LDAPServer
+        return ServerThread(
+            session,
+            server_config,
+            server_cls,
+            server_address=(session.bind_address, server_config.ldap_port),
+            include_server_config=True,
         )
-    return servers
 
 
 class LDAPTerminateSession(Exception):

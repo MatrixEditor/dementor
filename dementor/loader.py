@@ -17,6 +17,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from typing_extensions import TypeVar
+from dementor.log.logger import dm_logger
+import pathlib
+from dementor.config.util import get_value
 from dementor.config.toml import TomlConfig
 
 import os
@@ -25,6 +29,7 @@ import types
 import typing
 import dementor
 
+from typing import Generic
 from importlib.machinery import SourceFileLoader
 
 
@@ -55,27 +60,44 @@ Returns a list of `threading.Thread` instances configured to run protocol server
 # --------------------------------------------------------------------------- #
 # Structural protocol used for static type checking
 # --------------------------------------------------------------------------- #
-class BaseProtocolModule:
+DEFAULT_ATTR = "<DEFAULT>"
+
+_ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig, default=TomlConfig)
+
+
+class BaseProtocolModule(Generic[_ConfigTy]):
     name: str
-    config_ty: type[TomlConfig] | None
+    config_ty: type[_ConfigTy] | None
     config_attr: str | None
     config_enabled_attr: str | None
     config_list: bool
+    poisoner: bool = False
+    server_ty: type | None = None
+
+    def _get_config_attr(self) -> str | None:
+        attr = getattr(self, "config_attr", None)
+        if attr == DEFAULT_ATTR:
+            attr = f"{self.name.lower()}_config"
+        return attr
+
+    def _get_config_enabled_attr(self) -> str | None:
+        attr = getattr(self, "config_enabled_attr", None)
+        if attr == DEFAULT_ATTR:
+            attr = f"{self.name.lower()}_enabled"
+        return attr
 
     def apply_config(self, session: SessionConfig) -> None:
         config_ty = getattr(self, "config_ty", None)
-        config_attr = getattr(self, "config_attr", None)
+        config_attr = self._get_config_attr()
+
         if config_ty is not None and config_attr is not None:
             config_is_list = getattr(self, "config_list", False)
             if config_is_list:
-                config = list(
-                    map(
-                        lambda cfg: config_ty.build_config(cfg),
-                        getattr(session, config_attr, []),
-                    )
-                )
+                config = [
+                    config_ty(cfg) for cfg in get_value(config_ty._section_, "Server", [])
+                ]
             else:
-                config = config_ty.build_config(session)
+                config = TomlConfig.build_config(config_ty)
 
             setattr(session, config_attr, config)
         else:
@@ -84,22 +106,26 @@ class BaseProtocolModule:
             )
 
     def create_server_thread(
-        self, session: SessionConfig, server_config: TomlConfig
+        self, session: SessionConfig, server_config: _ConfigTy
     ) -> BaseServerThread:
+        server_ty: type | None = getattr(self, "server_ty", None)
+        if server_ty is not None:
+            return ServerThread(session, server_config, server_ty)
+
         raise NotImplementedError(
             "create_server_thread must be implemented by protocol modules"
         )
 
     def create_server_threads(self, session: SessionConfig) -> list[BaseServerThread]:
-        config_attr: str | None = getattr(self, "config_attr", None)
-        config_enabled_attr: str | None = getattr(self, "config_enabled_attr", None)
+        config_attr: str | None = self._get_config_attr()
+        config_enabled_attr: str | None = self._get_config_enabled_attr()
         if config_enabled_attr is not None and not getattr(
             session, config_enabled_attr, False
         ):
             return []
 
         if config_attr is not None:
-            config: TomlConfig | list[TomlConfig] | None = getattr(
+            config: _ConfigTy | list[_ConfigTy] | None = getattr(
                 session, config_attr, None
             )
             threads = []
@@ -111,10 +137,10 @@ class BaseProtocolModule:
                 else:
                     threads.append(self.create_server_thread(session, config))
             return threads
-        else:
-            raise NotImplementedError(
-                "create_server_threads must be implemented by protocol modules if config_attr is not set"
-            )
+
+        raise NotImplementedError(
+            "create_server_threads must be implemented by protocol modules if config_attr is not set"
+        )
 
 
 class ProtocolModule(typing.Protocol):
@@ -131,9 +157,8 @@ class ProtocolModule(typing.Protocol):
     :vartype create_server_threads: CreateServersFunc | None
     """
 
-    config: "ProtocolModule | None"
+    __proto__: list[str | type[BaseProtocolModule]]
     apply_config: ApplyConfigFunc | None
-    create_server_threads: CreateServersFunc | None
 
 
 class ProtocolLoader:
@@ -164,7 +189,7 @@ class ProtocolLoader:
     # --------------------------------------------------------------------- #
     # Loading helpers
     # --------------------------------------------------------------------- #
-    def load_protocol(self, protocol_path: str) -> types.ModuleType:
+    def load_protocol(self, protocol_path: str) -> ProtocolModule:
         """Dynamically load a protocol module from a Python file.
 
         Uses `SourceFileLoader` to import the module without requiring it to be in `sys.path`.
@@ -175,7 +200,8 @@ class ProtocolLoader:
         :rtype: types.ModuleType
         :raises ImportError: If module cannot be loaded.
         """
-        loader = SourceFileLoader("protocol", protocol_path)
+        path = pathlib.Path(protocol_path)
+        loader = SourceFileLoader(f"protocol.{path.stem}", protocol_path)
         protocol = types.ModuleType(loader.name)
         loader.exec_module(protocol)
         return protocol
@@ -183,7 +209,7 @@ class ProtocolLoader:
     # --------------------------------------------------------------------- #
     # Discovery helpers
     # --------------------------------------------------------------------- #
-    def get_protocols(
+    def resolve_protocols(
         self,
         session: SessionConfig | None = None,
     ) -> dict[str, str]:
@@ -230,6 +256,46 @@ class ProtocolLoader:
 
         return protocols
 
+    def create_protocols(
+        self, paths: dict[str, str], session: SessionConfig
+    ) -> dict[str, BaseProtocolModule]:
+        """Load and instantiate protocol modules based on session configuration.
+
+        :param session: Session configuration containing protocol paths.
+        :type session: SessionConfig
+        :return: Dict mapping protocol name to instantiated module object.
+        :rtype: dict[str, BaseProtocolModule]
+        """
+        protocols: dict[str, BaseProtocolModule] = {}
+        for path in paths.values():
+            module = self.load_protocol(path)
+            if hasattr(module, "apply_config"):
+                apply_config_fn: ApplyConfigFunc | None = getattr(
+                    module, "apply_config", None
+                )
+                if not callable(apply_config_fn):
+                    raise TypeError(f"apply_config in {path} must be a callable function")
+
+                apply_config_fn(session)
+
+            for protocol_ty_name in getattr(module, "__proto__", []):
+                protocol_ty = getattr(module, protocol_ty_name, None)
+                if isinstance(protocol_ty_name, type):
+                    protocol_ty = protocol_ty_name
+
+                if protocol_ty is not None and issubclass(
+                    protocol_ty, BaseProtocolModule
+                ):
+                    protocol = protocol_ty()
+                    if protocol.name in protocols:
+                        raise ValueError(
+                            f"Duplicate protocol name '{protocol.name}' found in {path}"
+                        )
+
+                    protocol.apply_config(session)
+                    protocols[protocol.name] = protocol
+        return protocols
+
     # --------------------------------------------------------------------- #
     # Hook dispatchers
     # --------------------------------------------------------------------- #
@@ -257,7 +323,7 @@ class ProtocolLoader:
 
     def create_servers(
         self,
-        protocol: ProtocolModule,
+        protocol: BaseProtocolModule,
         session: SessionConfig,
     ) -> list[BaseServerThread]:
         """Create and return server threads for the given protocol.
@@ -271,18 +337,7 @@ class ProtocolLoader:
         :return: List of thread objects ready to be started.
         :rtype: list[BaseServerThread]
         """
-        create_server_threads: CreateServersFunc | None = getattr(
-            protocol,
-            "create_server_threads",
-            None,
-        )
-
-        if create_server_threads is None:
-            return []
-
-        # Defensive conversion to list in case the protocol returns a tuple,
-        # generator or other iterable.
-        return list(create_server_threads(session))
+        return protocol.create_server_threads(session)
 
 
 class ProtocolManager:
@@ -303,25 +358,25 @@ class ProtocolManager:
         """
         self.session: SessionConfig = session
         self.loader: ProtocolLoader = loader or ProtocolLoader()
-        self.protocols: dict[str, ProtocolModule] = {}
         if not session.protocols:
-            session.protocols = self.loader.get_protocols(session)
+            session.protocols = self.loader.resolve_protocols(session)
 
-        for name, path in session.protocols.items():
-            protocol = self.loader.load_protocol(path)
-            self.protocols[name] = protocol
-            self.loader.apply_config(protocol, session)
-
+        self.protocols: dict[str, BaseProtocolModule] = self.loader.create_protocols(
+            session.protocols, session
+        )
         self.threads: dict[str, list[BaseServerThread]] = {}
+        self.started: set[str] = set()
+
+    def create_threads(self) -> None:
+        """Create server threads for all loaded protocols."""
         for name, protocol in self.protocols.items():
             try:
-                servers = self.loader.create_servers(protocol, session)
+                servers = self.loader.create_servers(protocol, self.session)
                 self.threads[name.lower()] = list(servers)
             except Exception as e:
                 # Log error if needed, but for now pass
-                pass
-
-        self.started: set[str] = set()
+                dm_logger.error(f"Error creating servers for protocol '{name}': {e}")
+                self.threads[name.lower()] = []
 
     def start_all(self) -> None:
         """Start all protocol services."""
@@ -378,32 +433,6 @@ class ProtocolManager:
                 thread.shutdown()
                 thread.join(timeout)
         self.started.discard(name)
-
-    def get_details(self, protocol_name: str) -> dict[str, typing.Any]:
-        """Get details about a protocol module.
-
-        :param protocol_name: Name of the protocol.
-        :type protocol_name: str
-        :return: Dictionary with protocol details.
-        :rtype: dict[str, typing.Any]
-        :raises ValueError: If protocol not found.
-        """
-        name = protocol_name.lower()
-        if name not in self.protocols:
-            raise ValueError(f"Protocol '{protocol_name}' not found")
-        protocol = self.protocols[name]
-        path = self.session.protocols.get(name, "")
-        thread_list = self.threads.get(name, [])
-        return {
-            "name": name,
-            "path": path,
-            "thread_count": len(thread_list),
-            "running": name in self.started,
-            "has_apply_config": hasattr(protocol, "apply_config")
-            and protocol.apply_config is not None,
-            "has_create_servers": hasattr(protocol, "create_server_threads")
-            and protocol.create_server_threads is not None,
-        }
 
     def list_protocols(self) -> list[str]:
         """List all available protocol names.

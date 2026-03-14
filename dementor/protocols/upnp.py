@@ -20,6 +20,8 @@
 # pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
+from typing_extensions import override
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 import contextlib
 import posixpath
 import socket
@@ -45,27 +47,12 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import random_value
 from dementor.log.logger import ProtocolLogger, dm_logger
-from dementor.servers import ServerThread, bind_server
+from dementor.servers import ServerThread, bind_server, BaseServerThread
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.db import normalize_client_address
 
 
-def apply_config(session: SessionConfig):
-    session.upnp_config = TomlConfig.build_config(UPNPConfig)
-
-
-def create_server_threads(
-    session: SessionConfig,
-) -> Generator[ServerThread, typing.Any, None]:
-    if session.upnp_enabled:
-        yield ServerThread(
-            session,
-            UPnPServer,
-            server_address=(
-                session.bind_address,
-                session.upnp_config.upnp_port,
-            ),
-        )
+__proto__ = ["UPnP"]
 
 
 class UPNPConfig(TomlConfig):
@@ -116,6 +103,27 @@ class UPNPConfig(TomlConfig):
             upnp_template = str(pathlib.Path(HTTP_TEMPLATES_PATH) / "upnp-default")
 
         self.upnp_template = upnp_template
+
+
+class UPnP(BaseProtocolModule[UPNPConfig]):
+    name: str = "UPnP"
+    config_ty = UPNPConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: UPNPConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            UPnPServer,
+            server_address=(
+                session.bind_address,
+                session.upnp_config.upnp_port,
+            ),
+        )
 
 
 # --- Simple UPnP HTTP server ---
