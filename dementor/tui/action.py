@@ -20,7 +20,7 @@
 # pyright: basic
 import argparse
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
@@ -41,6 +41,7 @@ class ReplAction(ABC):
     def get_parser(self) -> argparse.ArgumentParser | None:
         return None
 
+    @abstractmethod
     def execute(self, argv: argparse.Namespace) -> None:
         pass
 

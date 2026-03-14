@@ -20,6 +20,7 @@
 # pyright: reportUninitializedInstanceVariable=false
 # References:
 #   - [UPnPARCH] https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf
+from dementor.loader import BaseProtocolModule
 import email.message
 import io
 import typing
@@ -39,6 +40,8 @@ from dementor.servers import (
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
+
+
 
 
 def apply_config(session: SessionConfig):
@@ -83,6 +86,12 @@ class SSDPConfig(TomlConfig):
         ssdp_extra_headers: list[str]
         ssdp_max_age: int
 
+
+class SSDP(BaseProtocolModule):
+    name = "SSDP"
+    config_ty = SSDPConfig
+    config_attr = "ssdp_config"
+    server_thread_ty = ServerThread
 
 # --- Protocol implementation ---
 

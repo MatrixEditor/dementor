@@ -42,6 +42,7 @@ dependencies = [
     "typing-extensions",
     "caterpillar-py>=2.8.1",
     "pyipp",
+    "prompt_toolkit",
 ]
 
 [project.scripts]
@@ -96,7 +97,8 @@ select = [
 ignore = [
     "E501",
     "I001",
-    "B010"
+    "B010",
+    "UP037",
 ]
 
 [tool.ruff.format]

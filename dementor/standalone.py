@@ -24,6 +24,7 @@ import json
 import typer
 import pathlib
 
+from threading import Thread
 from typing import Any, Annotated
 
 from impacket.version import version as ImpacketVersion

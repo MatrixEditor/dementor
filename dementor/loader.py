@@ -17,16 +17,20 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dementor.config.toml import TomlConfig
+
 import os
 import threading
 import types
 import typing
+import dementor
 
 from importlib.machinery import SourceFileLoader
 
-import dementor
+
 from dementor.config.session import SessionConfig
 from dementor.paths import DEMENTOR_PATH
+from dementor.servers import BaseServerThread, ServerThread
 
 # --------------------------------------------------------------------------- #
 # Type aliases for the optional protocol entry‑points
@@ -39,10 +43,10 @@ Signature: `apply_config(session: SessionConfig) -> None`
 Used by protocol modules to customize global configuration based on protocol-specific needs.
 """
 
-CreateServersFunc = typing.Callable[[SessionConfig], list[threading.Thread]]
+CreateServersFunc = typing.Callable[[SessionConfig], list[BaseServerThread]]
 """Type alias for function that creates server threads for a protocol.
 
-Signature: `create_server_threads(session: SessionConfig) -> list[threading.Thread]`
+Signature: `create_server_threads(session: SessionConfig) -> list[BaseServerThread]`
 
 Returns a list of `threading.Thread` instances configured to run protocol servers.
 """
@@ -51,6 +55,68 @@ Returns a list of `threading.Thread` instances configured to run protocol server
 # --------------------------------------------------------------------------- #
 # Structural protocol used for static type checking
 # --------------------------------------------------------------------------- #
+class BaseProtocolModule:
+    name: str
+    config_ty: type[TomlConfig] | None
+    config_attr: str | None
+    config_enabled_attr: str | None
+    config_list: bool
+
+    def apply_config(self, session: SessionConfig) -> None:
+        config_ty = getattr(self, "config_ty", None)
+        config_attr = getattr(self, "config_attr", None)
+        if config_ty is not None and config_attr is not None:
+            config_is_list = getattr(self, "config_list", False)
+            if config_is_list:
+                config = list(
+                    map(
+                        lambda cfg: config_ty.build_config(cfg),
+                        getattr(session, config_attr, []),
+                    )
+                )
+            else:
+                config = config_ty.build_config(session)
+
+            setattr(session, config_attr, config)
+        else:
+            raise NotImplementedError(
+                "apply_config must be implemented by protocol modules if config_ty and config_attr are not set"
+            )
+
+    def create_server_thread(
+        self, session: SessionConfig, server_config: TomlConfig
+    ) -> BaseServerThread:
+        raise NotImplementedError(
+            "create_server_thread must be implemented by protocol modules"
+        )
+
+    def create_server_threads(self, session: SessionConfig) -> list[BaseServerThread]:
+        config_attr: str | None = getattr(self, "config_attr", None)
+        config_enabled_attr: str | None = getattr(self, "config_enabled_attr", None)
+        if config_enabled_attr is not None and not getattr(
+            session, config_enabled_attr, False
+        ):
+            return []
+
+        if config_attr is not None:
+            config: TomlConfig | list[TomlConfig] | None = getattr(
+                session, config_attr, None
+            )
+            threads = []
+            if config is not None:
+                if isinstance(config, list):
+                    threads.extend(
+                        [self.create_server_thread(session, cfg) for cfg in config]
+                    )
+                else:
+                    threads.append(self.create_server_thread(session, config))
+            return threads
+        else:
+            raise NotImplementedError(
+                "create_server_threads must be implemented by protocol modules if config_attr is not set"
+            )
+
+
 class ProtocolModule(typing.Protocol):
     """Protocol defining the expected interface for a Dementor protocol module.
 
@@ -193,7 +259,7 @@ class ProtocolLoader:
         self,
         protocol: ProtocolModule,
         session: SessionConfig,
-    ) -> list[threading.Thread]:
+    ) -> list[BaseServerThread]:
         """Create and return server threads for the given protocol.
 
         Looks for `create_server_threads(session)` function. Returns empty list if not defined.
@@ -203,7 +269,7 @@ class ProtocolLoader:
         :param session: Session configuration for server setup.
         :type session: SessionConfig
         :return: List of thread objects ready to be started.
-        :rtype: list[threading.Thread]
+        :rtype: list[BaseServerThread]
         """
         create_server_threads: CreateServersFunc | None = getattr(
             protocol,
@@ -217,3 +283,146 @@ class ProtocolLoader:
         # Defensive conversion to list in case the protocol returns a tuple,
         # generator or other iterable.
         return list(create_server_threads(session))
+
+
+class ProtocolManager:
+    """Manages loaded protocol modules for a session.
+
+    Provides methods to start and stop protocol services, and retrieve details about each module.
+    """
+
+    def __init__(
+        self, session: SessionConfig, loader: ProtocolLoader | None = None
+    ) -> None:
+        """Initialize the manager with a session.
+
+        Sets up protocols and threads for the session.
+
+        :param session: Session configuration.
+        :type session: SessionConfig
+        """
+        self.session: SessionConfig = session
+        self.loader: ProtocolLoader = loader or ProtocolLoader()
+        self.protocols: dict[str, ProtocolModule] = {}
+        if not session.protocols:
+            session.protocols = self.loader.get_protocols(session)
+
+        for name, path in session.protocols.items():
+            protocol = self.loader.load_protocol(path)
+            self.protocols[name] = protocol
+            self.loader.apply_config(protocol, session)
+
+        self.threads: dict[str, list[BaseServerThread]] = {}
+        for name, protocol in self.protocols.items():
+            try:
+                servers = self.loader.create_servers(protocol, session)
+                self.threads[name.lower()] = list(servers)
+            except Exception as e:
+                # Log error if needed, but for now pass
+                pass
+
+        self.started: set[str] = set()
+
+    def start_all(self) -> None:
+        """Start all protocol services."""
+        for name, thread_list in self.threads.items():
+            self._start_protocol(name, thread_list)
+
+    def start(self, protocol_name: str) -> None:
+        """Start a specific protocol service.
+
+        :param protocol_name: Name of the protocol to start.
+        :type protocol_name: str
+        :raises ValueError: If protocol not found.
+        """
+        if protocol_name.lower() not in self.threads:
+            raise ValueError(f"Protocol '{protocol_name}' not found")
+        thread_list = self.threads[protocol_name.lower()]
+        self._start_protocol(protocol_name.lower(), thread_list)
+
+    def _start_protocol(self, name: str, thread_list: list[BaseServerThread]) -> None:
+        """Internal method to start threads for a protocol."""
+        if name in self.started:
+            return  # Already started
+        for thread in thread_list:
+            thread.daemon = True
+            thread.start()
+        self.started.add(name)
+
+    def stop_all(self, timeout: float = 5.0) -> None:
+        """Stop all protocol services.
+
+        :param timeout: Timeout in seconds to wait for threads to stop.
+        :type timeout: float
+        """
+        for name in list(self.started):
+            self.stop(name, timeout)
+
+    def stop(self, protocol_name: str, timeout: float = 5.0) -> None:
+        """Stop a specific protocol service.
+
+        :param protocol_name: Name of the protocol to stop.
+        :type protocol_name: str
+        :param timeout: Timeout in seconds to wait for threads to stop.
+        :type timeout: float
+        :raises ValueError: If protocol not found or not started.
+        """
+        name = protocol_name.lower()
+        if name not in self.threads:
+            raise ValueError(f"Protocol '{protocol_name}' not found")
+        if name not in self.started:
+            return  # Not started
+        thread_list = self.threads[name]
+        for thread in thread_list:
+            if thread.is_alive():
+                thread.shutdown()
+                thread.join(timeout)
+        self.started.discard(name)
+
+    def get_details(self, protocol_name: str) -> dict[str, typing.Any]:
+        """Get details about a protocol module.
+
+        :param protocol_name: Name of the protocol.
+        :type protocol_name: str
+        :return: Dictionary with protocol details.
+        :rtype: dict[str, typing.Any]
+        :raises ValueError: If protocol not found.
+        """
+        name = protocol_name.lower()
+        if name not in self.protocols:
+            raise ValueError(f"Protocol '{protocol_name}' not found")
+        protocol = self.protocols[name]
+        path = self.session.protocols.get(name, "")
+        thread_list = self.threads.get(name, [])
+        return {
+            "name": name,
+            "path": path,
+            "thread_count": len(thread_list),
+            "running": name in self.started,
+            "has_apply_config": hasattr(protocol, "apply_config")
+            and protocol.apply_config is not None,
+            "has_create_servers": hasattr(protocol, "create_server_threads")
+            and protocol.create_server_threads is not None,
+        }
+
+    def list_protocols(self) -> list[str]:
+        """List all available protocol names.
+
+        :return: List of protocol names.
+        :rtype: list[str]
+        """
+        return list(self.protocols.keys())
+
+    def is_running(self, protocol_name: str) -> bool:
+        """Check if a protocol is running.
+
+        :param protocol_name: Name of the protocol.
+        :type protocol_name: str
+        :return: True if running, False otherwise.
+        :rtype: bool
+        :raises ValueError: If protocol not found.
+        """
+        name = protocol_name.lower()
+        if name not in self.protocols:
+            raise ValueError(f"Protocol '{protocol_name}' not found")
+        return name in self.started

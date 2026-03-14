@@ -9,3 +9,4 @@ typer
 jinja2
 caterpillar-py==2.8.1
 pyipp==0.17.1
+prompt_toolkit

@@ -39,6 +39,7 @@ from jinja2.loaders import FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 from jinja2 import select_autoescape
 
+
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import random_value

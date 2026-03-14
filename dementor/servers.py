@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportAny=false, reportExplicitAny=false
+from dementor.config.toml import TomlConfig
+from asyncio import Task
 import traceback
 import pathlib
 import socket
@@ -29,7 +31,7 @@ import errno
 import sys
 
 from io import StringIO
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Generic, TypeVar
 from socketserver import BaseRequestHandler
 from typing_extensions import override
 
@@ -38,6 +40,75 @@ from dementor.log import hexdump
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.log.stream import log_host
 from dementor.config.session import SessionConfig
+
+_ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig)
+
+class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
+    """Base thread class for running protocol servers with graceful shutdown support."""
+
+    def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
+        self.config: SessionConfig = config
+        self.server_config: _ConfigTy = server_config
+        super().__init__(daemon=False)
+
+    def get_service_name(self) -> str:
+        """Get the service name for logging purposes.
+
+        This method should be overridden by subclasses to provide a specific service name.
+        :return: Service name string
+        :rtype: str
+        """
+        raise NotImplementedError("get_service_name must be implemented by subclasses")
+
+    @property
+    def service_name(self) -> str:
+        """Get the service name from server class or use class name as fallback.
+
+        :return: Service name.
+        :rtype: str
+        """
+        return self.get_service_name()
+
+
+    def shutdown(self) -> None:
+        """Gracefully shutdown the server thread."""
+        pass  # To be implemented by subclasses if needed
+
+
+class AsyncServerThread(BaseServerThread):
+    """Thread class for running asynchronous protocol servers (e.g., asyncio-based).
+
+    This is a placeholder for future async server implementations. It currently
+    does not implement any specific async server logic but can be extended to
+    support asyncio event loops and async server classes.
+    """
+
+    def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
+        super().__init__(config, server_config)
+        self._task: Task[None] | None = None
+
+    @property
+    def task(self) -> Task[None]:
+        """Get the asyncio Task running the server.
+
+        :return: The asyncio Task instance for the server.
+        :rtype: Task[None] | None
+        """
+        if not self._task:
+            raise ValueError("Async server task has not been started yet")
+
+        return self._task
+
+    async def arun(self) -> None:
+        """Asynchronous run method to start the server.
+
+        This method should be overridden to implement the actual async server logic.
+        """
+        pass  # To be implemented with async server logic in the future
+
+    def run(self) -> None:
+        """Start the asynchronous server."""
+        self._task = self.config.loop.create_task(self.arun())
 
 
 class ServerThread(threading.Thread):
