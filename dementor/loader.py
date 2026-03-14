@@ -17,25 +17,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing_extensions import TypeVar
-from dementor.log.logger import dm_logger
-import pathlib
-from dementor.config.util import get_value
-from dementor.config.toml import TomlConfig
-
 import os
-import threading
 import types
 import typing
+import pathlib
 import dementor
 
 from typing import Generic
+from typing_extensions import TypeVar
 from importlib.machinery import SourceFileLoader
 
-
+from dementor.config.util import get_value
+from dementor.config.toml import TomlConfig
 from dementor.config.session import SessionConfig
 from dementor.paths import DEMENTOR_PATH
 from dementor.servers import BaseServerThread, ServerThread
+from dementor.log.logger import dm_logger
 
 # --------------------------------------------------------------------------- #
 # Type aliases for the optional protocol entry‑points
@@ -143,7 +140,7 @@ class BaseProtocolModule(Generic[_ConfigTy]):
         )
 
 
-class ProtocolModule(typing.Protocol):
+class ProtocolModuleType(typing.Protocol):
     """Protocol defining the expected interface for a Dementor protocol module.
 
     Modules must expose at least one of `apply_config` or `create_server_threads`.
@@ -189,7 +186,7 @@ class ProtocolLoader:
     # --------------------------------------------------------------------- #
     # Loading helpers
     # --------------------------------------------------------------------- #
-    def load_protocol(self, protocol_path: str) -> ProtocolModule:
+    def load_protocol(self, protocol_path: str) -> ProtocolModuleType:
         """Dynamically load a protocol module from a Python file.
 
         Uses `SourceFileLoader` to import the module without requiring it to be in `sys.path`.
@@ -299,28 +296,6 @@ class ProtocolLoader:
     # --------------------------------------------------------------------- #
     # Hook dispatchers
     # --------------------------------------------------------------------- #
-    def apply_config(self, protocol: ProtocolModule, session: SessionConfig) -> None:
-        """Apply protocol-specific configuration to the session.
-
-        Looks for `apply_config(session)` function. If not found, checks for a nested `config` submodule
-        and recursively applies its config.
-
-        :param protocol: Loaded protocol module.
-        :type protocol: ProtocolModule
-        :param session: Session configuration to modify.
-        :type session: SessionConfig
-        """
-        apply_config_fn: ApplyConfigFunc | None = getattr(protocol, "apply_config", None)
-
-        if apply_config_fn is not None:
-            # signature is: apply_config(session: SessionConfig)
-            apply_config_fn(session)
-        # Fallback to a nested config module, if present.
-        elif hasattr(protocol, "config"):
-            config_mod: ProtocolModule | None = protocol.config
-            if config_mod is not None:
-                self.apply_config(config_mod, session)
-
     def create_servers(
         self,
         protocol: BaseProtocolModule,

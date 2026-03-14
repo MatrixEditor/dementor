@@ -315,12 +315,12 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
         config_paths.append(config_path)
 
     console.print("[bold]Configuration Paths:[/]")
-    console.print(main_format_config("DB Directory", f"{session.workspace_path}"))
-    console.print(main_format_config("Config Paths", f"[0] {config_paths[0]}"))
+    console.print(main_format_config("DB Directory", f"[white]{session.workspace_path}[/]"))
+    console.print(main_format_config("Config Paths", f"[0] [white]{config_paths[0]}[/]"))
     pos = 1
     for extra_config_path in config_paths[1:]:
         if pathlib.Path(extra_config_path).exists():
-            console.print(" " * 39 + f"[{pos}] {extra_config_path}")
+            console.print(" " * 39 + f"[{pos}] [white]{extra_config_path}[/]")
             pos += 1
 
     console.rule(style="white", title="Log")
