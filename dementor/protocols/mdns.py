@@ -151,9 +151,12 @@ class MDNSPoisoner(BaseProtoHandler):
                 qclass = dns.dnsclasses.get(question.qclass)
                 # only .local names are targets
                 normalized_qname = normalized_name(qname)
-                if "._tcp" not in normalized_qname and "._udp" not in normalized_qname:
-                    if not normalized_qname.endswith(".arpa"):
-                        log_to("dns", type="MDNS", name=normalized_qname)
+                if (
+                    "._tcp" not in normalized_qname
+                    and "._udp" not in normalized_qname
+                    and not normalized_qname.endswith(".arpa")
+                ):
+                    log_to("dns", type="MDNS", name=normalized_qname)
 
                 name = markup.escape(normalized_qname)
                 self.logger.display(
@@ -167,8 +170,7 @@ class MDNSPoisoner(BaseProtoHandler):
                 # REVISIT: maybe log ignored requests
                 else:
                     self.logger.debug(
-                        f"Ignoring request for {name} (class: {qclass}, "
-                        + f"type: {qtype})"
+                        f"Ignoring request for {name} (class: {qclass}, type: {qtype})"
                     )
 
     def send_poisoned_answer(

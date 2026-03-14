@@ -99,7 +99,6 @@ class LoggingStream(Generic[_T]):
 
         :param kwargs: Contextual data (e.g., `ip`, `type`, `value`).
         """
-        pass
 
     @classmethod
     def start(cls, session: SessionConfig) -> None:
@@ -270,10 +269,9 @@ class DNSNamesStream(LoggingFileStream[DNSNamesStreamConfig]):
         """
         name = kwargs.get("type")
         query = kwargs.get("name")
-        if name and query:
-            if query not in self.hosts[name]:
-                self.write_columns(name, query)
-                self.hosts[name].add(query)
+        if name and query and query not in self.hosts[name]:
+            self.write_columns(name, query)
+            self.hosts[name].add(query)
 
 
 class HashesStreamConfig(TomlConfig):

@@ -128,12 +128,14 @@ class LDAPServerConfig(TomlConfig):
 
 
 def apply_config(session: SessionConfig) -> None:
-    ldap_config: list[LDAPServerConfig] = []
-    if session.ldap_enabled:
-        for server_config in get_value("LDAP", "Server", default=[]):
-            ldap_config.append(LDAPServerConfig(server_config))
-
-    session.ldap_config = ldap_config
+    session.ldap_config = (
+        [
+            LDAPServerConfig(server_config)
+            for server_config in get_value("LDAP", "Server", default=[])
+        ]
+        if session.ldap_enabled
+        else []
+    )
 
 
 def create_server_threads(session: SessionConfig):
@@ -284,7 +286,7 @@ class LDAPHandler(BaseProtoHandler):
                 )
             )
 
-        elif data[8] == 0x03:  # AUTH
+        if data[8] == 0x03:  # AUTH
             token = ntlm.NTLMAuthChallengeResponse()
             token.fromString(data)
             NTLM_report_auth(
@@ -323,7 +325,7 @@ class LDAPHandler(BaseProtoHandler):
             search_filter.getName() == "present"
             and str(search_filter.getComponent()).lower() == "objectclass"
         ):
-            attrs = list(map(lambda x: str(x).lower(), search_req["attributes"]))
+            attrs = [str(x).lower() for x in search_req["attributes"]]
             if "supportedcapabilities" in attrs:
                 # only respond to supportedCapabilities
                 response.append(self.server.list_capabilities(message))
@@ -367,9 +369,9 @@ class LDAPHandler(BaseProtoHandler):
         except Exception as e:
             self.logger.fail("Received invalid LDAP - terminating connection...")
             self.logger.debug(
-                f"Invalid LDAP packet: {str(e.__class__)}\n{hexdump.hexdump(data) if data else '<no-data>'}"
+                f"Invalid LDAP packet: {e.__class__!s}\n{hexdump.hexdump(data) if data else '<no-data>'}"
             )
-            return
+            return None
 
         return message
 

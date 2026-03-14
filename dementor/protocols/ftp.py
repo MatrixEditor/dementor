@@ -19,6 +19,7 @@
 # SOFTWARE.
 # pyright: reportUninitializedInstanceVariable=false
 # pyright: reportAny=false, reportExplicitAny=false
+import contextlib
 import typing
 
 from socket import socket
@@ -85,10 +86,7 @@ def apply_config(session: SessionConfig) -> None:
 
 
 def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    """
-    Build a list of :class:`ServerThread` objects - one per configured FTP
-    server - and return it.  The caller is responsible for starting each
-    thread.
+    """Build :class:`ServerThread` objects for each configured FTP server.
 
     :param session: Session containing the ``ftp_config`` list.
     :type session: :class:`dementor.config.session.SessionConfig`
@@ -145,9 +143,7 @@ class FTPHandler(BaseProtoHandler):
     # ------------------------------------------------------------------- #
     @override
     def handle_data(self, data: bytes | None, transport: socket) -> None:
-        """
-        Process client commands after a TCP connection is accepted.
-        """
+        """Process client commands after a TCP connection is accepted."""
         # -----------------------------------------------------------------
         # 1. Send the initial greeting as required by RFC-959.
         # -----------------------------------------------------------------
@@ -209,10 +205,8 @@ class FTPHandler(BaseProtoHandler):
 
         # Send a polite closing message before the socket is closed by the
         # server framework (optional, but makes the dialogue look more genuine).
-        try:
+        with contextlib.suppress(Exception):
             self.reply(221)
-        except Exception:
-            pass  # Silently ignore errors during shutdown.
 
     # ------------------------------------------------------------------- #
     # Helper to send a reply line.
