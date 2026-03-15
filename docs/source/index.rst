@@ -52,9 +52,28 @@ Getting Started
 
 You can simply install Dementor using ``pip`` or directly from source!
 
-.. code-block:: bash
+.. tab-set::
 
-   pip install dementor
+   .. tab-item:: pip
+
+      .. code-block:: bash
+
+         pip install dementor
+
+   .. tab-item:: pipx
+
+      .. code-block:: bash
+
+         pipx install dementor
+
+   .. tab-item:: git
+
+      .. code-block:: bash
+
+         git clone https://github.com/MatrixEditor/dementor.git
+         cd dementor
+         uv sync
+         uv lock
 
 
 A simple Example
@@ -78,6 +97,7 @@ It is recommended to run *Dementor* as ``sudo``, but it **will not be enforced**
 
    config/index
    cli
+   tui
    proto
 
 
