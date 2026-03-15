@@ -17,19 +17,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: reportAny=false, reportExplicitAny=false, reportUnusedCallResult=false
+import json
 import argparse
 import sqlalchemy
+import shlex
 
 from pathlib import Path
 from rich import markup
 from rich.table import Table
 
 from typing import TYPE_CHECKING
+from prompt_toolkit.document import Document
 from typing_extensions import override
 
 from dementor.db import _CLEARTEXT
 from dementor.tui.action import command, ReplAction
-from dementor.db.model import Credential, HostInfo
+from dementor.db.model import Credential, HostInfo, HostExtra
 
 if TYPE_CHECKING:
     from dementor.config.session import SessionConfig
@@ -160,7 +164,8 @@ class DBCommand(ReplAction):
             if argv.raw:
                 console.print(
                     f"([dim grey]{markup.escape(credential.timestamp)}[/]): "
-                    f"{credential.protocol}/{credential.credtype}"
+                    f"{credential.protocol}/{credential.credtype}",
+                    highlight=False,
                 )
                 console.print(f"  Host: {markup.escape(host_info)}")
                 console.print(f"  Username: [bold yellow]{markup.escape(name)}[/]")
@@ -177,11 +182,11 @@ class DBCommand(ReplAction):
         console: Console = self.repl.console
 
         table = Table()
-        if argv.index is None:
-            table.add_column("Idx")
+        table.add_column("Idx")
         table.add_column("IP")
         table.add_column("Hostname")
         table.add_column("Domain")
+        table.add_column("Extras")
         query = sqlalchemy.select(HostInfo)
 
         results = session.db.session.scalars(query).all()
@@ -189,21 +194,26 @@ class DBCommand(ReplAction):
             console.print("[b yellow]No hosts discovered yet![/]")
             return
 
-        if argv.index is not None and 0 <= argv.index < len(results):
-            results = [results[argv.index]]
+        for host in results:
+            if argv.index is not None and argv.index != host.id:
+                continue
 
-        for i, host in enumerate(results):
-            row: list[str] = []
-            if argv.index is None:
-                row.append(str(i))
-            row.extend(
-                [
-                    markup.escape(host.ip),
-                    markup.escape(host.hostname or ""),
-                    markup.escape(host.domain or ""),
-                ]
+            extras = session.db.session.scalars(
+                sqlalchemy.select(HostExtra).where(HostExtra.host == host.id)
+            ).all()
+
+            table_extras = []
+            for extra in extras:
+                document = json.loads(extra.value)
+                table_extras.append(f"{extra.key}: {document!r}")
+
+            table.add_row(
+                str(host.id),
+                markup.escape(host.ip),
+                markup.escape(host.hostname or ""),
+                markup.escape(host.domain or ""),
+                "\n".join(table_extras),
             )
-            table.add_row(*row)
             if argv.raw:
                 console.print(f"IP: {markup.escape(host.ip)}")
                 if host.hostname:
@@ -264,7 +274,9 @@ class DBCommand(ReplAction):
             password = cred.password
             credtype = (cred.credtype or "").lower()
 
-            line = f"{username}:{password}" if credtype == _CLEARTEXT else password
+            line = (
+                f"{username}:{password}" if credtype == _CLEARTEXT.lower() else password
+            )
             lines.append(line)
 
         if not lines:
@@ -283,3 +295,38 @@ class DBCommand(ReplAction):
                 )
             except Exception as e:
                 console.print(f"[bold red]Failed to export credentials:[/] {e}")
+
+    @override
+    def get_completions(self, word: str, document: Document) -> list[str]:
+        """Provide completions for sub-commands and their options.
+
+        The REPL already supplies the command name (``db``). This method
+        suggests the four sub-commands and, once a sub-command is identified,
+        offers the relevant ``--`` flags.
+        """
+        # Split the current line into tokens, handling simple quoting.
+        try:
+            tokens = shlex.split(document.text_before_cursor)
+        except Exception:
+            tokens = document.text_before_cursor.split()
+
+        # No sub-command yet – suggest the four possible actions.
+        subcommands = ["creds", "hosts", "clean", "export"]
+        if len(tokens) <= 1:
+            return [sc for sc in subcommands if sc.startswith(word)]
+
+        # Determine which sub-command is being used.
+        sub = tokens[1]
+        # Map sub-command to its specific flag completions.
+        flags: dict[str, list[str]] = {
+            "creds": ["--raw", "--credtype"],
+            "hosts": ["--raw"],
+            "clean": ["--yes"],
+            "export": ["--credtype"],
+        }
+        # If the sub-command is unknown, fall back to sub-command suggestions.
+        if sub not in flags:
+            return [sc for sc in subcommands if sc.startswith(word)]
+
+        # Provide flag completions for the recognized sub-command.
+        return [flag for flag in flags[sub] if flag.startswith(word) and flag not in tokens]
