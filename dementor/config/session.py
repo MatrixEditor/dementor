@@ -25,6 +25,8 @@ from typing import Any
 from pathlib import Path
 from typing_extensions import override
 
+from scapy.arch import get_if_addr, in6_getifaddr
+
 from dementor.config.toml import TomlConfig, Attribute
 from dementor.config.util import is_true
 from dementor.paths import DEMENTOR_PATH
@@ -167,9 +169,6 @@ class SessionConfig(TomlConfig):
         self.protocols = {}
         self.debug = False
 
-        # SMTP configuration
-        self.smtp_servers = []
-
         # NTLM configuration
         self.ntlm_disable_ess = False
         self.ntlm_disable_ntlmv2 = False
@@ -207,3 +206,11 @@ class SessionConfig(TomlConfig):
             return config
 
         return config[".".join(parts)]
+
+    def set_interface(self, interface: str) -> None:
+        self.interface = interface
+        self.ipv4 = get_if_addr(self.interface)
+        self.ipv6 = next(
+            (ip[0] for ip in in6_getifaddr() if ip[2] == self.interface),
+            None,
+        )
