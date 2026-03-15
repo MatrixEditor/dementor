@@ -36,22 +36,25 @@
 import contextlib
 import socket
 
+from typing_extensions import override
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any
-import typing
+from typing import Any, TYPE_CHECKING
 
 from rich import markup
 from pyipp import parser as IppParser, serializer as IppSerializer
 from pyipp.enums import IppOperation, IppPrinterState, IppStatus, IppTag
 from pyipp.tags import ATTRIBUTE_TAG_MAP
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.config.util import format_string
 from dementor.log.logger import ProtocolLogger, dm_logger
-from dementor.servers import ServerThread, bind_server
+from dementor.servers import ServerThread, bind_server, BaseServerThread
 from dementor.db import normalize_client_address
+
+__proto__ = ["IPP"]
 
 # [5.1.10.  'mimeMediaType']
 IPP_MIME_MEDIA_TYPES = [
@@ -148,7 +151,7 @@ class IPPConfig(TomlConfig):
         A("ipp_remote_cmd_filter", "RemoteCmdCupsFilter", None),
     ]
 
-    if typing.TYPE_CHECKING:
+    if TYPE_CHECKING:
         ipp_port: int
         ipp_server_type: str
         ipp_supported_formats: list[str]
@@ -198,15 +201,22 @@ class IPPConfig(TomlConfig):
                 self.ipp_extra_attrib[name] = value
 
 
-def apply_config(session: SessionConfig):
-    session.ipp_config = TomlConfig.build_config(IPPConfig)
+class IPP(BaseProtocolModule[IPPConfig]):
+    name: str = "IPP"
+    config_ty = IPPConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
 
-
-def create_server_threads(session: SessionConfig):
-    address = (session.bind_address, session.ipp_config.ipp_port)
-    if session.ipp_enabled:
-        yield ServerThread(
-            session, IPPServer, server_address=address, ipv6=bool(session.ipv6)
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: IPPConfig
+    ) -> BaseServerThread[IPPConfig]:
+        return ServerThread(
+            session,
+            server_config,
+            IPPServer,
+            server_address=(session.bind_address, session.ipp_config.ipp_port),
+            ipv6=bool(session.ipv6),
         )
 
 

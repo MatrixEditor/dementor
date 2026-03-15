@@ -17,42 +17,55 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from typing_extensions import override
 from collections import defaultdict
+
+from dementor.loader import BaseProtocolModule, ApplyConfigFunc
 from dementor.config.session import SessionConfig
-from dementor.config.toml import TomlConfig
-from dementor.servers import ServerThread
+from dementor.servers import BaseServerThread, ServerThread
 from dementor.protocols.msrpc.rpc import MSRPCServer, RPCConfig, RPCConnection
 
-
-def apply_config(session: SessionConfig):
-    session.rpc_config = TomlConfig.build_config(RPCConfig)
-
-    for module in session.rpc_config.rpc_modules:
-        # load custom config
-        if hasattr(module, "apply_config"):
-            module.apply_config(session)
+__proto__ = ["MSRPC"]
 
 
-def create_server_threads(session: SessionConfig):
-    addr = "::" if session.ipv6 else session.ipv4  # necessary
+class MSRPC(BaseProtocolModule):
+    name: str = "MSRPC"
+    config_ty = RPCConfig
+    config_attr = "rpc_config"
+    config_enabled_attr = "rpc_enabled"
 
-    # connection data will be shared across both servers
-    conn_data = defaultdict(RPCConnection)
-    return (
-        [
-            ServerThread(
-                session,
-                MSRPCServer,
-                server_address=(addr, 135),
-                handles=conn_data,
-            ),
-            ServerThread(
-                session,
-                MSRPCServer,
-                server_address=(addr, session.rpc_config.epm_port),
-                handles=conn_data,
-            ),
-        ]
-        if session.rpc_enabled
-        else []
-    )
+    @override
+    def apply_config(self, session: SessionConfig) -> None:
+        super().apply_config(session)
+        for module in session.rpc_config.rpc_modules:
+            # load custom config
+            apply_config_fn: ApplyConfigFunc | None = getattr(
+                module, "apply_config", None
+            )
+            if apply_config_fn:
+                apply_config_fn(session)
+
+    @override
+    def create_server_threads(self, session: SessionConfig) -> list[BaseServerThread]:
+        # connection data will be shared across both servers
+        conn_data = defaultdict(RPCConnection)
+        return (
+            [
+                ServerThread(
+                    session,
+                    session.rpc_config,
+                    MSRPCServer,
+                    server_address=(session.bind_address, 135),
+                    handles=conn_data,
+                ),
+                ServerThread(
+                    session,
+                    session.rpc_config,
+                    MSRPCServer,
+                    server_address=(session.bind_address, session.rpc_config.epm_port),
+                    handles=conn_data,
+                ),
+            ]
+            if session.rpc_enabled
+            else []
+        )

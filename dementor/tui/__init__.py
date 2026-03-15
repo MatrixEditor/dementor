@@ -18,5 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "1.0.0.dev21"
-__author__ = "MatrixEditor"
+from .repl import Repl
+from .action import ReplAction, command
+from . import commands
+
+__all__ = [
+    "Repl",
+    "ReplAction",
+    "command",
+    "commands",
+]

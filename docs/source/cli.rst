@@ -75,6 +75,37 @@ Command-Line Options
 
     Activates debug logging for all loggers listed in :attr:`Log.DebugLoggers`.
 
+--version
+
+    Shows the current version of Dementor and exits.
+
+--ts
+
+    Enables timestamps in log output to the terminal.
+
+--paths
+
+    Displays the default configuration file paths.
+
+--repl, -F
+
+    .. versionadded:: 1.0.0.dev21
+
+    Starts Dementor in an interactive REPL mode, allowing runtime configuration changes.
+    See :ref:`tui-repl` for more information.
+
+--target, -t NAMES
+
+    Specify target host(s) to attack. Multiple hosts can be provided as a comma-separated list.
+
+-i, --ignore NAMES
+
+    Specify host(s) to ignore during the attack. Accepts a comma-separated list.
+
+-y, --yes, --yolo
+
+    Skip the confirmation prompt before starting attack mode.
+
 -q, --quiet
 
     Don't print huge banner at startup.

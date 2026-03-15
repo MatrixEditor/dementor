@@ -142,7 +142,7 @@ class RPCConfig(TomlConfig):
         loader.search_path = [os.path.dirname(__file__)]
         loader.search_path.extend(extra_paths)
         self.rpc_modules = [
-            loader.load_protocol(path) for path in loader.get_protocols().values()
+            loader.load_protocol(path) for path in loader.resolve_protocols().values()
         ]
 
 

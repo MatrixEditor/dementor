@@ -30,14 +30,16 @@ from dementor.log.stream import log_to
 from dementor.servers import (
     ThreadingUDPServer,
     BaseProtoHandler,
-    ServerThread,
     add_mcast_membership,
 )
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 
 if typing.TYPE_CHECKING:
     from dementor.filters import Filters
+
+__proto__ = ["mDNS"]
 
 # --- Constants ---------------------------------------------------------------
 MDNS_IPV4_ADDR = "224.0.0.251"
@@ -47,17 +49,6 @@ QTYPES = {name: value for value, name in dns.dnsqtypes.items()}
 
 
 # --- Configuration -----------------------------------------------------------
-def apply_config(session: SessionConfig) -> None:
-    session.mdns_config = TomlConfig.build_config(MDNSConfig)
-
-
-def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    if not session.mdns_enabled:
-        return []
-
-    return [ServerThread(session, MDNSServer)]
-
-
 class MDNSConfig(TomlConfig):
     _section_ = "mDNS"
     _fields_ = [
@@ -211,3 +202,12 @@ class MDNSServer(ThreadingUDPServer):
             group6=MDNS_IPV6_ADDR,
         )
         super().server_bind()
+
+
+class mDNS(BaseProtocolModule[MDNSConfig]):
+    name: str = "mDNS"
+    config_ty = MDNSConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    poisoner = True
+    server_ty = MDNSServer

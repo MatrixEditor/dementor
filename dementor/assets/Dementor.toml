@@ -504,6 +504,27 @@ Key = "default.key"
 # TargetSMBPort = 445
 # TargetSMBHost =
 
+# Enable automatic generation of self-signed certificates if none are found.
+SelfSigned = true
+
+# Common Name (CN) for the self-signed certificate.
+CertCommonName = "dementor.local"
+
+# Organization name for the self-signed certificate.
+CertOrganization = "Dementor"
+
+# Country code for the self-signed certificate.
+CertCountry = "US"
+
+# State/Province for the self-signed certificate.
+CertState = "CA"
+
+# Locality/City for the self-signed certificate.
+CertLocality = "San Francisco"
+
+# Validity period in days for the self-signed certificate.
+CertValidityDays = 365
+
 
 # =============================================================================
 # Proxy

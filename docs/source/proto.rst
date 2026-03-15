@@ -7,25 +7,75 @@ Custom Protocols ⚙️
 with custom implementations. Each protocol extension is defined as a Python module
 that implements specific functions recognized by the core engine.
 
-Required Functions
-------------------
+Protocol Module Structure
+--------------------------
 
-Custom protocol modules may define the following functions:
+.. versionchanged:: 1.0.0.dev21
 
-.. py:function:: apply_config(session: SessionConfig) -> None
+Dementor now uses a class-based system for protocol extensions.  A custom protocol is implemented as a
+subclass of :class:`dementor.loader.BaseProtocolModule` and may define the following class
+attributes (all optional unless noted):
 
-    *Optional*
+.. list-table:: Supported class attributes
+   :header-rows: 1
 
-    Applies custom configuration logic to the current :class:`SessionConfig` object.
-    This function is called during setup, using global definitions from ``dementor.config``.
+   * - Attribute
+     - Description
+     - Required?
+   * - ``name``
+     - Human readable protocol name (e.g. ``"POP3"``).
+     - Yes
+   * - ``config_ty``
+     - :class:`~dementor.config.toml.TomlConfig` subclass describing the protocol's configuration schema.
+     - No (if configuration is handled manually)
+   * - ``config_attr``
+     - Name of the attribute on :class:`~dementor.config.session.SessionConfig` where the built configuration object(s) will be stored. Use ``"<DEFAULT>"`` to get ``{name.lower()}_config``.
+     - No (defaults to ``"<DEFAULT>"``)
+   * - ``config_enabled_attr``
+     - Name of the boolean flag on the session that enables the protocol. ``"<DEFAULT>"`` resolves to ``{name.lower()}_enabled``.
+     - No
+   * - ``config_list``
+     - ``True`` if the protocol supports multiple configuration entries (list), ``False`` for a single config.
+     - No (defaults to ``False``)
+   * - ``poisoner``
+     - ``True`` if the protocol can act as a *poisoner* (special handling in the REPL).
+     - No (defaults to ``False``)
+   * - ``server_ty``
+     - Concrete server class used to instantiate threads for each configuration entry. If omitted, the protocol must implement ``create_server_thread`` manually.
+     - No
 
-.. py:function:: create_server_threads(session: SessionConfig) -> List[Thread]
+In addition to the attributes, a protocol class can optionally override the following methods:
 
-    *Optional, but recommended*
+.. py:function:: Protocol.apply_config(self, session: SessionConfig) -> None
 
-    Creates and returns server thread objects for this protocol. **Threads must not be started here**
-    — they will be started automatically.
+    Called during session setup to populate configuration objects.  The default
+    implementation reads ``config_ty`` and stores the result under ``config_attr``
+    (handling list vs single config).
 
+.. py:function:: Protocol.create_server_thread(self, session: SessionConfig, server_config: _ConfigTy) -> BaseServerThread
+
+    Create a single server thread for the given configuration.  The default implementation
+    uses ``server_ty`` if provided.
+
+.. py:function:: Protocol.create_server_threads(self, session: SessionConfig) -> List[BaseServerThread]
+
+    Returns all server threads for the protocol.  The base implementation respects
+    ``config_enabled_attr`` and ``config_list``.
+
+
+Legacy function-based extensions (defining ``apply_config``) are still supported but will only
+use the ``apply_config`` function.
+
+**Module discovery**
+
+Every custom protocol module must expose a top-level ``__proto__`` attribute. This attribute should be a list containing either the protocol class objects or their class names (as strings). The loader uses ``__proto__`` to discover which protocol classes to instantiate.
+
+.. code-block:: python
+   :caption: Example __proto__ definition
+
+   __proto__ = ["POP3Protocol"]
+
+The ``__proto__`` entry is required for the loader to register the protocol; otherwise the module will be ignored.
 
 To enable a custom protocol, its Python module must be placed in a directory listed under the
 :attr:`Dementor.ExtraModules` setting in your configuration file, the ``protocols`` package
@@ -34,39 +84,61 @@ within *Dementor* or within the ``protocols`` directory under ``~/.dementor/prot
 
 .. _howto_custom_protocol:
 
-Example: POP3 Protocol Extension
---------------------------------
+Example: POP3 Protocol Extension (class-based)
+----------------------------------------------
 
-Below is an example implementation of a POP3 protocol handler with plain-text authentication:
+The following example shows the POP3 protocol implementation using the new class-based API.
 
 .. code-block:: python
     :caption: pop3.py
 
+    from threading import Thread
+    from dementor.loader import BaseProtocolModule
     from dementor.config import TomlConfig, Attribute as A
+    from dementor.servers import ServerThread
 
-    # Define the custom config section for POP3
+    __proto__ = ["POP3Protocol"]
+
+    # Configuration schema for POP3
     class POP3Config(TomlConfig):
         _section_ = "POP3"
         _fields_ = [
-            # Attribute(name, config_key, default_value)
-            A("pop3_enabled", "Dementor.POP3", True),  # defined in [Dementor]
-            A("pop3_port", "Port", 110),               # defined in [POP3]
+            A("pop3_port", "Port", 110),
         ]
 
-    def apply_config(session: SessionConfig):
-        # Populate values from the configuration file
-        session.pop3_config = TomlConfig.build_config(POP3Config)
+    class POP3Server(ThreadingTCPServer):
+        def __init__(
+            self,
+            config,
+            server_address=None,
+            RequestHandlerClass: type | None = None,
+            server_config: POP3ServerConfig | None = None,
+        ) -> None:
+          ...
 
-    def create_server_threads(session: SessionConfig):
-        is_enabled = session.pop3_config.pop3_enabled
-        return [POP3Server(session.pop3_config)] if is_enabled else []
+    class POP3Protocol(BaseProtocolModule):
+        """Protocol implementation for POP3.
 
-    class POP3Server(Thread):
-        def __init__(self, config):
-            super().__init__()
-            self.config = config
-            # Additional setup here
+        The ``BaseProtocolModule`` base class handles configuration loading and
+        thread creation based on the attributes defined below.
+        """
 
-        def run(self):
-            # Start listening on self.config.pop3_port
-            ...
+        name = "POP3"
+        config_ty = POP3Config
+        config_attr = "<DEFAULT>"          # results in ``pop3_config`` on the session
+        config_enabled_attr = "<DEFAULT>"  # results in ``pop3_enabled`` flag
+        config_list = True                 # enabled multiple servers
+
+        # No need to override ``apply_config``
+
+        @override
+        def create_server_thread(
+            self, session: SessionConfig, server_config: POP3ServerConfig
+        ) -> BaseServerThread:
+            return ServerThread(
+                session,
+                server_config,
+                POP3Server,
+                server_address=(session.bind_address, server_config.pop3_port),
+                include_server_config=True, # required, because it is specified in the server's __init__
+            )

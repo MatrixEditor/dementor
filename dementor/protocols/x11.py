@@ -23,12 +23,22 @@
 # pyright: reportInvalidTypeForm=false, reportCallIssue=false, reportGeneralTypeIssues=false
 import typing
 
+from typing_extensions import override
 from caterpillar import py
 
+from dementor.config.session import SessionConfig
+from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.config.toml import Attribute as A, TomlConfig
 from dementor.log.logger import ProtocolLogger
-from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
+from dementor.servers import (
+    BaseProtoHandler,
+    ThreadingTCPServer,
+    ServerThread,
+    BaseServerThread,
+)
 from dementor.db import _NO_USER
+
+__proto__ = ["X11"]
 
 
 class X11Config(TomlConfig):
@@ -61,21 +71,27 @@ class X11Config(TomlConfig):
         self.x11_ports = x11_ports
 
 
-def apply_config(session):
-    session.x11_config = TomlConfig.build_config(X11Config)
+class X11(BaseProtocolModule[X11Config]):
+    name = "X11"
+    config_ty = X11Config
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
 
-
-def create_server_threads(session):
-    if not session.x11_enabled:
-        return []
-    return [
-        ServerThread(
-            session,
-            X11Server,
-            server_address=(session.bind_address, port),
+    @override
+    def create_server_threads(self, session: SessionConfig) -> list[BaseServerThread]:
+        return (
+            [
+                ServerThread(
+                    session,
+                    session.x11_config,
+                    X11Server,
+                    server_address=(session.bind_address, port),
+                )
+                for port in session.x11_config.x11_ports
+            ]
+            if session.x11_enabled
+            else []
         )
-        for port in session.x11_config.x11_ports
-    ]
 
 
 # --- Protocol definitions ---

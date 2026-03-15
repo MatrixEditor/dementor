@@ -29,7 +29,10 @@ import base64
 import binascii
 import typing
 
+from typing_extensions import override
 from impacket import ntlm
+
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -44,6 +47,7 @@ from dementor.servers import (
     ThreadingTCPServer,
     BaseProtoHandler,
     create_tls_context,
+    BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
 from dementor.db import _CLEARTEXT
@@ -52,26 +56,9 @@ from dementor.config.toml import (
     Attribute as A,
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
-from dementor.config.util import get_value
 
 
-def apply_config(session: SessionConfig):
-    session.pop3_config = list(
-        map(POP3ServerConfig, get_value("POP3", "Server", default=[]))
-    )
-
-
-def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    return [
-        ServerThread(
-            session,
-            POP3Server,
-            server_config=config,
-            server_address=(session.bind_address, config.pop3_port),
-        )
-        for config in (session.pop3_config if session.pop3_enabled else [])
-    ]
-
+__proto__ = ["POP3"]
 
 POP3_AUTH_MECHANISMS = [
     "PLAIN",
@@ -110,6 +97,26 @@ class POP3ServerConfig(TomlConfig):
         ntlm_challenge: bytes
         ntlm_disable_ess: bool
         ntlm_disable_ntlmv2: bool
+
+
+class POP3(BaseProtocolModule[POP3ServerConfig]):
+    name: str = "POP3"
+    config_ty = POP3ServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: POP3ServerConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            POP3Server,
+            server_address=(session.bind_address, server_config.pop3_port),
+            include_server_config=True,
+        )
 
 
 class CloseConnection(Exception):

@@ -17,6 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# pyright: basic
+import logging
 import asyncio
 import contextlib
 import tomllib
@@ -30,7 +32,6 @@ from impacket.version import version as ImpacketVersion
 from aiosmtpd import __version__ as AiosmtpdVersion
 from aioquic import __version__ as AioquicVersion
 from scapy import VERSION as ScapyVersion
-from scapy.arch import get_if_addr, in6_getifaddr
 from pyipp.ipp import VERSION as PyippVersion
 
 from rich import print as rprint
@@ -39,6 +40,7 @@ from rich.columns import Columns
 from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.text import Text
+from rich.align import Align
 
 from dementor import __version__ as DementorVersion
 from dementor import config, paths
@@ -47,8 +49,9 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig
 from dementor.log import dm_console, logger, stream as log_stream
 from dementor.log.logger import dm_logger
-from dementor.loader import ProtocolLoader
+from dementor.loader import ProtocolLoader, ProtocolManager
 from dementor.paths import BANNER_PATH, CONFIG_PATH, DEFAULT_CONFIG_PATH
+from dementor.tui.repl import Repl
 
 
 def serve(
@@ -59,8 +62,9 @@ def serve(
     supress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
+    run_repl: bool = False,
     extra_options: dict[str, Any] | None = None,
-) -> tuple | None:
+) -> SessionConfig | None:
     if config_path:
         try:
             config.init_from_file(config_path)
@@ -76,6 +80,7 @@ def serve(
     logger.init()
     logger.ProtocolLogger.init_logfile(session)
     log_stream.init_streams(session)
+    session.debug = dm_logger.logger.getEffectiveLevel() < logging.INFO
 
     if extra_options:
         for section, options in extra_options.items():
@@ -86,9 +91,8 @@ def serve(
                 config.dm_config[section][key] = value
 
     if interface and not session.interface:
-        session.interface = interface
         try:
-            session.ipv4 = get_if_addr(session.interface)
+            session.set_interface(interface)
         except ValueError:
             # interface does not exist
             dm_logger.error(
@@ -96,10 +100,6 @@ def serve(
             )
             return None
 
-        session.ipv6 = next(
-            (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface),
-            None,
-        )
         if session.ipv4 == "0.0.0.0" and not session.ipv6:
             # current interface is not available
             dm_logger.error(
@@ -120,15 +120,8 @@ def serve(
 
     # Load protocols
     loader = ProtocolLoader()
-    protocols = {}
-    if not session.protocols:
-        session.protocols = loader.get_protocols(session)
-
-    for name, path in session.protocols.items():
-        protocol = loader.load_protocol(path)
-        protocols[name] = protocol
-        loader.apply_config(protocol, session)
-
+    session.manager = ProtocolManager(session, loader)
+    # REVISIT: ?
     if not supress_output:
         pass
 
@@ -136,41 +129,47 @@ def serve(
         session.loop = loop or asyncio.new_event_loop()
 
     asyncio.set_event_loop(session.loop)
-    threads = []
-    for name, protocol in protocols.items():
-        try:
-            servers = loader.create_servers(protocol, session)
-            threads.extend(servers)
-        except Exception as e:
-            dm_logger.exception(f"Failed to create server for protocol {name}: {e}")
-
-    # Start threads
-    for thread in threads:
-        thread.daemon = True
-        thread.start()
-
+    session.manager.create_all_threads()
+    session.manager.start_all()
     if run_forever:
         try:
-            session.loop.run_forever()
+            if run_repl:
+                Repl(session).run()
+            else:
+                session.loop.run_forever()
         except KeyboardInterrupt:
             pass
         finally:
-            stop_session(session, threads)
+            stop_session(session)
 
-    return (session, threads)
+    return session
 
 
-def stop_session(session: SessionConfig, threads=None) -> None:
-    # 1. stop event loop
-    session.loop.stop()
+def stop_session(session: SessionConfig) -> None:
+    status = Console().status(
+        "[bold red]Shutting down - Ctrl+C to force...[/bold red]",
+        spinner="aesthetic",
+        spinner_style="red",
+    )
+    # if debug mode active, disable status
+    try:
+        if not session.debug:
+            status.start()
+        services = list(session.manager.started)
+        servce_count = len(services)
+        for i, name in enumerate(services):
+            status.update(
+                f"[bold red]Shutting down - Ctrl+C to force ({i}/{servce_count})...[/bold red] ([dim]{name}[/])"
+            )
+            session.manager.stop(name)
 
-    # 2. close threads
-    for thread in threads or []:
-        del thread
-
-    # 3. close database
-    session.db.close()
-    log_stream.close_streams(session)
+        session.loop.stop()
+        status.update("[bold red]Closing database...[/bold red]")
+        session.db.close()
+        status.update("[bold red]Closing log streams...[/bold red]")
+        log_stream.close_streams(session)
+    finally:
+        status.stop()
 
 
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
@@ -245,7 +244,7 @@ def main_print_banner(quiet_mode: bool) -> None:
         aioquic_version=AioquicVersion,
         pyipp_version=PyippVersion,
     )
-    rprint(text)
+    rprint(Align.center(text, vertical="middle"))
 
 
 def main_format_config(name: str, value: str) -> str:
@@ -311,12 +310,14 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
         config_paths.append(config_path)
 
     console.print("[bold]Configuration Paths:[/]")
-    console.print(main_format_config("DB Directory", f"{session.workspace_path}"))
-    console.print(main_format_config("Config Paths", f"[0] {config_paths[0]}"))
+    console.print(
+        main_format_config("DB Directory", f"[white]{session.workspace_path}[/]")
+    )
+    console.print(main_format_config("Config Paths", f"[0] [white]{config_paths[0]}[/]"))
     pos = 1
     for extra_config_path in config_paths[1:]:
         if pathlib.Path(extra_config_path).exists():
-            console.print(" " * 39 + f"[{pos}] {extra_config_path}")
+            console.print(" " * 39 + f"[{pos}] [white]{extra_config_path}[/]")
             pos += 1
 
     console.rule(style="white", title="Log")
@@ -423,6 +424,15 @@ def main(
             show_default=False,
         ),
     ] = False,
+    repl: Annotated[
+        bool,
+        typer.Option(
+            "--repl",
+            "-F",
+            help="Starts Dementor in interactive mode supporting runtime configuration",
+            show_default=False,
+        ),
+    ] = False,
 ) -> None:
     if show_paths:
         return paths.main()
@@ -479,7 +489,7 @@ def main(
     workspace_path = pathlib.Path(session.workspace_path)
     workspace_path.mkdir(parents=True, exist_ok=True)
 
-    session.protocols = loader.get_protocols(session)
+    session.protocols = loader.resolve_protocols(session)
     if not quiet:
         main_print_options(session, interface, config_path)
 
@@ -506,7 +516,7 @@ def main(
         if result.lower() != "y":
             return None
 
-    serve(interface=interface, session=session, analyze_only=analyze)
+    serve(interface=interface, session=session, analyze_only=analyze, run_repl=repl)
 
 
 def run_from_cli() -> None:

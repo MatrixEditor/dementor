@@ -28,9 +28,11 @@ import binascii
 import shlex
 import typing
 
+from typing_extensions import override
 from impacket import ntlm
 
 from dementor.config.session import SessionConfig
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
     NTLM_report_auth,
@@ -44,6 +46,7 @@ from dementor.servers import (
     ThreadingTCPServer,
     BaseProtoHandler,
     create_tls_context,
+    BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
 from dementor.db import _CLEARTEXT
@@ -53,6 +56,8 @@ from dementor.config.toml import (
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.util import get_value
+
+__proto__ = ["IMAP"]
 
 
 def apply_config(session: SessionConfig):
@@ -113,6 +118,26 @@ class IMAPServerConfig(TomlConfig):
         ntlm_key: str
         ntlm_cert: str
         ntlm_tls: bool
+
+
+class IMAP(BaseProtocolModule[IMAPServerConfig]):
+    name: str = "IMAP"
+    config_ty = IMAPServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: IMAPServerConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            IMAPServer,
+            server_address=(session.bind_address, server_config.imap_port),
+            include_server_config=True,
+        )
 
 
 class StopHandler(Exception):

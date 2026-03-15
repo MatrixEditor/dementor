@@ -22,6 +22,8 @@ import uuid
 import secrets
 import typing
 
+from typing_extensions import override
+
 from impacket.smbserver import TypesMech, MechTypes
 from scapy.fields import NetBIOSNameField
 from impacket import (
@@ -46,7 +48,7 @@ from caterpillar.types import uint16_t
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import get_value
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     NTLM_AUTH_CreateChallenge,
@@ -62,7 +64,14 @@ from dementor.protocols.spnego import (
     negTokenInit,
     SPNEGO_NTLMSSP_MECH,
 )
-from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
+from dementor.servers import (
+    BaseProtoHandler,
+    ThreadingTCPServer,
+    ServerThread,
+    BaseServerThread,
+)
+
+__proto__ = ["SMB"]
 
 # --- Constants ---------------------------------------------------------------
 SMB2_DIALECTS = {
@@ -127,27 +136,27 @@ class SMBServerConfig(TomlConfig):
                 self.smb_error_code = nt_errors.STATUS_SMB_BAD_UID
 
 
-def apply_config(session: SessionConfig):
-    session.smb_config = list(
-        map(SMBServerConfig, get_value("SMB", "Server", default=[]))
-    )
+class SMB(BaseProtocolModule[SMBServerConfig]):
+    name: str = "SMB"
+    config_ty = SMBServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
 
-
-def create_server_threads(session: SessionConfig):
-    if not session.smb_enabled:
-        return []
-    return [
-        ServerThread(
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: SMBServerConfig
+    ) -> BaseServerThread:
+        return ServerThread(
             session,
-            SMBServer,
             server_config,
+            SMBServer,
+            include_server_config=True,
             server_address=(
                 session.bind_address,
                 server_config.smb_port,
             ),
         )
-        for server_config in session.smb_config
-    ]
 
 
 # --- Functions ---------------------------------------------------------------
