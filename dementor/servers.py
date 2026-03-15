@@ -33,7 +33,7 @@ import errno
 import sys
 
 from io import StringIO
-from typing import Any, ClassVar, Generic, override
+from typing import Any, ClassVar, Generic
 from socketserver import BaseRequestHandler
 from typing_extensions import override, TypeVar
 

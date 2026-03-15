@@ -32,7 +32,6 @@ from impacket.version import version as ImpacketVersion
 from aiosmtpd import __version__ as AiosmtpdVersion
 from aioquic import __version__ as AioquicVersion
 from scapy import VERSION as ScapyVersion
-from scapy.arch import get_if_addr, in6_getifaddr
 from pyipp.ipp import VERSION as PyippVersion
 
 from rich import print as rprint
