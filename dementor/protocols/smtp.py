@@ -293,7 +293,7 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
     def __init__(self, config: SessionConfig, server_config: SMTPServerConfig):
         super().__init__(config, server_config)
         self.controller: Controller | None = None
-        self._running  = False
+        self._running = False
 
     @override
     def is_running(self):
@@ -301,6 +301,9 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
 
     def get_service_name(self) -> str:
         return "SMTPS" if self.server_config.smtp_tls else "SMTP"
+
+    def get_port(self):
+        return self.server_config.smtp_port
 
     def create_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
@@ -319,6 +322,7 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
         # bound and the SMTP hostname is just a string that will be sent to the client,
         # TODO: fix ipv6 support
         controller.hostname = "" if config.ipv6_support else config.ipv4
+        self.address = controller.hostname
 
         # alter the server hostname
         controller.SMTP_kwargs["hostname"] = smtp_config.smtp_fqdn.split(".", 1)[0]
@@ -334,6 +338,7 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
             dm_logger.error(
                 f"Failed to start {label} server on {self.config.ipv4}:{smtp_config.smtp_port} -> {e.strerror}",
             )
+            self._running = False
 
     async def arun(self) -> None:
         # setup server

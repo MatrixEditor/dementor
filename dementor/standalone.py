@@ -92,9 +92,8 @@ def serve(
                 config.dm_config[section][key] = value
 
     if interface and not session.interface:
-        session.interface = interface
         try:
-            session.ipv4 = get_if_addr(session.interface)
+            session.set_interface(interface)
         except ValueError:
             # interface does not exist
             dm_logger.error(
@@ -102,10 +101,6 @@ def serve(
             )
             return None
 
-        session.ipv6 = next(
-            (ip[0] for ip in in6_getifaddr() if ip[2] == session.interface),
-            None,
-        )
         if session.ipv4 == "0.0.0.0" and not session.ipv6:
             # current interface is not available
             dm_logger.error(
@@ -316,7 +311,9 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
         config_paths.append(config_path)
 
     console.print("[bold]Configuration Paths:[/]")
-    console.print(main_format_config("DB Directory", f"[white]{session.workspace_path}[/]"))
+    console.print(
+        main_format_config("DB Directory", f"[white]{session.workspace_path}[/]")
+    )
     console.print(main_format_config("Config Paths", f"[0] [white]{config_paths[0]}[/]"))
     pos = 1
     for extra_config_path in config_paths[1:]:
@@ -432,6 +429,7 @@ def main(
         bool,
         typer.Option(
             "--repl",
+            "-F",
             help="Starts Dementor in interactive mode supporting runtime configuration",
             show_default=False,
         ),

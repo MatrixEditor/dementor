@@ -208,6 +208,8 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
     ):
         super().__init__(config, server_config)
         self.host: str = host
+        self.address = host
+        self.port = server_config.quic_port
         self.is_ipv6: bool = ipv6
         self._server: QuicServer | None = None
         self._generated_temp_cert: bool = False
