@@ -30,18 +30,58 @@ from dementor.config.session import SessionConfig
 from dementor.tui import action
 from dementor import __version__
 from dementor.db.model import Credential
+from dementor.tui.completer import ReplCompleter
 
 
 class Repl:
+    """Main REPL class.
+
+    The REPL (Read-Eval-Print Loop) provides an interactive command-line
+    interface for Dementor. It is built on top of :mod:`prompt_toolkit` for
+    advanced line editing, history and asynchronous input, and :mod:`rich` for
+    coloured output. The loop displays a dynamic prompt that shows the
+    application version, the currently selected network interface, the active
+    database backend and the number of stored credentials. If debug mode is
+    enabled a ``[Debug]`` flag is added.
+
+    The REPL integrates tightly with :class:`~dementor.config.session.SessionConfig`:
+    * ``session.db`` gives access to the SQLAlchemy engine and model objects.
+    * ``session.loop`` is the asyncio event loop used to run the asynchronous
+      ``arun`` coroutine.
+    * ``session.interface`` and ``session.debug`` influence the prompt
+      appearance.
+
+    The class is deliberately lightweight - it only orchestrates input,
+    builds the prompt and delegates all functional work to the action classes.
+    This makes it easy to extend the CLI by adding new entries to
+    ``action.REPL_COMMANDS`` without modifying the REPL core.
+
+    :param session: The current session configuration providing access to the
+                    database, event loop and other runtime options.
+    :type session: SessionConfig
+    """
+
     def __init__(
         self,
         session: SessionConfig,
     ) -> None:
+        """Create a new REPL instance.
+
+        :param session: The active session configuration.
+        :type session: SessionConfig
+        """
         self.session: SessionConfig = session
-        self.prompt_session: PromptSession[str] = PromptSession()
+        self.prompt_session: PromptSession[str] = PromptSession(
+            completer=ReplCompleter(self)
+        )
         self.console: Console = Console()
 
     def get_prompt(self):
+        """Build the prompt parts for the REPL.
+
+        :return: A list of style/segment tuples understood by ``prompt_toolkit``.
+        :rtype: list[tuple[str, str]]
+        """
         parts: list[tuple[str, str]] = []
 
         parts.append(("bold", "dm"))
@@ -63,20 +103,32 @@ class Repl:
         return parts
 
     def run(self) -> None:
+        """Run the REPL synchronously.
+
+        This method starts the asyncio event loop and executes :meth:`arun`.
+        """
         self.session.loop.run_until_complete(self.arun())
 
+    def get_placeholder(self) -> list[tuple[str, str]]:
+        return [
+            (
+                "#888888 bg:default noreverse noitalic nounderline noblink",
+                "Enter 'help' to see a list of available commands",
+            )
+        ]
+
     async def arun(self) -> None:
+        """Main asynchronous REPL loop.
+
+        It continuously reads user input, handles interruptions and routes
+        commands to the appropriate action classes.
+        """
         with patch_stdout(raw=True):
             while True:
                 try:
                     line = await self.prompt_session.prompt_async(
                         self.get_prompt(),
-                        placeholder=[
-                            (
-                                "#888888 bg:default noreverse noitalic nounderline noblink",
-                                "Enter 'help' to see a list of available commands",
-                            )
-                        ],
+                        placeholder=self.get_placeholder(),
                     )
                     line = line.strip()
                     if not line:
@@ -90,9 +142,17 @@ class Repl:
                 except SystemExit:
                     pass
                 except Exception as e:
-                    dm_logger.error(f"Error while interpreting command: {e}", exc_info=self.session.debug)
+                    dm_logger.error(
+                        f"Error while interpreting command: {e}",
+                        exc_info=self.session.debug,
+                    )
 
     def _handle_line(self, line: str) -> None:
+        """Parse and dispatch a single line of user input.
+
+        :param line: The raw command line entered by the user.
+        :type line: str
+        """
         line = line.strip()
         if not line:
             return
@@ -100,7 +160,7 @@ class Repl:
         command, *args = shlex.split(line)
         action_cls = action.REPL_COMMANDS.get(command)
         if not action_cls:
-            self.console.print(f"[bold dim   yellow]Unknown command: {command}[/]")
+            self.console.print(f"[bold dim yellow]Unknown command: {command}[/]")
             return
 
         action_obj = action_cls(self)
