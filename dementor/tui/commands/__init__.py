@@ -21,10 +21,16 @@
 from .help import HelpCommand, ExitCommand
 from .database import DBCommand
 from .proto import ServiceCommand
+from .ipconfig import IPConfigCommand
+from .env import EnvCommand
+from .config import ConfigCommand
 
 __all__ = [
+    "ConfigCommand",
     "DBCommand",
+    "EnvCommand",
     "ExitCommand",
     "HelpCommand",
+    "IPConfigCommand",
     "ServiceCommand",
 ]
