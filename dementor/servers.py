@@ -52,6 +52,8 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
     def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
         self.config: SessionConfig = config
         self.server_config: _ConfigTy = server_config
+        self.port: int | None = None
+        self.address: str | None = None
         super().__init__(daemon=False)
 
     def get_service_name(self) -> str:
@@ -71,6 +73,36 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
         :rtype: str
         """
         return self.get_service_name()
+
+    def get_port(self) -> int:
+        """Return the listening port of the server.
+
+        The port is set when the server starts. If the server has not been started
+        and the port is still ``None``, a ``ValueError`` is raised.
+
+        :return: Port number.
+        :rtype: int
+        :raises ValueError: If the port has not been assigned yet.
+        """
+        if self.port is None:
+            raise ValueError("Port not set - the server may not have been started yet.")
+        return self.port
+
+    def get_address(self) -> str:
+        """Return the bound address of the server.
+
+        The address is set when the server starts. If the address is ``None`` a
+        ``ValueError`` is raised.
+
+        :return: Address string.
+        :rtype: str
+        :raises ValueError: If the address has not been assigned yet.
+        """
+        if self.address is None:
+            raise ValueError(
+                "Address not set - the server may not have been started yet."
+            )
+        return self.address
 
     def shutdown(self) -> None:
         """Gracefully shutdown the server thread."""
@@ -193,8 +225,12 @@ class ServerThread(BaseServerThread[_ConfigTy]):
         address: str = ""
         port: int = 0
         try:
+            dm_logger.debug(f"Creating server instance for {self.service_name} service")
             self._server = self.server_class(self.config, *self.args, **self.kwargs)
             address, port = self.server.server_address[:2]
+            # Store address and port in BaseServerThread for later retrieval
+            self.address = address
+            self.port = port
             dm_logger.debug(f"Starting {self.service_name} Service on {address}:{port}")
 
             # Run server with periodic stop checks instead of blocking forever
