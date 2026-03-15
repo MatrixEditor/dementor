@@ -42,6 +42,7 @@ Typical usage::
 The :func:`command` decorator can also be used with an explicit ``names``
 attribute on the class to provide aliases.
 """
+
 import argparse
 
 from abc import ABC, abstractmethod

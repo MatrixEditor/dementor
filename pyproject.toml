@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dementor"
-version = "1.0.0.dev20"
+version = "1.0.0.dev21"
 # REVISIT: dynamic version
 # dynamic = ["version"]
 description = "LLMNR/NBT-NS/mDNS Poisoner and rogue service provider"
@@ -79,6 +79,7 @@ dev = [
 docs = [
     "shibuya",
     "sphinx",
+    "sphinx-autobuild>=2025.8.25",
     "sphinx-copybutton",
     "sphinx-design",
 ]

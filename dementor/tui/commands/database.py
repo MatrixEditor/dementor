@@ -329,4 +329,6 @@ class DBCommand(ReplAction):
             return [sc for sc in subcommands if sc.startswith(word)]
 
         # Provide flag completions for the recognized sub-command.
-        return [flag for flag in flags[sub] if flag.startswith(word) and flag not in tokens]
+        return [
+            flag for flag in flags[sub] if flag.startswith(word) and flag not in tokens
+        ]
