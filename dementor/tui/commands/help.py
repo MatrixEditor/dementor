@@ -23,10 +23,13 @@ import argparse
 from typing import TYPE_CHECKING
 from typing_extensions import override
 
+from prompt_toolkit.document import Document
+
 from dementor.tui.action import ReplAction, command, REPL_COMMANDS
 
 if TYPE_CHECKING:
     from rich.console import Console
+
 
 @command
 class ExitCommand(ReplAction):
@@ -43,7 +46,7 @@ class ExitCommand(ReplAction):
 class HelpCommand(ReplAction):
     """Displays the help menu.
 
-    Use 'help <command>' do get detailed information about a supported command.
+    Use `help <command>` do get detailed information about a supported command.
     """
 
     names: list[str] = ["help", "?"]
@@ -72,10 +75,16 @@ class HelpCommand(ReplAction):
 
         action_cls = REPL_COMMANDS[name]
         if action_cls.__doc__:
-            console.print(textwrap.dedent(action_cls.__doc__), "\n")
+            console.print(textwrap.dedent(action_cls.__doc__))
+            console.print()
 
         parser = action_cls(self.repl).get_parser()
         if parser:
             parser.print_help()
+        # REVISIT:
         # else:
         #     console.print(f"[b yellow]No usage available for command: {name}[/]")
+
+    @override
+    def get_completions(self, word: str, document: Document) -> list[str]:
+        return list(REPL_COMMANDS)
