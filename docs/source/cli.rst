@@ -89,7 +89,7 @@ Command-Line Options
 
 --repl, -F
 
-    .. versionadded:: 1.0.0.dev20
+    .. versionadded:: 1.0.0.dev21
 
     Starts Dementor in an interactive REPL mode, allowing runtime configuration changes.
     See :ref:`tui-repl` for more information.

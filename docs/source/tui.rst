@@ -3,6 +3,8 @@
 TUI / Interactive Mode
 ======================
 
+.. versionadded:: 1.0.0.dev21
+
 Dementor ships with an interactive **TUI** that provides a rich, colour-enhanced command line for
 interacting with services. It gives quick access to the most common operations - checking the
 environment, querying the database, starting and stopping protocol services and tweaking the

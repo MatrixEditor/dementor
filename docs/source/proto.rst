@@ -10,7 +10,7 @@ that implements specific functions recognized by the core engine.
 Protocol Module Structure
 --------------------------
 
-.. versionchanged:: 1.0.0.dev20
+.. versionchanged:: 1.0.0.dev21
 
 Dementor now uses a class-based system for protocol extensions.  A custom protocol is implemented as a
 subclass of :class:`dementor.loader.BaseProtocolModule` and may define the following class
