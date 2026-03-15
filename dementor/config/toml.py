@@ -20,6 +20,7 @@
 # pyright: reportAny=false, reportExplicitAny=false
 from typing import ClassVar, NamedTuple, Any, TypeVar
 from collections.abc import Callable
+from typing_extensions import override
 
 from dementor.config.util import get_value
 
@@ -248,3 +249,10 @@ class TomlConfig:
             setter(value)
         else:
             setattr(self, field_name, value)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {a.attr_name: getattr(self, a.attr_name, None) for a in self._fields_}
+
+    @override
+    def __repr__(self) -> str:
+        return repr(self.as_dict())

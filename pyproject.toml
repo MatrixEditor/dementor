@@ -51,6 +51,7 @@ dependencies = [
     "sqlalchemy",
     "typer",
     "typing-extensions",
+    "prompt_toolkit",
 ]
 
 [project.scripts]

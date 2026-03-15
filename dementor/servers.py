@@ -18,6 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportAny=false, reportExplicitAny=false
+import contextlib
+import asyncio
+from dementor.config.toml import TomlConfig
+from asyncio import Task
 import traceback
 import pathlib
 import socket
@@ -29,9 +33,9 @@ import errno
 import sys
 
 from io import StringIO
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Generic, override
 from socketserver import BaseRequestHandler
-from typing_extensions import override
+from typing_extensions import override, TypeVar
 
 from dementor import db
 from dementor.log import hexdump
@@ -39,8 +43,126 @@ from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.log.stream import log_host
 from dementor.config.session import SessionConfig
 
+_ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig, default=TomlConfig)
 
-class ServerThread(threading.Thread):
+
+class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
+    """Base thread class for running protocol servers with graceful shutdown support."""
+
+    def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
+        self.config: SessionConfig = config
+        self.server_config: _ConfigTy = server_config
+        self.port: int | None = None
+        self.address: str | None = None
+        super().__init__(daemon=False)
+
+    def get_service_name(self) -> str:
+        """Get the service name for logging purposes.
+
+        This method should be overridden by subclasses to provide a specific service name.
+        :return: Service name string
+        :rtype: str
+        """
+        raise NotImplementedError("get_service_name must be implemented by subclasses")
+
+    @property
+    def service_name(self) -> str:
+        """Get the service name from server class or use class name as fallback.
+
+        :return: Service name.
+        :rtype: str
+        """
+        return self.get_service_name()
+
+    def get_port(self) -> int:
+        """Return the listening port of the server.
+
+        The port is set when the server starts. If the server has not been started
+        and the port is still ``None``, a ``ValueError`` is raised.
+
+        :return: Port number.
+        :rtype: int
+        :raises ValueError: If the port has not been assigned yet.
+        """
+        if self.port is None:
+            raise ValueError("Port not set - the server may not have been started yet.")
+        return self.port
+
+    def get_address(self) -> str:
+        """Return the bound address of the server.
+
+        The address is set when the server starts. If the address is ``None`` a
+        ``ValueError`` is raised.
+
+        :return: Address string.
+        :rtype: str
+        :raises ValueError: If the address has not been assigned yet.
+        """
+        if self.address is None:
+            raise ValueError(
+                "Address not set - the server may not have been started yet."
+            )
+        return self.address
+
+    def shutdown(self) -> None:
+        """Gracefully shutdown the server thread."""
+        # To be implemented by subclasses if needed
+
+    def is_running(self) -> bool:
+        return self.is_alive()
+
+
+class AsyncServerThread(BaseServerThread[_ConfigTy]):
+    """Thread class for running asynchronous protocol servers (e.g., asyncio-based).
+
+    This is a placeholder for future async server implementations. It currently
+    does not implement any specific async server logic but can be extended to
+    support asyncio event loops and async server classes.
+    """
+
+    def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
+        super().__init__(config, server_config)
+        self._task: Task[None] | None = None
+
+    @property
+    def task(self) -> Task[None]:
+        """Get the asyncio Task running the server.
+
+        :return: The asyncio Task instance for the server.
+        :rtype: Task[None] | None
+        """
+        if not self._task:
+            raise ValueError("Async server task has not been started yet")
+
+        return self._task
+
+    async def arun(self) -> None:
+        """Asynchronous run method to start the server.
+
+        This method should be overridden to implement the actual async server logic.
+        """
+        # To be implemented with async server logic in the future
+
+    def run(self) -> None:
+        """Start the asynchronous server."""
+        self._task = self.config.loop.create_task(self.arun())
+
+    async def ashutdown(self) -> None:
+        """Asynchronously shutdown the server."""
+        if self._task:
+            self._task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._task
+
+    @override
+    def shutdown(self) -> None:
+        """Gracefully shutdown the asynchronous server."""
+        dm_logger.debug(f"Shutting down {self.service_name} Service")
+        if self._task:
+            _ = self.config.loop.create_task(self.ashutdown())
+
+
+class ServerThread(BaseServerThread[_ConfigTy]):
     """
     A thread-based server wrapper for running network protocol handlers.
 
@@ -59,16 +181,19 @@ class ServerThread(threading.Thread):
     def __init__(
         self,
         config: SessionConfig,
+        server_config: _ConfigTy,
         server_class: type,
+        include_server_config: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        self.config: SessionConfig = config
+        super().__init__(config, server_config)
         self.server_class: type = server_class
         self.args: tuple[Any, ...] = args
         self.kwargs: dict[str, Any] = kwargs
         self._server: socketserver.BaseServer | None = None
-        super().__init__(daemon=False)
+        if include_server_config:
+            self.kwargs["server_config"] = server_config
 
     @property
     def service_name(self) -> str:
@@ -100,8 +225,12 @@ class ServerThread(threading.Thread):
         address: str = ""
         port: int = 0
         try:
+            dm_logger.debug(f"Creating server instance for {self.service_name} service")
             self._server = self.server_class(self.config, *self.args, **self.kwargs)
             address, port = self.server.server_address[:2]
+            # Store address and port in BaseServerThread for later retrieval
+            self.address = address
+            self.port = port
             dm_logger.debug(f"Starting {self.service_name} Service on {address}:{port}")
 
             # Run server with periodic stop checks instead of blocking forever
@@ -125,7 +254,7 @@ class ServerThread(threading.Thread):
                 f"Failed to start server for {self.service_name} ({address}:{port}): {e}"
             )
         finally:
-            self.shutdown()
+            dm_logger.debug(f"Closed {self.service_name} Service")
 
     def shutdown(self) -> None:
         """Gracefully shutdown the server thread."""
@@ -358,6 +487,7 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
         """
         self.config: SessionConfig = config
         self.ipv4_only = getattr(config, "ipv4_only", False)
+        self.stop_flag = threading.Event()
         if config.ipv6 and not self.ipv4_only:
             self.address_family = socket.AF_INET6
 
@@ -449,6 +579,7 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """
         self.config: SessionConfig = config
         self.ipv4_only = getattr(config, "ipv4_only", False)
+        self.stop_flag = threading.Event()
         if config.ipv6 and not self.ipv4_only:
             self.address_family = socket.AF_INET6
         super().__init__(

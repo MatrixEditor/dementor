@@ -24,15 +24,14 @@ import typing
 from scapy.layers import llmnr, dns
 from rich import markup
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.protocols.mdns import build_dns_answer
 from dementor.servers import (
     ThreadingUDPServer,
-    ServerThread,
     BaseProtoHandler,
     add_mcast_membership,
 )
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.session import SessionConfig
 from dementor.log.logger import ProtocolLogger
 from dementor.filters import ATTR_WHITELIST, ATTR_BLACKLIST, in_scope
 from dementor.log.stream import log_to
@@ -42,6 +41,9 @@ if typing.TYPE_CHECKING:
 
 
 # --- Protocol Interface ---
+__proto__ = ["LLMNR"]
+
+
 class LLMNRConfig(TomlConfig):
     _section_ = "LLMNR"
     _fields_ = [
@@ -54,17 +56,6 @@ class LLMNRConfig(TomlConfig):
         llmnr_answer_name: str
         ignored: Filters | None
         targets: Filters | None
-
-
-def apply_config(session: SessionConfig) -> None:
-    session.llmnr_config = TomlConfig.build_config(LLMNRConfig)
-
-
-def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    if not session.llmnr_enabled:
-        return []
-
-    return [ServerThread(session, LLMNRServer)]
 
 
 LLMNR_IPV4_ADDR = llmnr._LLMNR_IPv4_mcast_addr
@@ -151,3 +142,12 @@ class LLMNRServer(ThreadingUDPServer):
             group6=LLMNR_IPV6_ADDR,
         )
         super().server_bind()
+
+
+class LLMNR(BaseProtocolModule[LLMNRConfig]):
+    name: str = "LLMNR"
+    config_ty = LLMNRConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    server_ty = LLMNRServer
+    poisoner = True

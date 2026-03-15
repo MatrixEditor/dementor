@@ -24,14 +24,21 @@ import typing
 
 from socket import socket
 from typing import ClassVar
-
 from typing_extensions import override
+
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import get_value
 from dementor.log.logger import ProtocolLogger
-from dementor.servers import BaseProtoHandler, ThreadingTCPServer, ServerThread
+from dementor.servers import (
+    BaseProtoHandler,
+    ThreadingTCPServer,
+    ServerThread,
+    BaseServerThread,
+)
 from dementor.db import _CLEARTEXT  # pyright: ignore[reportPrivateUsage]
+
+__proto__ = ["FTP"]
 
 # --------------------------------------------------------------------------- #
 # RFC-959 reply codes used by this minimal implementation.
@@ -69,38 +76,30 @@ class FTPServerConfig(TomlConfig):
         ftp_port: int
 
 
-def apply_config(session: SessionConfig) -> None:
-    """
-    Load FTP server configuration and store it on *session*.
+class FTP(BaseProtocolModule[FTPServerConfig]):
+    name = "FTP"
+    config_ty = FTPServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
 
-    ``session.ftp_config`` becomes a list of :class:`FTPServerConfig`
-    objects - one per ``[FTP.Server]`` stanza in the TOML file.
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: FTPServerConfig
+    ) -> BaseServerThread:
+        """Build :class:`ServerThread` objects for each configured FTP server.
 
-    :param session: Current session object.
-    :type session: :class:`dementor.config.session.SessionConfig`
-    """
-    session.ftp_config = []
-    if session.ftp_enabled:  # pragma: no branch
-        for server_cfg in get_value("FTP", "Server", default=[]):
-            session.ftp_config.append(FTPServerConfig(server_cfg))
-
-
-def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    """Build :class:`ServerThread` objects for each configured FTP server.
-
-    :param session: Session containing the ``ftp_config`` list.
-    :type session: :class:`dementor.config.session.SessionConfig`
-    :return: List of ready-to-start :class:`ServerThread` objects.
-    :rtype: list[ServerThread]
-    """
-    return [
-        ServerThread(
+        :param session: Session containing the ``ftp_config`` list.
+        :type session: :class:`dementor.config.session.SessionConfig`
+        :return: List of ready-to-start :class:`ServerThread` objects.
+        :rtype: list[ServerThread]
+        """
+        return ServerThread(
             session,
+            server_config,
             FTPServer,
-            server_address=("", cfg.ftp_port),
+            server_address=(session.bind_address, server_config.ftp_port),
         )
-        for cfg in session.ftp_config
-    ]
 
 
 # --------------------------------------------------------------------------- #

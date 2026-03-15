@@ -25,6 +25,7 @@ import pathlib
 import ssl
 import typing
 
+from typing_extensions import override
 from http import HTTPStatus
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
@@ -36,11 +37,12 @@ from jinja2 import select_autoescape
 from rich import markup
 from impacket import ntlm
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.util import format_string, get_value, is_true
 from dementor.log.logger import ProtocolLogger, dm_logger
-from dementor.servers import ServerThread, bind_server
+from dementor.servers import ServerThread, bind_server, BaseServerThread
 from dementor.db import _CLEARTEXT, normalize_client_address, _NO_USER
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.protocols.ntlm import (
@@ -53,69 +55,11 @@ from dementor.protocols.ntlm import (
 )
 
 
+__proto__ = ["HTTP", "WinRM"]
+
+
 def apply_config(session: SessionConfig):
     session.proxy_config = ProxyAutoConfig(get_value("Proxy", key=None, default={}))
-
-    session.http_config = [
-        HTTPServerConfig(server_config)
-        for server_config in get_value("HTTP", "Server", default=[])
-    ]
-
-    winrm_config = []
-    config = HTTPServerConfig({"Port": 5985})
-    config.http_wpad_enabled = False
-    config.http_webdav_enabled = False
-
-    ssl_enabled = bool(config.http_cert)
-    config.http_cert = None
-    config.http_cert_key = None
-    winrm_config.append(config)
-    if ssl_enabled:
-        ssl_config = HTTPServerConfig({"Port": 5986})
-        ssl_config.http_wpad_enabled = False
-        ssl_config.http_webdav_enabled = False
-        ssl_config.http_use_ssl = True
-        winrm_config.append(ssl_config)
-
-    if not session.winrm_enabled:
-        winrm_config = []
-    session.winrm_config = winrm_config
-
-
-def create_server_threads(session: SessionConfig):
-    servers = []
-    for server_config in session.http_config if session.http_enabled else []:
-        address = (
-            session.bind_address,
-            server_config.http_port,
-        )
-        servers.append(
-            ServerThread(
-                session,
-                HTTPServer,
-                server_config,
-                server_address=address,
-                ipv6=bool(session.ipv6),
-            )
-        )
-
-    if session.winrm_enabled:
-        servers.extend(
-            ServerThread(
-                session,
-                HTTPServer,
-                winrm_config,
-                RequestHandlerClass=WinRMHandler,
-                server_address=(
-                    session.bind_address,
-                    winrm_config.http_port,
-                ),
-                ipv6=bool(session.ipv6),
-            )
-            for winrm_config in session.winrm_config
-        )
-
-    return servers
 
 
 class ProxyAutoConfig(TomlConfig):
@@ -235,6 +179,71 @@ class HTTPServerConfig(TomlConfig):
             dirs.append(HTTP_TEMPLATES_PATH)
 
         self.http_templates = dirs
+
+
+class HTTP(BaseProtocolModule[HTTPServerConfig]):
+    name: str = "HTTP"
+    config_ty = HTTPServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: HTTPServerConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            HTTPServer,
+            include_server_config=True,
+            server_address=(session.bind_address, server_config.http_port),
+            ipv6=bool(session.ipv6),
+        )
+
+
+class WinRM(BaseProtocolModule[HTTPServerConfig]):
+    name: str = "WinRM"
+    config_ty = HTTPServerConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
+    config_list = True
+
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: HTTPServerConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            WinRMServer,
+            RequestHandlerClass=WinRMHandler,
+            include_server_config=True,
+            server_address=(session.bind_address, server_config.http_port),
+            ipv6=bool(session.ipv6),
+        )
+
+    @override
+    def apply_config(self, session: SessionConfig) -> None:
+        winrm_config: list[HTTPServerConfig] = []
+        config = HTTPServerConfig({"Port": 5985})
+        config.http_wpad_enabled = False
+        config.http_webdav_enabled = False
+
+        ssl_enabled = bool(config.http_cert)
+        config.http_cert = None
+        config.http_cert_key = None
+        winrm_config.append(config)
+        if ssl_enabled:
+            ssl_config = HTTPServerConfig({"Port": 5986})
+            ssl_config.http_wpad_enabled = False
+            ssl_config.http_webdav_enabled = False
+            ssl_config.http_use_ssl = True
+            winrm_config.append(ssl_config)
+
+        if not session.winrm_enabled:
+            winrm_config = []
+        session.winrm_config = winrm_config
 
 
 class HTTPHeaders:

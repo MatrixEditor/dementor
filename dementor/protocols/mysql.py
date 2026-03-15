@@ -26,6 +26,7 @@ import typing
 import enum
 
 from typing import Any
+from typing_extensions import override
 from collections import OrderedDict
 
 from caterpillar.py import (
@@ -51,6 +52,7 @@ from caterpillar.py import (
 from caterpillar.exception import DynamicSizeError, StructException
 from caterpillar.types import cstr_t, uint16_t, uint24_t, uint32_t, uint8_t
 
+from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.log.hexdump import hexdump
 from dementor.servers import (
@@ -58,11 +60,15 @@ from dementor.servers import (
     ServerThread,
     BaseProtoHandler,
     create_tls_context,
+    BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
 from dementor.config.attr import Attribute as A, ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.toml import TomlConfig
 from dementor.db import _CLEARTEXT
+
+
+__proto__ = ["MySQL"]
 
 
 class MySQLConfig(TomlConfig):
@@ -89,25 +95,25 @@ class MySQLConfig(TomlConfig):
         use_ssl: bool
 
 
-def apply_config(session: SessionConfig):
-    session.mysql_config = TomlConfig.build_config(MySQLConfig)
+class MySQL(BaseProtocolModule[MySQLConfig]):
+    name: str = "MySQL"
+    config_ty = MySQLConfig
+    config_attr = DEFAULT_ATTR
+    config_enabled_attr = DEFAULT_ATTR
 
-
-def create_server_threads(session: SessionConfig) -> list[ServerThread]:
-    return (
-        [
-            ServerThread(
-                session,
-                MySQLServer,
-                server_address=(
-                    session.bind_address,
-                    session.mysql_config.mysql_port,
-                ),
-            )
-        ]
-        if session.mysql_enabled
-        else []
-    )
+    @override
+    def create_server_thread(
+        self, session: SessionConfig, server_config: MySQLConfig
+    ) -> BaseServerThread:
+        return ServerThread(
+            session,
+            server_config,
+            MySQLServer,
+            server_address=(
+                session.bind_address,
+                session.mysql_config.mysql_port,
+            ),
+        )
 
 
 # --- MySQL Protocol ---

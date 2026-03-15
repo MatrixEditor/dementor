@@ -64,8 +64,8 @@ Hashcat output formats (validated against module_05500.c and module_05600.c):
 import time
 import calendar
 import secrets
-from typing import Any
 
+from typing import Any
 from caterpillar.py import LittleEndian, uint16
 from impacket import ntlm
 from impacket.smb3 import WIN_VERSIONS
