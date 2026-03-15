@@ -35,7 +35,7 @@ from dementor.servers import BaseServerThread, ServerThread
 from dementor.log.logger import dm_logger
 
 # --------------------------------------------------------------------------- #
-# Type aliases for the optional protocol entry‑points
+# Type aliases for the optional protocol entry-points
 # --------------------------------------------------------------------------- #
 ApplyConfigFunc = typing.Callable[[SessionConfig], None]
 """Type alias for function that applies protocol configuration.
@@ -44,15 +44,6 @@ Signature: `apply_config(session: SessionConfig) -> None`
 
 Used by protocol modules to customize global configuration based on protocol-specific needs.
 """
-
-CreateServersFunc = typing.Callable[[SessionConfig], list[BaseServerThread]]
-"""Type alias for function that creates server threads for a protocol.
-
-Signature: `create_server_threads(session: SessionConfig) -> list[BaseServerThread]`
-
-Returns a list of `threading.Thread` instances configured to run protocol servers.
-"""
-
 
 # --------------------------------------------------------------------------- #
 # Structural protocol used for static type checking
@@ -63,6 +54,38 @@ _ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig, default=TomlConfig)
 
 
 class BaseProtocolModule(Generic[_ConfigTy]):
+    """Base class for all protocol modules.
+
+    This class defines the common interface and helper utilities used by
+    concrete protocol implementations. Sub-classes declare a set of class
+    attributes that describe how the protocol integrates with the Dementor
+    configuration system and how server threads are instantiated.
+
+    :cvar name: Human readable name of the protocol (e.g. "SMB").
+    :type name: str
+    :cvar config_ty: The :class:`~dementor.config.toml.TomlConfig` subclass that
+                     represents the protocol's configuration schema. ``None``
+                     indicates that the protocol does not expose a dedicated configuration section.
+    :type config_ty: type[_ConfigTy] | None
+    :cvar config_attr: Name of the attribute on :class:`~dementor.config.session.SessionConfig`
+                       where the built configuration object(s) will be stored. If set to
+                       ``<DEFAULT>`` the attribute defaults to ``{self.name.lower()}_config``.
+    :type config_attr: str | None
+    :cvar config_enabled_attr: Optional flag attribute on the session indicating whether the
+                               protocol is enabled. ``<DEFAULT>`` resolves to
+                               ``{self.name.lower()}_enabled``.
+    :type config_enabled_attr: str | None
+    :cvar config_list: When ``True`` the configuration is interpreted as a list of ``config_ty``
+                       instances (multiple server definitions). When ``False`` a single
+                       configuration instance is expected.
+    :type config_list: bool
+    :cvar poisoner: Indicates whether the protocol can act as a *poisoner*. Defaults to ``False``.
+    :type poisoner: bool
+    :cvar server_ty: The concrete server class that should be instantiated for each configuration
+                     entry. If ``None`` the protocol must implement ``create_server_thread`` manually.
+    :type server_ty: type | None
+    """
+
     name: str
     config_ty: type[_ConfigTy] | None
     config_attr: str | None
@@ -72,18 +95,43 @@ class BaseProtocolModule(Generic[_ConfigTy]):
     server_ty: type | None = None
 
     def _get_config_attr(self) -> str | None:
+        """Retrieve the configuration attribute name.
+
+        If ``config_attr`` is set to ``<DEFAULT>`` this method returns the default
+        attribute name based on the protocol name.
+
+        :return: The attribute name or ``None`` if not defined.
+        :rtype: str | None
+        """
         attr = getattr(self, "config_attr", None)
         if attr == DEFAULT_ATTR:
             attr = f"{self.name.lower()}_config"
         return attr
 
     def _get_config_enabled_attr(self) -> str | None:
+        """Retrieve the configuration enabled attribute name.
+
+        If ``config_enabled_attr`` is set to ``<DEFAULT>`` this method returns the default
+        enabled attribute name based on the protocol name.
+
+        :return: The enabled attribute name or ``None`` if not defined.
+        :rtype: str | None
+        """
         attr = getattr(self, "config_enabled_attr", None)
         if attr == DEFAULT_ATTR:
             attr = f"{self.name.lower()}_enabled"
         return attr
 
     def apply_config(self, session: SessionConfig) -> None:
+        """Apply protocol configuration to the session.
+
+        Loads configuration objects based on ``config_ty`` and stores them in the
+        session under ``config_attr``. Handles both singular and list configurations.
+
+        :param session: The session configuration to populate.
+        :type session: SessionConfig
+        :raises NotImplementedError: If ``config_ty`` or ``config_attr`` are not defined.
+        """
         config_ty = getattr(self, "config_ty", None)
         config_attr = self._get_config_attr()
 
@@ -105,6 +153,19 @@ class BaseProtocolModule(Generic[_ConfigTy]):
     def create_server_thread(
         self, session: SessionConfig, server_config: _ConfigTy
     ) -> BaseServerThread[_ConfigTy]:
+        """Create a server thread for a given configuration.
+
+        Instantiates a :class:`~dementor.servers.ServerThread` using ``server_ty`` if
+        provided, otherwise expects the subclass to override this method.
+
+        :param session: The session configuration.
+        :type session: SessionConfig
+        :param server_config: The specific server configuration instance.
+        :type server_config: _ConfigTy
+        :return: The created server thread.
+        :rtype: BaseServerThread[_ConfigTy]
+        :raises NotImplementedError: If ``server_ty`` is not defined.
+        """
         server_ty: type | None = getattr(self, "server_ty", None)
         if server_ty is not None:
             return ServerThread(session, server_config, server_ty)
@@ -114,6 +175,17 @@ class BaseProtocolModule(Generic[_ConfigTy]):
         )
 
     def create_server_threads(self, session: SessionConfig) -> list[BaseServerThread]:
+        """Create all server threads for the protocol.
+
+        Considers the ``config_enabled_attr`` guard and supports both single and list
+        configurations.
+
+        :param session: The session configuration.
+        :type session: SessionConfig
+        :return: List of created server threads.
+        :rtype: list[BaseServerThread]
+        :raises NotImplementedError: If ``config_attr`` is not set.
+        """
         config_attr: str | None = self._get_config_attr()
         config_enabled_attr: str | None = self._get_config_enabled_attr()
         if config_enabled_attr is not None and not getattr(
@@ -357,6 +429,7 @@ class ProtocolManager:
         """Create server threads for all loaded protocols."""
         protocol = self.protocols[name.lower()]
         try:
+            self.started.discard(name.lower())
             servers = self.loader.create_servers(protocol, self.session)
             self.threads[name.lower()] = list(servers)
         except Exception as e:
