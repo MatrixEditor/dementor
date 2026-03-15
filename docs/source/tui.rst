@@ -12,9 +12,11 @@ runtime configuration - without leaving the terminal.
 
 Let's take a look!
 
-.. code-block:: text
 
-    dm(v0.5.0)@eth0 using [sqlite/12] [Debug] #
+.. container:: demo
+
+    .. image:: /_static/images/tui-overview.png
+
 
 Prompt Components
 -----------------
