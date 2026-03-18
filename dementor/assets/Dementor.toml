@@ -204,16 +204,38 @@ UPnP = true
 # =============================================================================
 [DB]
 
-# If true, allows duplicate credentials to be stored. If false, only unique
-# credentials will be stored and printed once.
-# The default value is: true
+# --- Url (advanced) ----------------------------------------------------------
+# Full SQLAlchemy database URL.  When set, Path is ignored.
+# Use this to connect to an external database server for multi-session or
+# shared access.  Leave empty (the default) to use the SQLite Path below.
+#
+# Examples:
+#   Url = "mysql+pymysql://user:pass@127.0.0.1/dementor"       # MySQL / MariaDB
+#   Url = "postgresql+psycopg2://user:pass@127.0.0.1/dementor"  # PostgreSQL
+#
+# Url =
 
-DuplicateCreds = true
-
-# Dialect = "sqlite"
-# Driver = "pysqlite"
-# Url = "sqlite:///:memory:"
+# --- Path (default backend) --------------------------------------------------
+# Path to the SQLite database file.  Only used when Url is empty.
+#
+#   Relative paths are resolved from the workspace directory:
+#     Path = "Dementor.db"           (default -- file in workspace)
+#     Path = "data/captures.db"      (subfolder, created automatically)
+#
+#   Absolute paths are used as-is:
+#     Path = "/opt/dementor/creds.db"
+#
+#   In-memory database (fast, but all data is lost when Dementor exits;
+#   the TUI can still query captured creds while running):
+#     Path = ":memory:"
+#
 # Path = "Dementor.db"
+
+# --- DuplicateCreds -----------------------------------------------------------
+# When true, every captured hash is stored even if an identical credential
+# (same domain + username + type + protocol) was seen before.  When false,
+# only the first capture is kept and repeats are silently skipped.
+DuplicateCreds = true
 
 # =============================================================================
 # mDNS
