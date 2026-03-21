@@ -45,8 +45,6 @@ References:
 """
 
 import secrets
-
-import base64
 import os
 import socket
 import ssl
@@ -55,7 +53,7 @@ import time
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 from urllib.request import parse_http_list, parse_keqv_list
-from collections.abc import Sequence, Callable
+
 
 from caterpillar.py import BigEndian, uint32
 from impacket import ntlm
@@ -122,6 +120,7 @@ from dementor.servers import (
 
 if TYPE_CHECKING:
     from tempfile import TemporaryDirectory
+    from collections.abc import Callable
 
 
 # ===========================================================================
@@ -1841,7 +1840,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
         )
         self.send(self.server.bind_result(message, matched_dn=ntlm_challenge.getData()))
-        return None
 
     def _handle_NTLM_Auth(self, message: LDAPMessage, blob: bytes) -> None:
         """Handle NTLM Authenticate message."""

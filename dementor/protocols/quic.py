@@ -23,7 +23,6 @@
 #   - https://github.com/ctjf/Responder/tree/master
 import asyncio
 import os
-import tempfile
 import typing
 
 from typing_extensions import override
@@ -40,6 +39,9 @@ from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.config.util import generate_self_signed_cert
 from dementor.log.logger import ProtocolLogger, dm_logger
+
+if typing.TYPE_CHECKING:
+    import tempfile
 
 __proto__ = ["Quic"]
 
