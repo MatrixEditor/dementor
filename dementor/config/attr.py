@@ -22,6 +22,11 @@
 from dementor.config.toml import Attribute
 from dementor.config.util import is_true
 
+# TLS/Certificate Configuration Attributes
+# These attributes are shared across protocols that support TLS and
+# certificate-based authentication
+
+
 ATTR_CERT = Attribute(
     attr_name="certfile",
     qname="Cert",
@@ -42,3 +47,69 @@ ATTR_TLS = Attribute(
     default_val=False,
     factory=is_true,
 )
+
+
+# Self-Signed Certificate Generation Attributes
+# These attributes configure automatic self-signed certificate generation
+# when TLS is enabled but no certificates are provided.
+# Similar to QUIC implementation, allows global configuration across protocols.
+
+ATTR_SELF_SIGNED = Attribute(
+    attr_name="self_signed",
+    qname="EnableSelfSigned",
+    default_val=True,
+    factory=is_true,
+    section_local=False,
+)
+
+ATTR_CERT_CN = Attribute(
+    attr_name="cert_cn",
+    qname="CertCommonName",
+    default_val="dementor.local",
+    section_local=False,
+)
+
+ATTR_CERT_ORG = Attribute(
+    attr_name="cert_org",
+    qname="CertOrganization",
+    default_val="Dementor",
+    section_local=False,
+)
+
+ATTR_CERT_COUNTRY = Attribute(
+    attr_name="cert_country",
+    qname="CertCountry",
+    default_val="US",
+    section_local=False,
+)
+
+ATTR_CERT_STATE = Attribute(
+    attr_name="cert_state",
+    qname="CertState",
+    default_val="CA",
+    section_local=False,
+)
+
+ATTR_CERT_LOCALITY = Attribute(
+    attr_name="cert_locality",
+    qname="CertLocality",
+    default_val="San Francisco",
+    section_local=False,
+)
+
+ATTR_CERT_VALIDITY_DAYS = Attribute(
+    attr_name="cert_validity_days",
+    qname="CertValidityDays",
+    default_val=365,
+    section_local=False,
+)
+
+SELFSIGNED_COMMON_ATTRS = [
+    ATTR_SELF_SIGNED,
+    ATTR_CERT_CN,
+    ATTR_CERT_COUNTRY,
+    ATTR_CERT_LOCALITY,
+    ATTR_CERT_ORG,
+    ATTR_CERT_STATE,
+    ATTR_CERT_VALIDITY_DAYS,
+]

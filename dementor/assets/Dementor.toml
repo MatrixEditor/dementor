@@ -491,6 +491,11 @@ Port = 389
 Port = 389
 Connectionless = true
 
+[[LDAP.Server]]
+Connectionless = false
+Port = 636
+TLS = true
+
 
 # =============================================================================
 # QUIC
