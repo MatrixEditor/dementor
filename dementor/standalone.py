@@ -41,6 +41,7 @@ from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.text import Text
 from rich.align import Align
+from rich.style import Style
 
 from dementor import __version__ as DementorVersion
 from dementor import config, paths
@@ -244,7 +245,13 @@ def main_print_banner(quiet_mode: bool) -> None:
         aioquic_version=AioquicVersion,
         pyipp_version=PyippVersion,
     )
-    rprint(Align.center(text, vertical="middle"))
+    rprint(
+        Align.center(
+            text,
+            vertical="middle",
+            style=Style(bgcolor="#000000"),
+        )
+    )
 
 
 def main_format_config(name: str, value: str) -> str:
