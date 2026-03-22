@@ -486,6 +486,7 @@ class BrowserPoisoner(BaseProtoHandler):
             netlogon_response = netlogon.build_response(
                 request=request,
                 dc_name=dc_netbios,
+                domain_guid=secrets.token_bytes(16),
                 domain_name=domain_name.upper(),
                 dns_forest_name=domain_name.lower(),
                 dns_domain_name=domain_name.lower(),

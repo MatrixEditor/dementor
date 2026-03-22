@@ -39,6 +39,8 @@ from scapy.fields import (
     StrNullField,
     StrNullFieldUtf16,
     XLEShortField,
+    ConditionalField,
+    ByteField,
 )
 
 
@@ -287,8 +289,12 @@ class NETLOGON_PRIMARY_RESPONSE(smb.NETLOGON):
         StrNullField("PrimaryDCName", ""),
         # UnicodePrimaryDCName (variable, null-terminated UTF-16LE, even-aligned)
         # Per [MS-ADTS] § 6.3.1.5, Unicode NetBIOS name of the server
-        # Note: Scapy's StrNullFieldUtf16 handles even-alignment automatically
         StrNullFieldUtf16("UnicodePrimaryDCName", ""),
+        ConditionalField(
+            ByteField("UnicodePrimaryDCNamePad", default=0x00),
+            # +2 because of unicode encoding
+            lambda pkt: (len(pkt.MailslotName) + 2) % 2 != 0,
+        ),
         # UnicodeDomainName (variable, null-terminated UTF-16LE)
         # Per [MS-ADTS] § 6.3.1.5, Unicode NetBIOS name of the domain
         StrNullFieldUtf16("UnicodeDomainName", ""),
@@ -531,6 +537,7 @@ def build_sam_logon_response_ex(
     dc_name: str,
     user_name: str,
     domain_name: str,
+    domain_guid: bytes,
     dns_forest_name: str,
     dns_domain_name: str,
     dns_host_name: str,
@@ -620,7 +627,7 @@ def build_sam_logon_response_ex(
     response = smb.NETLOGON_SAM_LOGON_RESPONSE_EX(
         OpCode=opcode,
         Flags=flags,
-        DomainGuid=bytes(16),
+        DomainGuid=domain_guid,
         DnsForestName=dns_forest_name,
         DnsDomainName=dns_domain_name,
         DnsHostName=dns_host_name,
@@ -653,6 +660,7 @@ def build_response(
     request: smb.NETLOGON_SAM_LOGON_REQUEST | smb.NETLOGON_LOGON_QUERY,
     dc_name: str,
     domain_name: str,
+    domain_guid: bytes,
     dns_forest_name: str,
     dns_domain_name: str,
     dns_host_name: str,
@@ -710,6 +718,7 @@ def build_response(
             dc_name=dc_name,
             user_name=user_name,
             domain_name=domain_name,
+            domain_guid=domain_guid,
             dns_forest_name=dns_forest_name,
             dns_domain_name=dns_domain_name,
             dns_host_name=dns_host_name,
