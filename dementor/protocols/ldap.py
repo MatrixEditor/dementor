@@ -45,6 +45,7 @@ References:
 """
 
 import secrets
+
 import os
 import socket
 import ssl
@@ -312,7 +313,11 @@ DEFAULT_DOMAIN: str = "example.com"
 # Exceptions
 # ===========================================================================
 class LDAPTerminateSession(Exception):
-    """Exception raised to terminate an LDAP session gracefully."""
+    """Exception raised to terminate an LDAP session gracefully.
+
+    This exception is used internally to signal that an LDAP session should
+    be terminated cleanly after sending a final response to the client.
+    """
 
 
 # ===========================================================================
@@ -399,7 +404,11 @@ class LDAPServerConfig(TomlConfig):
         ntlm_disable_ntlmv2: bool
 
     def set_ldap_error_code(self, value: str | int) -> None:
-        """Set the LDAP error code for bind responses."""
+        """Set the LDAP error code for bind responses.
+
+        :param value: Error code as integer or named string value
+        :type value: str | int
+        """
         if isinstance(value, int):
             self.ldap_error_code = value
         else:
@@ -408,8 +417,16 @@ class LDAPServerConfig(TomlConfig):
     def _parse_domain_to_dn(self, domain: str) -> str:
         """Parse a domain name into LDAP DN format.
 
-        - "example.com" → "DC=example,DC=com"
-        - "sub.example.com" → "DC=sub,DC=example,DC=com"
+        Converts DNS-style domain names into LDAP Distinguished Name format
+        by splitting on dots and creating DC (Domain Component) attributes.
+
+        - "example.com" -> "DC=example,DC=com"
+        - "sub.example.com" -> "DC=sub,DC=example,DC=com"
+
+        :param domain: DNS domain name to convert
+        :type domain: str
+        :return: LDAP DN format string
+        :rtype: str
         """
         if not domain:
             return ""
@@ -428,11 +445,11 @@ class SASLAuthState(Enum):
     succeeds or fails.
 
     State Transitions:
-    - INITIAL → CHALLENGE_SENT: Server sends initial challenge
-    - CHALLENGE_SENT → RESPONSE_RECEIVED: Client sends response
-    - RESPONSE_RECEIVED → COMPLETE: Authentication succeeds
-    - RESPONSE_RECEIVED → CHALLENGE_SENT: Additional challenge needed (multi-step)
-    - Any state → FAILED: Authentication fails
+    - INITIAL -> CHALLENGE_SENT: Server sends initial challenge
+    - CHALLENGE_SENT -> RESPONSE_RECEIVED: Client sends response
+    - RESPONSE_RECEIVED -> COMPLETE: Authentication succeeds
+    - RESPONSE_RECEIVED -> CHALLENGE_SENT: Additional challenge needed (multi-step)
+    - Any state -> FAILED: Authentication fails
     """
 
     # Initial state before any SASL exchange
@@ -467,10 +484,10 @@ class SASLMechanismState:
     def __init__(self, mechanism: str) -> None:
         """Initialize SASL mechanism state.
 
-        Args:
-            mechanism: Normalized SASL mechanism name (e.g., "GSS_SPNEGO")
-            timeout: State expiration timeout in seconds (default: 300 = 5 minutes)
-                    Per RFC 4513 §5.2.1.2: Servers SHOULD limit authentication time
+        Per RFC 4513 §5.2.1.2: Servers SHOULD limit authentication time.
+
+        :param mechanism: Normalized SASL mechanism name (e.g., "GSS_SPNEGO")
+        :type mechanism: str
         """
         self.mechanism: str = mechanism
         self.state: SASLAuthState = SASLAuthState.INITIAL
@@ -485,17 +502,18 @@ class SASLMechanismState:
         This method enforces valid state transitions to prevent protocol violations.
 
         Valid transitions:
-        - INITIAL → CHALLENGE_SENT: Server sends initial challenge
-        - INITIAL → FAILED: Authentication fails immediately
-        - CHALLENGE_SENT → RESPONSE_RECEIVED: Client responds to challenge
-        - CHALLENGE_SENT → FAILED: Client fails to respond properly
-        - RESPONSE_RECEIVED → COMPLETE: Authentication succeeds
-        - RESPONSE_RECEIVED → CHALLENGE_SENT: Multi-step auth needs another round
-        - RESPONSE_RECEIVED → FAILED: Authentication fails
-        - COMPLETE/FAILED: Terminal states, no further transitions
+            - INITIAL -> CHALLENGE_SENT: Server sends initial challenge
+            - INITIAL -> FAILED: Authentication fails immediately
+            - CHALLENGE_SENT -> RESPONSE_RECEIVED: Client responds to challenge
+            - CHALLENGE_SENT -> FAILED: Client fails to respond properly
+            - RESPONSE_RECEIVED -> COMPLETE: Authentication succeeds
+            - RESPONSE_RECEIVED -> CHALLENGE_SENT: Multi-step auth needs another round
+            - RESPONSE_RECEIVED -> FAILED: Authentication fails
+            - COMPLETE/FAILED: Terminal states, no further transitions
 
-        Raises:
-            ValueError: If transition is invalid per RFC 4513 §5.2.1.2
+        :param new_state: Target state to transition to
+        :type new_state: SASLAuthState
+        :raises ValueError: If transition is invalid per RFC 4513 §5.2.1.2
         """
         valid_transitions: dict[SASLAuthState, list[SASLAuthState]] = {
             SASLAuthState.INITIAL: [SASLAuthState.CHALLENGE_SENT, SASLAuthState.FAILED],
@@ -578,40 +596,69 @@ class SessionAuthState:
         self.created_at: float = time.time()
 
     def authenticate(self, identity: str, method: str) -> None:
-        """Transition to authenticated state."""
+        """Transition to authenticated state.
+
+        :param identity: Authenticated user identity (DN or username)
+        :type identity: str
+        :param method: Authentication method used (e.g., "simple", "sasl")
+        :type method: str
+        """
         self.state = AuthorizationState.AUTHENTICATED
         self.authenticated_identity = identity
         self.authentication_method = method
 
     def reset_to_anonymous(self) -> None:
-        """Reset to anonymous state per RFC 4513 §4."""
+        """Reset to anonymous state per RFC 4513 §4.
+
+        Clears all authentication state and returns session to anonymous access.
+        """
         self.state = AuthorizationState.ANONYMOUS
         self.authenticated_identity = None
         self.authentication_method = None
 
     def enable_tls(self) -> None:
-        """Mark TLS as active on the connection."""
+        """Mark TLS as active on the connection.
+
+        Called after successful StartTLS negotiation or initial TLS handshake.
+        """
         self.tls_active = True
 
     def enable_sasl(self) -> None:
-        """Mark SASL security layer as active."""
+        """Mark SASL security layer as active.
+
+        Indicates that SASL integrity/confidentiality protection is enabled.
+        """
         self.sasl_active = True
 
     def enable_channel_binding(self, binding_type: str) -> None:
-        """Enable channel binding on the connection."""
+        """Enable channel binding on the connection.
+
+        :param binding_type: Type of channel binding (e.g., "tls-unique")
+        :type binding_type: str
+        """
         self.channel_binding_active = True
         self.channel_binding_type = binding_type
 
     def enable_signing(self) -> None:
-        """Enable SASL signing (integrity protection)."""
+        """Enable SASL signing (integrity protection).
+
+        Per MS-ADTS §5.1.1.1.1.3: Signing provides message integrity via MAC.
+        """
         self.signing_active = True
 
     def enable_sealing(self) -> None:
-        """Enable SASL sealing (encryption)."""
+        """Enable SASL sealing (encryption).
+
+        Per MS-ADTS §5.1.1.1.1.3: Sealing provides message confidentiality.
+        """
         self.sealing_active = True
 
     def set_negotiated_qop(self, qop: str) -> None:
-        """Set the negotiated quality of protection."""
+        """Set the negotiated quality of protection.
+
+        :param qop: Quality of protection ("auth", "auth-int", or "auth-conf")
+        :type qop: str
+        """
         self.negotiated_qop = qop
         if qop == "auth-int":
             self.enable_signing()
@@ -620,7 +667,11 @@ class SessionAuthState:
             self.enable_sealing()
 
     def is_authenticated(self) -> bool:
-        """Check if session is in authenticated state."""
+        """Check if session is in authenticated state.
+
+        :return: True if session is authenticated, False otherwise
+        :rtype: bool
+        """
         return self.state == AuthorizationState.AUTHENTICATED
 
 
@@ -638,7 +689,15 @@ class LDAPServerMixin:
     def search_done(
         self, req: LDAPMessage, result_code: int = LDAP_SUCCESS
     ) -> LDAPMessage:
-        """Generate SearchResultDone message."""
+        """Generate SearchResultDone message.
+
+        :param req: Original LDAP request message
+        :type req: LDAPMessage
+        :param result_code: LDAP result code, defaults to LDAP_SUCCESS
+        :type result_code: int, optional
+        :return: SearchResultDone response message
+        :rtype: LDAPMessage
+        """
         result = SearchResultDone()
         result["resultCode"] = result_code
         result["matchedDN"] = ""
@@ -646,7 +705,16 @@ class LDAPServerMixin:
         return self.new_message(req, result)
 
     def create_root_dse_entry(self, requested_attrs: list[str]) -> dict[str, list[str]]:
-        """Create a consolidated root DSE entry with all requested attributes."""
+        """Create a consolidated root DSE entry with all requested attributes.
+
+        Per RFC 4512 §5.1: The root DSE contains server capabilities and
+        configuration information accessible without authentication.
+
+        :param requested_attrs: List of attribute names to include (empty = all)
+        :type requested_attrs: list[str]
+        :return: Dictionary mapping attribute names to value lists
+        :rtype: dict[str, list[str]]
+        """
         attributes = {}
 
         # Helper to add attribute if requested
@@ -702,6 +770,13 @@ class LDAPServerMixin:
         return attributes
 
     def search_entry_list(self, entries: dict[str, list[str]]) -> SearchResultEntry:
+        """Build a SearchResultEntry from attribute dictionary.
+
+        :param entries: Dictionary mapping attribute names to value lists
+        :type entries: dict[str, list[str]]
+        :return: Constructed SearchResultEntry message
+        :rtype: SearchResultEntry
+        """
         search_entry = SearchResultEntry()
         search_entry["objectName"] = ""
 
@@ -722,7 +797,19 @@ class LDAPServerMixin:
         matched_dn: str | bytes | None = None,
         sasl_credentials: bytes | None = None,
     ) -> LDAPMessage:
-        """Generate BindResponse message."""
+        """Generate BindResponse message.
+
+        :param req: Original LDAP bind request message
+        :type req: LDAPMessage
+        :param reason: LDAP result code, defaults to LDAP_SUCCESS
+        :type reason: int, optional
+        :param matched_dn: Matched DN or SASL challenge data, defaults to None
+        :type matched_dn: str | bytes | None, optional
+        :param sasl_credentials: SASL server credentials, defaults to None
+        :type sasl_credentials: bytes | None, optional
+        :return: BindResponse message
+        :rtype: LDAPMessage
+        """
         bind = BindResponse()
         bind["resultCode"] = reason
         bind["matchedDN"] = matched_dn or ""
@@ -738,7 +825,19 @@ class LDAPServerMixin:
         response_name: str | None = None,
         response_value: bytes | None = None,
     ) -> LDAPMessage:
-        """Generate ExtendedResponse message."""
+        """Generate ExtendedResponse message.
+
+        :param req: Original LDAP extended request message
+        :type req: LDAPMessage
+        :param reason: LDAP result code, defaults to LDAP_SUCCESS
+        :type reason: int, optional
+        :param response_name: Response OID, defaults to None
+        :type response_name: str | None, optional
+        :param response_value: Response-specific data, defaults to None
+        :type response_value: bytes | None, optional
+        :return: ExtendedResponse message
+        :rtype: LDAPMessage
+        """
         extended = ExtendedResponse()
         extended["resultCode"] = reason
         extended["matchedDN"] = ""
@@ -750,7 +849,15 @@ class LDAPServerMixin:
         return self.new_message(req, extended)
 
     def new_message(self, req: LDAPMessage, op: Any) -> LDAPMessage:
-        """Create a new LDAPMessage with the same message ID as the request."""
+        """Create a new LDAPMessage with the same message ID as the request.
+
+        :param req: Original LDAP request message
+        :type req: LDAPMessage
+        :param op: Protocol operation to include in response
+        :type op: Any
+        :return: New LDAP message with matching message ID
+        :rtype: LDAPMessage
+        """
         message = LDAPMessage()
         message["messageID"] = req["messageID"]
         message["protocolOp"].setComponentByType(op.getTagSet(), op)
@@ -792,7 +899,11 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         super().__init__(config, server_address, RequestHandlerClass)
 
     def generate_self_signed_cert(self) -> None:
-        """Generate a self-signed certificate and private key for LDAP server."""
+        """Generate a self-signed certificate and private key for LDAP server.
+
+        Creates temporary certificate files using configuration parameters.
+        Certificate is stored in a temporary directory and cleaned up on server close.
+        """
         ldap_logger.display(
             "Generating self-signed certificate for LDAP server",
             port=self.server_config.ldap_port,
@@ -819,6 +930,14 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         )
 
     def setup_ssl_context(self, transport: socket.socket | None = None) -> None:
+        """Initialize SSL/TLS context for LDAP server.
+
+        Loads certificate and key files, wraps the socket with TLS.
+        Generates self-signed certificate if configured and files not found.
+
+        :param transport: Socket to wrap with TLS, defaults to None (uses self.socket)
+        :type transport: socket.socket | None, optional
+        """
         cert_path = self.server_config.certfile
         key_path = self.server_config.keyfile
         transport = transport or self.socket
@@ -850,14 +969,20 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         ldap_logger.debug(f"TLS context initialized with certificate: {cert_path}")
 
     def server_bind(self) -> None:
-        """Initialize server socket and TLS context if configured."""
+        """Initialize server socket and TLS context if configured.
+
+        Sets up TLS wrapping before binding if use_ssl is enabled.
+        """
         if self.server_config.use_ssl:
             self.setup_ssl_context()
 
         super().server_bind()
 
     def server_close(self) -> None:
-        """Clean up temporary certificate directory if generated."""
+        """Clean up temporary certificate directory if generated.
+
+        Removes temporary certificate files created during server initialization.
+        """
         if self._generated_temp_cert and self._temp_dir:
             self._temp_dir.cleanup()
             self._generated_temp_cert = False
@@ -918,7 +1043,17 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         client_address: tuple[str, int],
         server: LDAPServerMixin,
     ) -> None:
-        """Initialize the protocol handler."""
+        """Initialize the protocol handler.
+
+        :param config: Session configuration object
+        :type config: SessionConfig
+        :param request: Client socket or UDP datagram tuple
+        :type request: socket.socket | tuple[bytes, socket.socket]
+        :param client_address: Client IP address and port
+        :type client_address: tuple[str, int]
+        :param server: LDAP server instance
+        :type server: LDAPServerMixin
+        """
         self.spnego_negotiator = SPNEGONegotiator(
             supported_mechs=[SPNEGO_NTLMSSP_MECH],
             mech_handlers={
@@ -933,7 +1068,11 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         super().__init__(config, request, client_address, server)
 
     def proto_logger(self) -> ProtocolLogger:
-        """Create a protocol logger with LDAP-specific context."""
+        """Create a protocol logger with LDAP-specific context.
+
+        :return: Configured protocol logger instance
+        :rtype: ProtocolLogger
+        """
         port: int = self.server.server_config.ldap_port
         use_ssl: bool = self.server.server_config.use_ssl
         return ProtocolLogger(
@@ -946,7 +1085,13 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         )
 
     def _is_encrypted_message(self, data: bytes) -> bool:
-        """Detect if received data appears to be an encrypted SASL message."""
+        """Detect if received data appears to be an encrypted SASL message.
+
+        :param data: Raw bytes received from client
+        :type data: bytes
+        :return: True if data appears to be encrypted SASL message
+        :rtype: bool
+        """
         if not (self.auth_state.signing_active or self.auth_state.sealing_active):
             return False
 
@@ -961,7 +1106,14 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
 
     @override
     def recv(self, size: int) -> LDAPMessage | None:  # type: ignore[override]
-        """Receive and decode an LDAP message from the client."""
+        """Receive and decode an LDAP message from the client.
+
+        :param size: Maximum bytes to receive (ignored, uses 8192)
+        :type size: int
+        :return: Decoded LDAP message or None if connection closed
+        :rtype: LDAPMessage | None
+        :raises LDAPTerminateSession: If encrypted SASL message received
+        """
         try:
             data = super().recv(8192)
             if not data:
@@ -989,8 +1141,12 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             return message
 
     @override
-    def send(self, data: LDAPMessage | list[LDAPMessage] | None) -> None:  # ty:ignore[invalid-method-override]
-        """Send an LDAP message or list of messages to the client."""
+    def send(self, data: LDAPMessage | list[LDAPMessage] | None) -> None:  # type: ignore[override]
+        """Send an LDAP message or list of messages to the client.
+
+        :param data: LDAP message(s) to send, or None to skip
+        :type data: LDAPMessage | list[LDAPMessage] | None
+        """
         if data is None:
             return
 
@@ -1017,7 +1173,13 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
 
     @override
     def handle_data(self, data: bytes | None, transport: socket.socket) -> None:
-        """Main message processing loop for LDAP connections."""
+        """Main message processing loop for LDAP connections.
+
+        :param data: Initial data received (unused for LDAP)
+        :type data: bytes | None
+        :param transport: Client socket connection
+        :type transport: socket.socket
+        """
         if self.server.server_config.ldap_timeout:
             transport.settimeout(self.server.server_config.ldap_timeout)
             self.logger.debug(
@@ -1059,7 +1221,15 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_spnego_ntlm_mech(
         self, mech_token: bytes | None, is_initiate: bool
     ) -> tuple[bytes | None, bool]:
-        """Handle NTLM mechanism within SPNEGO."""
+        """Handle NTLM mechanism within SPNEGO.
+
+        :param mech_token: NTLM token bytes from client
+        :type mech_token: bytes | None
+        :param is_initiate: True if this is the initial negotiate phase
+        :type is_initiate: bool
+        :return: Tuple of (response_token, negotiation_complete)
+        :rtype: tuple[bytes | None, bool]
+        """
         if is_initiate:
             if mech_token:
                 token = ntlm.NTLMAuthNegotiate()
@@ -1095,17 +1265,14 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         contain hyphens. However, Python method names cannot contain hyphens.
 
         This method normalizes mechanism names to match Python method naming:
-        - Convert to uppercase (RFC 4422 §3.1: case-insensitive)
-        - Replace hyphens with underscores (Python naming convention)
-        - Strip whitespace
+            - Convert to uppercase (RFC 4422 §3.1: case-insensitive)
+            - Replace hyphens with underscores (Python naming convention)
+            - Strip whitespace
 
-        Examples:
-            'GSS-SPNEGO' → 'GSS_SPNEGO'
-            'digest-md5' → 'DIGEST_MD5'
-            'PLAIN' → 'PLAIN'
-
-        Returns:
-            Normalized mechanism name suitable for method lookup
+        :param mech_name: Raw SASL mechanism name from client
+        :type mech_name: str
+        :return: Normalized mechanism name suitable for method lookup
+        :rtype: str
         """
         return mech_name.upper().replace("-", "_").strip()
 
@@ -1116,23 +1283,24 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
 
         Per RFC 4513 §5.1.1: Simple bind uses a DN or other string as the name.
         Per MS-ADTS §5.1.1.1.1: AD supports multiple name formats:
-        - Distinguished Name (DN): "CN=user,DC=domain,DC=com"
-        - User Principal Name (UPN): "user@domain.com"
-        - Down-level logon name: "DOMAIN\user"
+            - Distinguished Name (DN): "CN=user,DC=domain,DC=com"
+            - User Principal Name (UPN): "user@domain.com"
+            - Down-level logon name: "DOMAIN\user"
 
         This method parses these formats to extract username and domain.
 
         Supported Formats:
-        1. Windows down-level: "DOMAIN\user" → (user, DOMAIN)
-        2. UPN format: "user@domain.com" → (user, domain.com)
-        3. LDAP DN: "CN=John Doe,DC=example,DC=com" → (John Doe, None, {dn: ...})
-        4. Simple username: "user" → (user, None)
+            1. Windows down-level: "DOMAIN\user" -> (user, DOMAIN)
+            2. UPN format: "user@domain.com" -> (user, domain.com)
+            3. LDAP DN: "CN=John Doe,DC=example,DC=com" -> (John Doe, None, {dn: ...})
+            4. Simple username: "user" -> (user, None)
 
-        Returns:
-            Tuple of (username, domain, extras_dict)
-            - username: Extracted username
-            - domain: Extracted domain (None if not present)
-            - extras: Additional metadata (e.g., full DN)
+        :param bind_name: Bind name from LDAP bind request
+        :type bind_name: str
+        :return: Tuple of (username, domain, extras_dict) where username is the
+                 extracted username, domain is the extracted domain (None if not
+                 present), and extras contains additional metadata (e.g., full DN)
+        :rtype: tuple[str, str | None, dict[str, str]]
         """
         extras: dict[str, str] = {}
 
@@ -1186,17 +1354,21 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         It establishes the authorization identity for subsequent operations.
 
         Per RFC 4513 §5: LDAP supports multiple authentication methods:
-        - Simple Bind (§5.1): Anonymous, unauthenticated, or name/password
-        - SASL (§5.2): Pluggable authentication mechanisms
-        - Sicily (MS-ADTS §5.1.1.1.3): Microsoft NTLM extension
+            - Simple Bind (§5.1): Anonymous, unauthenticated, or name/password
+            - SASL (§5.2): Pluggable authentication mechanisms
+            - Sicily (MS-ADTS §5.1.1.1.3): Microsoft NTLM extension
 
         Per RFC 4511 §4.2.1: Bind request contains:
-        - version: LDAP protocol version (must be 3 for LDAPv3)
-        - name: DN or other identifier (empty for anonymous)
-        - authentication: Simple password, SASL, or other method
+            - version: LDAP protocol version (must be 3 for LDAPv3)
+            - name: DN or other identifier (empty for anonymous)
+            - authentication: Simple password, SASL, or other method
 
-        Returns:
-            None (response is sent directly to client)
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_req: Bind request protocol operation
+        :type bind_req: BindRequest
+        :return: None (response is sent directly to client)
+        :rtype: LDAPMessage | None
         """
         self.logger.debug(f"LDAP Bind Request from {self.client_address}")
         self.logger.debug(f"Bind message ID: {message['messageID']}")
@@ -1268,29 +1440,39 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         """Handle simple bind authentication per RFC 4513 §5.1.
 
         Per RFC 4513 §5.1: Simple bind supports three authentication types:
-        1. Anonymous (§5.1.1): Empty name and password → anonymous access
-        2. Unauthenticated (§5.1.2): Name but empty password → anonymous access
-        3. Name/Password (§5.1.3): Both name and password → authenticated access
+            1. Anonymous (§5.1.1): Empty name and password -> anonymous access
+            2. Unauthenticated (§5.1.2): Name but empty password -> anonymous access
+            3. Name/Password (§5.1.3): Both name and password -> authenticated access
 
         Per RFC 4513 §5.1.4: Simple bind with password SHOULD only be used over
         TLS to prevent credential exposure. However, we accept unencrypted simple
         binds to capture credentials.
 
         Security Considerations (RFC 4513 §6.1):
-        - Simple bind transmits password in cleartext (unless over TLS)
-        - Vulnerable to eavesdropping and replay attacks
-        - Should be disabled in production environments without TLS
+            - Simple bind transmits password in cleartext (unless over TLS)
+            - Vulnerable to eavesdropping and replay attacks
+            - Should be disabled in production environments without TLS
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_name: Bind DN or username from request
+        :type bind_name: str
+        :param bind_password: Password from request
+        :type bind_password: str
+        :return: Bind response message
+        :rtype: LDAPMessage
+        :raises LDAPTerminateSession: After sending response
         """
         self.logger.debug("Processing simple authentication")
 
         # RFC 4513 §5.1.1: Anonymous authentication
-        # Both name and password are empty → anonymous bind
+        # Both name and password are empty -> anonymous bind
         if not bind_name and not bind_password:
             self.logger.debug("Anonymous bind request")
             return self.server.bind_result(message)
 
         # RFC 4513 §5.1.2: Unauthenticated authentication
-        # Name is present but password is empty → treated as anonymous
+        # Name is present but password is empty -> treated as anonymous
         # Per RFC 4513 §5.1.2: Servers SHOULD NOT grant access based on DN alone
         if bind_name and not bind_password:
             self.logger.debug(f"Unauthenticated bind for DN: {bind_name}")
@@ -1340,21 +1522,28 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         allows NTLM authentication over LDAP without SASL wrapping.
 
         Sicily Protocol Flow (MS-ADTS §5.1.1.1.3):
-        1. Package Discovery: Client requests supported auth packages
-        2. Negotiate: Client sends NTLM NEGOTIATE_MESSAGE
-        3. Challenge: Server responds with NTLM CHALLENGE_MESSAGE
-        4. Authenticate: Client sends NTLM AUTHENTICATE_MESSAGE
+            1. Package Discovery: Client requests supported auth packages
+            2. Negotiate: Client sends NTLM NEGOTIATE_MESSAGE
+            3. Challenge: Server responds with NTLM CHALLENGE_MESSAGE
+            4. Authenticate: Client sends NTLM AUTHENTICATE_MESSAGE
 
         This method handles step 2 (Negotiate phase):
-        - Receives NTLM NEGOTIATE_MESSAGE from client
-        - Generates NTLM CHALLENGE_MESSAGE
-        - Returns challenge in BindResponse.matchedDN field
+            - Receives NTLM NEGOTIATE_MESSAGE from client
+            - Generates NTLM CHALLENGE_MESSAGE
+            - Returns challenge in BindResponse.matchedDN field
 
         Per MS-NLMP §3.1.5.1: NEGOTIATE_MESSAGE contains:
-        - NTLM signature ("NTLMSSP\0")
-        - Message type (0x00000001)
-        - Negotiation flags (capabilities)
-        - Optional domain/workstation names
+            - NTLM signature ("NTLMSSP\0")
+            - Message type (0x00000001)
+            - Negotiation flags (capabilities)
+            - Optional domain/workstation names
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_name: Mechanism name from bind request
+        :type bind_name: str
+        :param nego_token_raw: Raw NTLM negotiate token bytes
+        :type nego_token_raw: bytes
         """
         self.logger.debug("Processing Sicily negotiate (NTLM)")
 
@@ -1393,19 +1582,25 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         r"""Handle Sicily response (NTLM authenticate phase) per MS-ADTS §5.1.1.1.3.
 
         This method handles step 4 of the Sicily protocol (Authenticate phase):
-        - Receives NTLM AUTHENTICATE_MESSAGE from client
-        - Extracts and logs credentials (username, domain, NTLM hashes)
-        - Returns bind response
+            - Receives NTLM AUTHENTICATE_MESSAGE from client
+            - Extracts and logs credentials (username, domain, NTLM hashes)
+            - Returns bind response
 
         Per MS-NLMP §3.1.5.3: AUTHENTICATE_MESSAGE contains:
-        - NTLM signature ("NTLMSSP\0")
-        - Message type (0x00000003)
-        - LM response (legacy, often empty)
-        - NTLM response (NTLMv1 or NTLMv2)
-        - Domain name, username, workstation name
-        - Session key (if negotiated)
+            - NTLM signature ("NTLMSSP\0")
+            - Message type (0x00000003)
+            - LM response (legacy, often empty)
+            - NTLM response (NTLMv1 or NTLMv2)
+            - Domain name, username, workstation name
+            - Session key (if negotiated)
 
         The NTLM response can be cracked offline to recover the password.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param blob: Raw NTLM authenticate token bytes
+        :type blob: bytes
+        :raises LDAPTerminateSession: After sending response
         """
         self.logger.debug("Processing Sicily response (NTLM)")
         if self.mech_name == "ntlm":
@@ -1431,18 +1626,23 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         """Handle Sicily package discovery per MS-ADTS §5.1.1.1.3.
 
         This method handles step 1 of the Sicily protocol (Package Discovery):
-        - Client sends sicilyPackageDiscovery bind request
-        - Server responds with list of supported authentication packages
-        - Response is encoded as SicilyBindResponse in serverSaslCreds
+            - Client sends sicilyPackageDiscovery bind request
+            - Server responds with list of supported authentication packages
+            - Response is encoded as SicilyBindResponse in serverSaslCreds
 
         Per MS-ADTS §5.1.1.1.3: The server returns a list of supported packages.
         Common packages include:
-        - "NTLM": NT LAN Manager authentication
+            - "NTLM": NT LAN Manager authentication
 
         SicilyBindResponse Structure (MS-ADTS §5.1.1.1.3):
-        - resultCode: 0 for success
-        - serverCreds: Comma or semicolon-separated list of package names
-        - errorMessage: Empty for success
+            - resultCode: 0 for success
+            - serverCreds: Comma or semicolon-separated list of package names
+            - errorMessage: Empty for success
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :return: Sicily bind response with supported packages
+        :rtype: LDAPMessage
         """
         self.logger.debug("Sicily package discovery: Returning supported packages (NTLM)")
 
@@ -1458,7 +1658,18 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_bind(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL bind request."""
+        """Handle SASL bind request.
+
+        Dispatches to mechanism-specific handlers based on the requested
+        SASL mechanism. Manages SASL state machine transitions.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_auth: SASL authentication component from bind request
+        :type bind_auth: Any
+        :return: Bind response message or None
+        :rtype: LDAPMessage | None
+        """
         mech_name_raw = str(bind_auth["mechanism"])
         mech_name = self._normalize_sasl_mechanism(mech_name_raw)
 
@@ -1519,33 +1730,40 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         matching specified criteria and returns requested attributes.
 
         Search Request Parameters (RFC 4511 §4.5.1):
-        - baseObject: DN where search starts (empty string = root DSE)
-        - scope: Search scope (base=0, one=1, sub=2)
-        - filter: Criteria for matching entries
-        - attributes: List of attributes to return (empty = all)
+            - baseObject: DN where search starts (empty string = root DSE)
+            - scope: Search scope (base=0, one=1, sub=2)
+            - filter: Criteria for matching entries
+            - attributes: List of attributes to return (empty = all)
 
         Root DSE (RFC 4512 §5.1):
-        - Special entry with DN "" (empty string)
-        - Contains server capabilities and configuration
-        - Accessible without authentication
-        - Attributes include:
-          * supportedLDAPVersion: LDAP versions supported
-          * supportedSASLMechanisms: SASL mechanisms available
-          * supportedCapabilities: Server capability OIDs
-          * namingContexts: Available directory partitions
-          * defaultNamingContext: Default partition (MS-ADTS)
-          * configurationNamingContext: Configuration partition (MS-ADTS)
-          * rootDomainNamingContext: Root domain partition (MS-ADTS)
+            - Special entry with DN "" (empty string)
+            - Contains server capabilities and configuration
+            - Accessible without authentication
+            - Attributes include:
+                * supportedLDAPVersion: LDAP versions supported
+                * supportedSASLMechanisms: SASL mechanisms available
+                * supportedCapabilities: Server capability OIDs
+                * namingContexts: Available directory partitions
+                * defaultNamingContext: Default partition (MS-ADTS)
+                * configurationNamingContext: Configuration partition (MS-ADTS)
+                * rootDomainNamingContext: Root domain partition (MS-ADTS)
 
         Search Scopes (RFC 4511 §4.5.1.2):
-        - baseObject (0): Search only the base entry
-        - singleLevel (1): Search immediate children only
-        - wholeSubtree (2): Search base and all descendants
+            - baseObject (0): Search only the base entry
+            - singleLevel (1): Search immediate children only
+            - wholeSubtree (2): Search base and all descendants
 
         This implementation supports limited search functionality:
-        - Root DSE queries (base DN = "")
-        - Basic hostname/DN queries
-        - Does not implement full directory tree traversal
+            - Root DSE queries (base DN = "")
+            - Basic hostname/DN queries
+            - Does not implement full directory tree traversal
+
+        :param message: LDAP message containing search request
+        :type message: LDAPMessage
+        :param search_req: Search request protocol operation
+        :type search_req: SearchRequest
+        :return: List of search response messages (entries + done)
+        :rtype: list[LDAPMessage]
         """
         self.logger.debug(f"LDAP Search Request from {self.client_address}")
         self.logger.debug(f"Search message ID: {message['messageID']}")
@@ -1608,16 +1826,21 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         identified by a unique OID.
 
         This implementation supports:
-        - StartTLS (RFC 4511 §4.14 / RFC 4513 §3): Upgrade connection to TLS
+            - StartTLS (RFC 4511 §4.14 / RFC 4513 §3): Upgrade connection to TLS
 
         Extended Request Format (RFC 4511 §4.12):
-        - requestName: OID identifying the operation
-        - requestValue: Optional operation-specific data
+            - requestName: OID identifying the operation
+            - requestValue: Optional operation-specific data
 
         Extended Response Format (RFC 4511 §4.12):
-        - resultCode: Success/failure indication
-        - responseName: Optional OID (typically echoes request)
-        - responseValue: Optional operation-specific result data
+            - resultCode: Success/failure indication
+            - responseName: Optional OID (typically echoes request)
+            - responseValue: Optional operation-specific result data
+
+        :param message: LDAP message containing extended request
+        :type message: LDAPMessage
+        :param extended_req: Extended request protocol operation
+        :type extended_req: ExtendedRequest
         """
         self.logger.debug(f"LDAP Extended Request from {self.client_address}")
         self.logger.debug(f"Extended message ID: {message['messageID']}")
@@ -1638,15 +1861,15 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             TLS encryption. This protects subsequent operations from eavesdropping.
 
             StartTLS Protocol Flow (RFC 4513 §3.1):
-            1. Client sends StartTLS extended request
-            2. Server sends success response
-            3. Client and server perform TLS handshake
-            4. Connection is now encrypted, authentication can proceed
+                1. Client sends StartTLS extended request
+                2. Server sends success response
+                3. Client and server perform TLS handshake
+                4. Connection is now encrypted, authentication can proceed
 
             Restrictions (RFC 4513 §3.1.1):
-            - MUST NOT be used if TLS is already active
-            - MUST NOT be used during SASL negotiation
-            - MUST NOT be used after successful bind (some implementations)
+                - MUST NOT be used if TLS is already active
+                - MUST NOT be used during SASL negotiation
+                - MUST NOT be used after successful bind (some implementations)
 
             Per RFC 5929: After StartTLS, channel binding can be used to bind
             SASL authentication to the TLS channel, preventing relay attacks.
@@ -1705,6 +1928,19 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         message: LDAPMessage,
         unbind_req: UnbindRequest,
     ) -> bool:
+        """Handle LDAP Unbind Request per RFC 4511 §4.3.
+
+        Per RFC 4511 §4.3: The Unbind operation terminates the LDAP session.
+        No response is sent to the client.
+
+        :param message: LDAP message containing unbind request
+        :type message: LDAPMessage
+        :param unbind_req: Unbind request protocol operation
+        :type unbind_req: UnbindRequest
+        :return: Always raises LDAPTerminateSession
+        :rtype: bool
+        :raises LDAPTerminateSession: To terminate the session
+        """
         # terminate connection
         raise LDAPTerminateSession
 
@@ -1715,7 +1951,18 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_GSS_SPNEGO(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL GSS-SPNEGO mechanism."""
+        """Handle SASL GSS-SPNEGO mechanism.
+
+        Processes SPNEGO-wrapped NTLM authentication tokens.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_auth: SASL authentication component
+        :type bind_auth: Any
+        :return: Bind response message or None
+        :rtype: LDAPMessage | None
+        :raises LDAPTerminateSession: When authentication completes
+        """
         data = bytes(bind_auth["credentials"])
         self.logger.debug(f"GSS-SPNEGO: Received token, length={len(data)}")
 
@@ -1789,7 +2036,17 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_direct_ntlm(
         self, message: LDAPMessage, data: bytes
     ) -> LDAPMessage | None:
-        """Fallback handler when SPNEGO parsing fails."""
+        """Fallback handler when SPNEGO parsing fails.
+
+        Attempts to parse token as direct NTLM without SPNEGO wrapper.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param data: Raw token bytes from client
+        :type data: bytes
+        :return: Bind response message or None
+        :rtype: LDAPMessage | None
+        """
         try:
             if not data.startswith(b"NTLMSSP\x00"):
                 self.logger.debug(
@@ -1824,7 +2081,13 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             return self.server.bind_result(message, reason=LDAP_AUTH_METHOD_NOT_SUPPORTED)
 
     def _handle_NTLM_Negotiate(self, message: LDAPMessage, nego_token_raw: bytes) -> None:
-        """Handle NTLM Negotiate message."""
+        """Handle NTLM Negotiate message.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param nego_token_raw: Raw NTLM negotiate token bytes
+        :type nego_token_raw: bytes
+        """
         negotiate = NTLMAuthNegotiate()
         negotiate.fromString(nego_token_raw)
 
@@ -1842,7 +2105,14 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         self.send(self.server.bind_result(message, matched_dn=ntlm_challenge.getData()))
 
     def _handle_NTLM_Auth(self, message: LDAPMessage, blob: bytes) -> None:
-        """Handle NTLM Authenticate message."""
+        """Handle NTLM Authenticate message.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param blob: Raw NTLM authenticate token bytes
+        :type blob: bytes
+        :raises LDAPTerminateSession: After sending response
+        """
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
         NTLM_report_auth(
@@ -1870,33 +2140,36 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         supported for legacy client compatibility.
 
         DIGEST-MD5 Protocol Flow (RFC 2831 §2.1):
-        1. Client sends empty initial response (or no response)
-        2. Server sends challenge with realm, nonce, qop, etc.
-        3. Client sends response with username, realm, nonce, digest, etc.
-        4. Server verifies digest and sends success/failure
+            1. Client sends empty initial response (or no response)
+            2. Server sends challenge with realm, nonce, qop, etc.
+            3. Client sends response with username, realm, nonce, digest, etc.
+            4. Server verifies digest and sends success/failure
 
         Challenge Format (RFC 2831 §2.1.1):
-        - realm: Protection space (typically DNS domain)
-        - nonce: Server-generated random value (prevents replay)
-        - qop: Quality of protection options (auth, auth-int, auth-conf)
-        - algorithm: Hash algorithm (md5-sess recommended)
-        - charset: Character encoding (utf-8)
-        - maxbuf: Maximum buffer size for integrity/confidentiality layers
+            - realm: Protection space (typically DNS domain)
+            - nonce: Server-generated random value (prevents replay)
+            - qop: Quality of protection options (auth, auth-int, auth-conf)
+            - algorithm: Hash algorithm (md5-sess recommended)
+            - charset: Character encoding (utf-8)
+            - maxbuf: Maximum buffer size for integrity/confidentiality layers
 
         Response Format (RFC 2831 §2.1.2):
-        - username: User's identity
-        - realm: Selected realm from challenge
-        - nonce: Echoed from challenge
-        - cnonce: Client-generated nonce
-        - nc: Nonce count (prevents replay)
-        - qop: Selected quality of protection
-        - digest-uri: Service and host (e.g., "ldap/server.example.com")
-        - response: MD5 digest proving knowledge of password
+            - username: User's identity
+            - realm: Selected realm from challenge
+            - nonce: Echoed from challenge
+            - cnonce: Client-generated nonce
+            - nc: Nonce count (prevents replay)
+            - qop: Selected quality of protection
+            - digest-uri: Service and host (e.g., "ldap/server.example.com")
+            - response: MD5 digest proving knowledge of password
 
-        Security Considerations (RFC 2831 §4):
-        - Vulnerable to dictionary attacks (password not transmitted but digest is)
-        - md5-sess algorithm is weak (MD5 is cryptographically broken)
-        - Deprecated in favor of SCRAM mechanisms (RFC 5802)
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_auth: SASL authentication component
+        :type bind_auth: Any
+        :return: Bind response message or None
+        :rtype: LDAPMessage | None
+        :raises LDAPTerminateSession: When authentication completes
         """
         try:
             credentials = bytes(bind_auth["credentials"])
@@ -2038,7 +2311,13 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         raise LDAPTerminateSession
 
     def _parse_digest_response(self, response_str: str) -> dict[str, str] | None:
-        """Parse DIGEST-MD5 client response string into directive dictionary."""
+        """Parse DIGEST-MD5 client response string into directive dictionary.
+
+        :param response_str: Raw DIGEST-MD5 response string from client
+        :type response_str: str
+        :return: Dictionary of parsed directives or None on error
+        :rtype: dict[str, str] | None
+        """
         try:
             directives = parse_http_list(response_str)
             parsed = parse_keqv_list(directives)
@@ -2051,7 +2330,19 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_PLAIN(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL PLAIN mechanism."""
+        """Handle SASL PLAIN mechanism.
+
+        Per RFC 4616: PLAIN transmits credentials in cleartext.
+        MUST only be used over TLS.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_auth: SASL authentication component
+        :type bind_auth: Any
+        :return: Bind response message or None
+        :rtype: LDAPMessage | None
+        :raises LDAPTerminateSession: After sending response
+        """
         credentials = bytes(bind_auth["credentials"])
         self.logger.debug(f"SASL PLAIN: Received credentials: {credentials!r}")
 
@@ -2109,7 +2400,15 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_NTLM(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL NTLM mechanism (direct, not wrapped in SPNEGO)."""
+        """Handle SASL NTLM mechanism (direct, not wrapped in SPNEGO).
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param bind_auth: SASL authentication component
+        :type bind_auth: Any
+        :return: Bind response message or None
+        :rtype: LDAPMessage | None
+        """
         credentials = bytes(bind_auth["credentials"])
         self.logger.debug(f"SASL NTLM: Received token, length={len(credentials)}")
 
@@ -2143,7 +2442,15 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_ntlm_negotiate(
         self, message: LDAPMessage, negotiate_data: bytes
     ) -> LDAPMessage | None:
-        """Handle NTLM Negotiate message in SASL NTLM."""
+        """Handle NTLM Negotiate message in SASL NTLM.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param negotiate_data: Raw NTLM negotiate token bytes
+        :type negotiate_data: bytes
+        :return: Bind response with challenge or error
+        :rtype: LDAPMessage | None
+        """
         try:
             negotiate = NTLMAuthNegotiate()
             negotiate.fromString(negotiate_data)
@@ -2179,7 +2486,15 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_ntlm_authenticate(
         self, message: LDAPMessage, authenticate_data: bytes
     ) -> LDAPMessage:
-        """Handle NTLM Authenticate message in SASL NTLM."""
+        """Handle NTLM Authenticate message in SASL NTLM.
+
+        :param message: LDAP message containing bind request
+        :type message: LDAPMessage
+        :param authenticate_data: Raw NTLM authenticate token bytes
+        :type authenticate_data: bytes
+        :return: Bind response message
+        :rtype: LDAPMessage
+        """
         try:
             auth_message = NTLMAuthChallengeResponse()
             auth_message.fromString(authenticate_data)
@@ -2264,7 +2579,15 @@ class LDAP(BaseProtocolModule[LDAPServerConfig]):
     def create_server_thread(
         self, session: SessionConfig, server_config: LDAPServerConfig
     ) -> BaseServerThread[LDAPServerConfig]:
-        """Create a server thread for LDAP or CLDAP based on configuration."""
+        """Create a server thread for LDAP or CLDAP based on configuration.
+
+        :param session: Session configuration object
+        :type session: SessionConfig
+        :param server_config: LDAP server configuration
+        :type server_config: LDAPServerConfig
+        :return: Configured server thread instance
+        :rtype: BaseServerThread[LDAPServerConfig]
+        """
         server_cls = CLDAPServer if server_config.ldap_udp else LDAPServer
         return ServerThread(
             session,
