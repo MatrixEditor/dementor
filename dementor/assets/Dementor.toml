@@ -317,6 +317,25 @@ Port = 445
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
 
+# =============================================================================
+# Browser (NetBIOS Datagram Service)
+# =============================================================================
+[Browser]
+
+# Specifies the NetBIOS domain name to advertise in NETLOGON responses.
+# This value is used when responding to PDC queries (LOGON_PRIMARY_QUERY)
+# and DC discovery requests (LOGON_SAM_LOGON_REQUEST).
+# The default value is: "CONTOSO"
+
+# DomainName = "WORKGROUP"
+
+# Specifies the hostname to advertise as the domain controller in NETLOGON
+# responses. This value is used when responding to PDC queries and DC
+# discovery requests.
+# The default value is: "DC01"
+
+# Hostname = "FILESERVER"
+
 
 # =============================================================================
 # SMTP (Simple Mail Transfer Protocol)
