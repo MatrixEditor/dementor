@@ -84,15 +84,9 @@ from typing_extensions import override
 
 from dementor.config.attr import (
     ATTR_CERT,
-    ATTR_CERT_CN,
-    ATTR_CERT_COUNTRY,
-    ATTR_CERT_LOCALITY,
-    ATTR_CERT_ORG,
-    ATTR_CERT_STATE,
-    ATTR_CERT_VALIDITY_DAYS,
     ATTR_KEY,
-    ATTR_SELF_SIGNED,
     ATTR_TLS,
+    SELFSIGNED_COMMON_ATTRS,
 )
 from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A
@@ -342,20 +336,11 @@ class LDAPServerConfig(TomlConfig):
         # Connection settings
         A("ldap_timeout", "Timeout", 0),
         A("ldap_fqdn", "FQDN", "DEMENTOR", section_local=False),
-        # Active Directory naming contexts
-        A("ldap_dns_hostname", "DNSHostName", None),
-        A("ldap_domain", "Domain", DEFAULT_DOMAIN),
         # TLS configuration
         ATTR_TLS,
         ATTR_KEY,
         ATTR_CERT,
-        ATTR_SELF_SIGNED,
-        ATTR_CERT_CN,
-        ATTR_CERT_COUNTRY,
-        ATTR_CERT_LOCALITY,
-        ATTR_CERT_ORG,
-        ATTR_CERT_STATE,
-        ATTR_CERT_VALIDITY_DAYS,
+        *SELFSIGNED_COMMON_ATTRS,
         # REVISIT: Security options
         A("ldap_channel_binding", "ChannelBinding", False),
         A("ldap_require_signing", "RequireSigning", False),
@@ -381,8 +366,6 @@ class LDAPServerConfig(TomlConfig):
         ldap_mech: list[str]
         ldap_timeout: int
         ldap_fqdn: str
-        ldap_dns_hostname: str | None
-        ldap_domain: str
         use_ssl: bool
         keyfile: str | None
         certfile: str | None
@@ -413,6 +396,9 @@ class LDAPServerConfig(TomlConfig):
             self.ldap_error_code = value
         else:
             self.ldap_error_code = ResultCode.namedValues[str(value)]
+
+    def service_name(self) -> str:
+        return ("C" if self.ldap_udp else "") + "LDAP" + ("S" if self.use_ssl else "")
 
     def _parse_domain_to_dn(self, domain: str) -> str:
         """Parse a domain name into LDAP DN format.
@@ -742,24 +728,18 @@ class LDAPServerMixin:
             "supportedSASLQoPOptions", self.server_config.ldap_sasl_qop_options
         )
 
-        dns_hostname = (
-            self.server_config.ldap_dns_hostname or self.server_config.ldap_fqdn
-        )
+        dns_hostname, dns_domain = NTLM_split_fqdn(self.server_config.ldap_fqdn)
         add_if_requested("dnsHostName", [dns_hostname])
 
-        naming_context = self.server_config._parse_domain_to_dn(
-            self.server_config.ldap_domain
-        )
+        naming_context = self.server_config._parse_domain_to_dn(dns_domain)
         add_if_requested("defaultNamingContext", [naming_context])
 
         config_context = f"CN=Configuration,{naming_context}"
         add_if_requested("configurationNamingContext", [config_context])
 
-        domain_parts = self.server_config.ldap_domain.split(".")
+        domain_parts = dns_domain
         root_domain = (
-            ".".join(domain_parts[-2:])
-            if len(domain_parts) >= 2
-            else self.server_config.ldap_domain
+            ".".join(domain_parts[-2:]) if len(domain_parts) >= 2 else dns_domain
         )
         root_context = self.server_config._parse_domain_to_dn(root_domain)
         add_if_requested("rootDomainNamingContext", [root_context])
@@ -907,7 +887,7 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         ldap_logger.display(
             "Generating self-signed certificate for LDAP server",
             port=self.server_config.ldap_port,
-            protocol="LDAP" + ("S" if self.server_config.use_ssl else ""),
+            protocol=self.server_config.service_name(),
         )
 
         cert_path, key_path, temp_dir = generate_self_signed_cert(
@@ -2185,7 +2165,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             timestamp = str(int(time.time()))
 
             # Use configured domain as realm instead of hardcoded value
-            realm = self.server.server_config.ldap_domain or DIGEST_MD5_REALM
+            _, realm = NTLM_split_fqdn(self.server.server_config.ldap_fqdn)
             self.digest_md5_state = {
                 "nonce": nonce,
                 "timestamp": timestamp,

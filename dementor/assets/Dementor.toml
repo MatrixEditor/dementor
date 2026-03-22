@@ -440,19 +440,26 @@ EncType = "aes256_cts_hmac_sha1_96"
 # =============================================================================
 [LDAP]
 
-# A list of capabilities to support. You can also set this option in each server
 
-# Capabilities = []
+# A list of capabilities to support. You can also set this option in each server.
+# These OIDs identify Active Directory-specific features per MS-ADTS §3.1.1.3.3.
 
-# A list of SASL mechanisms to return. Can be set in each server
+# Capabilities = [
+#     "1.2.840.113556.1.4.800",    # LDAP_CAP_ACTIVE_DIRECTORY_OID
+#     "1.2.840.113556.1.4.1791",   # LDAP_CAP_ACTIVE_DIRECTORY_LDAP_INTEG_OID
+#     "1.2.840.113556.1.4.1670",   # LDAP_CAP_ACTIVE_DIRECTORY_V51_OID
+# ]
 
-# SASLMechanisms = []
+# A list of SASL mechanisms to return. Can be set in each server.
+# Supported mechanisms: GSS-SPNEGO, DIGEST-MD5, PLAIN, NTLM
 
-# Global timeout configuration (can be changed in each server). Zero (0) indeicates
+# SASLMechanisms = ["GSS-SPNEGO", "DIGEST-MD5", "PLAIN", "NTLM"]
+
+# Global timeout configuration (can be changed in each server). Zero (0) indicates
 # no timeout (default), all other values are set in seconds. Note that no timeout
 # will lead to problems when closing Dementor.
 
-Timeout = 2
+Timeout = 0
 
 # Hostname + fully qualified domain name, whereby the domain name is optional
 # Full example: "HOSTNAME.domain.local"
@@ -469,10 +476,33 @@ TLS = false
 # Key = "/path/to/key"
 
 # The error code to return after successful authentication. It is recommended to return
-# an actual error code rather that success(0). By default, "unwillingToPerform" will be
+# an actual error code rather than success(0). By default, "unwillingToPerform" will be
 # returned.
 
 # ErrorCode = "unwillingToPerform"
+
+# Enable channel binding per RFC 5929 to prevent LDAP relay attacks.
+# Requires TLS to be active.
+
+# ChannelBinding = false
+
+# Require SASL signing (integrity protection) for all connections.
+
+# RequireSigning = false
+
+# Require SASL sealing (encryption) for all connections.
+
+# RequireSealing = false
+
+# List of supported channel binding types per RFC 5929 §4.
+# Options: "tls-unique", "tls-server-end-point"
+
+# ChannelBindingTypes = ["tls-unique", "tls-server-end-point"]
+
+# List of supported SASL Quality of Protection (QoP) options per RFC 4513 §5.2.4.
+# Options: "auth" (authentication only), "auth-int" (integrity), "auth-conf" (confidentiality)
+
+# SASLQoPOptions = ["auth", "auth-int", "auth-conf"]
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
 #   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
@@ -487,7 +517,7 @@ Connectionless = false
 Port = 389
 
 [[LDAP.Server]]
-# means UDP
+# means UDP (CLDAP)
 Port = 389
 Connectionless = true
 
