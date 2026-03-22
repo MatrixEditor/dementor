@@ -531,7 +531,6 @@ def build_sam_logon_response_ex(
     dc_name: str,
     user_name: str,
     domain_name: str,
-    domain_guid: bytes,
     dns_forest_name: str,
     dns_domain_name: str,
     dns_host_name: str,
@@ -554,7 +553,6 @@ def build_sam_logon_response_ex(
                      LOGON_SAM_USER_UNKNOWN_EX (0x19)
     - Sbz: Always 0x0
     - Flags: DS_FLAG bits indicating DC capabilities
-    - DomainGuid: GUID of the domain
     - DnsForestName: DNS name of the forest
     - DnsDomainName: DNS name of the domain
     - DnsHostName: DNS name of the server
@@ -576,8 +574,6 @@ def build_sam_logon_response_ex(
     :type user_name: str
     :param domain_name: NetBIOS domain name (e.g., "CONTOSO")
     :type domain_name: str
-    :param domain_guid: Domain GUID (16 bytes)
-    :type domain_guid: bytes
     :param dns_forest_name: DNS forest name (e.g., "contoso.com")
     :type dns_forest_name: str
     :param dns_domain_name: DNS domain name (e.g., "contoso.com")
@@ -624,7 +620,7 @@ def build_sam_logon_response_ex(
     response = smb.NETLOGON_SAM_LOGON_RESPONSE_EX(
         OpCode=opcode,
         Flags=flags,
-        DomainGuid=domain_guid,
+        DomainGuid=bytes(16),
         DnsForestName=dns_forest_name,
         DnsDomainName=dns_domain_name,
         DnsHostName=dns_host_name,
@@ -657,7 +653,6 @@ def build_response(
     request: smb.NETLOGON_SAM_LOGON_REQUEST | smb.NETLOGON_LOGON_QUERY,
     dc_name: str,
     domain_name: str,
-    domain_guid: bytes,
     dns_forest_name: str,
     dns_domain_name: str,
     dns_host_name: str,
@@ -699,8 +694,9 @@ def build_response(
     :return: Appropriate NETLOGON response structure
     :rtype: smb.NETLOGON_SAM_LOGON_RESPONSE_EX | smb.NETLOGON_SAM_LOGON_RESPONSE | smb.NETLOGON_SAM_LOGON_RESPONSE_NT40 | NETLOGON_PRIMARY_RESPONSE
     """
+    # REVISIT: scapy is parsing MailslotName wrong
     # Extract NtVersion from request
-    nt_version: int = request.NtVersion
+    nt_version: int = int(request.NtVersion)
 
     # Extract user name if present
     user_name = getattr(request, "UnicodeUserName", "")
@@ -714,7 +710,6 @@ def build_response(
             dc_name=dc_name,
             user_name=user_name,
             domain_name=domain_name,
-            domain_guid=domain_guid,
             dns_forest_name=dns_forest_name,
             dns_domain_name=dns_domain_name,
             dns_host_name=dns_host_name,
