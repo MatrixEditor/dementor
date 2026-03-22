@@ -24,8 +24,6 @@
 import asyncio
 import os
 import typing
-import datetime
-import tempfile
 
 from typing_extensions import override
 
@@ -35,17 +33,15 @@ from aioquic.quic import events
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.connection import QuicConnection
 
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-
 from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.servers import AsyncServerThread, BaseServerThread
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
+from dementor.config.util import generate_self_signed_cert
 from dementor.log.logger import ProtocolLogger, dm_logger
+
+if typing.TYPE_CHECKING:
+    import tempfile
 
 __proto__ = ["Quic"]
 
@@ -213,6 +209,7 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
         self.is_ipv6: bool = ipv6
         self._server: QuicServer | None = None
         self._generated_temp_cert: bool = False
+        self._temp_dir: tempfile.TemporaryDirectory | None = None
         self._running = False
 
     @override
@@ -224,74 +221,19 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
         logger = QuicHandler.proto_logger(self.server_config.quic_port)
         logger.display("Generating self-signed certificate for QUIC server")
 
-        # Generate private key
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
+        cert_path, key_path, temp_dir = generate_self_signed_cert(
+            self.server_config.quic_cert_cn,
+            self.server_config.quic_cert_org,
+            self.server_config.quic_cert_country,
+            self.server_config.quic_cert_state,
+            self.server_config.quic_cert_locality,
+            self.server_config.quic_cert_validity_days,
         )
-
-        # Create certificate
-        subject = issuer = x509.Name(
-            [
-                x509.NameAttribute(
-                    NameOID.COUNTRY_NAME, self.server_config.quic_cert_country
-                ),
-                x509.NameAttribute(
-                    NameOID.STATE_OR_PROVINCE_NAME, self.server_config.quic_cert_state
-                ),
-                x509.NameAttribute(
-                    NameOID.LOCALITY_NAME, self.server_config.quic_cert_locality
-                ),
-                x509.NameAttribute(
-                    NameOID.ORGANIZATION_NAME, self.server_config.quic_cert_org
-                ),
-                x509.NameAttribute(NameOID.COMMON_NAME, self.server_config.quic_cert_cn),
-            ]
-        )
-
-        cert = (
-            x509.CertificateBuilder()
-            .subject_name(subject)
-            .issuer_name(issuer)
-            .public_key(private_key.public_key())
-            .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.datetime.now(datetime.UTC))
-            .not_valid_after(
-                datetime.datetime.now(datetime.UTC)
-                + datetime.timedelta(days=self.server_config.quic_cert_validity_days)
-            )
-            .add_extension(
-                x509.SubjectAlternativeName(
-                    [
-                        x509.DNSName(self.server_config.quic_cert_cn),
-                    ]
-                ),
-                critical=False,
-            )
-            .sign(private_key, hashes.SHA256())
-        )
-
-        # Create temporary files
-        cert_fd, cert_path = tempfile.mkstemp(suffix=".pem")
-        key_fd, key_path = tempfile.mkstemp(suffix=".key")
-
-        # Save private key
-        with os.fdopen(key_fd, "wb") as f:
-            f.write(
-                private_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.PKCS8,
-                    encryption_algorithm=serialization.NoEncryption(),
-                )
-            )
-
-        # Save certificate
-        with os.fdopen(cert_fd, "wb") as f:
-            f.write(cert.public_bytes(serialization.Encoding.PEM))
 
         # Update config with temporary paths
         self.server_config.quic_cert_path = cert_path
         self.server_config.quic_cert_key = key_path
+        self._temp_dir = temp_dir
         self._generated_temp_cert = True
 
     def get_service_name(self) -> str:
@@ -337,13 +279,7 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
         if self._server:
             self._server.close()
             self._running = False
-        if self._generated_temp_cert:
-            try:
-                if os.path.exists(self.server_config.quic_cert_path):
-                    os.remove(self.server_config.quic_cert_path)
-                if os.path.exists(self.server_config.quic_cert_key):
-                    os.remove(self.server_config.quic_cert_key)
-            except OSError as e:
-                dm_logger.warning(
-                    f"Failed to delete temporary QUIC certificate files: {e}"
-                )
+        if self._generated_temp_cert and self._temp_dir:
+            self._temp_dir.cleanup()
+            self._generated_temp_cert = False
+            self._temp_dir = None

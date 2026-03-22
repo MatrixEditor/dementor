@@ -266,7 +266,10 @@ class ServerThread(BaseServerThread[_ConfigTy]):
                 dm_logger.warning(f"Error during {self.service_name} shutdown: {e}")
 
 
-class BaseProtoHandler(BaseRequestHandler):
+_ServerTy = TypeVar("_ServerTy", default=socketserver.BaseServer)
+
+
+class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
     """Base handler for protocol-specific request processing.
 
     Provides common functionality for TCP/UDP protocol handlers including
@@ -281,7 +284,7 @@ class BaseProtoHandler(BaseRequestHandler):
         config: SessionConfig,
         request: socket.socket | tuple[bytes, socket.socket],
         client_address: tuple[str, int],
-        server: socketserver.BaseServer,
+        server: _ServerTy,
     ) -> None:
         """Initialize the protocol handler.
 
@@ -292,10 +295,10 @@ class BaseProtoHandler(BaseRequestHandler):
         :param client_address: Client address tuple (host, port)
         :type client_address: tuple[str, int]
         :param server: Parent server instance
-        :type server: socketserver.BaseServer
+        :type server: _ServerTy
         """
         self.client_address: tuple[str, int] = client_address
-        self.server: socketserver.BaseServer = server
+        self.server: _ServerTy = server
         self.config: SessionConfig = config
         self.logger: ProtocolLogger = self.proto_logger()
         super().__init__(request, client_address, server)
@@ -421,7 +424,10 @@ class BaseProtoHandler(BaseRequestHandler):
         :return: Server port number.
         :rtype: int
         """
-        return self.server.server_address[1]
+        address: tuple[str, int] | None = getattr(self.server, "server_address", None)
+        if not address:
+            raise ValueError("server does not define any address")
+        return address[1]
 
 
 class BaseServerProtoHandler(BaseProtoHandler):
