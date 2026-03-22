@@ -128,6 +128,7 @@ class SessionConfig(TomlConfig):
         ssdp_config: ssdp.SSDPConfig
         upnp_config: upnp.UPNPConfig
         x11_config: x11.X11Config
+        browser_config: netbios.BrowserConfig
 
         ntlm_challenge: bytes
         ntlm_disable_ess: bool
@@ -157,6 +158,7 @@ class SessionConfig(TomlConfig):
         ipp_enabled: bool
         ssdp_enabled: bool
         upnp_enabled: bool
+        browser_enabled: bool
 
     def __init__(self) -> None:
         super().__init__(config.get_global_config().get("Dementor", {}))
