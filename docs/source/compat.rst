@@ -511,9 +511,90 @@ in development. The legend for each symbol is as follows:
             </td>
         </tr>
         <tr>
-            <td><a href="./config/ldap.html">LDAP</a></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td>
+                <a href="./config/ldap.html">LDAP</a>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>SimpleBind</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: DIGEST-MD5</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: NTLM</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: NEGOTIATE</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: SICILY</td>
+                        </tr>
+                        <tr>
+                            <td>NTLM (raw)</td>
+                        </tr>
+                        <tr>
+                            <td>StartTLS</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
             <td>MQTT</td>
@@ -728,6 +809,7 @@ in development. The legend for each symbol is as follows:
     </table>
 
     <p id="confusion">[1]: Responder combines NetNTLMv1 and NetNTLMv1-ESS under a single "NTLMv1-SSP" label. This is not incorrect — hashcat <code>-m 5500</code> handles both — but Dementor distinguishes them for more granular reporting. Applies to all NTLM-capable protocols (SMB, HTTP, MSSQL, LDAP, DCE/RPC).</p>
+    <p id="ldap-issues">[2]: Responder's LDAP server does not fully implement search requests and therefore does not immediately catch NetNTLM hashes - it does not support DIGEST-MD5 (reports completely broken hashes)</p>
 
     <h3>NTLM Spcifics</h3>
     <table>
