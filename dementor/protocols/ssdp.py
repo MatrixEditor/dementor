@@ -124,12 +124,12 @@ class UDN:
     def __init__(self, udn: str) -> None:
         self.tokens = udn.split(":")
 
-    # Shall begin with “uuid:” followed by a UUID suffix specified by a UPnP vendor.
+    # Shall begin with "uuid:" followed by a UUID suffix specified by a UPnP vendor.
     @property
     def udn_uuid(self) -> str:
         return self.tokens[1]
 
-    # [Table 1-1 — Root device discovery messages]
+    # [Table 1-1  -- Root device discovery messages]
     # uuid:device-UUID::upnp:rootdevice
     # or
     # uuid:device-UUID
@@ -319,7 +319,7 @@ class SSDPPoisoner(BaseProtoHandler):
         header_buffer = [
             SSDP_OK_H.decode(),
             # CACHE-CONTROL
-            #   Required. Field value shall have the max-age directive (“max-age=”) followed by
+            #   Required. Field value shall have the max-age directive ("max-age=") followed by
             #   an integer that specifies the number of seconds the advertisement is valid.
             f"CACHE-CONTROL: max-age={self.ssdp_config.ssdp_max_age}",
             # EXT

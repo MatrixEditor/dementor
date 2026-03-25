@@ -110,7 +110,7 @@ class FTPHandler(BaseProtoHandler):
     Minimal FTP request handler.
 
     The handler sends the initial ``220`` greeting, then processes a very
-    small login sequence (``USER`` → ``PASS``).  All other commands result
+    small login sequence (``USER`` -> ``PASS``).  All other commands result
     in a ``501`` reply.
 
     :class:`ProtocolLogger` is used to attach FTP-specific metadata to log
@@ -166,7 +166,7 @@ class FTPHandler(BaseProtoHandler):
                     parts[1].decode(errors="replace").strip() if len(parts) > 1 else ""
                 )
                 if not username:
-                    self.reply(501)  # Empty username → syntax error
+                    self.reply(501)  # Empty username -> syntax error
                     continue
 
                 self.reply(331)  # Password required

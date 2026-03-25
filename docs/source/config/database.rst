@@ -80,7 +80,7 @@ Options
     .. note::
 
         The database driver (e.g. ``pymysql``, ``psycopg2``) must be installed
-        separately — it is not bundled with Dementor.
+        separately -- it is not bundled with Dementor.
 
 
 .. py:attribute:: Path
@@ -96,12 +96,12 @@ Options
     * **Relative paths** are resolved from the workspace directory
       (:attr:`Dementor.Workspace`).
     * **Absolute paths** are used as-is.
-    * ``:memory:`` creates an in-memory database — fast, but all data is lost
+    * ``:memory:`` creates an in-memory database -- fast, but all data is lost
       when Dementor exits.  The TUI can still query credentials while running.
 
     .. code-block:: toml
 
-        # Default — file in the workspace directory
+        # Default -- file in the workspace directory
         Path = "Dementor.db"
 
         # Subfolder (created automatically if it doesn't exist)
@@ -110,7 +110,7 @@ Options
         # Absolute path
         Path = "/opt/dementor/creds.db"
 
-        # In-memory — fast, but data is lost on exit
+        # In-memory -- fast, but data is lost on exit
         Path = ":memory:"
 
     .. tip::
@@ -127,9 +127,9 @@ Options
 
     Controls whether duplicate credentials are stored in the database.
 
-    * ``true`` *(default)* — Every captured hash is stored, even if the same
+    * ``true`` *(default)* -- Every captured hash is stored, even if the same
       credential was already seen in this session.
-    * ``false`` — Only the first capture of each unique credential is stored.
+    * ``false`` -- Only the first capture of each unique credential is stored.
       Subsequent duplicates are silently skipped.
 
     A credential is considered a duplicate when all four of these fields match
@@ -143,7 +143,7 @@ Options
     .. note::
 
         The hash is always written to the log file stream regardless of this
-        setting, so no captured data is ever lost — only the database storage
+        setting, so no captured data is ever lost -- only the database storage
         is affected.
 
     .. tip::
@@ -166,7 +166,7 @@ ignored if still present in your configuration file.
 
     .. versionremoved:: 1.0.0.dev22
 
-        **Removed.**  The SQL dialect is now determined automatically — from
+        **Removed.**  The SQL dialect is now determined automatically -- from
         :attr:`Url` when set, or defaults to ``sqlite`` when using :attr:`Path`.
 
 .. py:attribute:: Driver
@@ -177,7 +177,7 @@ ignored if still present in your configuration file.
 
     .. versionremoved:: 1.0.0.dev22
 
-        **Removed.**  The SQL driver is now determined automatically — from
+        **Removed.**  The SQL driver is now determined automatically -- from
         :attr:`Url` when set, or defaults to ``pysqlite`` when using :attr:`Path`.
 
 .. py:attribute:: Directory

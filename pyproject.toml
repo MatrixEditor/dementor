@@ -96,104 +96,104 @@ src = ["dementor", "tests"]
 select = ["ALL"]
 ignore = [
     # --- A: flake8-builtins ---
-    "A001",     # builtin-variable-shadowing — unavoidable in Sphinx conf.py (copyright)
-    "A002",     # builtin-argument-shadowing — common in protocol code (type, id)
+    "A001",     # builtin-variable-shadowing  -- unavoidable in Sphinx conf.py (copyright)
+    "A002",     # builtin-argument-shadowing  -- common in protocol code (type, id)
 
-    # --- ANN: flake8-annotations — use ty for gradual typing ---
+    # --- ANN: flake8-annotations  -- use ty for gradual typing ---
     "ANN",
 
     # --- ARG: flake8-unused-arguments ---
-    "ARG001",   # unused-function-argument — CLI/callback params required by framework
-    "ARG002",   # unused-method-argument — interface/callback stubs
+    "ARG001",   # unused-function-argument  -- CLI/callback params required by framework
+    "ARG002",   # unused-method-argument  -- interface/callback stubs
 
     # --- ASYNC: flake8-async ---
-    "ASYNC240",  # blocking-path-method-in-async — startup-time checks, not hot path
+    "ASYNC240",  # blocking-path-method-in-async  -- startup-time checks, not hot path
 
     # --- BLE: flake8-blind-except ---
-    "BLE001",   # blind-except — legitimate in protocol handlers
+    "BLE001",   # blind-except  -- legitimate in protocol handlers
 
     # --- C90: mccabe ---
-    "C901",     # complex-structure — protocol handlers are inherently complex
+    "C901",     # complex-structure  -- protocol handlers are inherently complex
 
     # --- COM: flake8-commas ---
-    "COM812",   # missing-trailing-comma — conflicts with formatter
+    "COM812",   # missing-trailing-comma  -- conflicts with formatter
 
     # --- D: pydocstyle ---
     "D100", "D101", "D102", "D103", "D104", "D105", "D107",  # missing docstrings
     "D203",     # conflicts with D211
     "D212",     # conflicts with D213 (must pick one)
     "D213",     # conflicts with D212 (must pick one)
-    "D401",     # non-imperative-mood — too opinionated
+    "D401",     # non-imperative-mood  -- too opinionated
 
     # --- E: pycodestyle ---
-    "E501",     # line-too-long — formatter handles what it can
+    "E501",     # line-too-long  -- formatter handles what it can
 
     # --- EM: flake8-errmsg ---
-    "EM101",    # raw-string-in-exception — too pedantic
-    "EM102",    # f-string-in-exception — too pedantic
+    "EM101",    # raw-string-in-exception  -- too pedantic
+    "EM102",    # f-string-in-exception  -- too pedantic
 
     # --- ERA: eradicate ---
     "ERA001",   # REVISIT notes, protocol reference tables, placeholders
 
     # --- EXE: flake8-executable ---
-    "EXE002",   # shebang-missing-executable-file — not relevant
+    "EXE002",   # shebang-missing-executable-file  -- not relevant
 
     # --- FBT: flake8-boolean-trap ---
     "FBT",      # too strict for config-heavy protocol code
 
     # --- FIX: flake8-fixme ---
-    "FIX002",   # line-contains-todo — TODOs are intentional
+    "FIX002",   # line-contains-todo  -- TODOs are intentional
 
     # --- G: flake8-logging-format ---
-    "G004",     # logging-f-string — f-strings in logging are fine
+    "G004",     # logging-f-string  -- f-strings in logging are fine
 
     # --- I: isort ---
-    "I001",     # unsorted-imports — custom import grouping
+    "I001",     # unsorted-imports  -- custom import grouping
 
     # --- INP: flake8-no-pep420 ---
     "INP001",   # standalone script directories don't need __init__.py
 
     # --- ISC: flake8-implicit-str-concat ---
-    "ISC003",   # explicit-string-concatenation — often more readable
+    "ISC003",   # explicit-string-concatenation  -- often more readable
 
     # --- N: pep8-naming ---
     "N801", "N802", "N803", "N806",  # protocol code uses non-standard names
     "N811", "N812", "N815", "N817",  # import/variable naming conventions
-    "N818",     # error-suffix — control-flow exceptions are idiomatic
+    "N818",     # error-suffix  -- control-flow exceptions are idiomatic
 
     # --- PL: Pylint ---
-    "PLR0912",  # too-many-branches — protocol handlers
-    "PLR0913",  # too-many-arguments — protocol constructors
-    "PLR0915",  # too-many-statements — protocol handlers
-    "PLR2004",  # magic-value-comparison — protocol numeric constants
+    "PLR0912",  # too-many-branches  -- protocol handlers
+    "PLR0913",  # too-many-arguments  -- protocol constructors
+    "PLR0915",  # too-many-statements  -- protocol handlers
+    "PLR2004",  # magic-value-comparison  -- protocol numeric constants
 
     # --- PTH: flake8-use-pathlib ---
-    "PTH",      # os.path → pathlib — low priority
+    "PTH",      # os.path -> pathlib  -- low priority
 
     # --- RET: flake8-return ---
-    "RET503",   # implicit-return — idiomatic Python
+    "RET503",   # implicit-return  -- idiomatic Python
 
     # --- RUF: Ruff-specific rules ---
-    "RUF003",   # ambiguous-unicode-character-comment — intentional
-    "RUF012",   # mutable-class-default — false positives with struct-like patterns
+    "RUF003",   # ambiguous-unicode-character-comment  -- intentional
+    "RUF012",   # mutable-class-default  -- false positives with struct-like patterns
 
     # --- S: flake8-bandit ---
-    "S101",     # assert — valid in non-production paths
-    "S104",     # hardcoded-bind-all-interfaces — intentional for network tool
-    "S311",     # suspicious-non-cryptographic-random — not used for crypto
+    "S101",     # assert  -- valid in non-production paths
+    "S104",     # hardcoded-bind-all-interfaces  -- intentional for network tool
+    "S311",     # suspicious-non-cryptographic-random  -- not used for crypto
 
     # --- SLF: flake8-self ---
-    "SLF001",   # private-member-access — common in internal wiring
+    "SLF001",   # private-member-access  -- common in internal wiring
 
     # --- T20: flake8-print ---
-    "T201",     # print — intentional in CLI/diagnostic code
+    "T201",     # print  -- intentional in CLI/diagnostic code
 
     # --- TD: flake8-todos ---
-    "TD002",    # missing-todo-author — not needed for small team
-    "TD003",    # missing-todo-link — not needed for small team
+    "TD002",    # missing-todo-author  -- not needed for small team
+    "TD003",    # missing-todo-link  -- not needed for small team
 
     # --- TRY: tryceratops ---
-    "TRY003",   # raise-vanilla-args — too pedantic
+    "TRY003",   # raise-vanilla-args  -- too pedantic
 ]
 
 [tool.ruff.format]

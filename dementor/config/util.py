@@ -88,11 +88,11 @@ class BytesValue:
 
     Supports the following input formats (str case):
 
-    - ``"hex:1122334455667788"`` — explicit hex prefix
-    - ``"ascii:1337LEET"`` — explicit ASCII prefix
-    - ``"1122334455667788"`` — auto-detect hex (when length matches ``2 * self.length``)
-    - ``"1337LEET"`` — auto-detect (try hex first, then encode)
-    - ``None`` — generate ``self.length`` cryptographically random bytes
+    - ``"hex:1122334455667788"``  -- explicit hex prefix
+    - ``"ascii:1337LEET"``  -- explicit ASCII prefix
+    - ``"1122334455667788"``  -- auto-detect hex (when length matches ``2 * self.length``)
+    - ``"1337LEET"``  -- auto-detect (try hex first, then encode)
+    - ``None``  -- generate ``self.length`` cryptographically random bytes
 
     When ``length`` is set, the result is validated to be exactly that many bytes.
     """
@@ -154,7 +154,7 @@ class BytesValue:
                 if len(candidate) == self.length:
                     return candidate
             except ValueError:
-                pass  # not valid hex — fall through
+                pass  # not valid hex  -- fall through
 
         # Fallback: when length is known, the auto-detect hex path above
         # already handled the 2*length case; encode directly so that strings

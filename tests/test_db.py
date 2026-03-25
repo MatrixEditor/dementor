@@ -155,7 +155,7 @@ class TestNormalizeClientAddress:
 
 
 # ===================================================================
-# connector.py — DatabaseConfig
+# connector.py  -- DatabaseConfig
 # ===================================================================
 class TestDatabaseConfig:
     def test_default_fields_from_empty_config(self) -> None:
@@ -195,7 +195,7 @@ class TestDatabaseConfig:
 
 
 # ===================================================================
-# connector.py — init_engine
+# connector.py  -- init_engine
 # ===================================================================
 class TestInitEngine:
     def _make_session(
@@ -269,7 +269,7 @@ class TestInitEngine:
 
 
 # ===================================================================
-# connector.py — create_db
+# connector.py  -- create_db
 # ===================================================================
 class TestCreateDb:
     def test_returns_dementor_db(self) -> None:
@@ -291,7 +291,7 @@ class TestCreateDb:
 
 
 # ===================================================================
-# model.py — DementorDB init / lifecycle
+# model.py  -- DementorDB init / lifecycle
 # ===================================================================
 class TestDementorDBInit:
     def test_creates_all_three_tables(self, engine, config) -> None:
@@ -393,7 +393,7 @@ class TestCloseAndRelease:
 
 
 # ===================================================================
-# model.py — add_host
+# model.py  -- add_host
 # ===================================================================
 class TestAddHost:
     def test_creates_new_host(self, db) -> None:
@@ -484,7 +484,7 @@ class TestAddHost:
 
 
 # ===================================================================
-# model.py — add_host_extra
+# model.py  -- add_host_extra
 # ===================================================================
 class TestAddHostExtra:
     def test_creates_new_extra(self, db) -> None:
@@ -555,7 +555,7 @@ class TestAddHostExtra:
 
 
 # ===================================================================
-# model.py — add_auth: basic storage
+# model.py  -- add_auth: basic storage
 # ===================================================================
 class TestAddAuth:
     def test_stores_all_fields(self, db, logger) -> None:
@@ -732,7 +732,7 @@ class TestAddAuth:
 
 
 # ===================================================================
-# model.py — add_auth: protocol resolution
+# model.py  -- add_auth: protocol resolution
 # ===================================================================
 class TestAddAuthProtocol:
     def test_from_logger_extra(self, db) -> None:
@@ -789,7 +789,7 @@ class TestAddAuthProtocol:
 
 
 # ===================================================================
-# model.py — add_auth: duplicate detection
+# model.py  -- add_auth: duplicate detection
 # ===================================================================
 class TestDuplicateDetection:
     def test_dedup_skips_second(self, db, logger) -> None:
@@ -979,7 +979,7 @@ class TestDuplicateDetection:
 
 
 # ===================================================================
-# model.py — add_auth: HOST_INFO extras
+# model.py  -- add_auth: HOST_INFO extras
 # ===================================================================
 class TestAddAuthExtras:
     def test_host_info_popped(self, db, logger) -> None:
@@ -1023,7 +1023,7 @@ class TestAddAuthExtras:
 
 
 # ===================================================================
-# model.py — add_auth: logging
+# model.py  -- add_auth: logging
 # ===================================================================
 class TestAddAuthLogging:
     def test_success_logs_captured(self, db, logger) -> None:
@@ -1139,7 +1139,7 @@ class TestAddAuthLogging:
 
 
 # ===================================================================
-# model.py — _check_duplicate
+# model.py  -- _check_duplicate
 # ===================================================================
 class TestCheckDuplicate:
     def test_false_on_empty_db(self, db) -> None:
@@ -1190,7 +1190,7 @@ class TestCheckDuplicate:
 
 
 # ===================================================================
-# model.py — error handling
+# model.py  -- error handling
 # ===================================================================
 class TestErrorHandling:
     def test_handle_db_error_reraises_unknown(self, db) -> None:
@@ -1219,7 +1219,7 @@ class TestErrorHandling:
 
 
 # ===================================================================
-# model.py — connection release
+# model.py  -- connection release
 # ===================================================================
 class TestConnectionRelease:
     def test_add_host_releases(self, db) -> None:
@@ -1261,7 +1261,7 @@ class TestConnectionRelease:
 
 
 # ===================================================================
-# model.py — thread safety
+# model.py  -- thread safety
 # ===================================================================
 class TestThreadSafety:
     def test_concurrent_add_host_same_ip(self, db) -> None:

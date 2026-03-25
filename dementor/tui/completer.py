@@ -92,7 +92,7 @@ class ReplCompleter(Completer):
         except Exception:
             tokens = text_before.split()
 
-        # No tokens yet → suggest command names.
+        # No tokens yet -> suggest command names.
         if not tokens:
             for name in self._iter_command_names():
                 if name.startswith(word):

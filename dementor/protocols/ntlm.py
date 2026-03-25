@@ -79,18 +79,18 @@ from dementor.log.logger import ProtocolLogger, dm_logger
 # --- Constants ---------------------------------------------------------------
 
 # NTLMv1 NtChallengeResponse and LmChallengeResponse are always exactly
-# 24 bytes (DESL output per §6).  NTLMv2 NtChallengeResponse is always
-# > 24 bytes (NTProofStr(16) + variable Blob per §2.2.2.8).
+# 24 bytes (DESL output per S6).  NTLMv2 NtChallengeResponse is always
+# > 24 bytes (NTProofStr(16) + variable Blob per S2.2.2.8).
 # Sole discriminator between v1 and v2; the ESS flag does NOT imply v2.
 NTLMV1_RESPONSE_LEN: int = 24
 
-# ServerChallenge nonce length (§2.2.1.2).
+# ServerChallenge nonce length (S2.2.1.2).
 NTLM_CHALLENGE_LEN: int = 8
 
-# NTProofStr length in an NTLMv2 NtChallengeResponse (§3.3.2).
+# NTProofStr length in an NTLMv2 NtChallengeResponse (S3.3.2).
 NTLM_NTPROOFSTR_LEN: int = 16
 
-# TargetName payload offset in CHALLENGE_MESSAGE: fixed header is 56 bytes (§2.2.1.2).
+# TargetName payload offset in CHALLENGE_MESSAGE: fixed header is 56 bytes (S2.2.1.2).
 NTLM_CHALLENGE_MSG_DOMAIN_OFFSET: int = 56
 
 # 16 zero bytes used as the ESS padding suffix in LmChallengeResponse and
@@ -126,14 +126,14 @@ NTLM_TRANSPORT_CLEARTEXT: str = "cleartext"
 # Classification is based on NT response length and LM response content.
 #
 #  Type        NT len   LM len / content     HC mode  MS-NLMP ref
-#  ─────────── ──────── ─────────────────── ──────── ─────────────────────
-#  NetNTLMv1      24       any / non-dummy      5500     §3.3.1 plain DES
-#  NetNTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    §3.3.1 + ESS
-#  NetNTLMv2      > 24     n/a                  5600     §3.3.2 HMAC-MD5 blob
-#  NetLMv2        > 24†    24 / non-null        5600†    §3.3.2 LMv2 companion
+#  ----------- -------- ------------------- -------- ---------------------
+#  NetNTLMv1      24       any / non-dummy      5500     S3.3.1 plain DES
+#  NetNTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    S3.3.1 + ESS
+#  NetNTLMv2      > 24     n/a                  5600     S3.3.2 HMAC-MD5 blob
+#  NetLMv2        > 24*    24 / non-null        5600*    S3.3.2 LMv2 companion
 #
 #  * Mode 5500 auto-detects ESS via LM[8:24]==Z(16); always emit raw ServerChallenge.
-#  † NetLMv2 is always paired with NetNTLMv2; both use -m 5600.
+#  * NetLMv2 is always paired with NetNTLMv2; both use -m 5600.
 #
 # Hashcat formats (module_05500.c and module_05600.c):
 #   NetNTLMv1      user::domain:LM(48 hex):NT(48 hex):ServerChallenge(16 hex)
@@ -141,13 +141,13 @@ NTLM_TRANSPORT_CLEARTEXT: str = "cleartext"
 #   NetNTLMv2      user::domain:ServerChallenge(16 hex):NTProofStr(32 hex):Blob(var hex)
 #   NetLMv2        user::domain:ServerChallenge(16 hex):LMProof(32 hex):CChal(16 hex)
 #
-# ESS detection (§3.3.1): LmChallengeResponse = ClientChallenge(8) || Z(16).
+# ESS detection (S3.3.1): LmChallengeResponse = ClientChallenge(8) || Z(16).
 #   len==24 and LM[8:]==Z(16) is the sole reliable signal; the ESS negotiate
 #   flag is supplementary only. For NTLM_TRANSPORT_RAW there are no flags,
 #   so only the byte structure is checked.
 #
 #  Responder label   Dementor label      Reason
-#  ─────────────── ─────────────────── ────────────────────────────────────────
+#  --------------- ------------------- ----------------------------------------
 #  NTLMv1-SSP       NetNTLMv1 or        Responder collapses both; ESS changes the
 #                   NetNTLMv1-ESS        effective challenge and must be distinct.
 #  NTLMv2-SSP       NetNTLMv2           Responder threshold: len > 60; spec minimum
@@ -344,7 +344,7 @@ def apply_config(session: SessionConfig) -> None:
 
     if session.ntlm_disable_ntlmv2:
         dm_logger.warning(
-            "NTLM DisableNTLMv2 is enabled — Level 3+ clients (all modern Windows) "
+            "NTLM DisableNTLMv2 is enabled  -- Level 3+ clients (all modern Windows) "
             + "will FAIL authentication and NO hashes will be captured. "
             + "This only helps against pre-Vista / manually-configured Level 0-2 clients. "
             + "Use with caution."
@@ -1322,7 +1322,7 @@ def NTLM_to_hashcat(
           comparisons appear in the branches below.
         - Dummy LM responses (DESL of null or empty-string LM hash) are discarded.
         - Level 2 duplication (LM == NT) omits the LM slot.
-        - Per §3.3.2 rule 7: when MsvAvTimestamp is present, clients set
+        - Per S3.3.2 rule 7: when MsvAvTimestamp is present, clients set
           LmChallengeResponse to Z(24); this null LMv2 is detected and skipped.
     """
     if len(server_challenge) != NTLM_CHALLENGE_LEN:
@@ -1386,7 +1386,7 @@ def NTLM_to_hashcat(
 
     server_challenge_hex: str = server_challenge.hex()
 
-    # NetNTLMv2: NtChallengeResponse = NTProofStr(16) + Blob(var) per §2.2.2.8
+    # NetNTLMv2: NtChallengeResponse = NTProofStr(16) + Blob(var) per S2.2.2.8
     # hashcat -m 5600: User::Domain:ServerChallenge:NTProofStr:Blob
     if hash_type == NTLM_V2:
         try:
@@ -1407,7 +1407,7 @@ def NTLM_to_hashcat(
             return captures
 
         # NetLMv2 companion: HMAC-MD5(ResponseKeyLM, Server||Client)[0:16] || CChal(8)
-        # Per §3.3.2 rule 7: if MsvAvTimestamp was in the challenge, clients send Z(24).
+        # Per S3.3.2 rule 7: if MsvAvTimestamp was in the challenge, clients send Z(24).
         # hashcat -m 5600: User::Domain:ServerChallenge:LMProof:ClientChallenge
         try:
             if len(lm_response) == NTLMV1_RESPONSE_LEN:
@@ -1446,7 +1446,7 @@ def NTLM_to_hashcat(
 
         return captures
 
-    # NetNTLMv1-ESS: per §3.3.1, ESS uses MD5(Server||Client)[0:8] as the challenge.
+    # NetNTLMv1-ESS: per S3.3.1, ESS uses MD5(Server||Client)[0:8] as the challenge.
     # Hashcat -m 5500 derives the mixed challenge internally; emit raw ServerChallenge.
     # LM field: ClientChallenge(8) || Z(16) = 24 bytes.
     if hash_type == NTLM_V1_ESS:
@@ -1475,20 +1475,20 @@ def NTLM_to_hashcat(
     # LM slot is optional (0 or 48 hex chars); including a real LM response
     # enables the DES third-key optimisation. Two cases skip the LM slot:
     #   1. Level 2 duplication: client copies NT into LM (wrong one-way function).
-    #   2. Dummy LM: DESL() with null/empty-string hash — no crackable material.
+    #   2. Dummy LM: DESL() with null/empty-string hash  -- no crackable material.
     try:
         nt_response_hex = nt_response.hex()
         lm_slot_hex: str = ""
 
         if len(lm_response) == NTLMV1_RESPONSE_LEN:
             if lm_response == nt_response:
-                # Case 1: duplication — LM is a copy of NT, skip it
+                # Case 1: duplication  -- LM is a copy of NT, skip it
                 dm_logger.debug(
                     "LmChallengeResponse == NtChallengeResponse "
                     + "(Level 2 duplication); omitting LM slot"
                 )
             elif lm_response in _compute_dummy_lm_responses(server_challenge):
-                # Case 2: dummy DESL output — no crackable credential material
+                # Case 2: dummy DESL output  -- no crackable credential material
                 dm_logger.debug(
                     "LmChallengeResponse matches dummy LM hash; omitting LM slot"
                 )

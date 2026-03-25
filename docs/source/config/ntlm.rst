@@ -39,10 +39,10 @@ Capture Behaviour
     The 8-byte ``ServerChallenge`` nonce sent in the ``CHALLENGE_MESSAGE``.
     Accepts any of the following formats:
 
-    - ``"hex:1122334455667788"`` — explicit hex (recommended)
-    - ``"ascii:1337LEET"`` — explicit ASCII (recommended)
-    - ``"1122334455667788"`` — 16 hex characters (auto-detected as hex)
-    - ``"1337LEET"`` — 8 ASCII characters (auto-detected as ASCII)
+    - ``"hex:1122334455667788"`` -- explicit hex (recommended)
+    - ``"ascii:1337LEET"`` -- explicit ASCII (recommended)
+    - ``"1122334455667788"`` -- 16 hex characters (auto-detected as hex)
+    - ``"1337LEET"`` -- 8 ASCII characters (auto-detected as ASCII)
 
     If omitted, a cryptographically random challenge is generated once at
     startup and reused for all connections during that run.

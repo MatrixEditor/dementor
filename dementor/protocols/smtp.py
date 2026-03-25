@@ -269,7 +269,7 @@ class SMTPServerHandler:
             negotiate_fields=negotiate_fields,
         )
         if self.server_config.smtp_downgrade:
-            # Perform a simple donẃngrade attack by sending failed authentication
+            # Perform a simple downgrade attack by sending failed authentication
             #  - Some clients may choose to use fall back to other login mechanisms
             #    provided by the server
             self.logger.display(

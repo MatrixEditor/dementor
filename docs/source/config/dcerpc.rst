@@ -55,7 +55,7 @@ Section ``[RPC]``
 
         Return values:
 
-        - ``0``: Success — continue listening for additional packets.
+        - ``0``: Success -- continue listening for additional packets.
         - Any other value: An error is sent in a *FAULT* response and the connection is closed.
 
     .. py:class:: RPCEndpointHandlerClass()
@@ -136,7 +136,7 @@ Section ``[EPM]``
 
     .. attention::
 
-        The random port is selected **once at startup** — not per client.
+        The random port is selected **once at startup** -- not per client.
 
 Default Configuration
 ---------------------

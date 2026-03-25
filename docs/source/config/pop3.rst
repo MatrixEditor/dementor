@@ -29,7 +29,7 @@ Section ``[POP3]``
             This value must be specified within a ``[[POP3.Server]]`` section.
 
     The attributes described below may also be specified in the global ``[POP3]`` section, where they will serve
-    as default values for all individual server entries — unless explicitly overridden.
+    as default values for all individual server entries -- unless explicitly overridden.
 
     .. py:attribute:: Server.FQDN
         :type: str
