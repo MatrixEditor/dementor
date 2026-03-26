@@ -16,8 +16,8 @@
 #
 # The three NTLM settings (Challenge, DisableExtendedSessionSecurity,
 # DisableNTLMv2) additionally fall back through two more levels:
-#   3. [NTLM] section    — shared default for all NTLM-enabled protocols
-#   4. [Globals] section — last resort
+#   3. [NTLM] section     -- shared default for all NTLM-enabled protocols
+#   4. [Globals] section  -- last resort
 #
 # All other settings stop at step 2.
 #
@@ -294,7 +294,7 @@ SMB2Support = true
 ErrorCode = "STATUS_SMB_BAD_UID"
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
 #   SMB servers, or inside [[SMB.Server]] to override for a single server only.
 
 # Challenge = "1337LEET"
@@ -308,7 +308,7 @@ Port = 139
 
 [[SMB.Server]]
 Port = 445
-# Per-server overrides (highest priority — override [SMB] and [NTLM] for this port only):
+# Per-server overrides (highest priority  -- override [SMB] and [NTLM] for this port only):
 # FQDN = "other.corp.com"
 # ServerOS = "Windows Server 2022"
 # ErrorCode = "STATUS_ACCESS_DENIED"
@@ -350,7 +350,7 @@ Downgrade = true
 RequireSTARTTLS = false
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
 #   SMTP servers, or inside [[SMTP.Server]] to override for a single server only.
 
 # Challenge = "1337LEET"
@@ -379,11 +379,11 @@ Port = 25
 # SMB, HTTP, SMTP, LDAP, RPC, MSSQL, POP3, and IMAP.
 #
 # Resolution order for these three settings (highest priority first):
-#   1. [[Protocol.Server]] entry — per-server override (list-based protocols only:
+#   1. [[Protocol.Server]] entry  -- per-server override (list-based protocols only:
 #                                  SMB, HTTP, SMTP, LDAP, POP3, IMAP)
-#   2. [Protocol] section        — per-protocol override (e.g. [SMB], [HTTP])
-#   3. [NTLM] section            — this section; the shared default
-#   4. [Globals] section         — broadest fallback
+#   2. [Protocol] section         -- per-protocol override (e.g. [SMB], [HTTP])
+#   3. [NTLM] section             -- this section; the shared default
+#   4. [Globals] section          -- broadest fallback
 #
 # If a protocol section does not define Challenge, DisableExtendedSessionSecurity,
 # or DisableNTLMv2, it inherits the values set here. This lets you configure one
@@ -399,8 +399,8 @@ Port = 25
 # Accepted formats:
 #   "hex:1122334455667788"   explicit hex (preferred, unambiguous)
 #   "ascii:1337LEET"         explicit ASCII (preferred)
-#   "1122334455667788"       16 hex characters — auto-detected as hex
-#   "1337LEET"               8 ASCII characters — auto-detected as ASCII
+#   "1122334455667788"       16 hex characters  -- auto-detected as hex
+#   "1337LEET"               8 ASCII characters  -- auto-detected as ASCII
 #   omitted / not set        cryptographically random 8 bytes per run
 #
 # A fixed Challenge combined with DisableExtendedSessionSecurity = true makes
@@ -423,9 +423,9 @@ DisableExtendedSessionSecurity = false
 
 # When true, TargetInfoFields are omitted from the CHALLENGE_MESSAGE.
 # Without TargetInfoFields clients cannot construct the NTLMv2 Blob
-# (MS-NLMP §3.3.2), which has the following effect by client security level:
-#   Level 0–2 (older Windows, manually downgraded): fall back to NTLMv1.
-#   Level 3+  (all modern Windows defaults): refuse to authenticate — zero
+# (MS-NLMP S3.3.2), which has the following effect by client security level:
+#   Level 0-2 (older Windows, manually downgraded): fall back to NTLMv1.
+#   Level 3+  (all modern Windows defaults): refuse to authenticate  -- zero
 #             hashes captured from these clients.
 #
 # Leave false unless specifically targeting legacy NTLMv1-only environments.
@@ -497,7 +497,7 @@ TLS = false
 # ErrorCode = "unwillingToPerform"
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
 #   LDAP servers, or inside [[LDAP.Server]] to override for a single server only.
 
 # Challenge = "1337LEET"
@@ -599,7 +599,7 @@ AuthSchemes = ["Basic", "Negotiate", "NTLM", "Bearer"]
 WebDAV = true
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
 #   HTTP servers, or inside [[HTTP.Server]] to override for a single server only.
 
 # Challenge = "1337LEET"
@@ -651,7 +651,7 @@ Port = 80
 [RPC]
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. RPC uses a single server instance so
+#   Not set here -> falls back to [NTLM]. RPC uses a single server instance so
 #   there is no per-server item level; only [RPC] or [NTLM] apply.
 
 # Challenge = "1337LEET"
@@ -699,7 +699,7 @@ TargetPort = 49000
 [MSSQL]
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. MSSQL uses a single server instance so
+#   Not set here -> falls back to [NTLM]. MSSQL uses a single server instance so
 #   there is no per-server item level; only [MSSQL] or [NTLM] apply.
 
 # Challenge = "1337LEET"
@@ -762,7 +762,7 @@ InstanceName = "MSSQLServer"
 [POP3]
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
 #   POP3 servers, or inside [[POP3.Server]] to override for a single server only.
 
 # Challenge = "1337LEET"
@@ -807,7 +807,7 @@ Port = 110
 [IMAP]
 
 # NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here → falls back to [NTLM]. Set here to override [NTLM] for all
+#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
 #   IMAP servers, or inside [[IMAP.Server]] to override for a single server only.
 
 # Challenge = "1337LEET"

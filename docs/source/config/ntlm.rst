@@ -21,10 +21,10 @@ Section ``[NTLM]``
     The value must represent exactly ``8`` bytes and can be given in any of the
     following formats:
 
-    - ``"hex:1122334455667788"`` — explicit hex (recommended)
-    - ``"ascii:1337LEET"`` — explicit ASCII (recommended)
-    - ``"1122334455667788"`` — 16 hex characters (auto-detected as hex)
-    - ``"1337LEET"`` — 8 ASCII characters (auto-detected as ASCII)
+    - ``"hex:1122334455667788"`` -- explicit hex (recommended)
+    - ``"ascii:1337LEET"`` -- explicit ASCII (recommended)
+    - ``"1122334455667788"`` -- 16 hex characters (auto-detected as hex)
+    - ``"1337LEET"`` -- 8 ASCII characters (auto-detected as ASCII)
 
     If this option is omitted, a cryptographically random challenge is generated
     once at startup and reused for all connections.
@@ -86,13 +86,13 @@ Section ``[NTLM]``
 
     **Effect on captured hashes:**
 
-    - ``false`` (default) — ESS is negotiated when the client requests it.
+    - ``false`` (default) -- ESS is negotiated when the client requests it.
       NTLMv1 clients produce **NetNTLMv1-ESS** hashes (hashcat ``-m 5500``).
       ESS uses ``MD5(ServerChallenge ‖ ClientChallenge)[0:8]`` as the effective
       challenge; hashcat derives this internally from the emitted ``ClientChallenge``
       field.
 
-    - ``true`` — ESS is suppressed.  NTLMv1 clients produce plain **NetNTLMv1**
+    - ``true`` -- ESS is suppressed.  NTLMv1 clients produce plain **NetNTLMv1**
       hashes.  A fixed :attr:`Challenge` combined with rainbow tables can crack
       these without GPU resources.
 
@@ -113,11 +113,11 @@ Section ``[NTLM]``
 
     **Effect on captured hashes:**
 
-    - ``false`` (default) — ``TargetInfoFields`` is populated.  Clients can
+    - ``false`` (default) -- ``TargetInfoFields`` is populated.  Clients can
       construct an NTLMv2 response and produce **NetNTLMv2** and **NetLMv2** hashes
       (hashcat ``-m 5600``).
 
-    - ``true`` — ``TargetInfoFields`` is empty.  Without it, clients cannot
+    - ``true`` -- ``TargetInfoFields`` is empty.  Without it, clients cannot
       build the NTLMv2 blob per ``[MS-NLMP §3.3.2]``.
       LmCompatibilityLevel 0-2 clients fall back to NTLMv1.
       Level 3+ clients (all modern Windows) will **fail authentication** and
@@ -208,15 +208,15 @@ CHALLENGE_MESSAGE Construction
 The ``CHALLENGE_MESSAGE`` is built directly from the client's
 ``NEGOTIATE_MESSAGE`` flags:
 
-- **Flag mirroring** — ``SIGN``, ``SEAL``, ``ALWAYS_SIGN``, ``KEY_EXCH``,
+- **Flag mirroring** -- ``SIGN``, ``SEAL``, ``ALWAYS_SIGN``, ``KEY_EXCH``,
   ``56``, ``128``, ``UNICODE``, and ``OEM`` are echoed when requested.
   Failing to echo ``SIGN`` causes strict clients to abort before sending the
   ``AUTHENTICATE_MESSAGE``, losing the capture.
-- **ESS** — echoed only when the client requests it and
+- **ESS** -- echoed only when the client requests it and
   :attr:`DisableExtendedSessionSecurity` is ``false``.  When both ESS and
   ``LM_KEY`` are requested, only ESS is returned (§2.2.2.5 flag P mutual
   exclusivity).
-- **Version** — a placeholder ``\\x00 * 8`` is used.  The VERSION structure
+- **Version** -- a placeholder ``\\x00 * 8`` is used.  The VERSION structure
   content is not verified by clients per §2.2.2.10.
 
 AV_PAIRS (``TargetInfoFields``)
@@ -255,7 +255,7 @@ AvId and gives concrete values for two typical ``FQDN`` settings:
      - ``corp.example.com``
    * - ``0x0005``
      - ``MsvAvDnsTreeName``
-     - *(omitted — no domain suffix)*
+     - *(omitted -- no domain suffix)*
      - ``corp.example.com``
 
 A bare hostname such as ``"DEMENTOR"`` contains no dot, so Dementor treats
@@ -275,14 +275,14 @@ LM Response Filtering
 For **NetNTLMv1** captures, the LM slot in the hashcat line is omitted when any
 of the following conditions hold:
 
-- **Identical response** — ``LmChallengeResponse == NtChallengeResponse``.
+- **Identical response** -- ``LmChallengeResponse == NtChallengeResponse``.
   Using the LM copy with the NT one-way function during cracking would yield
   incorrect results.
-- **Long-password placeholder** — ``LmChallengeResponse == DESL(Z(16))``.
+- **Long-password placeholder** -- ``LmChallengeResponse == DESL(Z(16))``.
   Clients send this deterministic value when the password exceeds 14
   characters or the ``NoLMHash`` registry policy is enforced.  It carries no
   crackable material.
-- **Empty-password placeholder** — ``LmChallengeResponse == DESL(LMOWFv1(""))``.
+- **Empty-password placeholder** -- ``LmChallengeResponse == DESL(LMOWFv1(""))``.
   The LM derivative of an empty password; equally uncrackable.
 
 For **NetNTLMv2**, the NetLMv2 companion hash is captured alongside the NetNTLMv2
@@ -315,10 +315,10 @@ Default Configuration
 
     [NTLM]
     # 8-byte ServerChallenge nonce.  Accepted formats:
-    #   "hex:1122334455667788"  — explicit hex (recommended)
-    #   "ascii:1337LEET"        — explicit ASCII (recommended)
-    #   "1122334455667788"      — 16 hex chars, auto-detected
-    #   "1337LEET"              — 8 ASCII chars, auto-detected
+    #   "hex:1122334455667788"  -- explicit hex (recommended)
+    #   "ascii:1337LEET"        -- explicit ASCII (recommended)
+    #   "1122334455667788"      -- 16 hex chars, auto-detected
+    #   "1337LEET"              -- 8 ASCII chars, auto-detected
     # Omit entirely for a cryptographically random value per run (recommended).
     Challenge = "1337LEET"
 
@@ -360,7 +360,7 @@ to the hash type Dementor captures and the relevant hashcat mode.
      - ``-m 5500``
    * - 2
      - NTLMv1 in both LM and NT slots
-     - NetNTLMv1 (LM slot filtered — see `LM Response Filtering`_)
+     - NetNTLMv1 (LM slot filtered -- see `LM Response Filtering`_)
      - ``-m 5500``
    * - 3
      - NTLMv2 + LMv2

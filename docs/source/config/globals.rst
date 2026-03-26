@@ -6,7 +6,7 @@ Globals
 =======
 
 The ``[Globals]`` section allows defining settings that are applied across all
-protocols — given the protocol supports global overrides. Some protocol-specific
+protocols -- given the protocol supports global overrides. Some protocol-specific
 options may be limited to local scope. When available, options that support this
 section include a reference to it in their documentation. This section covers
 common configuration values, that can be shared across multiple services.
@@ -72,7 +72,7 @@ Advanced filtering can be done using dictionary-based filter objects:
     Allows loading filter expressions from an external file instead of specifying them inline.
 
 .. hint::
-    Filter objects may include custom metadata — referred to as *extras* — which are passed to the final
+    Filter objects may include custom metadata -- referred to as *extras* -- which are passed to the final
     :class:`~dementor.filters.FilterObj`. While currently unused, these extras may enable specialized
     handling for specific targets in future versions.
 

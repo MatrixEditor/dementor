@@ -87,7 +87,7 @@ or simulate a failure after NTLM auth to force the client to downgrade.
 
        535 5.7.3 Authentication unsuccessful
 
-   The default Windows SMTP client will retry using cleartext credentials — if they are present.
+   The default Windows SMTP client will retry using cleartext credentials -- if they are present.
 
    .. figure:: /_static/images/smtp-downgrade_wireshark.png
       :align: center

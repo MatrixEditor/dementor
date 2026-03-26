@@ -1,0 +1,91 @@
+# ============================================================================
+# .gitattributes
+# ============================================================================
+#
+# RULE 1 --LINE ENDINGS
+#
+# Every text file in this repository uses LF (\n) line endings.
+# The single exception is docs/make.bat which requires CRLF for Windows.
+#
+# This file is the PRIMARY enforcement mechanism for line endings.
+# The pre-commit hook and CI script provide defense-in-depth CR scanning.
+#
+# After adding or modifying this file, renormalize the repo:
+#
+#   git add --renormalize .
+#   git status
+#   git commit -m "Normalize line endings"
+#
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# Default: every file is text, normalized to LF on commit AND checkout.
+#
+# We use "text eol=lf" (not "text=auto eol=lf") because this repo has a
+# strict ASCII-only policy for source files.  There is no ambiguity for Git
+# to resolve --everything is either text or explicitly marked binary below.
+# Unconditional normalization means stray CR bytes are always stripped.
+# ---------------------------------------------------------------------------
+*  text eol=lf
+
+# ---------------------------------------------------------------------------
+# Binary assets --disable text processing, diffing, and merge.
+# The "binary" macro is shorthand for:  -text -diff -merge
+#
+# Keep in sync with BINARY_EXTENSIONS in .githooks/pre-commit and
+# .githooks/check-hygiene.sh.  If new binary types are added, declare
+# them here to prevent Git from mangling their content.
+# ---------------------------------------------------------------------------
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.bmp   binary
+*.tiff  binary
+*.webp  binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.otf   binary
+
+# ---------------------------------------------------------------------------
+# Exception: docs/make.bat needs CRLF to run correctly on Windows.
+# This overrides the global "* text eol=lf" for this one file.
+# ---------------------------------------------------------------------------
+docs/make.bat  text eol=crlf
+
+# ---------------------------------------------------------------------------
+# Explicit text declarations --defense-in-depth.
+#
+# The global "* text eol=lf" already covers these, but explicit per-extension
+# rules protect against someone adding a more specific override later that
+# might accidentally exclude core file types.
+# ---------------------------------------------------------------------------
+*.py    text eol=lf
+*.toml  text eol=lf
+*.txt   text eol=lf
+*.md    text eol=lf
+*.rst   text eol=lf
+*.html  text eol=lf
+*.xml   text eol=lf
+*.css   text eol=lf
+*.dat   text eol=lf
+*.cfg   text eol=lf
+*.ini   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.sh    text eol=lf
+
+# ---------------------------------------------------------------------------
+# Diff drivers --better hunk headers for common file types.
+# These don't affect content, only how diffs are displayed.
+# ---------------------------------------------------------------------------
+*.py    diff=python
+*.html  diff=html
+*.css   diff=css
+*.md    diff=markdown
+*.rst   diff=rst

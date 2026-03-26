@@ -1,0 +1,30 @@
+# ============================================================================
+# .github/workflows/hygiene.yml
+# ============================================================================
+#
+# Runs .githooks/check-hygiene.sh on every push and pull request.
+# Blocks merge if any file violates the three invariants:
+#   1. Line endings (LF only, no CR bytes)
+#   2. Permissions (mode 100644, no executable bit)
+#   3. Encoding (ASCII only outside docs/ and README.md)
+#
+# ============================================================================
+
+name: Repository Hygiene
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # fetch-depth 0 is needed for --diff mode to compare against base
+          fetch-depth: 0
+
+      - name: Run hygiene checks
+        run: bash .githooks/check-hygiene.sh --diff

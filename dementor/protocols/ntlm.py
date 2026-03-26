@@ -81,18 +81,18 @@ from dementor.log.logger import ProtocolLogger, dm_logger
 # ===========================================================================
 
 # NTLMv1 NtChallengeResponse and LmChallengeResponse are always exactly
-# 24 bytes (DESL output per §6).  NTLMv2 NtChallengeResponse is always
-# > 24 bytes (NTProofStr(16) + variable Blob per §2.2.2.8).
+# 24 bytes (DESL output per S6).  NTLMv2 NtChallengeResponse is always
+# > 24 bytes (NTProofStr(16) + variable Blob per S2.2.2.8).
 # Sole discriminator between v1 and v2; the ESS flag does NOT imply v2.
 NTLMV1_RESPONSE_LEN: int = 24
 
-# ServerChallenge nonce length (§2.2.1.2).
+# ServerChallenge nonce length (S2.2.1.2).
 NTLM_CHALLENGE_LEN: int = 8
 
-# NTProofStr length in an NTLMv2 NtChallengeResponse (§3.3.2).
+# NTProofStr length in an NTLMv2 NtChallengeResponse (S3.3.2).
 NTLM_NTPROOFSTR_LEN: int = 16
 
-# TargetName payload offset in CHALLENGE_MESSAGE: fixed header is 56 bytes (§2.2.1.2).
+# TargetName payload offset in CHALLENGE_MESSAGE: fixed header is 56 bytes (S2.2.1.2).
 NTLM_CHALLENGE_MSG_DOMAIN_OFFSET: int = 56
 
 # 16 zero bytes used as the ESS padding suffix in LmChallengeResponse and
@@ -125,19 +125,19 @@ NTLM_TRANSPORT_RAW: str = "raw"
 NTLM_TRANSPORT_NTLMSSP: str = "ntlmssp"
 
 # ===========================================================================
-# Hash Types  (MS-NLMP §3.3)
+# Hash Types  (MS-NLMP S3.3)
 # ===========================================================================
 # Classification is based on NT response length and LM response content.
 #
 #  Type        NT len   LM len / content     HC mode  MS-NLMP ref
-#  ─────────── ──────── ─────────────────── ──────── ─────────────────────
-#  NetNTLMv1      24       any / non-dummy      5500     §3.3.1 plain DES
-#  NetNTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    §3.3.1 + ESS
-#  NetNTLMv2      > 24     n/a                  5600     §3.3.2 HMAC-MD5 blob
-#  NetLMv2        > 24†    24 / non-null        5600†    §3.3.2 LMv2 companion
+#  ----------- -------- ------------------- -------- ---------------------
+#  NetNTLMv1      24       any / non-dummy      5500     S3.3.1 plain DES
+#  NetNTLMv1-ESS  24       24 / LM[8:]==Z(16)   5500*    S3.3.1 + ESS
+#  NetNTLMv2      > 24     n/a                  5600     S3.3.2 HMAC-MD5 blob
+#  NetLMv2        > 24*    24 / non-null        5600*    S3.3.2 LMv2 companion
 #
 #  * Mode 5500 auto-detects ESS via LM[8:24]==Z(16); always emit raw ServerChallenge.
-#  † NetLMv2 is always paired with NetNTLMv2; both use -m 5600.
+#  * NetLMv2 is always paired with NetNTLMv2; both use -m 5600.
 #
 # Hashcat formats (module_05500.c and module_05600.c):
 #   NetNTLMv1      user::domain:LM(48 hex):NT(48 hex):ServerChallenge(16 hex)
@@ -145,17 +145,17 @@ NTLM_TRANSPORT_NTLMSSP: str = "ntlmssp"
 #   NetNTLMv2      user::domain:ServerChallenge(16 hex):NTProofStr(32 hex):Blob(var hex)
 #   NetLMv2        user::domain:ServerChallenge(16 hex):LMProof(32 hex):CChal(16 hex)
 #
-# ESS detection (§3.3.1): LmChallengeResponse = ClientChallenge(8) || Z(16).
+# ESS detection (S3.3.1): LmChallengeResponse = ClientChallenge(8) || Z(16).
 #   len==24 and LM[8:]==Z(16) is the sole reliable signal; the ESS negotiate
 #   flag is supplementary only. For NTLM_TRANSPORT_RAW there are no flags,
 #   so only the byte structure is checked.
 #
 # =============================================================================
-# Responder → Dementor label mapping
+# Responder -> Dementor label mapping
 # =============================================================================
 #
 #  Responder label   Dementor label      Reason
-#  ─────────────── ─────────────────── ────────────────────────────────────────
+#  --------------- ------------------- ----------------------------------------
 #  NTLMv1-SSP       NetNTLMv1 or        Responder collapses both; ESS changes the
 #                   NetNTLMv1-ESS        effective challenge and must be distinct.
 #  NTLMv2-SSP       NetNTLMv2           Responder threshold: len > 60; spec minimum
@@ -192,7 +192,7 @@ def NTLM_AUTH_classify(
     if nt_len > NTLMV1_RESPONSE_LEN:
         return NTLM_V2
 
-    # ESS: per §3.3.1 ComputeResponse, LmChallengeResponse = ClientChallenge(8) || Z(16).
+    # ESS: per S3.3.1 ComputeResponse, LmChallengeResponse = ClientChallenge(8) || Z(16).
     # This mandates exactly 24 bytes; the byte structure is the sole reliable signal.
     # The NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY flag is cross-checked only.
     try:
@@ -227,7 +227,7 @@ def NTLM_AUTH_classify(
 
 
 # Challenge parsing is handled by BytesValue(NTLM_CHALLENGE_LEN) from
-# dementor.config.util — supports hex:/ascii: prefixes, auto-detect,
+# dementor.config.util  -- supports hex:/ascii: prefixes, auto-detect,
 # and length validation in a single reusable helper.
 _parse_challenge = BytesValue(NTLM_CHALLENGE_LEN)
 
@@ -328,7 +328,7 @@ def apply_config(session: SessionConfig) -> None:
 
     if session.ntlm_disable_ntlmv2:
         dm_logger.warning(
-            "NTLM DisableNTLMv2 is enabled — Level 3+ clients (all modern Windows) "
+            "NTLM DisableNTLMv2 is enabled  -- Level 3+ clients (all modern Windows) "
             + "will FAIL authentication and NO hashes will be captured. "
             + "This only helps against pre-Vista / manually-configured Level 0-2 clients. "
             + "Use with caution."
@@ -336,12 +336,12 @@ def apply_config(session: SessionConfig) -> None:
 
 
 # ===========================================================================
-# Wire Encoding Helpers  [MS-NLMP §2.2 and §2.2.2.5]
+# Wire Encoding Helpers  [MS-NLMP S2.2 and S2.2.2.5]
 #
 # NEGOTIATE_MESSAGE fields: always OEM (Unicode not yet negotiated).
 # CHALLENGE_MESSAGE / AUTHENTICATE_MESSAGE: governed by NegotiateFlags:
-#   NTLMSSP_NEGOTIATE_UNICODE (0x01) → UTF-16LE (no BOM)
-#   NTLM_NEGOTIATE_OEM        (0x02) → cp437 baseline
+#   NTLMSSP_NEGOTIATE_UNICODE (0x01) -> UTF-16LE (no BOM)
+#   NTLM_NEGOTIATE_OEM        (0x02) -> cp437 baseline
 # ===========================================================================
 
 
@@ -394,7 +394,7 @@ def NTLM_AUTH_encode_string(string: str | None, negotiate_flags: int) -> bytes:
 
 
 # ===========================================================================
-# Dummy LM Response Filtering  [MS-NLMP §3.3.1]
+# Dummy LM Response Filtering  [MS-NLMP S3.3.1]
 #
 # When no LM hash is available (password > 14 chars or NoLMHash policy),
 # the client fills LmChallengeResponse with DESL() of a known dummy input:
@@ -405,7 +405,7 @@ def NTLM_AUTH_encode_string(string: str | None, negotiate_flags: int) -> bytes:
 
 
 def _compute_dummy_lm_responses(server_challenge: bytes) -> set[bytes]:
-    """Compute the two known dummy LmChallengeResponse values (per §3.3.1).
+    """Compute the two known dummy LmChallengeResponse values (per S3.3.1).
 
     :param bytes server_challenge: 8-byte ServerChallenge from the CHALLENGE_MESSAGE
     :return: Two 24-byte DESL() outputs for the null and empty-string LM hashes.
@@ -558,7 +558,7 @@ def NTLM_AUTH_to_hashcat_formats(
           comparisons appear in the branches below.
         - Dummy LM responses (DESL of null or empty-string LM hash) are discarded.
         - Level 2 duplication (LM == NT) omits the LM slot.
-        - Per §3.3.2 rule 7: when MsvAvTimestamp is present, clients set
+        - Per S3.3.2 rule 7: when MsvAvTimestamp is present, clients set
           LmChallengeResponse to Z(24); this null LMv2 is detected and skipped.
     """
     if len(server_challenge) != NTLM_CHALLENGE_LEN:
@@ -622,7 +622,7 @@ def NTLM_AUTH_to_hashcat_formats(
 
     server_challenge_hex: str = server_challenge.hex()
 
-    # NetNTLMv2: NtChallengeResponse = NTProofStr(16) + Blob(var) per §2.2.2.8
+    # NetNTLMv2: NtChallengeResponse = NTProofStr(16) + Blob(var) per S2.2.2.8
     # hashcat -m 5600: User::Domain:ServerChallenge:NTProofStr:Blob
     if hash_type == NTLM_V2:
         try:
@@ -643,7 +643,7 @@ def NTLM_AUTH_to_hashcat_formats(
             return captures
 
         # NetLMv2 companion: HMAC-MD5(ResponseKeyLM, Server||Client)[0:16] || CChal(8)
-        # Per §3.3.2 rule 7: if MsvAvTimestamp was in the challenge, clients send Z(24).
+        # Per S3.3.2 rule 7: if MsvAvTimestamp was in the challenge, clients send Z(24).
         # hashcat -m 5600: User::Domain:ServerChallenge:LMProof:ClientChallenge
         try:
             if len(lm_response) == NTLMV1_RESPONSE_LEN:
@@ -682,7 +682,7 @@ def NTLM_AUTH_to_hashcat_formats(
 
         return captures
 
-    # NetNTLMv1-ESS: per §3.3.1, ESS uses MD5(Server||Client)[0:8] as the challenge.
+    # NetNTLMv1-ESS: per S3.3.1, ESS uses MD5(Server||Client)[0:8] as the challenge.
     # Hashcat -m 5500 derives the mixed challenge internally; emit raw ServerChallenge.
     # LM field: ClientChallenge(8) || Z(16) = 24 bytes.
     if hash_type == NTLM_V1_ESS:
@@ -711,20 +711,20 @@ def NTLM_AUTH_to_hashcat_formats(
     # LM slot is optional (0 or 48 hex chars); including a real LM response
     # enables the DES third-key optimisation. Two cases skip the LM slot:
     #   1. Level 2 duplication: client copies NT into LM (wrong one-way function).
-    #   2. Dummy LM: DESL() with null/empty-string hash — no crackable material.
+    #   2. Dummy LM: DESL() with null/empty-string hash  -- no crackable material.
     try:
         nt_response_hex = nt_response.hex()
         lm_slot_hex: str = ""
 
         if len(lm_response) == NTLMV1_RESPONSE_LEN:
             if lm_response == nt_response:
-                # Case 1: duplication — LM is a copy of NT, skip it
+                # Case 1: duplication  -- LM is a copy of NT, skip it
                 dm_logger.debug(
                     "LmChallengeResponse == NtChallengeResponse "
                     + "(Level 2 duplication); omitting LM slot"
                 )
             elif lm_response in _compute_dummy_lm_responses(server_challenge):
-                # Case 2: dummy DESL output — no crackable credential material
+                # Case 2: dummy DESL output  -- no crackable credential material
                 dm_logger.debug(
                     "LmChallengeResponse matches dummy LM hash; omitting LM slot"
                 )
@@ -760,7 +760,7 @@ def NTLM_new_timestamp() -> int:
     :return: Current UTC time in 100-nanosecond intervals since Windows epoch (1601-01-01)
     :rtype: int
     """
-    # calendar.timegm() → UTC seconds since 1970; scaled to 100ns ticks since 1601.
+    # calendar.timegm() -> UTC seconds since 1970; scaled to 100ns ticks since 1601.
     return (
         NTLM_FILETIME_EPOCH_OFFSET
         + calendar.timegm(time.gmtime()) * NTLM_FILETIME_TICKS_PER_SECOND
@@ -792,7 +792,7 @@ def NTLM_split_fqdn(fqdn: str) -> tuple[str, str]:
 def NTLM_AUTH_is_anonymous(token: ntlm.NTLMAuthChallengeResponse) -> bool:
     """Return True if the AUTHENTICATE_MESSAGE is an anonymous (null session) auth.
 
-    Per §3.2.5.1.2 server-side logic, null session is structural:
+    Per S3.2.5.1.2 server-side logic, null session is structural:
     UserName empty, NtChallengeResponse empty, and LmChallengeResponse
     empty or Z(1). For capture-first operation, do not trust the anonymous
     flag alone, and do not fail-closed on parsing exceptions.
@@ -854,7 +854,7 @@ def NTLM_AUTH_CreateChallenge(
     """Build a CHALLENGE_MESSAGE from the client's NEGOTIATE_MESSAGE flags.
 
     :param ntlm.NTLMAuthNegotiate|dict token: Parsed NEGOTIATE_MESSAGE (must have a "flags" key)
-    :param str name: Server NetBIOS computer name — the flat hostname label, e.g.
+    :param str name: Server NetBIOS computer name  -- the flat hostname label, e.g.
         "DEMENTOR" or "SERVER1". Must not contain a dot; callers should
         obtain this from NTLM_split_fqdn
     :param str domain: Server DNS domain name or "WORKGROUP", e.g. "corp.example.com".
@@ -949,7 +949,7 @@ def NTLM_AUTH_CreateChallenge(
             dm_logger.debug("LM_KEY flag echoed into CHALLENGE_MESSAGE")
 
     # -- VERSION negotiation -------------------------------------------------
-    # Per §2.2.1.2 and §3.2.5.1.1, Version should be populated only when
+    # Per S2.2.1.2 and S3.2.5.1.1, Version should be populated only when
     # NTLMSSP_NEGOTIATE_VERSION is negotiated; otherwise it must be all-zero.
     if client_flags & ntlm.NTLMSSP_NEGOTIATE_VERSION:
         response_flags |= ntlm.NTLMSSP_NEGOTIATE_VERSION
@@ -959,7 +959,7 @@ def NTLM_AUTH_CreateChallenge(
         response_flags &= ~ntlm.NTLMSSP_NEGOTIATE_LM_KEY
 
     # -- Assemble the CHALLENGE_MESSAGE ------------------------------------
-    # TargetName (§2.2.1.2): the server's authentication realm.  A domain-
+    # TargetName (S2.2.1.2): the server's authentication realm.  A domain-
     # joined server returns the NetBIOS domain name (flat, first DNS label,
     # uppercase); a workgroup server returns the NetBIOS computer name.
     # We always use the domain: NTLM_split_fqdn guarantees `domain` is
@@ -979,13 +979,13 @@ def NTLM_AUTH_CreateChallenge(
     challenge_message["Version"] = NTLM_VERSION_PLACEHOLDER
     challenge_message["VersionLen"] = NTLM_VERSION_LEN
 
-    # TargetInfoFields (§2.2.1.2) sits immediately after TargetName in the
+    # TargetInfoFields (S2.2.1.2) sits immediately after TargetName in the
     # wire payload; its buffer offset is computed from TargetName's length.
     target_info_offset: int = NTLM_CHALLENGE_MSG_DOMAIN_OFFSET + len(target_name_bytes)
 
     if disable_ntlmv2:
         # Omitting TargetInfoFields prevents the client from constructing
-        # an NTLMv2 Blob (§3.3.2), forcing NTLMv1-capable clients to fall
+        # an NTLMv2 Blob (S3.3.2), forcing NTLMv1-capable clients to fall
         # back to NTLMv1.  Level 3+ clients will refuse to authenticate.
         challenge_message["TargetInfoFields_len"] = 0
         challenge_message["TargetInfoFields_max_len"] = 0
@@ -993,8 +993,8 @@ def NTLM_AUTH_CreateChallenge(
         challenge_message["TargetInfoFields_offset"] = target_info_offset
         dm_logger.debug("TargetInfoFields omitted (disable_ntlmv2=True)")
     else:
-        # TargetInfo is a sequence of AV_PAIR structures (§2.2.2.1).
-        # Full AvId space — disposition for each entry:
+        # TargetInfo is a sequence of AV_PAIR structures (S2.2.2.1).
+        # Full AvId space  -- disposition for each entry:
         #
         #   AvId   Constant             Sent  Notes
         #   0x0000 MsvAvEOL             auto  List terminator; ntlm.AV_PAIRS appends it.
@@ -1004,14 +1004,14 @@ def NTLM_AUTH_CreateChallenge(
         #   0x0004 MsvAvDnsDomainName   YES   DNS domain FQDN.
         #   0x0005 MsvAvDnsTreeName     COND  Forest FQDN; omitted when not domain-joined.
         #   0x0006 MsvAvFlags           NO    Constrained-auth flag (0x1); not applicable
-        #                                     here — Dementor does not enforce constrained
-        #                                     delegation.  0x2/0x4 bits are client→server.
+        #                                     here  -- Dementor does not enforce constrained
+        #                                     delegation.  0x2/0x4 bits are client->server.
         #   0x0007 MsvAvTimestamp       NO    Intentionally omitted; see note below.
-        #   0x0008 MsvAvSingleHost      N/A   Client→server only (AUTHENTICATE_MESSAGE).
-        #   0x0009 MsvAvTargetName      N/A   Client→server only (AUTHENTICATE_MESSAGE).
-        #   0x000A MsvAvChannelBindings N/A   Client→server only (AUTHENTICATE_MESSAGE).
+        #   0x0008 MsvAvSingleHost      N/A   Client->server only (AUTHENTICATE_MESSAGE).
+        #   0x0009 MsvAvTargetName      N/A   Client->server only (AUTHENTICATE_MESSAGE).
+        #   0x000A MsvAvChannelBindings N/A   Client->server only (AUTHENTICATE_MESSAGE).
         #
-        # §2.2.2.1: 0x0001 and 0x0002 MUST be present.  MsvAvEOL is
+        # S2.2.2.1: 0x0001 and 0x0002 MUST be present.  MsvAvEOL is
         # appended automatically by ntlm.AV_PAIRS.  AV_PAIRs may appear in
         # any order per spec; ascending AvId matches real Windows behaviour.
 
@@ -1040,7 +1040,7 @@ def NTLM_AUTH_CreateChallenge(
 
         # 3. Encoding -------------------------------------------------------
         # NTLM_AUTH_encode_string selects UTF-16LE or OEM based on the
-        # negotiated UNICODE flag in response_flags.  Per §2.2.2.1 (note),
+        # negotiated UNICODE flag in response_flags.  Per S2.2.2.1 (note),
         # TargetInfo AV_PAIR values MUST be Unicode regardless of the
         # negotiated encoding; all modern clients negotiate UNICODE, so this
         # is consistent in practice.
@@ -1074,7 +1074,7 @@ def NTLM_AUTH_CreateChallenge(
             )
 
         # MsvAvTimestamp (0x0007) is intentionally NOT included.
-        # Per §3.3.2 rule 7: when the server sends MsvAvTimestamp, the
+        # Per S3.3.2 rule 7: when the server sends MsvAvTimestamp, the
         # client MUST NOT send an LmChallengeResponse (sets it to Z(24)).
         # Omitting it ensures clients still send a real LMv2 alongside the
         # NetNTLMv2 response, maximising the number of captured hash types.

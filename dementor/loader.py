@@ -306,7 +306,7 @@ class ProtocolLoader:
 
         for path in protocol_paths:
             if not os.path.exists(path):
-                # Missing entries are ignored – they may be optional.
+                # Missing entries are ignored - they may be optional.
                 continue
 
             if os.path.isfile(path):

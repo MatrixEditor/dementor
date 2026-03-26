@@ -5,9 +5,9 @@ Stealing XAuth Cookies
 
 The X11 protocol allows graphical applications to display their user interface on a remote system.
 If access control is enabled (e.g., using ``xhost``), the user must supply valid authentication
-credentials—known as *X authorization cookies*—before launching the application.
+credentials--known as *X authorization cookies*--before launching the application.
 
-Let’s consider the following scenario: A user wants to run a graphical application locally but have it
+Let's consider the following scenario: A user wants to run a graphical application locally but have it
 display remotely on a server named ``UbuntuSrv``. Since the user doesn't know the IP address, they use
 the hostname instead:
 

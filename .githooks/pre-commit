@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2310  # functions in if/! conditions are intentional
+# ============================================================================
+# .githooks/pre-commit
+# ============================================================================
+#
+# Local enforcement of three repository invariants on every commit.
+# This hook reads STAGED content from the Git index, not the working tree,
+# so it validates exactly what is about to be committed.
+#
+# RULE 1 -- LINE ENDINGS:  No CR (\r) bytes in any text file.
+#          (.gitattributes is the primary mechanism; this is defense-in-depth.)
+#
+# RULE 2 -- PERMISSIONS:   Every file is mode 100644.
+#          No file has the executable bit unless explicitly allowlisted.
+#
+# RULE 3 -- ENCODING:      ASCII only (bytes 10, 32-126) in all text files
+#          outside the exempt paths listed below.
+#          Tabs (byte 9), NUL (byte 0), DEL (byte 127), and all bytes > 127
+#          are rejected.
+#
+# RULE 4 -- PYTHON:        All .py files in the repo must pass ruff format
+#          and ruff check (via uv run).  Format is applied automatically
+#          and re-staged; lint violations block the commit.
+#
+# Install (run once per clone):
+#
+#   git config core.hooksPath .githooks
+#
+# ============================================================================
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# CONFIGURATION -- keep in sync with .githooks/check-hygiene.sh
+# ---------------------------------------------------------------------------
+
+# Files allowed to have the executable bit (mode 100755).
+# This list is intentionally empty.  If you add a shell script that
+# genuinely needs +x, add its repo-relative path here AND in the CI script.
+EXEC_ALLOWLIST=(
+  ".githooks/check-hygiene.sh"
+  ".githooks/pre-commit"
+)
+
+# Paths exempt from the ASCII-only encoding check (Rule 3).
+# These may contain legitimate UTF-8 for Sphinx, badges, etc.
+# Patterns are matched with bash =~ against repo-relative paths.
+ASCII_EXEMPT_PATTERNS=(
+  "^docs/"
+  "^README\.md$"
+)
+
+# Files allowed to contain CR (\r) bytes (CRLF line endings).
+# Keep in sync with the eol=crlf declarations in .gitattributes.
+CRLF_ALLOWLIST=(
+  "docs/make.bat"
+)
+
+# Extensions treated as binary (skipped for encoding and line-ending checks).
+# Keep in sync with the "binary" declarations in .gitattributes.
+BINARY_EXTENSIONS="png|jpg|jpeg|gif|ico|bmp|tiff|webp|pdf|woff|woff2|ttf|eot|otf"
+
+# ---------------------------------------------------------------------------
+# Internals
+# ---------------------------------------------------------------------------
+
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+DIM='\033[2m'
+NC='\033[0m'
+
+fail=0
+perm_count=0
+encoding_count=0
+cr_count=0
+
+is_exec_allowed() {
+  local file="${1}"
+  for allowed in "${EXEC_ALLOWLIST[@]+"${EXEC_ALLOWLIST[@]}"}"; do
+    [[ "${file}" == "${allowed}" ]] && return 0
+  done
+  return 1
+}
+
+is_ascii_exempt() {
+  local file="${1}"
+  for pattern in "${ASCII_EXEMPT_PATTERNS[@]}"; do
+    if [[ "${file}" =~ ${pattern} ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+is_binary() {
+  local file="${1}"
+  [[ "${file}" =~ \.(${BINARY_EXTENSIONS})$ ]]
+}
+
+is_crlf_allowed() {
+  local file="${1}"
+  for allowed in "${CRLF_ALLOWLIST[@]+"${CRLF_ALLOWLIST[@]}"}"; do
+    [[ "${file}" == "${allowed}" ]] && return 0
+  done
+  return 1
+}
+
+# ---------------------------------------------------------------------------
+# Collect staged files (Added, Copied, Modified, Renamed).
+# NUL-delimited to handle filenames with spaces safely.
+# ---------------------------------------------------------------------------
+
+staged_files=()
+while IFS= read -r -d '' f; do
+  staged_files+=("${f}")
+done < <(git diff --cached --diff-filter=ACMR --name-only -z 2> /dev/null || true)
+
+if [[ ${#staged_files[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# RULE 2 -- Permissions: no file should be mode 100755
+# ---------------------------------------------------------------------------
+
+for file in "${staged_files[@]}"; do
+  mode=$(git ls-files -s -- "${file}" 2> /dev/null | awk '{print $1}')
+
+  if [[ "${mode}" == "100755" ]]; then
+    if ! is_exec_allowed "${file}"; then
+      echo -e "${RED}PERM${NC}   ${file}  ${DIM}(mode 100755, expected 100644)${NC}"
+      echo -e "       ${DIM}fix: git update-index --chmod=-x \"${file}\"${NC}"
+      ((perm_count++))
+      fail=1
+    fi
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# RULE 3 -- Encoding: ASCII only (bytes 10, 32-126)
+#
+# The grep pattern [^\x0a\x20-\x7e] matches any byte NOT in the allowed set:
+#   \x0a       = LF  (byte 10)
+#   \x20-\x7e  = printable ASCII (bytes 32-126)
+#
+# This rejects: NUL (0), tabs (9), CR (13), DEL (127), and all > 127.
+# ---------------------------------------------------------------------------
+
+for file in "${staged_files[@]}"; do
+  if is_ascii_exempt "${file}"; then continue; fi
+  if is_binary "${file}"; then continue; fi
+
+  bad_lines=$(git show ":${file}" 2> /dev/null \
+    | LC_ALL=C grep -Pn '[^\x0a\x20-\x7e]' 2> /dev/null || true)
+
+  if [[ -n "${bad_lines}" ]]; then
+    count=$(echo "${bad_lines}" | wc -l)
+    echo -e "${RED}ASCII${NC}  ${file}  ${DIM}(${count} line(s) with non-ASCII bytes)${NC}"
+    # Show up to 3 offending lines with the bad bytes highlighted.
+    echo "${bad_lines}" | head -3 | sed 's/^/       /'
+    if ((count > 3)); then
+      echo -e "       ${DIM}... and $((count - 3)) more${NC}"
+    fi
+    ((encoding_count++))
+    fail=1
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# RULE 1 -- Line endings: no CR (\r) bytes in any text file.
+# Defense-in-depth behind .gitattributes.
+# ---------------------------------------------------------------------------
+
+for file in "${staged_files[@]}"; do
+  if is_binary "${file}"; then continue; fi
+  if is_crlf_allowed "${file}"; then continue; fi
+
+  if git show ":${file}" 2> /dev/null | LC_ALL=C grep -Pq '\r' 2> /dev/null; then
+    echo -e "${RED}CRLF${NC}   ${file}  ${DIM}(contains \\r bytes)${NC}"
+    echo -e "       ${DIM}fix: sed -i 's/\\r//g' \"${file}\" && git add \"${file}\"${NC}"
+    ((cr_count++))
+    fail=1
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# RULE 4 -- Python: ruff format + ruff check (repo-wide, all .py files)
+# ---------------------------------------------------------------------------
+
+# Auto-format the entire repo and re-stage any files that changed.
+uv run --group dev ruff format --quiet .
+mapfile -t reformatted < <(git diff --name-only -- '*.py' || true)
+if [[ ${#reformatted[@]} -gt 0 ]]; then
+  git add "${reformatted[@]}"
+fi
+
+# Lint check (read-only, repo-wide).  Violations block the commit.
+if ! uv run --group dev ruff check --quiet .; then
+  echo -e "${RED}RUFF${NC}   ruff check found lint violations"
+  echo -e "       ${DIM}fix: uv run --group dev ruff check --fix .${NC}"
+  fail=1
+fi
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+
+if [[ "${fail}" -ne 0 ]]; then
+  echo ""
+  echo -e "${YELLOW}Commit blocked.${NC}"
+  [[ ${perm_count} -gt 0 ]] && echo "  Permissions:  ${perm_count} file(s)"
+  [[ ${encoding_count} -gt 0 ]] && echo "  Encoding:     ${encoding_count} file(s)"
+  [[ ${cr_count} -gt 0 ]] && echo "  Line endings: ${cr_count} file(s)"
+  echo ""
+  echo -e "${DIM}Bypass (not recommended): git commit --no-verify${NC}"
+  exit 1
+fi
+
+exit 0

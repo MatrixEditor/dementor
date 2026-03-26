@@ -195,7 +195,7 @@ class ConfigCommand(ReplAction):
         invalid = False
 
         if not key:
-            # Empty key is considered invalid – keep defaults
+            # Empty key is considered invalid - keep defaults
             invalid = True
         else:
             # Helper for case-insensitive dict lookup returning the actual key
@@ -226,7 +226,7 @@ class ConfigCommand(ReplAction):
                         invalid = True
                         break
                     if i == len(parts) - 1:
-                        # Final element – return the list and index
+                        # Final element - return the list and index
                         result_container = current
                         result_key = idx
                         break
@@ -248,7 +248,7 @@ class ConfigCommand(ReplAction):
                             result_container = current
                             result_key = actual_key
                         break
-                    # Intermediate segment – move deeper
+                    # Intermediate segment - move deeper
                     actual_key = ci_lookup(current, part)
                     if actual_key is None:
                         invalid = True

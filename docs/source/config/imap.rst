@@ -29,7 +29,7 @@ Section ``[IMAP]``
             This value must be specified within a ``[[IMAP.Server]]`` section.
 
     The attributes described below may also be specified in the global ``[IMAP]`` section, where they act
-    as defaults for all individual server entries — unless explicitly overridden.
+    as defaults for all individual server entries -- unless explicitly overridden.
 
     .. py:attribute:: Server.Capabilities
         :type: str
@@ -65,9 +65,9 @@ Section ``[IMAP]``
 
         Lists the authentication mechanisms supported by the server. Currently implemented options:
 
-        - ``LOGIN`` — Base64-encoded challenge-based login.
-        - ``PLAIN`` — Sends credentials in cleartext.
-        - ``NTLM`` — Implements NTLM authentication per `[MS-SMTPNTLM] <https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf>`_.
+        - ``LOGIN`` -- Base64-encoded challenge-based login.
+        - ``PLAIN`` -- Sends credentials in cleartext.
+        - ``NTLM`` -- Implements NTLM authentication per `[MS-SMTPNTLM] <https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf>`_.
 
         To enforce NTLM-only authentication, remove ``LOGIN`` and ``PLAIN``.
         For downgrade attacks, refer to :attr:`SMTP.Server.Downgrade`.

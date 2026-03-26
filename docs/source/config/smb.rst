@@ -236,7 +236,7 @@ Section ``[SMB]``
         *Corresponds to* :attr:`NTLM.DisableNTLMv2`
 
         When ``True``, ``TargetInfoFields`` is omitted from the ``CHALLENGE_MESSAGE``.
-        Level 0–2 clients fall back to NTLMv1; level 3+ clients fail with no capture.
+        Level 0-2 clients fall back to NTLMv1; level 3+ clients fail with no capture.
 
 
 Protocol Behaviour
@@ -247,9 +247,9 @@ Authentication Flow
 
 The SMB handler accepts NTLM tokens in two forms:
 
-- **NTLM SSP** — the security buffer begins with ``NTLMSSP\0`` and is consumed
+- **NTLM SSP** -- the security buffer begins with ``NTLMSSP\0`` and is consumed
   directly by the three-message NTLM handshake (``NEGOTIATE → CHALLENGE → AUTHENTICATE``).
-- **GSSAPI / SPNEGO** — the buffer is wrapped in a ``negTokenInit`` (tag ``0x60``) or
+- **GSSAPI / SPNEGO** -- the buffer is wrapped in a ``negTokenInit`` (tag ``0x60``) or
   ``negTokenTarg`` (tag ``0xA1``) envelope.  Dementor unwraps the SPNEGO layer,
   performs the NTLM handshake internally, and returns appropriately wrapped
   ``negTokenTarg`` responses.
@@ -280,11 +280,11 @@ SMB 3.1.1 Negotiate Contexts
 When the negotiated dialect is **SMB 3.1.1**, the ``SMB2_NEGOTIATE_RESPONSE``
 includes the mandatory negotiate context list:
 
-- **SMB2_PREAUTH_INTEGRITY_CAPABILITIES** — SHA-512 integrity algorithm with a
+- **SMB2_PREAUTH_INTEGRITY_CAPABILITIES** -- SHA-512 integrity algorithm with a
   cryptographically random 32-byte salt.
-- **SMB2_ENCRYPTION_CAPABILITIES** — echoes the cipher the client advertised
+- **SMB2_ENCRYPTION_CAPABILITIES** -- echoes the cipher the client advertised
   (falls back to AES-128-GCM if the context is absent or unparseable).
-- **SMB2_SIGNING_CAPABILITIES** — echoes the signing algorithm the client
+- **SMB2_SIGNING_CAPABILITIES** -- echoes the signing algorithm the client
   advertised (falls back to AES-CMAC).
 
 Session Logoff

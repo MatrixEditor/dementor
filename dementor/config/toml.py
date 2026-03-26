@@ -27,7 +27,7 @@ from dementor.config.util import get_value
 _T = TypeVar("_T", bound="TomlConfig")
 
 # --------------------------------------------------------------------------- #
-# Helper sentinel used to differentiate “no default supplied” from “None”.
+# Helper sentinel used to differentiate "no default supplied" from "None".
 # --------------------------------------------------------------------------- #
 _LOCAL = object()
 
@@ -47,7 +47,7 @@ class Attribute(NamedTuple):
         section.
     :type qname: str
     :param default_val: Default value to fall back to when the key is missing.
-        ``_LOCAL`` (a private sentinel) means “no default - the key is required”.
+        ``_LOCAL`` (a private sentinel) means "no default - the key is required".
     :type default_val: Any | None, optional
     :param section_local: If ``True`` the key is looked for only in the section
         defined by the concrete subclass (``self._section_``).  If ``False`` the
@@ -231,7 +231,7 @@ class TomlConfig:
         # ----------------------------------------------------------------- #
         value = config.get(qname, default_val)
         if value is _LOCAL:
-            # ``_LOCAL`` means “required but not supplied”.
+            # ``_LOCAL`` means "required but not supplied".
             raise ValueError(
                 f"Expected '{qname}' in config or section({section}) for "
                 + f"{self.__class__.__name__}!"

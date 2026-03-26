@@ -165,11 +165,11 @@ def init_engine(session: SessionConfig) -> Engine | None:
         return create_engine(raw_path, **common)
 
     # MySQL / MariaDB / PostgreSQL: QueuePool.
-    #   pool_pre_ping  – detect dead connections before checkout.
-    #   pool_use_lifo  – reuse most-recent connection so idle ones expire
+    #   pool_pre_ping  - detect dead connections before checkout.
+    #   pool_use_lifo  - reuse most-recent connection so idle ones expire
     #                    naturally via server-side wait_timeout.
-    #   pool_recycle   – hard ceiling: close connections older than 1 hour.
-    #   pool_timeout=5 – fail fast on exhaustion (PoolTimeoutError caught
+    #   pool_recycle   - hard ceiling: close connections older than 1 hour.
+    #   pool_timeout=5 - fail fast on exhaustion (PoolTimeoutError caught
     #                    in model.py); hash file is the primary capture path.
     return create_engine(
         raw_path,

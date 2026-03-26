@@ -727,7 +727,7 @@ in development. The legend for each symbol is as follows:
     </tbody>
     </table>
 
-    <p id="confusion">[1]: Responder combines NetNTLMv1 and NetNTLMv1-ESS under a single "NTLMv1-SSP" label. This is not incorrect — hashcat <code>-m 5500</code> handles both — but Dementor distinguishes them for more granular reporting. Applies to all NTLM-capable protocols (SMB, HTTP, MSSQL, LDAP, DCE/RPC).</p>
+    <p id="confusion">[1]: Responder combines NetNTLMv1 and NetNTLMv1-ESS under a single "NTLMv1-SSP" label. This is not incorrect -- hashcat <code>-m 5500</code> handles both -- but Dementor distinguishes them for more granular reporting. Applies to all NTLM-capable protocols (SMB, HTTP, MSSQL, LDAP, DCE/RPC).</p>
 
     <h3>NTLM Spcifics</h3>
     <table>
