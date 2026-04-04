@@ -55,7 +55,7 @@ Section ``[RPC]``
 
         Return values:
 
-        - ``0``: Success — continue listening for additional packets.
+        - ``0``: Success -- continue listening for additional packets.
         - Any other value: An error is sent in a *FAULT* response and the connection is closed.
 
     .. py:class:: RPCEndpointHandlerClass()
@@ -86,38 +86,11 @@ Section ``[RPC]``
 
 .. py:currentmodule:: RPC
 
-.. py:attribute:: ExtendedSessionSecurity
-    :type: bool
-    :value: true
+.. note::
 
-    *Maps to* :attr:`rpc.RPCConfig.ntlm_ess`.
-
-    .. versionchanged:: 1.0.0.dev5
-        Internal mapping changed from ``rpc_ntlm_ess`` to ``ntlm_ess``
-
-    Enables Extended Session Security (ESS) during NTLM authentication. With ESS enabled,
-    NetNTLMv1-ESS/NetNTLMv2 hashes are captured instead of standard NTLM hashes.
-
-    Resolution precedence:
-
-    1. :attr:`RPC.Server.ExtendedSessionSecurity` (per-server)
-    2. :attr:`RPC.ExtendedSessionSecurity` (global fallback)
-    3. :attr:`NTLM.ExtendedSessionSecurity` (final fallback)
-
-.. py:attribute:: Server.Challenge
-    :type: str
-    :value: NTLM.Challenge
-
-    *Maps to* :attr:`rpc.RPCConfig.ntlm_challenge`.
-
-    .. versionchanged:: 1.0.0.dev5
-        Internal mapping changed from ``rpc_ntlm_challenge`` to ``ntlm_challenge``
-
-    Sets the NTLM challenge value used during authentication. Resolution precedence:
-
-    1. :attr:`RPC.Server.Challenge`
-    2. :attr:`RPC.Challenge`
-    3. :attr:`NTLM.Challenge`
+    NTLM settings (Challenge, DisableExtendedSessionSecurity, DisableNTLMv2)
+    are configured globally in the :ref:`config_ntlm` section and apply to
+    all protocols including DCE/RPC.
 
 .. py:attribute:: Server.FQDN
     :type: str
@@ -163,7 +136,7 @@ Section ``[EPM]``
 
     .. attention::
 
-        The random port is selected **once at startup** — not per client.
+        The random port is selected **once at startup** -- not per client.
 
 Default Configuration
 ---------------------

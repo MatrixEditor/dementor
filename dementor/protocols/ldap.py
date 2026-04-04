@@ -1593,6 +1593,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
                 client=self.client_address,
                 logger=self.logger,
                 session=self.config,
+                negotiate_fields=getattr(self, "negotiate_fields", None),
             )
             self.send(
                 self.server.bind_result(

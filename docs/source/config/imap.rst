@@ -29,7 +29,7 @@ Section ``[IMAP]``
             This value must be specified within a ``[[IMAP.Server]]`` section.
 
     The attributes described below may also be specified in the global ``[IMAP]`` section, where they act
-    as defaults for all individual server entries — unless explicitly overridden.
+    as defaults for all individual server entries -- unless explicitly overridden.
 
     .. py:attribute:: Server.Capabilities
         :type: str
@@ -65,9 +65,9 @@ Section ``[IMAP]``
 
         Lists the authentication mechanisms supported by the server. Currently implemented options:
 
-        - ``LOGIN`` — Base64-encoded challenge-based login.
-        - ``PLAIN`` — Sends credentials in cleartext.
-        - ``NTLM`` — Implements NTLM authentication per `[MS-SMTPNTLM] <https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf>`_.
+        - ``LOGIN`` -- Base64-encoded challenge-based login.
+        - ``PLAIN`` -- Sends credentials in cleartext.
+        - ``NTLM`` -- Implements NTLM authentication per `[MS-SMTPNTLM] <https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SMTPNTLM/%5bMS-SMTPNTLM%5d.pdf>`_.
 
         To enforce NTLM-only authentication, remove ``LOGIN`` and ``PLAIN``.
         For downgrade attacks, refer to :attr:`SMTP.Server.Downgrade`.
@@ -104,40 +104,11 @@ Section ``[IMAP]``
 
         Specifies the path to the private key file associated with the TLS certificate.
 
-    .. py:attribute:: Server.ExtendedSessionSecurity
-        :value: true
-        :type: bool
+    .. note::
 
-        .. versionremoved:: 1.0.0.dev19
-            **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
-
-    .. py:attribute:: Server.DisableExtendedSessionSecurity
-        :value: false
-        :type: bool
-
-        *Linked to* :attr:`imap.IMAPServerConfig.ntlm_disable_ess`
-
-        .. versionchanged:: 1.0.0.dev19
-            Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
-
-        Enables NTLM Extended Session Security (ESS).
-        When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are captured instead of raw NTLM hashes.
-        Resolution precedence:
-
-        1. :attr:`IMAP.DisableExtendedSessionSecurity`
-        2. :attr:`NTLM.DisableExtendedSessionSecurity` (fallback)
-
-    .. py:attribute:: Challenge
-        :type: str
-        :value: NTLM.Challenge
-
-        *Maps to* :attr:`imap.IMAPServerConfig.ntlm_challenge`.
-
-        Sets the NTLM challenge value used during authentication.
-        Resolution order:
-
-        1. :attr:`IMAP.Challenge`
-        2. :attr:`NTLM.Challenge`
+        NTLM settings (Challenge, DisableExtendedSessionSecurity, DisableNTLMv2)
+        are configured globally in the :ref:`config_ntlm` section and apply to
+        all protocols including IMAP.
 
 Default Configuration
 ----------------------

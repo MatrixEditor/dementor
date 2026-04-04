@@ -51,44 +51,11 @@ Section ``[MSSQL]``
     Specifies the MSSQL instance name returned in SSRP responses. This can be overridden
     via :attr:`SSRP.InstanceName`.
 
-.. py:attribute:: ExtendedSessionSecurity
-    :value: true
-    :type: bool
+.. note::
 
-    .. versionremoved:: 1.0.0.dev19
-        **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
-
-.. py:attribute:: DisableExtendedSessionSecurity
-    :type: bool
-    :value: false
-
-    *Maps to* :attr:`mssql.MSSQLConfig.ntlm_disable_ess`
-
-    .. versionchanged:: 1.0.0.dev5
-        Internal mapping changed frmo ``mssql_ess`` to ``ntlm_ess``
-
-    .. versionchanged:: 1.0.0.dev19
-        Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
-
-    Enables NTLM Extended Session Security (ESS). When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are
-    captured instead of raw NTLM hashes. Resolution precedence:
-
-    1. :attr:`MSSQL.DisableExtendedSessionSecurity`
-    2. :attr:`NTLM.DisableExtendedSessionSecurity` (fallback)
-
-.. py:attribute:: Challenge
-    :type: str
-    :value: NTLM.Challenge
-
-    *Maps to* :attr:`mssql.MSSQLServerConfig.ntlm_challenge`
-
-    .. versionchanged:: 1.0.0.dev5
-        Internal mapping changed frmo ``mssql_challenge`` to ``ntlm_challenge``
-
-    Sets the NTLM challenge value. Resolution order:
-
-    1. :attr:`MSSQL.Challenge`
-    2. :attr:`NTLM.Challenge`
+    NTLM settings (Challenge, DisableExtendedSessionSecurity, DisableNTLMv2)
+    are configured globally in the :ref:`config_ntlm` section and apply to
+    all protocols including MSSQL.
 
 .. py:attribute:: FQDN
     :type: str

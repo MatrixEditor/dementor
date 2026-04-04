@@ -37,7 +37,7 @@ Section ``[LDAP]``
 
 
     The attributes described below may also be specified in the global ``[LDAP]`` section, where they will serve
-    as default values for all individual server entries — unless explicitly overridden.
+    as default values for all individual server entries -- unless explicitly overridden.
 
 
     .. py:attribute:: Server.Capabilities

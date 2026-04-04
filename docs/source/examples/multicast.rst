@@ -81,12 +81,12 @@ is available.
             $ Dementor -I "$INTERFACE" -O RPC=On
 
 .. hint::
-    You can attempt to downgrade the captured NTLM hash using :attr:`NTLM.ExtendedSessionSecurity`.
+    You can attempt to downgrade the captured NTLM hash using :attr:`NTLM.DisableExtendedSessionSecurity`.
     To test this via the CLI:
 
     .. code-block:: console
 
-        $ Dementor -I "$INTERFACE" -O RPC=On -O RPC.ExtendedSessionSecurity=Off
+        $ Dementor -I "$INTERFACE" -O RPC=On -O NTLM.DisableExtendedSessionSecurity=true
 
 To trigger a multicast-based RPC call, use a Windows tool such as ``gpresult`` to request Group
 Policy data from a machine whose name will be resolved via mDNS:

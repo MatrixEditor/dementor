@@ -310,7 +310,7 @@ class DBCommand(ReplAction):
         except Exception:
             tokens = document.text_before_cursor.split()
 
-        # No sub-command yet – suggest the four possible actions.
+        # No sub-command yet - suggest the four possible actions.
         subcommands = ["creds", "hosts", "clean", "export"]
         if len(tokens) <= 1:
             return [sc for sc in subcommands if sc.startswith(word)]

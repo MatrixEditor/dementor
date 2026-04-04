@@ -18,17 +18,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+"""Dementor database package -- constants, helpers, and ORM models.
+
+Provides the :class:`~dementor.db.model.DementorDB` wrapper for thread-safe
+credential storage, the :class:`~dementor.db.connector.DatabaseConfig` for
+``[DB]`` TOML configuration, and engine initialization via
+:func:`~dementor.db.connector.create_db`.
+"""
+
+__all__ = ["CLEARTEXT", "HOST_INFO", "NO_USER", "normalize_client_address"]
+
 # --------------------------------------------------------------------------- #
 # Public constants
 # --------------------------------------------------------------------------- #
-_CLEARTEXT = "Cleartext"
+CLEARTEXT = "Cleartext"
 """Constant indicating plaintext credentials (as opposed to hashes)."""
 
-_NO_USER = "<missing-user>"
+NO_USER = "<missing-user>"
 """Placeholder string used when username is absent or invalid in credential logging."""
 
-_HOST_INFO = "_host_info"
+HOST_INFO = "_host_info"
 """Key used in extras dict to store host information for credential logging."""
+
+# Backward-compatible aliases so existing imports like
+#   from dementor.db import _CLEARTEXT
+# keep working without a mass-rename across all protocol files.
+# New code should use the unprefixed names above.
+_CLEARTEXT = CLEARTEXT
+_NO_USER = NO_USER
+_HOST_INFO = HOST_INFO
 
 
 def normalize_client_address(client: str) -> str:
