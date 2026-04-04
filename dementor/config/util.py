@@ -22,9 +22,17 @@ import datetime
 import random
 import string
 import secrets
+import os
+import tempfile
 
 from typing import Any
 from jinja2.sandbox import SandboxedEnvironment
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
 
 from dementor.config import get_global_config
 
@@ -219,3 +227,84 @@ def now() -> str:
     :rtype: str
     """
     return datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def generate_self_signed_cert(
+    cn: str,
+    org: str,
+    country: str,
+    state: str,
+    locality: str,
+    validity_days: int,
+) -> tuple[str, str, tempfile.TemporaryDirectory]:
+    """
+    Generate a self-signed certificate and private key in a temporary directory.
+
+    :param cn: Common name for the certificate.
+    :param org: Organization name.
+    :param country: Country code.
+    :param state: State or province.
+    :param locality: Locality or city.
+    :param validity_days: Number of days the certificate is valid.
+    :return: Tuple of (certificate path, key path, temporary directory object).
+    """
+    # Create temp dir
+    temp_dir = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
+
+    # Generate private key
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    # Create certificate
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COUNTRY_NAME, country),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, locality),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
+            x509.NameAttribute(NameOID.COMMON_NAME, cn),
+        ]
+    )
+
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.datetime.now(datetime.UTC))
+        .not_valid_after(
+            datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=validity_days)
+        )
+        .add_extension(
+            x509.SubjectAlternativeName(
+                [
+                    x509.DNSName(cn),
+                ]
+            ),
+            critical=False,
+        )
+        .sign(private_key, hashes.SHA256())
+    )
+
+    # Save private key
+    key_id = "".join(random.choices(string.hexdigits))
+    key_path = os.path.join(temp_dir.name, f"key_{key_id}.pem")
+    with open(key_path, "wb") as f:
+        f.write(
+            private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        )
+
+    # Save certificate
+    cert_id = "".join(random.choices(string.hexdigits))
+    cert_path = os.path.join(temp_dir.name, f"cert_{cert_id}.pem")
+    with open(cert_path, "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+    return cert_path, key_path, temp_dir

@@ -510,9 +510,90 @@ in development. The legend for each symbol is as follows:
             </td>
         </tr>
         <tr>
-            <td><a href="./config/ldap.html">LDAP</a></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+            <td>
+                <a href="./config/ldap.html">LDAP</a>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>SimpleBind</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: DIGEST-MD5</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: NTLM</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: NEGOTIATE</td>
+                        </tr>
+                        <tr>
+                            <td>SASL: SICILY</td>
+                        </tr>
+                        <tr>
+                            <td>NTLM (raw)</td>
+                        </tr>
+                        <tr>
+                            <td>StartTLS</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide triangle-alert sd-text-warning l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide triangle-alert sd-text-warning l"></i> <a href="#ldap-issues">[2]</a></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide x sd-text-danger l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <i class="i-lucide check-check sd-text-success l"></i>
+                <table>
+                <tbody>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                    <tr>
+                        <td><i class="i-lucide checkfb sd-text-success l"></i></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
             <td>MQTT</td>
