@@ -18,16 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: reportAny=false, reportExplicitAny=false
+import os
+import sys
 import threading
 
 from typing import Any
 from rich.console import Console
+
+# When stdout is not a TTY (e.g., redirected to a file), Rich defaults to
+# 80 columns and wraps long lines. Use COLUMNS env var if set, otherwise
+# force a wide width (200) for file output so log lines stay on one line.
+# On a real TTY, Rich auto-detects the terminal width.
+_width: int | None = None
+if not sys.stdout.isatty():
+    _width = int(os.environ.get("COLUMNS", "200"))
 
 dm_console: Console = Console(
     soft_wrap=True,
     tab_size=4,
     highlight=False,
     highlighter=None,
+    width=_width,
+    no_color=not sys.stdout.isatty(),
 )
 """Rich Console instance for thread-safe terminal output.
 

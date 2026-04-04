@@ -95,29 +95,11 @@ Section ``[POP3]``
         Specifies the private key file corresponding to the certificate used for TLS.
 
 
-    .. py:attribute:: ExtendedSessionSecurity
-        :type: bool
-        :value: true
+    .. note::
 
-        *Maps to* :attr:`pop3.POP3ServerConfig.ntlm_ess`
-
-        Enables NTLM Extended Session Security (ESS). When enabled, NetNTLMv1-ESS/NetNTLMv2 hashes are
-        captured instead of raw NTLM hashes. Resolution precedence:
-
-        1. :attr:`POP3.ExtendedSessionSecurity`
-        2. :attr:`NTLM.ExtendedSessionSecurity` (fallback)
-
-    .. py:attribute:: Challenge
-        :type: str
-        :value: NTLM.Challenge
-
-        *Maps to* :attr:`pop3.POP3ServerConfig.ntlm_challenge`
-
-        Sets the NTLM challenge value. Resolution order:
-
-        1. :attr:`POP3.Challenge`
-        2. :attr:`NTLM.Challenge`
-
+        NTLM settings (Challenge, DisableExtendedSessionSecurity, DisableNTLMv2)
+        are configured globally in the :ref:`config_ntlm` section and apply to
+        all protocols including POP3.
 
 Default Configuration
 ---------------------

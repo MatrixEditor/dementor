@@ -34,12 +34,9 @@ from impacket import ntlm
 from dementor.config.session import SessionConfig
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_CreateChallenge,
-    NTLM_report_auth,
-    NTLM_split_fqdn,
-    ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_DISABLE_ESS,
-    ATTR_NTLM_DISABLE_NTLMV2,
+    NTLM_build_challenge_message,
+    NTLM_handle_authenticate_message,
+    NTLM_handle_negotiate_message,
 )
 from dementor.servers import (
     ServerThread,
@@ -97,9 +94,6 @@ class IMAPServerConfig(TomlConfig):
         A("imap_auth_mechanisms", "AuthMechanisms", IMAP_AUTH_MECHS),
         A("imap_banner", "Banner", "IMAP4rev2 service ready"),
         A("imap_downgrade", "Downgrade", True),
-        ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_DISABLE_ESS,
-        ATTR_NTLM_DISABLE_NTLMV2,
         ATTR_KEY,
         ATTR_CERT,
         ATTR_TLS,
@@ -112,12 +106,6 @@ class IMAPServerConfig(TomlConfig):
         imap_auth_mechanisms: list[str]
         imap_banner: str
         imap_downgrade: bool
-        ntlm_challenge: bytes
-        ntlm_disable_ess: bool
-        ntlm_disable_ntlmv2: bool
-        ntlm_key: str
-        ntlm_cert: str
-        ntlm_tls: bool
 
 
 class IMAP(BaseProtocolModule[IMAPServerConfig]):
@@ -177,7 +165,7 @@ class IMAPHandler(BaseProtoHandler):
         self._write_line(line)
 
     def _write_line(self, msg: str) -> None:
-        self.logger.debug(repr(msg), is_server=True)
+        self.logger.debug(f"S: {msg!r}")
         self.send(f"{msg}\r\n".encode("utf-8", "strict"))
 
     #  There are three possible server completion responses:
@@ -227,7 +215,7 @@ class IMAPHandler(BaseProtoHandler):
         # If the client wishes to cancel an authentication exchange, it issues a line consisting
         # of a single "*"
         resp = self.rfile.readline(1024).strip()
-        self.logger.debug(repr(resp), is_client=True)
+        self.logger.debug(f"C: {resp!r}")
         if resp == b"*":
             self.bad("Authentication canceled")
             raise StopHandler
@@ -284,7 +272,7 @@ class IMAPHandler(BaseProtoHandler):
         data = self.rfile.readline(size)
         if data:
             text = data.decode("utf-8", errors="replace").strip()
-            self.logger.debug(repr(data), is_client=True)
+            self.logger.debug(f"C: {data!r}")
             return text
 
     # implementation
@@ -365,12 +353,15 @@ class IMAPHandler(BaseProtoHandler):
             return self.bad("NTLM negotiation failed")
 
         # IMAP4_AUTHENTICATE_NTLM_Blob_Response
-        challenge = NTLM_AUTH_CreateChallenge(
+        negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
+        challenge = NTLM_build_challenge_message(
             negotiate,
-            *NTLM_split_fqdn(self.server_config.imap_fqdn),
-            challenge=self.server_config.ntlm_challenge,
-            disable_ess=self.server_config.ntlm_disable_ess,
-            disable_ntlmv2=self.server_config.ntlm_disable_ntlmv2,
+            challenge=self.config.ntlm_challenge,
+            nb_computer=self.config.ntlm_nb_computer,
+            nb_domain=self.config.ntlm_nb_domain,
+            disable_ess=self.config.ntlm_disable_ess,
+            disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            log=self.logger,
         )
 
         # IMAP4_AUTHENTICATE_NTLM_Blob_Command
@@ -382,12 +373,13 @@ class IMAPHandler(BaseProtoHandler):
             self.logger.debug(f"NTLM authentication failed: {e}")
             return self.bad("NTLM authentication failed")
 
-        NTLM_report_auth(
+        NTLM_handle_authenticate_message(
             auth_message,
-            challenge=self.server_config.ntlm_challenge,
+            challenge=self.config.ntlm_challenge,
             client=self.client_address,
             logger=self.logger,
             session=self.config,
+            negotiate_fields=negotiate_fields,
         )
 
         if self.server_config.imap_downgrade:

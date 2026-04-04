@@ -212,12 +212,25 @@ class TomlConfig:
         # Resolve the default value (if any) by walking the hierarchy.
         # --------------------------------------------------------------- #
         if default_val is not _LOCAL:
-            # Priority: own section > alternative section > Globals (if allowed)
-            sections = [
-                get_value(section or "", key=None, default={}),
-                get_value(alt_section or "", key=None, default={}),
-            ]
+            # When the original qname was dotted (e.g. "NTLM.Challenge"),
+            # the own-section lookup checks the nested sub-dict first
+            # (e.g. SMB.NTLM.Challenge), then the flat key (e.g.
+            # SMB.Challenge), then the alt section (e.g. [NTLM]), then
+            # Globals.  The nested-first order ensures that explicit
+            # overrides like ``NTLM.NetBIOSComputer = "NTLMBOX99"``
+            # shadow the SMB-layer ``NetBIOSComputer = "SMBBOX01"``.
+            own_section_dict = get_value(section or "", key=None, default={})
+
+            sections = []
+            if alt_section:
+                # 1. Nested sub-dict within own section (e.g. SMB.NTLM.X)
+                sections.append(own_section_dict.get(alt_section, {}))
+            # 2. Own section flat key (e.g. SMB.X — doubles as default)
+            sections.append(own_section_dict)
+            # 3. Alt section (e.g. [NTLM])
+            sections.append(get_value(alt_section or "", key=None, default={}))
             if not section_local:
+                # 4. Globals
                 sections.append(get_value("Globals", key=None, default={}))
 
             for section_config in sections:
@@ -229,7 +242,12 @@ class TomlConfig:
         # Pull the actual value from the caller-supplied ``config`` dict,
         # falling back to the default we just resolved.
         # ----------------------------------------------------------------- #
-        value = config.get(qname, default_val)
+        # For dotted qnames, also check the nested sub-dict in the
+        # instance config (e.g. [[SMB.Server]] with NTLM.X = ...).
+        if alt_section:
+            value = config.get(alt_section, {}).get(qname, default_val)
+        else:
+            value = config.get(qname, default_val)
         if value is _LOCAL:
             # ``_LOCAL`` means “required but not supplied”.
             raise ValueError(

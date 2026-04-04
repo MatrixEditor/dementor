@@ -50,12 +50,9 @@ from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_CreateChallenge,
-    ATTR_NTLM_DISABLE_ESS,
-    ATTR_NTLM_DISABLE_NTLMV2,
-    ATTR_NTLM_CHALLENGE,
-    NTLM_report_auth,
-    NTLM_split_fqdn,
+    NTLM_build_challenge_message,
+    NTLM_handle_authenticate_message,
+    NTLM_handle_negotiate_message,
 )
 from dementor.servers import (
     BaseProtoHandler,
@@ -190,10 +187,9 @@ class SSRPPoisoner(BaseProtoHandler):
             self.logger.success(
                 f"Sending SVR_RESP with server config ([i]{instance_name}[/])"
             )
-            name, _ = NTLM_split_fqdn(self.config.ssrp_config.ssrp_server_name)
             resp = SVR_RESP(
                 data=(
-                    f"ServerName;{name};InstanceName;{instance_name};IsClustered;No;Version;{self.config.ssrp_config.ssrp_server_version};tcp;{self.config.mssql_config.mssql_port}{self.config.ssrp_config.ssrp_instance_config};;"
+                    f"ServerName;{self.config.ssrp_config.ssrp_server_name};InstanceName;{instance_name};IsClustered;No;Version;{self.config.ssrp_config.ssrp_server_version};tcp;{self.config.mssql_config.mssql_port}{self.config.ssrp_config.ssrp_instance_config};;"
                 )
             )
             self.send(pack(resp))
@@ -223,9 +219,6 @@ class MSSQLConfig(TomlConfig):
             "ErrorMessage",
             "You have been chosen as the deadlock victim",
         ),
-        ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_DISABLE_ESS,
-        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -237,9 +230,6 @@ class MSSQLConfig(TomlConfig):
         mssql_error_state: int
         mssql_error_class: int
         mssql_error_msg: str
-        ntlm_challenge: bytes
-        ntlm_disable_ess: bool
-        ntlm_disable_ntlmv2: bool
 
 
 # 2.2.6.4 PRELOGIN
@@ -429,12 +419,15 @@ class MSSQLHandler(BaseProtoHandler):
                 self.send_error(packet)
                 return 1
 
-            self.challenge = NTLM_AUTH_CreateChallenge(
+            self.negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
+            self.challenge = NTLM_build_challenge_message(
                 negotiate,
-                *NTLM_split_fqdn(self.config.mssql_config.mssql_fqdn),
-                challenge=self.config.mssql_config.ntlm_challenge,
-                disable_ess=self.config.mssql_config.ntlm_disable_ess,
-                disable_ntlmv2=self.config.mssql_config.ntlm_disable_ntlmv2,
+                challenge=self.config.ntlm_challenge,
+                nb_computer=self.config.ntlm_nb_computer,
+                nb_domain=self.config.ntlm_nb_domain,
+                disable_ess=self.config.ntlm_disable_ess,
+                disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                log=self.logger,
             )
 
             sspi = SSPI(buffer=self.challenge.getData())
@@ -459,12 +452,13 @@ class MSSQLHandler(BaseProtoHandler):
             self.send_error(packet)
             return 1
 
-        NTLM_report_auth(
+        NTLM_handle_authenticate_message(
             auth_message,
             challenge=self.challenge["challenge"],
             client=self.client_address,
             logger=self.logger,
             session=self.config,
+            negotiate_fields=self.negotiate_fields,
         )
         self.send_error(packet)
         return 1
@@ -487,13 +481,12 @@ class MSSQLHandler(BaseProtoHandler):
         self.send(packet.getData())
 
     def send_error(self, prev_pkt) -> None:
-        name = NTLM_split_fqdn(self.config.mssql_config.mssql_fqdn)[0]
         error = TDS_ERROR(
             number=self.config.mssql_config.mssql_error_code,
             state=self.config.mssql_config.mssql_error_state,
             class_=self.config.mssql_config.mssql_error_class,
             msg=self.config.mssql_config.mssql_error_msg,
-            server_name=name,
+            server_name=self.config.ntlm_nb_computer,
             process_name="",
             line_number=1,
         )

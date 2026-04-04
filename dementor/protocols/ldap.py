@@ -51,12 +51,9 @@ from dementor.servers import (
 )
 from dementor.db import _CLEARTEXT
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_CreateChallenge,
-    NTLM_report_auth,
-    NTLM_split_fqdn,
-    ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_DISABLE_ESS,
-    ATTR_NTLM_DISABLE_NTLMV2,
+    NTLM_build_challenge_message,
+    NTLM_handle_authenticate_message,
+    NTLM_handle_negotiate_message,
 )
 
 __proto__ = ["LDAP"]
@@ -106,9 +103,6 @@ class LDAPServerConfig(TomlConfig):
         A("ldap_tls_key", "Key", None, section_local=False),
         A("ldap_tls_cert", "Cert", None, section_local=False),
         A("ldap_error_code", "ErrorCode", "unwillingToPerform"),
-        ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_DISABLE_ESS,
-        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -174,20 +168,16 @@ class LDAPHandler(BaseProtoHandler):
     ) -> None | bool:
         negotiate = NTLMAuthNegotiate()
         negotiate.fromString(nego_token_raw)
+        self.negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
 
-        fqdn = self.server.server_config.ldap_fqdn
-        if "." in fqdn:
-            name, domain = fqdn.split(".", 1)
-        else:
-            name, domain = fqdn, ""
-
-        ntlm_challenge = NTLM_AUTH_CreateChallenge(
+        ntlm_challenge = NTLM_build_challenge_message(
             negotiate,
-            name,
-            domain,
-            challenge=self.server.server_config.ntlm_challenge,
-            disable_ess=self.server.server_config.ntlm_disable_ess,
-            disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
+            challenge=self.config.ntlm_challenge,
+            nb_computer=self.config.ntlm_nb_computer,
+            nb_domain=self.config.ntlm_nb_domain,
+            disable_ess=self.config.ntlm_disable_ess,
+            disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            log=self.logger,
         )
         # return bind success with challenge message
         self.send(self.server.bind_result(req, matched_dn=ntlm_challenge.getData()))
@@ -196,12 +186,13 @@ class LDAPHandler(BaseProtoHandler):
     def handle_NTLM_Auth(self, req: LDAPMessage, blob: bytes) -> None | bool:
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
-        NTLM_report_auth(
+        NTLM_handle_authenticate_message(
             auth_token=auth_message,
-            challenge=self.server.server_config.ntlm_challenge,
+            challenge=self.config.ntlm_challenge,
             client=self.client_address,
             logger=self.logger,
             session=self.config,
+            negotiate_fields=getattr(self, "negotiate_fields", None),
         )
         self.send(
             self.server.bind_result(
@@ -270,12 +261,15 @@ class LDAPHandler(BaseProtoHandler):
         if data[8] == 0x01:
             token = ntlm.NTLMAuthNegotiate()
             token.fromString(data)
-            ntlm_challenge = NTLM_AUTH_CreateChallenge(
+            self.negotiate_fields = NTLM_handle_negotiate_message(token, self.logger)
+            ntlm_challenge = NTLM_build_challenge_message(
                 token,
-                *NTLM_split_fqdn(self.server.server_config.ldap_fqdn),
-                challenge=self.server.server_config.ntlm_challenge,
-                disable_ess=self.server.server_config.ntlm_disable_ess,
-                disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
+                challenge=self.config.ntlm_challenge,
+                nb_computer=self.config.ntlm_nb_computer,
+                nb_domain=self.config.ntlm_nb_domain,
+                disable_ess=self.config.ntlm_disable_ess,
+                disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                log=self.logger,
             )
             return self.send(
                 self.server.bind_result(
@@ -288,12 +282,13 @@ class LDAPHandler(BaseProtoHandler):
         if data[8] == 0x03:  # AUTH
             token = ntlm.NTLMAuthChallengeResponse()
             token.fromString(data)
-            NTLM_report_auth(
+            NTLM_handle_authenticate_message(
                 auth_token=token,
-                challenge=self.server.server_config.ntlm_challenge,
+                challenge=self.config.ntlm_challenge,
                 client=self.client_address,
                 logger=self.logger,
                 session=self.config,
+                negotiate_fields=getattr(self, "negotiate_fields", None),
             )
             return self.send(
                 self.server.bind_result(

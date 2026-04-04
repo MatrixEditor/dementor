@@ -132,6 +132,13 @@ class SessionConfig(TomlConfig):
         ntlm_challenge: bytes
         ntlm_disable_ess: bool
         ntlm_disable_ntlmv2: bool
+        ntlm_target_type: str
+        ntlm_version: bytes
+        ntlm_nb_computer: str
+        ntlm_nb_domain: str
+        ntlm_dns_computer: str
+        ntlm_dns_domain: str
+        ntlm_dns_tree: str
         analysis: bool
         loop: asyncio.AbstractEventLoop
 

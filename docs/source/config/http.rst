@@ -134,47 +134,11 @@ Section ``[HTTP]``
 
         Determines whether access to the WPAD script requires authentication.
 
-    .. py:attribute:: Server.ExtendedSessionSecurity
-        :value: true
-        :type: bool
+    .. note::
 
-        .. versionremoved:: 1.0.0.dev19
-            **Deprecated**: renamed to :attr:`DisableExtendedSessionSecurity`
-
-    .. py:attribute:: Server.DisableExtendedSessionSecurity
-        :value: false
-        :type: bool
-
-        *Linked to* :attr:`http.HTTPServerConfig.ntlm_disable_ess`
-
-        .. versionchanged:: 1.0.0.dev5
-            Internal mapping changed from ``http_ess`` to ``ntlm_ess``
-
-        .. versionchanged:: 1.0.0.dev19
-            Renamed from ``ExtendedSessionSecurity`` to explicit ``DisableExtendedSessionSecurity``
-
-
-        Enables Extended Session Security (ESS) for NTLM authentication. With ESS, NetNTLMv1-ESS/NetNTLMv2 hashes
-        are captured instead of raw NTLM hashes. Resolution precedence:
-
-        1. :attr:`HTTP.Server.DisableExtendedSessionSecurity` (per-instance)
-        2. :attr:`HTTP.DisableExtendedSessionSecurity` (global HTTP fallback)
-        3. :attr:`NTLM.DisableExtendedSessionSecurity` (final fallback)
-
-    .. py:attribute:: Server.Challenge
-        :type: str
-        :value: NTLM.Challenge
-
-        *Maps to* :attr:`http.HTTPServerConfig.ntlm_challenge`. *May also be set in* ``[HTTP]``
-
-        .. versionchanged:: 1.0.0.dev5
-            Internal mapping changed frmo ``http_challenge`` to ``ntlm_challenge``
-
-        Sets the NTLM challenge value used during authentication. Resolution order:
-
-        1. :attr:`HTTP.Server.Challenge`
-        2. :attr:`HTTP.Challenge`
-        3. :attr:`NTLM.Challenge`
+        NTLM settings (Challenge, DisableExtendedSessionSecurity, DisableNTLMv2)
+        are configured globally in the :ref:`config_ntlm` section and apply to
+        all protocols including HTTP.
 
     .. py:attribute:: Server.FQDN
         :type: str

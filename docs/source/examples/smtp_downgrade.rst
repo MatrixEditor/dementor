@@ -125,8 +125,8 @@ demonstrates how this behavior is triggered from the client side:
         smtpClient.Disconnect(true);
     }
 
-By default, no additional configuration is necessary. In the following capture, :attr:`NTLM.ExtendedSessionSecurity`
-has been disabled:
+By default, no additional configuration is necessary. In the following capture, :attr:`NTLM.DisableExtendedSessionSecurity`
+has been set to ``true``:
 
 .. container:: demo
 

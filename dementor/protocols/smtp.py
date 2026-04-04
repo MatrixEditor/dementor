@@ -50,11 +50,9 @@ from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_CreateChallenge,
-    NTLM_report_auth,
-    ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_DISABLE_ESS,
-    ATTR_NTLM_DISABLE_NTLMV2,
+    NTLM_build_challenge_message,
+    NTLM_handle_authenticate_message,
+    NTLM_handle_negotiate_message,
 )
 from dementor.db import _CLEARTEXT
 from dementor.servers import AsyncServerThread
@@ -92,9 +90,6 @@ class SMTPServerConfig(TomlConfig):
         A("smtp_require_starttls", "RequireSTARTTLS", False),
         A("smtp_tls_cert", "Cert", "", section_local=False),
         A("smtp_tls_key", "Key", "", section_local=False),
-        ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_DISABLE_ESS,
-        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -108,9 +103,6 @@ class SMTPServerConfig(TomlConfig):
         smtp_require_starttls: bool
         smtp_tls_cert: str
         smtp_tls_key: str
-        ntlm_challenge: bytes
-        ntlm_disable_ess: bool
-        ntlm_disable_ntlmv2: bool
 
 
 class SMTP(BaseProtocolModule[SMTPServerConfig]):
@@ -232,6 +224,10 @@ class SMTPServerHandler:
         return login
 
     async def chapture_ntlm_auth(self, server: SMTPServerBase, blob=None) -> Any:
+        # Set host on the logger so NTLM functions include it in output
+        if server.session and server.session.peer:
+            self.logger.extra["host"] = server.session.peer[0]
+
         if blob is None:
             # 4. The server sends the SMTP_NTLM_Supported_Response message, indicating that it can perform
             # NTLM authentication.
@@ -243,20 +239,17 @@ class SMTPServerHandler:
 
         negotiate_message = NTLMAuthNegotiate()
         negotiate_message.fromString(blob)
-
-        if self.server_config.smtp_fqdn.count(".") > 0:
-            name, domain = self.server_config.smtp_fqdn.split(".", 1)
-        else:
-            name, domain = self.server_config.smtp_fqdn, ""
+        negotiate_fields = NTLM_handle_negotiate_message(negotiate_message, self.logger)
 
         # now we can build the challenge using the answer flags
-        ntlm_challenge = NTLM_AUTH_CreateChallenge(
+        ntlm_challenge = NTLM_build_challenge_message(
             negotiate_message,
-            name,
-            domain,
-            challenge=self.server_config.ntlm_challenge,
-            disable_ess=self.server_config.ntlm_disable_ess,
-            disable_ntlmv2=self.server_config.ntlm_disable_ntlmv2,
+            challenge=self.config.ntlm_challenge,
+            nb_computer=self.config.ntlm_nb_computer,
+            nb_domain=self.config.ntlm_nb_domain,
+            disable_ess=self.config.ntlm_disable_ess,
+            disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            log=self.logger,
         )
 
         # 6. The server sends an SMTP_AUTH_NTLM_BLOB_Response message containing a base64-encoded
@@ -267,12 +260,13 @@ class SMTPServerHandler:
         # NTLM AUTHENTICATE_MESSAGE.
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
-        NTLM_report_auth(
+        NTLM_handle_authenticate_message(
             auth_message,
-            self.server_config.ntlm_challenge,
-            server.session.peer,
-            self.config,
-            self.logger,
+            challenge=self.config.ntlm_challenge,
+            client=server.session.peer,
+            session=self.config,
+            logger=self.logger,
+            negotiate_fields=negotiate_fields,
         )
         if self.server_config.smtp_downgrade:
             # Perform a simple donẃngrade attack by sending failed authentication
@@ -283,7 +277,7 @@ class SMTPServerHandler:
                 host=server.session.peer[0],
             )
             await server.push(SMTP_AUTH_Fail_Response_Message)
-            return None  # unsuccessful, but handled
+            return AuthResult(success=False, handled=True)
 
         # by default, accept this client
         return AuthResult(success=True, handled=False)

@@ -46,12 +46,9 @@ from dementor.servers import ServerThread, bind_server, BaseServerThread
 from dementor.db import _CLEARTEXT, normalize_client_address, _NO_USER
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.protocols.ntlm import (
-    NTLM_AUTH_CreateChallenge,
-    ATTR_NTLM_CHALLENGE,
-    ATTR_NTLM_DISABLE_ESS,
-    ATTR_NTLM_DISABLE_NTLMV2,
-    NTLM_report_auth,
-    NTLM_split_fqdn,
+    NTLM_build_challenge_message,
+    NTLM_handle_negotiate_message,
+    NTLM_handle_authenticate_message,
 )
 
 
@@ -140,9 +137,6 @@ class HTTPServerConfig(TomlConfig):
         A("http_cert", "Cert", None, section_local=False),
         A("http_cert_key", "Key", None, section_local=False),
         A("http_use_ssl", "TLS", False, factory=is_true),
-        ATTR_NTLM_CHALLENGE,
-        ATTR_NTLM_DISABLE_ESS,
-        ATTR_NTLM_DISABLE_NTLMV2,
     ]
 
     if typing.TYPE_CHECKING:
@@ -159,9 +153,6 @@ class HTTPServerConfig(TomlConfig):
         http_cert: str | None
         http_cert_key: str | None
         http_use_ssl: bool
-        ntlm_challenge: bytes
-        ntlm_disable_ess: bool
-        ntlm_disable_ntlmv2: bool
 
     def set_http_templates(self, templates_dirs: list[str]):
         dirs: list[str] = []
@@ -252,6 +243,11 @@ class HTTPHeaders:
 
 
 class HTTPHandler(BaseHTTPRequestHandler):
+    # NTLM is a connection-based auth — the 3-message handshake must happen
+    # on a single persistent connection.  HTTP/1.0 closes after each response,
+    # breaking the handshake.  HTTP/1.1 keeps the connection alive by default.
+    protocol_version = "HTTP/1.1"
+
     def __init__(
         self,
         session: SessionConfig,
@@ -444,29 +440,36 @@ class HTTPHandler(BaseHTTPRequestHandler):
         match message:
             case ntlm.NTLM_HTTP_AuthNegotiate():
                 self.display_request("NTLMSSP_NEGOTIATE", logger)
-                challenge = NTLM_AUTH_CreateChallenge(
+                self._ntlm_negotiate_fields = NTLM_handle_negotiate_message(
+                    message, logger
+                )
+                challenge = NTLM_build_challenge_message(
                     message,
-                    *NTLM_split_fqdn(self.config.http_fqdn),
-                    challenge=self.config.ntlm_challenge,
-                    disable_ess=self.config.ntlm_disable_ess,
-                    disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                    challenge=self.session.ntlm_challenge,
+                    nb_computer=self.session.ntlm_nb_computer,
+                    nb_domain=self.session.ntlm_nb_domain,
+                    disable_ess=self.session.ntlm_disable_ess,
+                    disable_ntlmv2=self.session.ntlm_disable_ntlmv2,
+                    log=logger,
                 )
                 self.send_response(HTTPStatus.UNAUTHORIZED, "Unauthorized")
                 data = base64.b64encode(challenge.getData()).decode()
                 self.send_header(
                     HTTPHeaders.WWW_AUTHENTICATE, f"{scheme or 'NTLM'} {data}"
                 )
+                self.send_header("Content-Length", "0")
                 self.end_headers()
 
             case ntlm.NTLM_HTTP_AuthChallengeResponse():
                 self.display_request("NTLMSSP_AUTH", logger)
-                NTLM_report_auth(
+                NTLM_handle_authenticate_message(
                     message,
-                    challenge=self.config.ntlm_challenge,
+                    challenge=self.session.ntlm_challenge,
                     client=self.client_address,
                     session=self.session,
                     logger=logger,
                     extras=self.get_extras(),
+                    negotiate_fields=getattr(self, "_ntlm_negotiate_fields", None),
                 )
                 self.finish_request(logger)
 
