@@ -548,7 +548,7 @@ def _is_anonymous_authenticate(token: ntlm.NTLMAuthChallengeResponse) -> bool:
     try:
         # Structural anonymous: all response fields empty or Z(1)
         flags: int = token["flags"]
-        user_name: bytes = token["user_name"] or b""
+        user_name: bytes = (token["user_name"] or b"").rstrip(b"\x00")
         nt_response: bytes = token["ntlm"] or b""
         lm_response: bytes = token["lanman"] or b""
 
@@ -560,6 +560,12 @@ def _is_anonymous_authenticate(token: ntlm.NTLMAuthChallengeResponse) -> bool:
         )
         if is_anon:
             dm_logger.debug("Structurally anonymous AUTHENTICATE_MESSAGE detected")
+            return True
+
+        if len(user_name.strip()) == 0:  # user name containts only spaces
+            dm_logger.debug(
+                "Anonymous AUTHENTICATE_MESSAGE detected (username with spaces only)"
+            )
             return True
 
         # [MS-NLMP] §2.2.2.5 flag J: supplementary anonymous flag check
@@ -1153,7 +1159,7 @@ def ntlm_handle_authenticate_message(
     log = logger or dm_logger
 
     if _is_anonymous_authenticate(auth_token):
-        log.debug("Anonymous NTLM login attempt; skipping hash extraction")
+        log.display("Anonymous NTLM login attempt; skipping hash extraction")
         return False
 
     # -- AUTHENTICATE_MESSAGE parsed fields (single debug line) ------------
