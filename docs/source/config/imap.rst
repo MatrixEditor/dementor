@@ -40,14 +40,18 @@ Section ``[IMAP]``
         Defines the server capabilities to advertise to the client. According to the IMAP specification, the revision
         (such as `IMAP4rev1`) **must** be returned.
 
-    .. py:attribute:: Server.FQDN
+    .. py:attribute:: Server.Host
         :type: str
-        :value: "Dementor"
+        :value: "DEMENTOR"
 
         *Linked to* :attr:`imap.IMAPServerConfig.imap_fqdn`. *Can also be set in* ``[IMAP]`` *or* ``[Globals]``.
 
-        Specifies the Fully Qualified Domain Name (FQDN) hostname used by the IMAP server.
-        The hostname portion appears in server responses; the domain part is optional.
+        Specifies the host identity for this server. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+        hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this
+        entry. Inherits from ``Globals.Host`` when not set here.
+
+        .. versionchanged:: 1.0.0.dev22
+            Renamed from ``FQDN`` to ``Host``
 
     .. py:attribute:: Server.Banner
         :type: str

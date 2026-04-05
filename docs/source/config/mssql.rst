@@ -57,14 +57,19 @@ Section ``[MSSQL]``
     are configured globally in the :ref:`config_ntlm` section and apply to
     all protocols including MSSQL.
 
-.. py:attribute:: FQDN
+.. py:attribute:: Host
     :type: str
     :value: "DEMENTOR"
 
     *Maps to* :attr:`mssql.MSSQLServerConfig.mssql_fqdn`. *May also be set in* ``[Globals]``
 
-    Sets the Fully Qualified Domain Name (FQDN) returned by the server. The hostname portion
-    is used in NTLM responses; the domain portion is optional.
+    Specifies the host identity for this server. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+    hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this
+    entry. Inherits from ``Globals.Host`` when not set here.
+
+    .. versionchanged:: 1.0.0.dev22
+        Renamed from ``FQDN`` to ``Host``
+
 
 Error Configuration
 ^^^^^^^^^^^^^^^^^^^
@@ -123,16 +128,19 @@ Section ``[SSRP]``
 
     would be valid.
 
+    .. versionchanged:: 1.0.0.dev22
+        Renamed from ``FQDN`` to ``Host``
+
 Inherited from ``[MSSQL]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. py:attribute:: FQDN
+.. py:attribute:: Host
     :type: str
-    :value: MSSQL.FQDN
+    :value: MSSQL.Host
 
     *Maps to* :attr:`mssql.SSRPConfig.ssrp_server_name`. *May also be set in* ``[Globals]``
 
-    Defines the server name as described in :attr:`MSSQL.FQDN`.
+    Defines the server name as described in :attr:`MSSQL.Host`.
 
 .. py:attribute:: Version
     :type: str

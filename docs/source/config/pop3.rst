@@ -35,10 +35,8 @@ Section ``[POP3]``
         :type: str
         :value: "Dementor"
 
-        *Linked to* :attr:`pop3.POP3ServerConfig.pop3_fqdn`. *Can also be set in* ``[POP3]`` *or* ``[Globals]``
-
-        Specifies the Fully Qualified Domain Name (FQDN) hostname used by the POP3 server.
-        The hostname portion of the FQDN will be included in server responses. The domain part is optional.
+        .. versionremoved:: 1.0.0.dev22
+            Unused attribute was removed
 
     .. py:attribute:: Server.Banner
         :type: str
