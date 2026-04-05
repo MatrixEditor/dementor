@@ -74,13 +74,13 @@ class KerberosConfig(TomlConfig):
         krb5_etype: int
         krb5_error_code: int
 
-    def set_krb5_salt(self, value):
+    def set_krb5_salt(self, value) -> None:
         if isinstance(value, bytes):
             self.krb5_salt = value
         else:
             self.krb5_salt = str(value).encode("utf-8", errors="replace")
 
-    def set_krb5_etype(self, value):
+    def set_krb5_etype(self, value) -> None:
         match value:
             case int():
                 self.krb5_etype = value
@@ -89,7 +89,7 @@ class KerberosConfig(TomlConfig):
             case _:
                 self.krb5_etype = EncryptionTypes[value].value
 
-    def set_krb5_error_code(self, value):
+    def set_krb5_error_code(self, value) -> None:
         match value:
             case int():
                 self.krb5_error_code = value
@@ -116,7 +116,7 @@ class Kerberos(BaseProtocolModule[KerberosConfig]):
         )
 
 
-def KRB5_Err(
+def krb5_err(
     error_code: int,
     realm: str | None = None,
     sname: list[str] | None = None,
@@ -161,13 +161,13 @@ def KRB5_Err(
     return krb_error
 
 
-def KRB5_ASREQ_to_hashcat_format(
+def krb5_asreq_to_hashcat_format(
     etype: int,
     username: str | bytes,
     realm: str | bytes,
     enc_timestamp: bytes,
     salt: bytes,
-) -> tuple:
+) -> tuple[str, str]:
     if isinstance(username, bytes):
         username = username.decode("utf-8", errors="replace")
 
@@ -270,7 +270,7 @@ class KDCHandler(BaseProtoHandler):
                     user_name = str(req_body["cname"]["name-string"][0])
                     domain = str(req_body["realm"])
 
-                    hashname, hashvalue = KRB5_ASREQ_to_hashcat_format(
+                    hashname, hashvalue = krb5_asreq_to_hashcat_format(
                         encrypted_data["etype"],
                         username=user_name,
                         realm=domain,
@@ -292,10 +292,10 @@ class KDCHandler(BaseProtoHandler):
         realm = str(as_req["req-body"]["realm"])
         sname = ["krbtgt", realm]
         if error_code != ErrorCodes.KDC_ERR_PREAUTH_REQUIRED.value:
-            krb_error = KRB5_Err(error_code, realm, sname)
+            krb_error = krb5_err(error_code, realm, sname)
         else:
             # make sure we require pre-authentication
-            krb_error = KRB5_Err(
+            krb_error = krb5_err(
                 error_code,
                 realm=realm,
                 sname=sname,

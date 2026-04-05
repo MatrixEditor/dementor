@@ -36,7 +36,7 @@ from dementor.servers import (
     ServerThread,
     BaseServerThread,
 )
-from dementor.db import _CLEARTEXT  # pyright: ignore[reportPrivateUsage]
+from dementor.db import CLEARTEXT
 
 __proto__ = ["FTP"]
 
@@ -69,8 +69,8 @@ class FTPServerConfig(TomlConfig):
     :type ftp_port: int
     """
 
-    _section_: ClassVar[str] = "FTP"
-    _fields_: ClassVar[list[A]] = [A("ftp_port", "Port")]
+    _section_ = "FTP"
+    _fields_ = [A("ftp_port", "Port")]
 
     if typing.TYPE_CHECKING:  # pragma: no cover
         ftp_port: int
@@ -86,13 +86,13 @@ class FTP(BaseProtocolModule[FTPServerConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: FTPServerConfig
-    ) -> BaseServerThread:
-        """Build :class:`ServerThread` objects for each configured FTP server.
+    ) -> BaseServerThread[FTPServerConfig]:
+        """Build a :class:`ServerThread` for the given FTP server config.
 
-        :param session: Session containing the ``ftp_config`` list.
+        :param session: Active session configuration.
         :type session: :class:`dementor.config.session.SessionConfig`
-        :return: List of ready-to-start :class:`ServerThread` objects.
-        :rtype: list[ServerThread]
+        :return: A ready-to-start :class:`ServerThread` object.
+        :rtype: ServerThread
         """
         return ServerThread(
             session,
@@ -188,7 +188,7 @@ class FTPHandler(BaseProtoHandler):
 
                 self.config.db.add_auth(
                     client=self.client_address,
-                    credtype=_CLEARTEXT,  # intentional clear-text
+                    credtype=CLEARTEXT,
                     username=username,
                     password=password,
                     logger=self.logger,

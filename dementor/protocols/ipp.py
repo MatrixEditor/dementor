@@ -169,13 +169,13 @@ class IPPConfig(TomlConfig):
         ipp_remote_cmd_attr: str
         ipp_remote_cmd_filter: str
 
-    def set_ipp_supported_operations(self, value):
+    def set_ipp_supported_operations(self, value) -> None:
         self.ipp_supported_operations = [
             IppOperation[operation] if isinstance(operation, str) else operation
             for operation in (value or [])
         ]
 
-    def set_ipp_extra_attrib(self, extra: list[dict[str, Any]] | None):
+    def set_ipp_extra_attrib(self, extra: list[dict[str, Any]] | None) -> None:
         # A list of attributes to add to the GET-PRINTER-ATTRIBUTES response.
         # This settings can also be used to add custom attributes to the
         # ATTRIBUTE_TAG_MAP.
@@ -238,7 +238,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         self.setup_proto_logger()
         super().__init__(request, client_address, server)
 
-    def setup_proto_logger(self):
+    def setup_proto_logger(self) -> None:
         self.logger = ProtocolLogger(
             extra={
                 "protocol": "IPP",
@@ -287,7 +287,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         # let us log mssages
         pass
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         # handle IPP request
         try:
             data = self.rfile.read(self.content_length)
@@ -311,7 +311,7 @@ class IPPHandler(BaseHTTPRequestHandler):
         else:
             method(req)
 
-    def ipp_get_printer_attributes(self, req: dict[str, Any]):
+    def ipp_get_printer_attributes(self, req: dict[str, Any]) -> None:
         # [4.2.5.  Get-Printer-Attributes Operation]
         # This REQUIRED operation allows a Client to request the values of the
         # attributes of a Printer.  In the request, the Client supplies the set

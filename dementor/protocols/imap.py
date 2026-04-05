@@ -28,15 +28,16 @@ import binascii
 import shlex
 import typing
 
+from typing import Literal, overload
 from typing_extensions import override
 from impacket import ntlm
 
 from dementor.config.session import SessionConfig
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.protocols.ntlm import (
-    NTLM_build_challenge_message,
-    NTLM_handle_authenticate_message,
-    NTLM_handle_negotiate_message,
+    ntlm_build_challenge_message,
+    ntlm_handle_authenticate_message,
+    ntlm_handle_negotiate_message,
 )
 from dementor.servers import (
     ServerThread,
@@ -46,33 +47,15 @@ from dementor.servers import (
     BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
-from dementor.db import _CLEARTEXT
+from dementor.db import CLEARTEXT
 from dementor.config.toml import (
     TomlConfig,
     Attribute as A,
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
-from dementor.config.util import get_value
+from dementor.config.util import HostDerivedValue
 
 __proto__ = ["IMAP"]
-
-
-def apply_config(session: SessionConfig):
-    session.imap_config = list(
-        map(IMAPServerConfig, get_value("IMAP", "Server", default=[]))
-    )
-
-
-def create_server_threads(session: SessionConfig):
-    return [
-        ServerThread(
-            session,
-            IMAPServer,
-            server_config=server_config,
-            server_address=(session.bind_address, server_config.imap_port),
-        )
-        for server_config in (session.imap_config if session.imap_enabled else [])
-    ]
 
 
 IMAP_CAPABILITIES = [
@@ -89,7 +72,13 @@ class IMAPServerConfig(TomlConfig):
     _section_ = "IMAP"
     _fields_ = [
         A("imap_port", "Port"),
-        A("imap_fqdn", "FQDN", "Dementor", section_local=False),
+        A(
+            "imap_fqdn",
+            "Host",
+            None,
+            section_local=False,
+            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+        ),
         A("imap_caps", "Capabilities", IMAP_CAPABILITIES),
         A("imap_auth_mechanisms", "AuthMechanisms", IMAP_AUTH_MECHS),
         A("imap_banner", "Banner", "IMAP4rev2 service ready"),
@@ -118,7 +107,7 @@ class IMAP(BaseProtocolModule[IMAPServerConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: IMAPServerConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[IMAPServerConfig]:
         return ServerThread(
             session,
             server_config,
@@ -173,13 +162,13 @@ class IMAPHandler(BaseProtoHandler):
     #   - NO (indicating failure), or
     #   - BAD (indicating a protocol error such as unrecognized command or
     #          command syntax error).
-    def ok(self, msg: str, seq=True):
+    def ok(self, msg: str, seq: bool = True) -> None:
         self._push(f"OK {msg}", seq)
 
-    def no(self, msg: str, seq=True):
+    def no(self, msg: str, seq: bool = True) -> None:
         self._push(f"NO {msg}", seq)
 
-    def bad(self, msg: str, seq=True):
+    def bad(self, msg: str, seq: bool = True) -> None:
         self._push(f"BAD {msg}", seq)
 
     # NOTE: Section 2.2.2 states:
@@ -194,6 +183,22 @@ class IMAPHandler(BaseProtoHandler):
         # A quoted string is a sequence of zero or more Unicode characters, excluding
         # CR and LF, encoded in UTF-8, with double quote (<">) characters at each end.
         return data.removeprefix('"').removesuffix('"')
+
+    @overload
+    def challenge_auth(
+        self,
+        token: bytes | None = ...,
+        decode: Literal[False] = ...,
+        prefix: str | None = ...,
+    ) -> bytes: ...
+
+    @overload
+    def challenge_auth(
+        self,
+        token: bytes | None = ...,
+        decode: Literal[True] = ...,
+        prefix: str | None = ...,
+    ) -> str: ...
 
     def challenge_auth(
         self,
@@ -277,7 +282,7 @@ class IMAPHandler(BaseProtoHandler):
 
     # implementation
     #  7.2.2. CAPABILITY Response
-    def do_CAPABILITY(self, args):
+    def do_CAPABILITY(self, args: list[str]) -> None:
         # The CAPABILITY response occurs as a result of a CAPABILITY command. The
         # capability listing contains a space-separated listing of capability names
         # that the server supports. The capability listing MUST include the atom
@@ -289,17 +294,17 @@ class IMAPHandler(BaseProtoHandler):
         self.ok("CAPABILITY completed")
 
     #  6.1.2. NOOP Command
-    def do_NOOP(self, args):
+    def do_NOOP(self, args: list[str]) -> None:
         # The NOOP command always succeeds. It does nothing.
         self.ok("NOOP completed")
 
     #  6.4.1. CLOSE Command
-    def do_CLOSE(self, args):
+    def do_CLOSE(self, args: list[str]) -> None:
         self.ok("CLOSE completed")
         raise StopHandler
 
     #  6.2.3. LOGIN Command
-    def do_LOGIN(self, args: str):
+    def do_LOGIN(self, args: str) -> None:
         if len(args) != 2:
             return self.bad("Invalid number of arguments")
 
@@ -309,12 +314,12 @@ class IMAPHandler(BaseProtoHandler):
             username=self.unquoted(username),
             password=self.unquoted(password),
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
         )
         self.no("LOGIN failed")
 
     #  6.2.2. AUTHENTICATE Command
-    def do_AUTHENTICATE(self, args):
+    def do_AUTHENTICATE(self, args: list[str]) -> None:
         if len(args) < 1:
             return self.bad("Invalid number of arguments")
 
@@ -326,12 +331,12 @@ class IMAPHandler(BaseProtoHandler):
             self.bad("Unknown authentication mechanism")
 
     #  6.2.1. STARTTLS Command
-    def do_STARTTLS(self, args):
+    def do_STARTTLS(self, args: list[str]) -> None:
         # NO - TLS negotiation can't be initiated, due to server configuration error
         self.no("STARTTLS not supported")
 
     # [MS-OXIMAP] 2.2.1 IMAP4 NTLM
-    def auth_NTLM(self, initial_response=None):
+    def auth_NTLM(self, initial_response: bytes | None = None) -> None:
         # IMAP4_AUTHENTICATE_NTLM_Supported_Response
         if not initial_response:
             token = self.challenge_auth()
@@ -353,8 +358,8 @@ class IMAPHandler(BaseProtoHandler):
             return self.bad("NTLM negotiation failed")
 
         # IMAP4_AUTHENTICATE_NTLM_Blob_Response
-        negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
-        challenge = NTLM_build_challenge_message(
+        negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
+        challenge = ntlm_build_challenge_message(
             negotiate,
             challenge=self.config.ntlm_challenge,
             nb_computer=self.config.ntlm_nb_computer,
@@ -373,7 +378,7 @@ class IMAPHandler(BaseProtoHandler):
             self.logger.debug(f"NTLM authentication failed: {e}")
             return self.bad("NTLM authentication failed")
 
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             auth_message,
             challenge=self.config.ntlm_challenge,
             client=self.client_address,
@@ -388,7 +393,7 @@ class IMAPHandler(BaseProtoHandler):
 
         self.ok("AUTHENTICATE completed")
 
-    def auth_PLAIN(self, initial_response=None):
+    def auth_PLAIN(self, initial_response: bytes | None = None) -> None:
         if initial_response:
             login_and_password = base64.b64decode(initial_response)
         else:
@@ -405,11 +410,11 @@ class IMAPHandler(BaseProtoHandler):
             username=login.decode(errors="replace"),
             password=password.decode(errors="replace"),
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
         )
         self.no("LOGIN failed")
 
-    def auth_LOGIN(self):
+    def auth_LOGIN(self) -> None:
         username = self.challenge_auth(decode=True)
         password = self.challenge_auth(decode=True)
         self.config.db.add_auth(
@@ -417,7 +422,7 @@ class IMAPHandler(BaseProtoHandler):
             username=username,
             password=password,
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
         )
         self.no("LOGIN failed")
 
