@@ -18,7 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# just reusing impacket's hexdump
+# Thin re-export shim that isolates the impacket.structure dependency boundary.
+# All internal code imports hexdump from here; if the upstream location ever
+# changes, only this file needs updating.
 from impacket.structure import hexdump
 
 __all__ = ["hexdump"]

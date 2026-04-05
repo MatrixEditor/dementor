@@ -921,7 +921,7 @@ class SMBHandler(BaseProtoHandler):
         # Realistic capabilities — [MS-SMB2] §2.2.4
         command["Capabilities"] = SMB2_SERVER_CAPABILITIES
         # Per-dialect max sizes matching real Windows pcap behaviour:
-        # 2.0.2 → 64K, 2.1+ → 8M (direct TCP, port 445)
+        # 2.0.2 -> 64K, 2.1+ -> 8M (direct TCP, port 445)
         max_size = (
             SMB2_MAX_SIZE_SMALL
             if target_revision == smb2.SMB2_DIALECT_002
@@ -1014,7 +1014,7 @@ class SMBHandler(BaseProtoHandler):
 
         req_dialects: list[int] = req_raw_dialects[:dialect_count]
         if len(req_dialects) == 0:
-            # [MS-SMB2] §3.3.5.4: DialectCount == 0 → STATUS_INVALID_PARAMETER
+            # [MS-SMB2] §3.3.5.4: DialectCount == 0 -> STATUS_INVALID_PARAMETER
             self.logger.debug("SMB2_NEGOTIATE: no dialects offered", is_client=True)
             self.logger.fail("SMB Negotiation: Client failed to provide any dialects.")
             raise BaseProtoHandler.TerminateConnection
@@ -1608,17 +1608,17 @@ class SMBHandler(BaseProtoHandler):
         #
         # Three-tier decision using SIGNING_REQUIRED + client max dialect:
         #
-        #   1. SIGNING_REQUIRED set → never IS_GUEST
+        #   1. SIGNING_REQUIRED set -> never IS_GUEST
         #      §3.2.5.3.1: IS_GUEST + SigningRequired = client MUST fail.
         #      Future-proofing for Win11 24H2+ / Server 2025.
         #
-        #   2. Client max dialect ≤ 3.0.2 → IS_GUEST
+        #   2. Client max dialect ≤ 3.0.2 -> IS_GUEST
         #      These clients (Win8.1, Srv2012R2, Srv2016) have
-        #      AllowInsecureGuestAccess=TRUE → IS_GUEST accepted → ✓
+        #      AllowInsecureGuestAccess=TRUE -> IS_GUEST accepted -> ✓
         #
-        #   3. Client max dialect ≥ 3.1.1 → no IS_GUEST
+        #   3. Client max dialect ≥ 3.1.1 -> no IS_GUEST
         #      These clients (Win10, Win11, Srv2019, Srv2022) have
-        #      AllowInsecureGuestAccess=FALSE → IS_GUEST rejected → H.
+        #      AllowInsecureGuestAccess=FALSE -> IS_GUEST rejected -> H.
         #      Without IS_GUEST at 2.x they get P (path from
         #      TREE_CONNECT before VALIDATE_NEGOTIATE RST).
         if error_code == nt_errors.STATUS_SUCCESS:
@@ -1705,7 +1705,7 @@ class SMBHandler(BaseProtoHandler):
                 # [MS-CIFS] §2.2.4.53.1: Unicode strings are 2-byte aligned
                 # from the start of the SMB header. Fixed overhead for
                 # WordCount=12: 32(hdr)+1(WC)+24(params)+2(BC) = 59 (odd).
-                # Padding needed when (59 + blob_len) is odd → blob_len even.
+                # Padding needed when (59 + blob_len) is odd -> blob_len even.
                 # Cannot check byte value: NT 4.0 uses non-zero pad bytes.
                 needs_pad = is_unicode and blob_len % 2 == 0
                 if needs_pad and len(raw_after_blob) > 0:
@@ -2099,7 +2099,7 @@ class SMBHandler(BaseProtoHandler):
                 exc_info=True,
             )
 
-        # Extract share name from UNC path (\\server\share → share)
+        # Extract share name from UNC path (\\server\share -> share)
         share_name = path.rsplit("\\", 1)[-1].upper() if path else ""
 
         self.smb2_tree_id_counter += 1
@@ -2181,7 +2181,7 @@ class SMBHandler(BaseProtoHandler):
             # [MS-SMB2] §3.3.5.15.12: echo back server negotiate params
             self._handle_validate_negotiate(packet, req)
         else:
-            # [MS-SMB2] §3.3.5.15.2: non-DFS → STATUS_FS_DRIVER_REQUIRED
+            # [MS-SMB2] §3.3.5.15.2: non-DFS -> STATUS_FS_DRIVER_REQUIRED
             self._smb2_error_response(packet, nt_errors.STATUS_FS_DRIVER_REQUIRED)
 
     def _handle_validate_negotiate(
@@ -2833,7 +2833,7 @@ class SMBHandler(BaseProtoHandler):
         """
         # Absolute offsets from SMB header start
         # 32(hdr) + 1(WC) + 20(Words) + 2(BC) = 55
-        pad1 = b"\x00"  # align to even offset (55 → 56)
+        pad1 = b"\x00"  # align to even offset (55 -> 56)
         param_offset = 56 if trans_parameters else 0
         param_len = len(trans_parameters)
 

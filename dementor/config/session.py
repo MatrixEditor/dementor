@@ -65,7 +65,7 @@ class SessionConfig(TomlConfig):
         Attribute("extra_modules", "ExtraModules", list),
         Attribute("workspace_path", "Workspace", DEMENTOR_PATH),
     ] + [
-        # TODO: place this somewhere else
+        # TODO: move per-protocol enabled flags into a dedicated ProtocolFlags config class
         Attribute(f"{name.lower()}_enabled", name, True, factory=is_true)
         for name in (
             "LLMNR",
@@ -93,7 +93,6 @@ class SessionConfig(TomlConfig):
         )
     ]
 
-    # TODO: move into .pyi
     if typing.TYPE_CHECKING:
         workspace_path: str
         extra_modules: list[str]
@@ -111,7 +110,7 @@ class SessionConfig(TomlConfig):
         llmnr_config: llmnr.LLMNRConfig
         netbiosns_config: netbios.NBTNSConfig
         ldap_config: list[ldap.LDAPServerConfig]
-        smtp_servers: list[smtp.SMTPServerConfig]
+        smtp_config: list[smtp.SMTPServerConfig]
         smb_config: list[smb.SMBServerConfig]
         ftp_config: list[ftp.FTPServerConfig]
         proxy_config: http.ProxyAutoConfig

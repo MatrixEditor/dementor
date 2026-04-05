@@ -46,18 +46,18 @@ Command-Line Options
     - ``VALUE``:
         Will be automatically parsed into the appropriate type based on the following rules:
 
-        - **Boolean**: ``on``, ``yes``, ``true`` → `True`; ``off``, ``no``, ``false`` → `False`
+        - **Boolean**: ``on``, ``yes``, ``true`` -> `True`; ``off``, ``no``, ``false`` -> `False`
         - **Lists**: Values enclosed in brackets (e.g., ``["foo", "bar"]``) will be parsed as JSON strings.
         - **Numbers**: Numeric values will be automatically converted to integers or floats where applicable.
         - **Strings**: All other values will be treated as plain strings.
 
     Examples:
 
-    - ``-OLLMNR.AnswerName=pki-srv`` → Maps to :attr:`LLMNR.AnswerName`, value parsed as string.
-    - ``--option mDNS.TTL=340`` → Maps to :attr:`mDNS.TTL`, value parsed as integer.
-    - ``--option SMB.SMB2Support=off`` → Maps to :attr:`SMB.Server.SMB2Support`, value parsed as boolean.
-    - ``--option Log.DebugLoggers='["asyncio", "quic"]'`` → Maps to :attr:`Log.DebugLoggers`, value parsed as list.
-    - ``-O Globals.Ignore+="foobar"`` → Appends the parsed string value to :attr:`Globals.Ignore`
+    - ``-OLLMNR.AnswerName=pki-srv`` -> Maps to :attr:`LLMNR.AnswerName`, value parsed as string.
+    - ``--option mDNS.TTL=340`` -> Maps to :attr:`mDNS.TTL`, value parsed as integer.
+    - ``--option SMB.SMB2Support=off`` -> Maps to :attr:`SMB.Server.SMB2Support`, value parsed as boolean.
+    - ``--option Log.DebugLoggers='["asyncio", "quic"]'`` -> Maps to :attr:`Log.DebugLoggers`, value parsed as list.
+    - ``-O Globals.Ignore+="foobar"`` -> Appends the parsed string value to :attr:`Globals.Ignore`
 
     .. note::
         Overrides made via the ``--option`` flag will **always take precedence** over the values

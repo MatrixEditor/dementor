@@ -232,7 +232,7 @@ class ServiceCommand(ReplAction):
                 if not active:
                     label = "<stopped> [white]".ljust(50, ".")
                 else:
-                    addr, port = thread.get_address(), thread.get_port()
+                    addr, port = thread.get_address, thread.get_port
                     label = f"{addr}:{port} [white]".ljust(50, ".")
                 _ = tree.add(f"{label} {ON if active else OFF}")
 

@@ -76,7 +76,7 @@ class Repl:
         )
         self.console: Console = Console()
 
-    def get_prompt(self):
+    def get_prompt(self) -> list[tuple[str, str]]:
         """Build the prompt parts for the REPL.
 
         :return: A list of style/segment tuples understood by ``prompt_toolkit``.
@@ -127,8 +127,8 @@ class Repl:
             while True:
                 try:
                     line = await self.prompt_session.prompt_async(
-                        self.get_prompt(),
-                        placeholder=self.get_placeholder(),
+                        self.get_prompt(),  # ty:ignore[invalid-argument-type]
+                        placeholder=self.get_placeholder(),  # ty:ignore[invalid-argument-type]
                     )
                     line = line.strip()
                     if not line:

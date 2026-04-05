@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING
 from prompt_toolkit.document import Document
 from typing_extensions import override
 
-from dementor.db import _CLEARTEXT
+from dementor.db import CLEARTEXT
 from dementor.tui.action import command, ReplAction
 from dementor.db.model import Credential, HostInfo, HostExtra
 
@@ -275,7 +275,7 @@ class DBCommand(ReplAction):
             credtype = (cred.credtype or "").lower()
 
             line = (
-                f"{username}:{password}" if credtype == _CLEARTEXT.lower() else password
+                f"{username}:{password}" if credtype == CLEARTEXT.lower() else password
             )
             lines.append(line)
 

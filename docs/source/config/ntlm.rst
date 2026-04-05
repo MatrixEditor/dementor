@@ -776,8 +776,8 @@ Default Configuration
     # Challenge = "1337LEET"
 
     # Strip NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY.
-    # false (default): ESS negotiated → NetNTLMv1-ESS (hashcat -m 5500).
-    # true:            ESS suppressed → plain NetNTLMv1; crackable with
+    # false (default): ESS negotiated -> NetNTLMv1-ESS (hashcat -m 5500).
+    # true:            ESS suppressed -> plain NetNTLMv1; crackable with
     #                  rainbow tables when combined with a fixed Challenge.
     DisableExtendedSessionSecurity = false
 

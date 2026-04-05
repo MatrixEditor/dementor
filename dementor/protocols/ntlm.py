@@ -263,21 +263,21 @@ ATTR_NTLM_NB_DOMAIN = Attribute(
 ATTR_NTLM_DNS_COMPUTER = Attribute(
     "ntlm_dns_computer",
     "NTLM.DnsComputer",
-    "",  # MsvAvDnsComputerName (AV_PAIR 0x0003); "" → omitted from AV_PAIRs
+    "",  # MsvAvDnsComputerName (AV_PAIR 0x0003); "" -> omitted from AV_PAIRs
     section_local=False,
 )
 
 ATTR_NTLM_DNS_DOMAIN = Attribute(
     "ntlm_dns_domain",
     "NTLM.DnsDomain",
-    "",  # MsvAvDnsDomainName (AV_PAIR 0x0004); "" → omitted from AV_PAIRs
+    "",  # MsvAvDnsDomainName (AV_PAIR 0x0004); "" -> omitted from AV_PAIRs
     section_local=False,
 )
 
 ATTR_NTLM_DNS_TREE = Attribute(
     "ntlm_dns_tree",
     "NTLM.DnsTree",
-    "",  # MsvAvDnsTreeName (AV_PAIR 0x0005); "" → omitted from AV_PAIRs
+    "",  # MsvAvDnsTreeName (AV_PAIR 0x0005); "" -> omitted from AV_PAIRs
     section_local=False,
 )
 
@@ -406,8 +406,8 @@ def apply_config(session: SessionConfig) -> None:
 #
 # NEGOTIATE_MESSAGE fields: always OEM (Unicode not yet negotiated).
 # CHALLENGE_MESSAGE / AUTHENTICATE_MESSAGE: governed by NegotiateFlags:
-#   NTLMSSP_NEGOTIATE_UNICODE (0x01) → UTF-16LE (no BOM)
-#   NTLM_NEGOTIATE_OEM        (0x02) → cp437 baseline
+#   NTLMSSP_NEGOTIATE_UNICODE (0x01) -> UTF-16LE (no BOM)
+#   NTLM_NEGOTIATE_OEM        (0x02) -> cp437 baseline
 
 
 def NTLM_decode_string(
@@ -423,7 +423,7 @@ def NTLM_decode_string(
       Unicode has not been negotiated yet per [MS-NLMP] §2.2.1.1.
     * **AUTHENTICATE_MESSAGE** (``is_negotiate_oem=False``): encoding is
       determined by ``NTLMSSP_NEGOTIATE_UNICODE`` (flag A, 0x00000001)
-      in the message's NegotiateFlags.  When set → UTF-16LE, else OEM
+      in the message's NegotiateFlags.  When set -> UTF-16LE, else OEM
       (cp437 as baseline).  Per [MS-NLMP] §2.2.1.3.
 
     :param data: Raw bytes from the NTLM message field
@@ -761,8 +761,8 @@ def NTLM_build_challenge_message(
 
     # -- Assemble the CHALLENGE_MESSAGE ------------------------------------
     # TargetName (§2.2.1.2): the server's authentication realm.
-    # [MS-NLMP] §3.2.5.1.1: TARGET_TYPE_SERVER → TargetName = NetBIOSComputer;
-    # TARGET_TYPE_DOMAIN → TargetName = NetBIOSDomain.
+    # [MS-NLMP] §3.2.5.1.1: TARGET_TYPE_SERVER -> TargetName = NetBIOSComputer;
+    # TARGET_TYPE_DOMAIN -> TargetName = NetBIOSDomain.
     if target_type == "domain":
         target_name_str = nb_domain.upper()
     else:
@@ -807,11 +807,11 @@ def NTLM_build_challenge_message(
         #   0x0005 MsvAvDnsTreeName     COND  Forest FQDN; omitted when not domain-joined.
         #   0x0006 MsvAvFlags           NO    Constrained-auth flag (0x1); not applicable
         #                                     here — Dementor does not enforce constrained
-        #                                     delegation.  0x2/0x4 bits are client→server.
+        #                                     delegation.  0x2/0x4 bits are client->server.
         #   0x0007 MsvAvTimestamp       NO    Intentionally omitted; see note below.
-        #   0x0008 MsvAvSingleHost      N/A   Client→server only (AUTHENTICATE_MESSAGE).
-        #   0x0009 MsvAvTargetName      N/A   Client→server only (AUTHENTICATE_MESSAGE).
-        #   0x000A MsvAvChannelBindings N/A   Client→server only (AUTHENTICATE_MESSAGE).
+        #   0x0008 MsvAvSingleHost      N/A   Client->server only (AUTHENTICATE_MESSAGE).
+        #   0x0009 MsvAvTargetName      N/A   Client->server only (AUTHENTICATE_MESSAGE).
+        #   0x000A MsvAvChannelBindings N/A   Client->server only (AUTHENTICATE_MESSAGE).
         #
         # §2.2.2.1: 0x0001 and 0x0002 MUST be present.  MsvAvEOL is
         # appended automatically by ntlm.AV_PAIRS.  AV_PAIRs may appear in
@@ -1027,7 +1027,7 @@ def NTLM_handle_authenticate_message(
             )
         except Exception:
             dm_logger.debug("Failed to parse host_name from AUTHENTICATE_MESSAGE")
-        mic_str: str = "(absent)"  # no VERSION flag → MIC field doesn't exist
+        mic_str: str = "(absent)"  # no VERSION flag -> MIC field doesn't exist
         try:
             if negotiate_flags & ntlm.NTLMSSP_NEGOTIATE_VERSION:
                 mic_val: bytes = auth_token["MIC"]
@@ -1681,7 +1681,7 @@ def NTLM_timestamp() -> int:
     :return: Current UTC time in 100-nanosecond intervals since Windows epoch (1601-01-01)
     :rtype: int
     """
-    # calendar.timegm() → UTC seconds since 1970; scaled to 100ns ticks since 1601.
+    # calendar.timegm() -> UTC seconds since 1970; scaled to 100ns ticks since 1601.
     return (
         NTLM_FILETIME_EPOCH_OFFSET
         + calendar.timegm(time.gmtime()) * NTLM_FILETIME_TICKS_PER_SECOND
