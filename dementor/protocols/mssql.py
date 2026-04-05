@@ -465,7 +465,7 @@ class MSSQLHandler(BaseProtoHandler):
 
         Captures the NTLM hash, then forces a login error so the client
         retries (which may produce additional credential material). Return
-        value is always 1 (terminate) — SSPI auth is never continued.
+        value is always 1 (terminate) - SSPI auth is never continued.
         """
         raw_data = packet["Data"]
         try:

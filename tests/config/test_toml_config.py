@@ -49,7 +49,7 @@ class SimpleConfig(TomlConfig):
 class RequiredFieldConfig(TomlConfig):
     _section_ = "Req"
     _fields_ = [
-        Attribute("required_val", "value"),  # no default_val → _LOCAL sentinel
+        Attribute("required_val", "value"),  # no default_val -> _LOCAL sentinel
     ]
 
 
@@ -75,7 +75,7 @@ class GlobalFallbackConfig(TomlConfig):
 
 
 # ---------------------------------------------------------------------------
-# TomlConfig — basic instantiation
+# TomlConfig - basic instantiation
 # ---------------------------------------------------------------------------
 
 
@@ -118,7 +118,7 @@ class TestTomlConfigBasic:
 
 
 # ---------------------------------------------------------------------------
-# Attribute — sentinel behaviour
+# Attribute - sentinel behaviour
 # ---------------------------------------------------------------------------
 
 
@@ -145,7 +145,7 @@ class TestAttributeSentinel:
 
 
 # ---------------------------------------------------------------------------
-# _set_field — type coercion and setter dispatch
+# _set_field - type coercion and setter dispatch
 # ---------------------------------------------------------------------------
 
 
@@ -197,7 +197,7 @@ class TestGetItem:
 
 
 # ---------------------------------------------------------------------------
-# TomlConfig.build_config — reads from global config
+# TomlConfig.build_config - reads from global config
 # ---------------------------------------------------------------------------
 
 
@@ -249,7 +249,7 @@ class TestAsDict:
 
 
 # ---------------------------------------------------------------------------
-# get_value — utility function
+# get_value - utility function
 # ---------------------------------------------------------------------------
 
 
@@ -293,7 +293,7 @@ class TestGetValue:
 
 
 # ---------------------------------------------------------------------------
-# is_true — bool coercion
+# is_true - bool coercion
 # ---------------------------------------------------------------------------
 
 
@@ -343,7 +343,7 @@ class TestGlobalConfig:
 
 
 # ---------------------------------------------------------------------------
-# GlobalFallbackConfig — section_local=False reads Globals
+# GlobalFallbackConfig - section_local=False reads Globals
 # ---------------------------------------------------------------------------
 
 

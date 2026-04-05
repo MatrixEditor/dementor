@@ -363,7 +363,7 @@ CapturesPerConnection = 0
 # --- SMB1 Identity (optional) ---
 # These strings appear only in SMB1 negotiate and session-setup responses.
 # They are purely SMB-layer and do NOT affect the NTLM CHALLENGE_MESSAGE.
-# SMB2/3 has no equivalent fields — these are ignored for modern clients.
+# SMB2/3 has no equivalent fields - these are ignored for modern clients.
 # To control the NTLM identity (AV_PAIRs), use the [NTLM] section instead.
 
 # Optional. ServerName in the SMB1 non-extended-security negotiate response.
@@ -506,7 +506,7 @@ DisableNTLMv2 = false
 
 # --- Server Identity (optional) ---
 # These control the identity fields inside the NTLMSSP CHALLENGE_MESSAGE.
-# They are INDEPENDENT from SMB identity — [SMB] NetBIOSComputer is the SMB1
+# They are INDEPENDENT from SMB identity - [SMB] NetBIOSComputer is the SMB1
 # negotiate ServerName, while [NTLM] NetBIOSComputer is AV_PAIR 0x0001.
 #
 # Resolution order (highest priority first):

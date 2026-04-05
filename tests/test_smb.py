@@ -1,4 +1,4 @@
-"""Unit tests for dementor.protocols.smb — SMB protocol handler.
+"""Unit tests for dementor.protocols.smb - SMB protocol handler.
 
 Tests cover module-level functions, SMBServerConfig methods, and SMBHandler
 methods (via a mock handler that bypasses the real socket).
@@ -329,7 +329,7 @@ class TestSetSmbErrorCode:
 
 
 class TestSmb3NegContextPad:
-    """_smb3_neg_context_pad(data_len) — instance method at line 840."""
+    """_smb3_neg_context_pad(data_len) - instance method at line 840."""
 
     @pytest.mark.parametrize(
         ("data_len", "expected_pad_len"),
@@ -376,8 +376,8 @@ class TestBuildTrans2FileInfo:
             (26, 4),  # FileMailslotQueryInformation
             (30, 16),  # FileCompressionInformation
             # Pass-through levels
-            (0x03EC, None),  # FileBasicInfo (class 4) — size varies
-            (0x03ED, None),  # FileStandardInfo (class 5) — size varies
+            (0x03EC, None),  # FileBasicInfo (class 4) - size varies
+            (0x03ED, None),  # FileStandardInfo (class 5) - size varies
         ],
         ids=[
             "standard_0001",
@@ -424,7 +424,7 @@ class TestBuildTrans2FileInfo:
         assert len(result) > 0
 
     def test_file_all_info_raw_15(self, mock_handler):
-        """FileAllInformation (class 15) — XP SP3 sends as raw class."""
+        """FileAllInformation (class 15) - XP SP3 sends as raw class."""
         result = mock_handler._build_trans2_file_info(15)
         assert result is not None
         assert len(result) > 0
@@ -435,7 +435,7 @@ class TestBuildTrans2FileInfo:
         assert len(result) == 16
 
     def test_name_valid_0006(self, mock_handler):
-        """0x0006: FileInternalInformation / SMB_INFO_IS_NAME_VALID — 8 bytes."""
+        """0x0006: FileInternalInformation / SMB_INFO_IS_NAME_VALID - 8 bytes."""
         result = mock_handler._build_trans2_file_info(0x0006)
         assert result is not None
         assert len(result) == 8
@@ -935,7 +935,7 @@ class TestHandleSmbPacket:
 class TestSmb2SessionSetup:
     """handle_smb2_session_setup IS_GUEST logic at line 1597.
 
-    These are partial integration tests — we mock handle_ntlmssp to return
+    These are partial integration tests - we mock handle_ntlmssp to return
     a fixed response and only verify the IS_GUEST SessionFlags logic.
     """
 

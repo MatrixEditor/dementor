@@ -110,7 +110,7 @@ def init_config(
 
 
 # --------------------------------------------------------------------------- #
-# Default initialisation — runs on first import so that protocol modules
+# Default initialisation - runs on first import so that protocol modules
 # that call get_global_config() / get_value() without going through
 # standalone.py still get the bundled defaults.  standalone.py re-runs
 # init_config() with the user config path, which overwrites these defaults.

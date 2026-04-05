@@ -49,7 +49,7 @@ def _with_globals(**kw):
 
 
 # ---------------------------------------------------------------------------
-# HostValue — construction
+# HostValue - construction
 # ---------------------------------------------------------------------------
 
 
@@ -90,7 +90,7 @@ class TestHostValueConstruction:
 
 
 # ---------------------------------------------------------------------------
-# HostValue — get_value field derivation
+# HostValue - get_value field derivation
 # ---------------------------------------------------------------------------
 
 
@@ -181,7 +181,7 @@ class TestHostValueGetValue:
 
 
 # ---------------------------------------------------------------------------
-# ATTR_GLOBALS_HOST — Attribute metadata
+# ATTR_GLOBALS_HOST - Attribute metadata
 # ---------------------------------------------------------------------------
 
 
@@ -208,7 +208,7 @@ class TestAttrGlobalsHost:
 
 
 # ---------------------------------------------------------------------------
-# HostDerivedValue — per-attribute factory
+# HostDerivedValue - per-attribute factory
 # ---------------------------------------------------------------------------
 
 
@@ -216,7 +216,7 @@ class TestHostDerivedValue:
     """
     Verify that HostDerivedValue is a pure factory used with qname="Host".
 
-    it receives a Host string and derives the specific field from it — no
+    it receives a Host string and derives the specific field from it - no
     global config access.
     """
 
@@ -270,7 +270,7 @@ class TestHostDerivedValue:
         assert factory("dc01.corp.com") == "DC01.CORP.COM"
 
     def test_no_global_config_access(self):
-        """Factory must not access global config — pure input→output."""
+        """Factory must not access global config - pure input->output."""
         import dementor.config.util as util_mod
 
         assert not hasattr(util_mod, "get_host_value"), (
@@ -279,7 +279,7 @@ class TestHostDerivedValue:
 
 
 # ---------------------------------------------------------------------------
-# HostFallbackValue — explicit-first, Host-derived fallback factory
+# HostFallbackValue - explicit-first, Host-derived fallback factory
 # ---------------------------------------------------------------------------
 
 
@@ -366,7 +366,7 @@ class TestHostFallbackValue:
 
 
 # ---------------------------------------------------------------------------
-# NTLM session identity — apply_config picks up Globals.Host
+# NTLM session identity - apply_config picks up Globals.Host
 # ---------------------------------------------------------------------------
 
 
@@ -422,13 +422,13 @@ class TestNTLMApplyConfigWithHost:
 
 
 # ---------------------------------------------------------------------------
-# Protocol FQDN fallback — SMTP, LDAP, POP3, IMAP, MSSQL, HTTP, RPC
+# Protocol FQDN fallback - SMTP, LDAP, POP3, IMAP, MSSQL, HTTP, RPC
 # ---------------------------------------------------------------------------
 
 
 class TestProtocolFQDNFallback:
     """Verify that protocol FQDN attrs derive from Globals.Host when not
-    set explicitly in the protocol section.  No apply_host_defaults() needed —
+    set explicitly in the protocol section.  No apply_host_defaults() needed -
     the HostDerivedValue factory handles derivation lazily."""
 
     def _global_cfg(self, host: str, **extra_globals):
@@ -612,7 +612,7 @@ class TestCLIHostOption:
             _set_global_config(original)
 
         assert result["Host"] == "DC01.contoso.lab"
-        # Factories derive on attribute access — verify the factory works correctly
+        # Factories derive on attribute access - verify the factory works correctly
         factory = HostDerivedValue("NetBIOSComputer", "DEMENTOR")
         assert factory("DC01.contoso.lab") == "DC01"
 

@@ -209,7 +209,7 @@ def build_neg_token_resp(
 
     Spec: [RFC4178] §4.2.2, [MS-SPNG] §3.2.5.2
 
-    :param neg_state: Negotiation state — one of ``NEG_STATE_ACCEPT_COMPLETED``,
+    :param neg_state: Negotiation state - one of ``NEG_STATE_ACCEPT_COMPLETED``,
         ``NEG_STATE_ACCEPT_INCOMPLETE``, or ``NEG_STATE_REJECT``
     :type neg_state: int
     :param resp_token: The mechanism-specific response token (e.g., serialized

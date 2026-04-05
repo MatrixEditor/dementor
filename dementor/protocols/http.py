@@ -255,7 +255,7 @@ class HTTPHeaders:
 
 
 class HTTPHandler(BaseHTTPRequestHandler):
-    # NTLM is a connection-based auth — the 3-message handshake must happen
+    # NTLM is a connection-based auth - the 3-message handshake must happen
     # on a single persistent connection.  HTTP/1.0 closes after each response,
     # breaking the handshake.  HTTP/1.1 keeps the connection alive by default.
     protocol_version = "HTTP/1.1"

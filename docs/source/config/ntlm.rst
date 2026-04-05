@@ -10,7 +10,7 @@ Section ``[NTLM]``
 
 Dementor's NTLM module (``ntlm.py``) implements the server side of the
 three-message NTLM handshake per `[MS-NLMP] <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/>`__.
-It is a **capture module** — it builds a valid ``CHALLENGE_MESSAGE`` to keep
+It is a **capture module** - it builds a valid ``CHALLENGE_MESSAGE`` to keep
 the handshake alive, extracts crackable hashes from the
 ``AUTHENTICATE_MESSAGE``, formats them for hashcat, and writes them to the
 database.  It does not verify responses, compute session keys, or participate
@@ -19,7 +19,7 @@ in post-authentication signing, sealing, or encryption.
 The ``[NTLM]`` config section provides **global settings** shared by every
 protocol that uses NTLM (SMB, HTTP, LDAP, MSSQL, etc.).  All NTLM settings
 are configured exclusively in the ``[NTLM]`` section and apply identically to
-every protocol — there are no per-protocol overrides.
+every protocol - there are no per-protocol overrides.
 
 .. |rarr| unicode:: U+2192
 
@@ -54,7 +54,7 @@ Capture Behaviour
         `crack.sh <https://crack.sh>`__) can crack NTLMv1 hashes offline
         without GPU resources.
 
-        **For NTLMv2 cracking:** the challenge value does not matter —
+        **For NTLMv2 cracking:** the challenge value does not matter -
         NTLMv2 incorporates the challenge into an HMAC-MD5 construction
         that is not amenable to rainbow tables.  Use hashcat ``-m 5600``
         with a wordlist or rules.
@@ -104,19 +104,19 @@ Capture Behaviour
 
     **Effect on captured hashes:**
 
-    - ``false`` (default) — the server echoes ESS back to clients that
+    - ``false`` (default) - the server echoes ESS back to clients that
       request it.  NTLMv1 clients (LmCompatibilityLevel 0-2) produce
       **NetNTLMv1-ESS** hashes (hashcat ``-m 5500``).  The effective
       challenge becomes ``MD5(ServerChallenge || ClientChallenge)[0:8]``;
       hashcat derives this internally from the emitted ``ClientChallenge``
       field.
 
-    - ``true`` — the server strips ESS from the response regardless of
+    - ``true`` - the server strips ESS from the response regardless of
       what the client requested.  NTLMv1 clients produce plain
       **NetNTLMv1** hashes instead.  A fixed :attr:`Challenge` combined
       with rainbow tables can crack these without GPU resources.
 
-    NTLMv2 clients (level 3+, all modern Windows) are **unaffected** —
+    NTLMv2 clients (level 3+, all modern Windows) are **unaffected** -
     they always produce NetNTLMv2 regardless of ESS.
 
     .. note::
@@ -145,11 +145,11 @@ Capture Behaviour
 
     **Effect on captured hashes:**
 
-    - ``false`` (default) — ``TargetInfoFields`` is populated.  Clients can
+    - ``false`` (default) - ``TargetInfoFields`` is populated.  Clients can
       construct an NTLMv2 response and produce **NetNTLMv2** (and sometimes
       **NetLMv2**) hashes (hashcat ``-m 5600``).
 
-    - ``true`` — ``TargetInfoFields`` is empty.  Without it, clients cannot
+    - ``true`` - ``TargetInfoFields`` is empty.  Without it, clients cannot
       build the NTLMv2 ``NTLMv2_CLIENT_CHALLENGE`` blob per [MS-NLMP]
       §3.3.2.  LmCompatibilityLevel 0-2 clients fall back to NTLMv1.
       **Level 3+ clients** (all modern Windows defaults) **fail
@@ -172,7 +172,7 @@ Server Identity
 These options control the identity values embedded in the NTLM
 ``CHALLENGE_MESSAGE``.  They determine what appears on the wire, in
 captured hash lines, and in NTLMv2 ``AV_PAIR`` structures.  **No client
-changes authentication behavior** based on any of these values — they are
+changes authentication behavior** based on any of these values - they are
 cosmetic from the client's perspective but operationally important for
 blending in and for hash formatting.
 
@@ -188,9 +188,9 @@ protocols.
     Sets the ``NTLMSSP_TARGET_TYPE`` flag in the ``CHALLENGE_MESSAGE``
     and determines the ``TargetName`` field value:
 
-    - ``"server"`` — sets ``NTLMSSP_TARGET_TYPE_SERVER`` (bit 17);
+    - ``"server"`` - sets ``NTLMSSP_TARGET_TYPE_SERVER`` (bit 17);
       ``TargetName`` is the NetBIOS computer name.
-    - ``"domain"`` — sets ``NTLMSSP_TARGET_TYPE_DOMAIN`` (bit 16);
+    - ``"domain"`` - sets ``NTLMSSP_TARGET_TYPE_DOMAIN`` (bit 16);
       ``TargetName`` is the NetBIOS domain name.
 
 .. py:attribute:: Version
@@ -293,7 +293,7 @@ CHALLENGE_MESSAGE Construction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``CHALLENGE_MESSAGE`` is built by ``NTLM_build_challenge_message()``
-per [MS-NLMP] §3.2.5.1.1.  It is the **only message Dementor authors** —
+per [MS-NLMP] §3.2.5.1.1.  It is the **only message Dementor authors** -
 the other two are client-originated.
 
 **Flag mirroring:**
@@ -342,15 +342,15 @@ The following client-requested flags are echoed back when present:
 
 When the client requests both ``NEGOTIATE_EXTENDED_SESSIONSECURITY`` (P) and
 ``NEGOTIATE_LM_KEY`` (G), only ESS is returned.  Per [MS-NLMP] §2.2.2.5,
-these flags are mutually exclusive — ESS takes priority.
+these flags are mutually exclusive - ESS takes priority.
 
 **Server-set flags:**
 
-- ``NTLMSSP_NEGOTIATE_NTLM`` — always set (NTLM authentication)
-- ``NTLMSSP_REQUEST_TARGET`` — always set (TargetName present)
-- ``NTLMSSP_TARGET_TYPE_SERVER`` or ``_DOMAIN`` — per :attr:`TargetType`
-- ``NTLMSSP_NEGOTIATE_TARGET_INFO`` — set unless :attr:`DisableNTLMv2`
-- ``NTLMSSP_NEGOTIATE_VERSION`` — echoed when the client requests it
+- ``NTLMSSP_NEGOTIATE_NTLM`` - always set (NTLM authentication)
+- ``NTLMSSP_REQUEST_TARGET`` - always set (TargetName present)
+- ``NTLMSSP_TARGET_TYPE_SERVER`` or ``_DOMAIN`` - per :attr:`TargetType`
+- ``NTLMSSP_NEGOTIATE_TARGET_INFO`` - set unless :attr:`DisableNTLMv2`
+- ``NTLMSSP_NEGOTIATE_VERSION`` - echoed when the client requests it
 
 
 AV_PAIRs (``TargetInfoFields``)
@@ -375,19 +375,19 @@ independent default configured in the ``[NTLM]`` section:
       - :attr:`NTLM.NetBIOSDomain` (default ``"WORKGROUP"``)
     * - ``0x0003``
       - ``MsvAvDnsComputerName``
-      - :attr:`NTLM.DnsComputer` (default ``""`` — omitted from AV_PAIRs
+      - :attr:`NTLM.DnsComputer` (default ``""`` - omitted from AV_PAIRs
         when empty)
     * - ``0x0004``
       - ``MsvAvDnsDomainName``
-      - :attr:`NTLM.DnsDomain` (default ``""`` — omitted from AV_PAIRs
+      - :attr:`NTLM.DnsDomain` (default ``""`` - omitted from AV_PAIRs
         when empty)
     * - ``0x0005``
       - ``MsvAvDnsTreeName``
-      - :attr:`NTLM.DnsTree` (default ``""`` — omitted from AV_PAIRs
+      - :attr:`NTLM.DnsTree` (default ``""`` - omitted from AV_PAIRs
         when empty)
     * - ``0x0007``
       - ``MsvAvTimestamp``
-      - **Intentionally omitted** — see below
+      - **Intentionally omitted** - see below
     * - ``0x0000``
       - ``MsvAvEOL``
       - Always appended (list terminator)
@@ -472,15 +472,15 @@ LM Response Filtering
 For **NetNTLMv1** captures, the LM slot in the hashcat line is omitted when
 any of the following conditions hold:
 
-- **Identical response** — ``LmChallengeResponse == NtChallengeResponse``.
+- **Identical response** - ``LmChallengeResponse == NtChallengeResponse``.
   This occurs at LmCompatibilityLevel 2, where the client copies the NT
   response into both slots.  Using the LM copy with the NT one-way
   function during cracking would yield incorrect results.
-- **Long-password placeholder** — ``LmChallengeResponse == DESL(Z(16))``.
+- **Long-password placeholder** - ``LmChallengeResponse == DESL(Z(16))``.
   Clients send this deterministic value when the password exceeds 14
   characters or the ``NoLMHash`` registry policy is enforced.  It carries
   no crackable material.
-- **Empty-password placeholder** — ``LmChallengeResponse == DESL(LMOWFv1(""))``.
+- **Empty-password placeholder** - ``LmChallengeResponse == DESL(LMOWFv1(""))``.
   The LM derivative of an empty password; equally uncrackable.
 
 
@@ -499,12 +499,12 @@ the primary NetNTLMv2 response when all of the following hold:
 
 Clients set ``LmChallengeResponse`` to ``Z(24)`` when:
 
-- **MsvAvTimestamp present in CHALLENGE_MESSAGE** — Per [MS-NLMP] §3.3.2
+- **MsvAvTimestamp present in CHALLENGE_MESSAGE** - Per [MS-NLMP] §3.3.2
   rule 7, when the server includes ``MsvAvTimestamp`` (``0x0007``) in the
   AV_PAIR list, the client MUST suppress ``LmChallengeResponse``.
   Dementor intentionally omits ``MsvAvTimestamp`` to avoid this.
 
-- **Win 7+ / Server 2008 R2+ defaults** — These versions suppress LMv2
+- **Win 7+ / Server 2008 R2+ defaults** - These versions suppress LMv2
   regardless of LmCompatibilityLevel.  Only Vista and Server 2008 send
   real LMv2 responses.
 
@@ -541,7 +541,7 @@ avoid writing a malformed capture.  Anonymous tokens are silently discarded.
 
     XP SP3 and XP SP0 send an anonymous ``AUTHENTICATE_MESSAGE`` probe
     before the real credential auth on each connection.  This is normal
-    SSPI behavior — the anonymous probe is discarded and the real auth
+    SSPI behavior - the anonymous probe is discarded and the real auth
     that follows is captured.
 
 
@@ -573,7 +573,7 @@ The three messages provide increasingly detailed information:
       - Yes
     * - Username
       - No
-      - —
+      - -
       - Yes
     * - NegotiateFlags
       - Yes
@@ -581,27 +581,27 @@ The three messages provide increasingly detailed information:
       - Yes
     * - NTLMv2 blob AV_PAIRs
       - No
-      - —
+      - -
       - Yes (NTLMv2 only)
     * - SPN (``MsvAvTargetName``, 0x0009)
       - No
-      - —
+      - -
       - Yes (NTLMv2 only) [3]_
     * - Client timestamp (``MsvAvTimestamp``, 0x0007)
       - No
-      - —
+      - -
       - Yes (NTLMv2 only)
     * - MIC (Message Integrity Code)
       - No
-      - —
+      - -
       - Yes (if VERSION flag set)
     * - Channel Bindings (``MsvAvChannelBindings``, 0x000A)
       - No
-      - —
+      - -
       - Yes (NTLMv2 only) [4]_
     * - ``MsvAvFlags`` (0x0006)
       - No
-      - —
+      - -
       - Yes (NTLMv2 only)
 
 .. [1] Only when ``NTLMSSP_NEGOTIATE_VERSION`` is set.  XP SP0 does not
@@ -663,7 +663,7 @@ LmCompatibilityLevel Reference
 The Windows ``LmCompatibilityLevel`` registry value
 (``HKLM\SYSTEM\CurrentControlSet\Control\Lsa``) controls which NTLM
 response types a client sends.  This is the **single most important client
-setting** for hash capture — it determines what Dementor can extract.
+setting** for hash capture - it determines what Dementor can extract.
 
 .. list-table::
     :header-rows: 1
@@ -768,10 +768,10 @@ Default Configuration
     # This section applies to all NTLM-enabled protocols
     # (SMB, HTTP, SMTP, IMAP, POP3, LDAP, MSSQL, RPC).
     # 8-byte ServerChallenge nonce.  Accepted formats:
-    #   "hex:1122334455667788"  — explicit hex (recommended)
-    #   "ascii:1337LEET"        — explicit ASCII (recommended)
-    #   "1122334455667788"      — 16 hex chars, auto-detected
-    #   "1337LEET"              — 8 ASCII chars, auto-detected
+    #   "hex:1122334455667788"  - explicit hex (recommended)
+    #   "ascii:1337LEET"        - explicit ASCII (recommended)
+    #   "1122334455667788"      - 16 hex chars, auto-detected
+    #   "1337LEET"              - 8 ASCII chars, auto-detected
     # Omit entirely for a cryptographically random value per run.
     # Challenge = "1337LEET"
 
@@ -784,7 +784,7 @@ Default Configuration
     # Omit TargetInfoFields (AV_PAIRS) from CHALLENGE_MESSAGE.
     # false (default): NetNTLMv2 + NetLMv2 captured from modern clients.
     # true:            Level 0-2 clients fall back to NTLMv1; level 3+
-    #                  (all modern Windows) will FAIL — NO captures.
+    #                  (all modern Windows) will FAIL - NO captures.
     DisableNTLMv2 = false
 
     # Server identity in the CHALLENGE_MESSAGE:

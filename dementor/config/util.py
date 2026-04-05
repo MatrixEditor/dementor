@@ -243,7 +243,7 @@ class HostDerivedValue:
     - If the Attribute resolved ``None`` (the key was not found anywhere), the
       value is derived lazily from :func:`get_host_value`.
 
-    This removes the need to pre-populate ``[Globals]`` with derived keys — each
+    This removes the need to pre-populate ``[Globals]`` with derived keys - each
     Attribute is self-contained and derives its identity on first access by
     receiving the raw ``Host`` value resolved by the Attribute system.
 
@@ -295,7 +295,7 @@ class HostFallbackValue:
     factory:
 
     1. Any explicit value resolved by the Attribute system (e.g.
-       ``[Server].FQDN``, ``[Protocol].FQDN``, ``[Globals].FQDN``) — returned
+       ``[Server].FQDN``, ``[Protocol].FQDN``, ``[Globals].FQDN``) - returned
        as-is.
     2. When the resolved value is ``None`` (nothing set anywhere): derive the
        field from ``Globals.Host`` via :class:`HostValue`.
