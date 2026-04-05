@@ -185,6 +185,14 @@ class HostValue:
     """
 
     DEFAULT = "DEMENTOR"
+    DNS_COMPUTER = "DnsComputer"
+    FQDN = "FWDN"
+    DNS_HOSTNAME = "DNSHostName"
+    DNS_DOMAIN = "DNSDomain"
+    DNS_TREE = "DNSTree"
+    NETBIOS_NAME = "NetBIOSName"
+    NETBIOS_COMPUTER = "NetBIOSComputer"
+    NETBIOS_DOMAIN = "NetBIOSDomain"
 
     def __init__(self, value: Any) -> None:
         self._raw = str(value).strip() if value is not None else self.DEFAULT
@@ -219,7 +227,7 @@ class HostValue:
             case "NetBIOSDomainName" | "NetBIOSDomain":
                 value = self.domain.upper() if self.domain else "WORKGROUP"
             case "DNSDomainName" | "DnsDomain" | "DnsTree":
-                value = self.domain.lower() if self.domain else ""
+                value = self.domain.lower() if self.domain else "WORKGROUP"
             case _:
                 pass
         return value

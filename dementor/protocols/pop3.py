@@ -25,6 +25,7 @@
 #   - https://www.rfc-editor.org/rfc/rfc1734
 #   - https://datatracker.ietf.org/doc/html/rfc4616
 #   - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-pop3/
+from dementor.config.util import HostDerivedValue, HostValue
 import base64
 import binascii
 import typing
@@ -70,6 +71,13 @@ class POP3ServerConfig(TomlConfig):
     _section_ = "POP3"
     _fields_ = [
         A("pop3_port", "Port"),
+        A(
+            "pop3_fqdn",
+            "Host",
+            None,
+            section_local=False,
+            factory=HostDerivedValue(HostValue.FQDN, "DEMENTOR"),
+        ),
         A("pop3_downgrade", "Downgrade", True),
         A("pop3_banner", "Banner", "POP3 Server ready"),
         A("pop3_auth_mechs", "AuthMechanisms", POP3_AUTH_MECHANISMS),
@@ -80,6 +88,7 @@ class POP3ServerConfig(TomlConfig):
 
     if typing.TYPE_CHECKING:
         pop3_port: int
+        pop3_fqdn: str
         pop3_downgrade: bool
         pop3_banner: str
         pop3_auth_mechs: list[str]
@@ -113,8 +122,8 @@ class CloseConnection(Exception):
 
 
 class POP3Handler(BaseProtoHandler):
-    def __init__(self, config, server_config, request, client_address, server) -> None:
-        self.server_config = server_config
+    def __init__(self, config, server_config: POP3ServerConfig, request, client_address, server) -> None:
+        self.server_config: POP3ServerConfig = server_config
         super().__init__(config, request, client_address, server)
 
     def proto_logger(self) -> ProtocolLogger:
@@ -367,13 +376,20 @@ class POP3Handler(BaseProtoHandler):
         # 3. The server sends a POP3_AUTH_NTLM_Blob_Response message containing
         # a base64-encoded NTLM CHALLENGE_MESSAGE.
         negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
+        host = HostValue(self.server_config.pop3_fqdn)
         challenge = ntlm_build_challenge_message(
             negotiate,
             challenge=self.config.ntlm_challenge,
-            nb_computer=self.config.ntlm_nb_computer,
-            nb_domain=self.config.ntlm_nb_domain,
+            nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+            nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
             disable_ess=self.config.ntlm_disable_ess,
             disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            target_type=self.config.ntlm_target_type,
+            version=self.config.ntlm_version,
+            dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+            dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+            # REVISIT: capture DNSTree too
+            # dns_tree=self.config.ntlm_dns_tree,
             log=self.logger,
         )
         token = self.challenge_auth(challenge.getData())

@@ -33,7 +33,7 @@ from impacket.dcerpc.v5 import rpcrt, epm
 from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import HostDerivedValue
+from dementor.config.util import HostDerivedValue, HostValue
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     ntlm_build_challenge_message,
@@ -159,7 +159,7 @@ class RPCHandler(BaseProtoHandler):
         server: "MSRPCServer"
 
     def __init__(self, config, request, client_address, server) -> None:
-        self.rpc_config = config.rpc_config
+        self.rpc_config: RPCConfig = config.rpc_config
         super().__init__(config, request, client_address, server)
 
     def proto_logger(self) -> ProtocolLogger:
@@ -298,13 +298,20 @@ class RPCHandler(BaseProtoHandler):
                 negotiate.fromString(token)
                 negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
                 conn.negotiate_fields = negotiate_fields
+                host = HostValue(self.rpc_config.rpc_fqdn)
                 challenge = ntlm_build_challenge_message(
                     negotiate,
                     challenge=self.config.ntlm_challenge,
-                    nb_computer=self.config.ntlm_nb_computer,
-                    nb_domain=self.config.ntlm_nb_domain,
+                    nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+                    nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
                     disable_ess=self.config.ntlm_disable_ess,
                     disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                    target_type=self.config.ntlm_target_type,
+                    version=self.config.ntlm_version,
+                    dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+                    dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+                    # REVISIT: capture DNSTree too
+                    # dns_tree=self.config.ntlm_dns_tree,
                     log=self.logger,
                 )
                 bind_ack["auth_data"] = challenge.getData()

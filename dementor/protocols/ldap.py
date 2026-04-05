@@ -92,7 +92,7 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A
 from dementor.config.toml import TomlConfig
 from dementor.config.tls import generate_self_signed_cert
-from dementor.config.util import HostDerivedValue
+from dementor.config.util import HostDerivedValue, HostValue
 from dementor.db import CLEARTEXT, DIGEST_MD5
 from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.log import hexdump
@@ -104,6 +104,7 @@ from dementor.protocols.ntlm import (
     ntlm_auth_create_challenge,
     ntlm_report_auth,
     ntlm_split_fqdn,
+    ntlm_build_challenge_message,
 )
 from dementor.protocols.spnego import SPNEGO_NTLMSSP_MECH, SPNEGONegotiator
 from dementor.servers import (
@@ -1227,12 +1228,21 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             else:
                 token = ntlm.NTLMAuthNegotiate()
 
-            ntlm_challenge = ntlm_auth_create_challenge(
+            host = HostValue(self.server.server_config.ldap_fqdn)
+            ntlm_challenge = ntlm_build_challenge_message(
                 token,
-                *ntlm_split_fqdn(self.server.server_config.ldap_fqdn),
-                challenge=self.server.server_config.ntlm_challenge,
-                disable_ess=self.server.server_config.ntlm_disable_ess,
-                disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
+                challenge=self.config.ntlm_challenge,
+                nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+                nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
+                disable_ess=self.config.ntlm_disable_ess,
+                disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                target_type=self.config.ntlm_target_type,
+                version=self.config.ntlm_version,
+                dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+                dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+                # REVISIT: capture DNSTree too
+                # dns_tree=self.config.ntlm_dns_tree,
+                log=self.logger,
             )
             return ntlm_challenge.getData(), False
 

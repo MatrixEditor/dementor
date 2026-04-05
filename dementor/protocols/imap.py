@@ -53,7 +53,7 @@ from dementor.config.toml import (
     Attribute as A,
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
-from dementor.config.util import HostDerivedValue
+from dementor.config.util import HostDerivedValue, HostValue
 
 __proto__ = ["IMAP"]
 
@@ -122,8 +122,8 @@ class StopHandler(Exception):
 
 
 class IMAPHandler(BaseProtoHandler):
-    def __init__(self, config, server_config, request, client_address, server) -> None:
-        self.server_config = server_config
+    def __init__(self, config, server_config: IMAPServerConfig, request, client_address, server) -> None:
+        self.server_config: IMAPServerConfig = server_config
         self.seq_id = None
         super().__init__(config, request, client_address, server)
 
@@ -359,13 +359,20 @@ class IMAPHandler(BaseProtoHandler):
 
         # IMAP4_AUTHENTICATE_NTLM_Blob_Response
         negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
+        host = HostValue(self.server_config.imap_fqdn)
         challenge = ntlm_build_challenge_message(
             negotiate,
             challenge=self.config.ntlm_challenge,
-            nb_computer=self.config.ntlm_nb_computer,
-            nb_domain=self.config.ntlm_nb_domain,
+            nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+            nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
             disable_ess=self.config.ntlm_disable_ess,
             disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            target_type=self.config.ntlm_target_type,
+            version=self.config.ntlm_version,
+            dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+            dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+            # REVISIT: capture DNSTree too
+            # dns_tree=self.config.ntlm_dns_tree,
             log=self.logger,
         )
 
