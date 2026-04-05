@@ -60,7 +60,7 @@ def serve(
     analyze_only: bool = False,
     config_path: str | None = None,
     session: SessionConfig | None = None,
-    supress_output: bool = False,
+    suppress_output: bool = False,
     loop: asyncio.AbstractEventLoop | None = None,
     run_forever: bool = True,
     run_repl: bool = False,
@@ -122,10 +122,6 @@ def serve(
     # Load protocols
     loader = ProtocolLoader()
     session.manager = ProtocolManager(session, loader)
-    # REVISIT: ?
-    if not supress_output:
-        pass
-
     if not getattr(session, "loop", None):
         session.loop = loop or asyncio.new_event_loop()
 
@@ -176,7 +172,7 @@ def stop_session(session: SessionConfig) -> None:
 _SkippedOption = typer.Option(parser=lambda _: _, hidden=True, expose_value=False)
 
 
-def parse_options(options: list[str]) -> dict:
+def parse_options(options: list[str]) -> dict[str, Any]:
     result = {}
     for option in options:
         key, raw_value = option.split("=", 1)
@@ -259,8 +255,8 @@ def main_format_config(name: str, value: str) -> str:
     return f"{line}[/white] {value}"
 
 
-# TODO: refactor this
-def main_print_options(session: SessionConfig, interface: str, config_path: str):
+# TODO: extract main_print_options into a dedicated display module (too many responsibilities here)
+def main_print_options(session: SessionConfig, interface: str, config_path: str) -> None:
     console = Console()
     console.rule(style="white", title="Dementor Configuration")
     analyze_only = r"[bold grey]\[Analyze Only][/bold grey]"
@@ -268,7 +264,7 @@ def main_print_options(session: SessionConfig, interface: str, config_path: str)
     off = r"[bold red]\[OFF][/bold red]"
 
     poisoners_lines = ["", "[bold]Poisoners:[/bold]"]
-    # REVISIT: creation of poisoners list
+    # REVISIT: poisoners list is hardcoded here; extract to a registry in loader.py to avoid duplication
     poisoners = ("LLMNR", "MDNS", "NBTNS", "SSRP", "SSDP")
     for name in poisoners:
         attr_name = f"{name.lower()}_enabled"
@@ -368,6 +364,17 @@ def main(
             metavar="KEY=VALUE",
             show_default=False,
             help="Add an extra option to the global configuration file.",
+        ),
+    ] = None,
+    host: Annotated[
+        str | None,
+        typer.Option(
+            "--host",
+            "-H",
+            metavar="HOST",
+            show_default=False,
+            help="Host FQDN for all protocol servers (e.g. DC01.contoso.lab). "
+            "Shortcut for -O Globals.Host=FQDN.",
         ),
     ] = None,
     ignore_prompt: Annotated[
@@ -475,6 +482,10 @@ def main(
 
             for key, value in section_opts.items():
                 config.dm_config[section][key] = value
+
+    if host:
+        cfg = config.get_global_config()
+        cfg.setdefault("Globals", {})["Host"] = host
 
     if ignored:
         ignore_targets = config.dm_config["Globals"].setdefault("Ignore", [])
