@@ -384,7 +384,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
     def send_wpad_script(self) -> None:
         if self.server_config.proxy_config.proxy_script:
             # try to render the custom script
-            template = Template(self.server_config.proxy_config.proxy_script, autoescape=True)
+            template = Template(
+                self.server_config.proxy_config.proxy_script, autoescape=True
+            )
             script = template.render(
                 server=self.server_config,
                 session=self.config,
@@ -440,7 +442,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         self.auth_ntlm(token, logger, scheme="Negotiate")
 
-    def auth_ntlm(self, token: str, logger: "ProtocolLogger", scheme: str | None = None) -> None:
+    def auth_ntlm(
+        self, token: str, logger: "ProtocolLogger", scheme: str | None = None
+    ) -> None:
         try:
             message = ntlm.NTLM_HTTP.get_instance(f"NTLM {token}")
         except Exception:

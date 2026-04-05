@@ -274,9 +274,7 @@ class DBCommand(ReplAction):
             password = cred.password
             credtype = (cred.credtype or "").lower()
 
-            line = (
-                f"{username}:{password}" if credtype == CLEARTEXT.lower() else password
-            )
+            line = f"{username}:{password}" if credtype == CLEARTEXT.lower() else password
             lines.append(line)
 
         if not lines:

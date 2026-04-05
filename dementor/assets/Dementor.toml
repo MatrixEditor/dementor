@@ -19,6 +19,18 @@
 #   3. [NTLM] section     -- shared default for all NTLM-enabled protocols
 #   4. [Globals] section  -- last resort
 #
+# Host identity settings (NetBIOSComputer, NetBIOSDomain, DnsComputer,
+# DnsDomain) follow the same chain as NTLM:
+#   1. [[Protocol.Server]] entry
+#   2. [Protocol] section
+#   3. [NTLM] section
+#   4. [Globals] section -- derived automatically from Globals.Host
+#
+# Protocol Host values (SMTP, LDAP, MSSQL, ...) resolve as:
+#   1. [[Protocol.Server]] entry
+#   2. [Protocol] section
+#   3. [Globals] section -- Host derived from Globals.Host
+#
 # All other settings stop at step 2.
 #
 # Note: Some settings can only be used in the most local section (e.g. "Port").
@@ -171,6 +183,28 @@ UPnP = true
 # be used if the local (protocol-specific) section does not define the value.
 [Globals]
 
+# --- Host -------------------------------------------------------------------
+# Single Host (FQDN or bare hostname) that defines the server's identity for all
+# protocol responses. When set, the following values are automatically derived
+# and used as fallbacks throughout all protocol servers:
+#
+#   NetBIOSDomainName = Host.split(".", 1)[1].upper()
+#   DNSHostName       = Host.split(".", 1)[0]
+#   NetBIOSName       = Host.split(".", 1)[0][:15].upper()
+#   DNSDomainName     = Host.split(".", 1)[1].lower()
+#   Host (FQDN)       = Host
+#
+# Individual values (NetBIOSComputer, NetBIOSDomain, DnsComputer, DnsDomain,
+# Host) can be overridden in [NTLM] or any [Protocol] section. The Host
+# entry is the last-resort fallback for all of them.
+#
+# Can also be set via the CLI:
+#   sudo dementor -I eth0 -H DC01.contoso.lab
+#   sudo dementor -I eth0 -O Globals.Host="DC01.contoso.lab"
+
+# Host = "DC01.contoso.lab"
+
+# --- Filtering --------------------------------------------------------------
 # Describes a list of hosts to *include* for poisoning (whitelist approach).
 # Supported filter formats:
 #
@@ -210,8 +244,8 @@ UPnP = true
 # shared access.  Leave empty (the default) to use the SQLite Path below.
 #
 # Examples:
-#   Url = "mysql+pymysql://user:pass@127.0.0.1/dementor"       # MySQL / MariaDB
-#   Url = "postgresql+psycopg2://user:pass@127.0.0.1/dementor"  # PostgreSQL
+#   Url = "mysql-pymysql://user:pass@127.0.0.1/dementor"       # MySQL / MariaDB
+#   Url = "postgresql-psycopg2://user:pass@127.0.0.1/dementor"  # PostgreSQL
 #
 # Url =
 
@@ -233,7 +267,7 @@ UPnP = true
 
 # --- DuplicateCreds -----------------------------------------------------------
 # When true, every captured hash is stored even if an identical credential
-# (same domain + username + type + protocol) was seen before.  When false,
+# (same domain - username - type - protocol) was seen before.  When false,
 # only the first capture is kept and repeats are silently skipped.
 DuplicateCreds = true
 
@@ -321,8 +355,10 @@ CapturesPerConnection = 0
 # Optional. NTSTATUS code returned after the final capture. Accepts an integer
 # value or a string name from impacket.nt_errors (e.g. "STATUS_ACCESS_DENIED",
 # "STATUS_LOGON_FAILURE"). The string is resolved via getattr(nt_errors, value).
-# Default: "STATUS_SMB_BAD_UID"
-ErrorCode = "STATUS_SMB_BAD_UID"
+#
+# WARNING: Enabling this feature with disable all file path capture events
+# Default: Not set
+# ErrorCode = "STATUS_SMB_BAD_UID"
 
 # --- SMB1 Identity (optional) ---
 # These strings appear only in SMB1 negotiate and session-setup responses.
@@ -355,7 +391,7 @@ Port = 139
 [[SMB.Server]]
 Port = 445
 # Per-server overrides (highest priority  -- override [SMB] and [NTLM] for this port only):
-# FQDN = "other.corp.com"
+# Host = "other.corp.com"
 # ServerOS = "Windows Server 2022"
 # ErrorCode = "STATUS_ACCESS_DENIED"
 # SMB2Support = true
@@ -373,10 +409,10 @@ Port = 445
 
 AuthMechanisms = ["NTLM", "PLAIN", "LOGIN"]
 
-# Fully Qualified Domain Name (FQDN) used by the SMTP server.
-# The first part of the FQDN is used as the hostname in responses.
+# Fully Qualified Domain Name used by the SMTP server in banner and
+# NTLM identity responses. Derives from Globals.Host when not set here.
 
-FQDN = "DEMENTOR"
+# Host = "DC01.contoso.lab"
 
 # SMTP server banner (identifier and version sent to clients).
 
@@ -451,29 +487,6 @@ Port = 25
 
 Challenge = "1337LEET"
 
-# When true, the ESS flag (NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY) is
-# stripped from the CHALLENGE_MESSAGE sent to the client.
-#
-# false (default): ESS is echoed back when the client requests it. Clients
-#   that support ESS produce NTLMv1-ESS hashes (hashcat mode 5500 with
-#   MD5-mixed challenge). This is the modern, common NTLMv1 variant.
-#
-# true: ESS is suppressed regardless of what the client requests. Clients
-#   fall back to plain NTLMv1 (DES-only). With a fixed Challenge above,
-#   these hashes are vulnerable to precomputed rainbow table attacks.
-
-DisableExtendedSessionSecurity = false
-
-# When true, TargetInfoFields are omitted from the CHALLENGE_MESSAGE.
-# Without TargetInfoFields clients cannot construct the NTLMv2 Blob
-# (MS-NLMP S3.3.2), which has the following effect by client security level:
-#   Level 0-2 (older Windows, manually downgraded): fall back to NTLMv1.
-#   Level 3+  (all modern Windows defaults): refuse to authenticate  -- zero
-#             hashes captured from these clients.
-#
-# Leave false unless specifically targeting legacy NTLMv1-only environments.
-
-DisableNTLMv2 = false
 # Optional. Remove the NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY flag from the
 # CHALLENGE_MESSAGE, controlling which NTLMv1 hash variant clients produce.
 #   false (default): NTLMv1 clients produce NetNTLMv1-ESS (MD5-mixed, hashcat -m 5500).
@@ -486,7 +499,7 @@ DisableExtendedSessionSecurity = false
 # prevents clients from constructing NTLMv2 responses.
 #   false (default): AV_PAIRs present. All clients (LmCompat 0-5) can authenticate.
 #   true:            AV_PAIRs absent. LmCompat 0-2 clients fall back to NTLMv1.
-#                    LmCompat 3+ clients (all modern Windows defaults) will REFUSE
+#                    LmCompat 3- clients (all modern Windows defaults) will REFUSE
 #                    to authenticate, producing zero hashes. Use with caution.
 # Default: false
 DisableNTLMv2 = false
@@ -495,6 +508,12 @@ DisableNTLMv2 = false
 # These control the identity fields inside the NTLMSSP CHALLENGE_MESSAGE.
 # They are INDEPENDENT from SMB identity — [SMB] NetBIOSComputer is the SMB1
 # negotiate ServerName, while [NTLM] NetBIOSComputer is AV_PAIR 0x0001.
+#
+# Resolution order (highest priority first):
+#   1. [[Protocol.Server]] entry
+#   2. [Protocol] section
+#   3. [NTLM] section        <- override here to apply to ALL NTLM protocols
+#   4. [Globals] section     <- derived automatically from Globals.Host
 
 # Optional. Controls the NTLMSSP_TARGET_TYPE flag and the TargetName field
 # in the CHALLENGE_MESSAGE.
@@ -517,28 +536,32 @@ DisableNTLMv2 = false
 # These appear inside the TargetInfoFields of the CHALLENGE_MESSAGE.
 # AV_PAIRs 0x0001 and 0x0002 are always sent (required by MS-NLMP spec).
 # AV_PAIRs 0x0003, 0x0004, 0x0005 are omitted when set to "" (empty string).
+#
+# When Globals.Host is configured these values are derived automatically.
+# Set them here to override only the NTLM identity without changing other
+# protocol server names.
 
 # Required. MsvAvNbComputerName (AV_PAIR 0x0001). NetBIOS name of the server.
 # Also used as TargetName when TargetType="server".
-# Default: "DEMENTOR"
-# NetBIOSComputer = "DEMENTOR"
+# Default: derived from Globals.Host (hostname[:15].upper()), else "DEMENTOR"
+# NetBIOSComputer = "DC01"
 
 # Required. MsvAvNbDomainName (AV_PAIR 0x0002). NetBIOS domain name.
 # Also used as TargetName when TargetType="domain".
-# Default: "WORKGROUP"
-# NetBIOSDomain = "WORKGROUP"
+# Default: derived from Globals.Host (domain.upper()), else "WORKGROUP"
+# NetBIOSDomain = "CONTOSO"
 
 # Optional. MsvAvDnsComputerName (AV_PAIR 0x0003). DNS FQDN of the server.
-# Default: "" (omitted from CHALLENGE_MESSAGE)
-# DnsComputer = "server.corp.local"
+# Default: derived from Globals.Host (full FQDN), else "" (omitted)
+# DnsComputer = "dc01.contoso.lab"
 
 # Optional. MsvAvDnsDomainName (AV_PAIR 0x0004). DNS domain name.
-# Default: "" (omitted from CHALLENGE_MESSAGE)
-# DnsDomain = "corp.local"
+# Default: derived from Globals.Host (domain.lower()), else "" (omitted)
+# DnsDomain = "contoso.lab"
 
 # Optional. MsvAvDnsTreeName (AV_PAIR 0x0005). Active Directory forest name.
 # Default: "" (omitted from CHALLENGE_MESSAGE)
-# DnsTree = "corp.local"
+# DnsTree = "contoso.lab"
 
 # =============================================================================
 # FTP Server(s)
@@ -591,10 +614,10 @@ EncType = "aes256_cts_hmac_sha1_96"
 
 Timeout = 0
 
-# Hostname + fully qualified domain name, whereby the domain name is optional
-# Full example: "HOSTNAME.domain.local"
+# Hostname - fully qualified domain name used in LDAP responses.
+# Derives from Globals.Host when not set here.
 
-FQDN = "DEMENTOR"
+# Host = "DC01.contoso.lab"
 
 # Global TLS option, will enable TLS on all TCP servers
 
@@ -885,7 +908,7 @@ InstanceName = "MSSQLServer"
 [SSRP]
 
 # The following values can be defined here or inherited from the [MSSQL] section:
-#   - FQDN
+#   - Host
 #   - ServerVersion
 #   - InstanceName
 
