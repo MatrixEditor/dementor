@@ -1,4 +1,4 @@
-"""Unit tests for dementor.protocols.ntlm — NTLM authentication helpers.
+"""Unit tests for dementor.protocols.ntlm - NTLM authentication helpers.
 
 Tests cover every public and private function in ntlm.py, organized by tier:
   Tier 1 (pure functions): no mocking needed
@@ -24,14 +24,14 @@ from dementor.protocols.ntlm import (
     NTLM_V2,
     NTLM_V2_LM,
     NTLM_VERSION_PLACEHOLDER,
-    NTLM_build_challenge_message,
-    NTLM_decode_string,
-    NTLM_encode_string,
-    NTLM_handle_authenticate_message,
-    NTLM_handle_legacy_raw_auth,
-    NTLM_handle_negotiate_message,
-    NTLM_timestamp,
-    NTLM_to_hashcat,
+    ntlm_build_challenge_message,
+    ntlm_decode_string,
+    ntlm_encode_string,
+    ntlm_handle_authenticate_message,
+    ntlm_handle_legacy_raw_auth,
+    ntlm_handle_negotiate_message,
+    ntlm_timestamp,
+    ntlm_to_hashcat,
     _classify_hash_type,
     _compute_dummy_lm_responses,
     _config_version_to_bytes,
@@ -144,17 +144,17 @@ def _build_ntlm_authenticate(
 
 
 class TestNTLMTimestamp:
-    """NTLM_timestamp() at line 1607."""
+    """ntlm_timestamp() at line 1607."""
 
     def test_returns_positive_int(self):
-        assert NTLM_timestamp() > 0
+        assert ntlm_timestamp() > 0
 
     def test_after_epoch_offset(self):
-        assert NTLM_timestamp() > NTLM_FILETIME_EPOCH_OFFSET
+        assert ntlm_timestamp() > NTLM_FILETIME_EPOCH_OFFSET
 
     def test_monotonic(self):
-        t1 = NTLM_timestamp()
-        t2 = NTLM_timestamp()
+        t1 = ntlm_timestamp()
+        t2 = ntlm_timestamp()
         assert t2 >= t1
 
 
@@ -229,7 +229,7 @@ class TestConfigVersionToBytes:
 
 
 class TestNTLMDecodeString:
-    """NTLM_decode_string(data, negotiate_flags, is_negotiate_oem) at line 357."""
+    """ntlm_decode_string(data, negotiate_flags, is_negotiate_oem) at line 357."""
 
     UNICODE = ntlm.NTLMSSP_NEGOTIATE_UNICODE
 
@@ -264,12 +264,12 @@ class TestNTLMDecodeString:
         ],
     )
     def test_decode(self, data, flags, is_oem, expected):
-        result = NTLM_decode_string(data, flags, is_oem)
+        result = ntlm_decode_string(data, flags, is_oem)
         assert result == expected
 
 
 class TestNTLMEncodeString:
-    """NTLM_encode_string(string, negotiate_flags) at line 397."""
+    """ntlm_encode_string(string, negotiate_flags) at line 397."""
 
     @pytest.mark.parametrize(
         ("string", "flags", "expected"),
@@ -291,13 +291,13 @@ class TestNTLMEncodeString:
         ],
     )
     def test_encode(self, string, flags, expected):
-        assert NTLM_encode_string(string, flags) == expected
+        assert ntlm_encode_string(string, flags) == expected
 
     def test_roundtrip_unicode(self):
         flags = ntlm.NTLMSSP_NEGOTIATE_UNICODE
         original = "Test123"
-        encoded = NTLM_encode_string(original, flags)
-        decoded = NTLM_decode_string(encoded, flags)
+        encoded = ntlm_encode_string(original, flags)
+        decoded = ntlm_decode_string(encoded, flags)
         assert decoded == original
 
 
@@ -388,7 +388,7 @@ class TestComputeDummyLmResponses:
 
 
 class TestNTLMToHashcat:
-    """NTLM_to_hashcat(...) at line 1231 — THE MOST CRITICAL function."""
+    """ntlm_to_hashcat(...) at line 1231 - THE MOST CRITICAL function."""
 
     # -- NetNTLMv2 (hashcat -m 5600) -----------------------------------------
 
@@ -396,7 +396,7 @@ class TestNTLMToHashcat:
         nt_proof = b"\xaa" * 16
         blob = b"\xbb" * 32
         nt_response = nt_proof + blob
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             CHALLENGE, "user", "domain", b"\x00" * 24, nt_response, 0
         )
         assert len(result) == 1  # Z(24) LM suppressed
@@ -416,7 +416,7 @@ class TestNTLMToHashcat:
         lm_proof = b"\xcc" * 16
         lm_cchal = b"\xdd" * 8
         lm_response = lm_proof + lm_cchal
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         assert len(result) == 2
         assert result[0][0] == NTLM_V2
         assert result[1][0] == NTLM_V2_LM
@@ -427,19 +427,19 @@ class TestNTLMToHashcat:
     def test_v2_lm_suppressed_when_null(self):
         nt_response = b"\xaa" * 48
         lm_response = b"\x00" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         assert len(result) == 1
         assert result[0][0] == NTLM_V2
 
     def test_v2_lm_wrong_length_skipped(self):
         nt_response = b"\xaa" * 48
         lm_response = b"\xcc" * 16  # wrong length
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         assert len(result) == 1
 
     def test_v2_server_challenge_hex_16_chars(self):
         nt_response = b"\xaa" * 48
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             CHALLENGE, "user", "domain", b"\x00" * 24, nt_response, 0
         )
         parts = result[0][1].split(":")
@@ -447,7 +447,7 @@ class TestNTLMToHashcat:
 
     def test_v2_ntproofstr_hex_32_chars(self):
         nt_response = b"\xaa" * 48
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             CHALLENGE, "user", "domain", b"\x00" * 24, nt_response, 0
         )
         parts = result[0][1].split(":")
@@ -455,7 +455,7 @@ class TestNTLMToHashcat:
 
     def test_v2_user_domain_are_strings(self):
         nt_response = b"\xaa" * 48
-        result = NTLM_to_hashcat(CHALLENGE, "Admin", "CORP", b"\x00" * 24, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "Admin", "CORP", b"\x00" * 24, nt_response, 0)
         parts = result[0][1].split(":")
         assert parts[0] == "Admin"
         assert parts[2] == "CORP"
@@ -463,7 +463,7 @@ class TestNTLMToHashcat:
     def test_v2_user_as_bytes_decoded(self):
         nt_response = b"\xaa" * 48
         user_bytes = "Admin".encode("utf-16-le")
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             CHALLENGE,
             user_bytes,
             "CORP",
@@ -480,7 +480,7 @@ class TestNTLMToHashcat:
         client_challenge = b"\xdd" * 8
         lm_response = client_challenge + b"\x00" * 16
         nt_response = b"\xee" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         assert len(result) == 1
         label, line = result[0]
         assert label == NTLM_V1_ESS
@@ -490,7 +490,7 @@ class TestNTLMToHashcat:
     def test_v1ess_lm_field_48_hex(self):
         lm_response = b"\xdd" * 8 + b"\x00" * 16
         nt_response = b"\xee" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         parts = result[0][1].split(":")
         # LM field = CChal(8) + Z(16) = 24 bytes = 48 hex chars
         assert len(parts[3]) == 48
@@ -498,14 +498,14 @@ class TestNTLMToHashcat:
     def test_v1ess_nt_field_48_hex(self):
         lm_response = b"\xdd" * 8 + b"\x00" * 16
         nt_response = b"\xee" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         parts = result[0][1].split(":")
         assert len(parts[4]) == 48  # 24 bytes = 48 hex chars
 
     def test_v1ess_server_challenge_raw(self):
         lm_response = b"\xdd" * 8 + b"\x00" * 16
         nt_response = b"\xee" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         parts = result[0][1].split(":")
         # Must be raw ServerChallenge, NOT pre-computed FinalChallenge
         assert parts[5] == CHALLENGE.hex()
@@ -515,7 +515,7 @@ class TestNTLMToHashcat:
     def test_v1_with_real_lm(self):
         nt_response = b"\xaa" * 24
         lm_response = b"\xbb" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         assert len(result) == 1
         label, line = result[0]
         assert label == NTLM_V1
@@ -524,21 +524,21 @@ class TestNTLMToHashcat:
 
     def test_v1_level2_duplication_lm_empty(self):
         shared = b"\xaa" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", shared, shared, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", shared, shared, 0)
         parts = result[0][1].split(":")
         assert parts[3] == ""  # LM slot empty
 
     def test_v1_dummy_lm_null_hash(self):
         nt_response = b"\xaa" * 24
         dummy_null = ntlm.ntlmssp_DES_encrypt(NTLM_ESS_ZERO_PAD, CHALLENGE)
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", dummy_null, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", dummy_null, nt_response, 0)
         parts = result[0][1].split(":")
         assert parts[3] == ""
 
     def test_v1_dummy_lm_default_hash(self):
         nt_response = b"\xaa" * 24
         dummy_default = ntlm.ntlmssp_DES_encrypt(ntlm.DEFAULT_LM_HASH, CHALLENGE)
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             CHALLENGE, "user", "domain", dummy_default, nt_response, 0
         )
         parts = result[0][1].split(":")
@@ -547,31 +547,31 @@ class TestNTLMToHashcat:
     def test_v1_hashcat_format_six_tokens(self):
         nt_response = b"\xaa" * 24
         lm_response = b"\xbb" * 24
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", lm_response, nt_response, 0)
         parts = result[0][1].split(":")
         assert len(parts) == 6
 
     # -- Edge cases ----------------------------------------------------------
 
     def test_empty_nt_response_returns_empty(self):
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", b"", b"", 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", b"", b"", 0)
         assert result == []
 
     def test_none_nt_response_returns_empty(self):
-        result = NTLM_to_hashcat(CHALLENGE, "user", "domain", None, None, 0)
+        result = ntlm_to_hashcat(CHALLENGE, "user", "domain", None, None, 0)
         assert result == []
 
     def test_bad_challenge_7_raises(self):
         with pytest.raises(ValueError, match="8 bytes"):
-            NTLM_to_hashcat(b"\x00" * 7, "u", "d", b"", b"\xaa" * 24, 0)
+            ntlm_to_hashcat(b"\x00" * 7, "u", "d", b"", b"\xaa" * 24, 0)
 
     def test_bad_challenge_9_raises(self):
         with pytest.raises(ValueError, match="8 bytes"):
-            NTLM_to_hashcat(b"\x00" * 9, "u", "d", b"", b"\xaa" * 24, 0)
+            ntlm_to_hashcat(b"\x00" * 9, "u", "d", b"", b"\xaa" * 24, 0)
 
     def test_user_as_string(self):
         nt_response = b"\xaa" * 48
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             CHALLENGE, "TestUser", "TestDomain", b"\x00" * 24, nt_response, 0
         )
         parts = result[0][1].split(":")
@@ -698,7 +698,7 @@ class TestDecodeNtlmsspOsVersion:
 
 
 class TestNTLMBuildChallengeMessage:
-    """NTLM_build_challenge_message(token, *, ...) at line 587."""
+    """ntlm_build_challenge_message(token, *, ...) at line 587."""
 
     def _build(self, client_flags: int, **kwargs):
         token = _build_ntlm_negotiate(client_flags)
@@ -708,7 +708,7 @@ class TestNTLMBuildChallengeMessage:
             "nb_domain": "WORKGROUP",
         }
         defaults.update(kwargs)
-        return NTLM_build_challenge_message(token, **defaults)
+        return ntlm_build_challenge_message(token, **defaults)
 
     def test_challenge_in_response(self):
         msg = self._build(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
@@ -717,7 +717,7 @@ class TestNTLMBuildChallengeMessage:
     def test_bad_challenge_length_raises(self):
         token = _build_ntlm_negotiate(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
         with pytest.raises(ValueError, match="8 bytes"):
-            NTLM_build_challenge_message(token, challenge=b"\x00" * 7)
+            ntlm_build_challenge_message(token, challenge=b"\x00" * 7)
 
     def test_unicode_flag_echoed(self):
         msg = self._build(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
@@ -831,21 +831,21 @@ class TestNTLMBuildChallengeMessage:
         data = neg.getData()
         token = ntlm.NTLMAuthNegotiate()
         token.fromString(data)
-        msg = NTLM_build_challenge_message(token, challenge=CHALLENGE)
+        msg = ntlm_build_challenge_message(token, challenge=CHALLENGE)
         assert msg["flags"] & ntlm.NTLMSSP_NEGOTIATE_VERSION
 
 
 class TestNTLMHandleNegotiateMessage:
-    """NTLM_handle_negotiate_message(negotiate, logger) at line 517."""
+    """ntlm_handle_negotiate_message(negotiate, logger) at line 517."""
 
     def test_returns_dict(self, mock_logger):
         neg = _build_ntlm_negotiate(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
-        result = NTLM_handle_negotiate_message(neg, mock_logger)
+        result = ntlm_handle_negotiate_message(neg, mock_logger)
         assert isinstance(result, dict)
 
     def test_empty_fields_omitted(self, mock_logger):
         neg = _build_ntlm_negotiate(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
-        result = NTLM_handle_negotiate_message(neg, mock_logger)
+        result = ntlm_handle_negotiate_message(neg, mock_logger)
         # Minimal negotiate has no workstation/domain
         for k in ("name", "domain"):
             if k in result:
@@ -853,13 +853,13 @@ class TestNTLMHandleNegotiateMessage:
 
     def test_logger_debug_called(self, mock_logger):
         neg = _build_ntlm_negotiate(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
-        NTLM_handle_negotiate_message(neg, mock_logger)
+        ntlm_handle_negotiate_message(neg, mock_logger)
         assert mock_logger.debug.called
 
     def test_no_version_no_os_key(self, mock_logger):
         # Without VERSION flag, os field should be empty/absent
         neg = _build_ntlm_negotiate(ntlm.NTLMSSP_NEGOTIATE_UNICODE)
-        result = NTLM_handle_negotiate_message(neg, mock_logger)
+        result = ntlm_handle_negotiate_message(neg, mock_logger)
         if "os" in result:
             assert result["os"] == ""
 
@@ -869,16 +869,16 @@ class TestNTLMHandleNegotiateMessage:
         token.__getitem__ = MagicMock(side_effect=KeyError("bad"))
         token.fields = {}
         # Should not raise
-        result = NTLM_handle_negotiate_message(token, mock_logger)
+        result = ntlm_handle_negotiate_message(token, mock_logger)
         assert isinstance(result, dict)
 
 
 class TestNTLMHandleAuthenticateMessage:
-    """NTLM_handle_authenticate_message(auth_token, *, ...) at line 909."""
+    """ntlm_handle_authenticate_message(auth_token, *, ...) at line 909."""
 
     def test_anonymous_returns_false(self, mock_logger, mock_session):
         token = _build_ntlm_authenticate(user_name=b"", nt_response=b"", lm_response=b"")
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -898,7 +898,7 @@ class TestNTLMHandleAuthenticateMessage:
             nt_response=nt_response,
             lm_response=lm_response,
         )
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -915,7 +915,7 @@ class TestNTLMHandleAuthenticateMessage:
             nt_response=b"\xaa" * 24,
             lm_response=b"\xbb" * 24,
         )
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -931,7 +931,7 @@ class TestNTLMHandleAuthenticateMessage:
             nt_response=b"",
             lm_response=b"",
         )
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -951,7 +951,7 @@ class TestNTLMHandleAuthenticateMessage:
             nt_response=nt_response,
             lm_response=lm_response,
         )
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -966,7 +966,7 @@ class TestNTLMHandleAuthenticateMessage:
             user_name="admin".encode("utf-16-le"),
             nt_response=b"\xaa" * 24,
         )
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=b"\x00" * 7,  # bad
             client=("10.0.0.1", 12345),
@@ -983,7 +983,7 @@ class TestNTLMHandleAuthenticateMessage:
             lm_response=b"\xbb" * 24,
         )
         extras = {"custom_key": "custom_value"}
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -1003,7 +1003,7 @@ class TestNTLMHandleAuthenticateMessage:
             lm_response=b"\xbb" * 24,
         )
         neg_fields = {"os": "Windows 10 Build 19041"}
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -1021,7 +1021,7 @@ class TestNTLMHandleAuthenticateMessage:
             nt_response=b"\xaa" * 24,
         )
         # extras=None should not crash
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=CHALLENGE,
             client=("10.0.0.1", 12345),
@@ -1033,10 +1033,10 @@ class TestNTLMHandleAuthenticateMessage:
 
 
 class TestNTLMHandleLegacyRawAuth:
-    """NTLM_handle_legacy_raw_auth(*, ...) at line 1461."""
+    """ntlm_handle_legacy_raw_auth(*, ...) at line 1461."""
 
     def test_cleartext_captured(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="admin",
             domain_name="CORP",
             lm_response=b"",
@@ -1055,7 +1055,7 @@ class TestNTLMHandleLegacyRawAuth:
         )
 
     def test_cleartext_empty_skips(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="admin",
             domain_name="CORP",
             lm_response=b"",
@@ -1070,7 +1070,7 @@ class TestNTLMHandleLegacyRawAuth:
         mock_session.db.add_auth.assert_not_called()
 
     def test_raw_v1_captured(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="admin",
             domain_name="CORP",
             lm_response=b"\xbb" * 24,
@@ -1084,7 +1084,7 @@ class TestNTLMHandleLegacyRawAuth:
         assert mock_session.db.add_auth.called
 
     def test_raw_anonymous_skips(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="",
             domain_name="",
             lm_response=b"",
@@ -1098,7 +1098,7 @@ class TestNTLMHandleLegacyRawAuth:
         mock_session.db.add_auth.assert_not_called()
 
     def test_raw_anonymous_z1_skips(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="",
             domain_name="",
             lm_response=b"\x00",
@@ -1112,7 +1112,7 @@ class TestNTLMHandleLegacyRawAuth:
         mock_session.db.add_auth.assert_not_called()
 
     def test_raw_both_empty_skips(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="admin",
             domain_name="CORP",
             lm_response=b"",
@@ -1127,7 +1127,7 @@ class TestNTLMHandleLegacyRawAuth:
 
     def test_bad_challenge_no_crash(self, mock_logger, mock_session):
         # 7-byte challenge should log error, not crash
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name="admin",
             domain_name="CORP",
             lm_response=b"\xbb" * 24,
@@ -1138,10 +1138,10 @@ class TestNTLMHandleLegacyRawAuth:
             logger=mock_logger,
             transport=NTLM_TRANSPORT_RAW,
         )
-        # Should not crash — ValueError caught internally
+        # Should not crash - ValueError caught internally
 
     def test_user_bytes_decoded(self, mock_logger, mock_session):
-        NTLM_handle_legacy_raw_auth(
+        ntlm_handle_legacy_raw_auth(
             user_name=b"Admin",
             domain_name=b"CORP",
             lm_response=b"\xbb" * 24,
@@ -1222,7 +1222,7 @@ class TestLogNtlmv2Blob:
 #              expected_hash_type, has_lmv2_companion)
 # Extracted from real Windows-to-Windows SMB authentication exchanges.
 PCAP_VECTORS = [
-    # XP SP3 -> XP SP0: NetNTLMv1-ESS (v5.1.2600) — TCP-flow-matched challenge
+    # XP SP3 -> XP SP0: NetNTLMv1-ESS (v5.1.2600) - TCP-flow-matched challenge
     (
         "XPSP3",
         bytes.fromhex("a2bb534e5d77cde7"),
@@ -1234,7 +1234,7 @@ PCAP_VECTORS = [
         "NetNTLMv1-ESS",
         False,
     ),
-    # XP SP0 -> XP SP3: NetNTLMv1-ESS (no VERSION) — TCP-flow-matched challenge
+    # XP SP0 -> XP SP3: NetNTLMv1-ESS (no VERSION) - TCP-flow-matched challenge
     (
         "XPSP0",
         bytes.fromhex("61c6ccdc55be7307"),
@@ -1316,7 +1316,7 @@ PCAP_VECTORS = [
         "NetNTLMv2",
         False,
     ),
-    # Srv03 -> XP SP3: NetNTLMv1-ESS (v5.2.3790) — TCP-flow-matched challenge
+    # Srv03 -> XP SP3: NetNTLMv1-ESS (v5.2.3790) - TCP-flow-matched challenge
     (
         "Srv03",
         bytes.fromhex("38ec222f9dedff96"),
@@ -1370,7 +1370,7 @@ PCAP_VECTORS = [
         "NetNTLMv2",
         False,
     ),
-    # Srv16 -> XP SP3: NetNTLMv2, LM=Z(24) (v10.0.14393) — TCP-flow-matched
+    # Srv16 -> XP SP3: NetNTLMv2, LM=Z(24) (v10.0.14393) - TCP-flow-matched
     (
         "Srv16",
         bytes.fromhex("77936e2ec48d1eb5"),
@@ -1384,7 +1384,7 @@ PCAP_VECTORS = [
         "NetNTLMv2",
         False,
     ),
-    # Srv19 -> Vista: NetNTLMv2, LM=Z(24) (v10.0.17763) — TCP-flow-matched
+    # Srv19 -> Vista: NetNTLMv2, LM=Z(24) (v10.0.17763) - TCP-flow-matched
     (
         "Srv19",
         bytes.fromhex("0e3f0e0f5c3add3d"),
@@ -1398,7 +1398,7 @@ PCAP_VECTORS = [
         "NetNTLMv2",
         False,
     ),
-    # Srv22 -> Vista: NetNTLMv2, LM=Z(24) (v10.0.20348) — TCP-flow-matched
+    # Srv22 -> Vista: NetNTLMv2, LM=Z(24) (v10.0.20348) - TCP-flow-matched
     (
         "Srv22",
         bytes.fromhex("975db6c485693f24"),
@@ -1414,7 +1414,7 @@ PCAP_VECTORS = [
     ),
 ]
 
-# Anonymous probes from pcap — XP SP3, XP SP0, Srv03, Win7 send these before real auth
+# Anonymous probes from pcap - XP SP3, XP SP0, Srv03, Win7 send these before real auth
 # Tuple: (id, flags, lm_response)
 PCAP_ANONYMOUS_PROBES = [
     ("XPSP3_anon", 0xA2888A05, b"\x00"),
@@ -1461,7 +1461,7 @@ class TestPcapHashClassification:
 
 
 class TestPcapHashcatFormat:
-    """Verify NTLM_to_hashcat produces valid hashcat lines from real pcap data."""
+    """Verify ntlm_to_hashcat produces valid hashcat lines from real pcap data."""
 
     @pytest.mark.parametrize(
         "vec",
@@ -1470,7 +1470,7 @@ class TestPcapHashcatFormat:
     )
     def test_hashcat_output(self, vec):
         _id, challenge, user, domain, nt_resp, lm_resp, flags, expected_type, _lmv2 = vec
-        result = NTLM_to_hashcat(challenge, user, domain, lm_resp, nt_resp, flags)
+        result = ntlm_to_hashcat(challenge, user, domain, lm_resp, nt_resp, flags)
         assert len(result) >= 1, f"{_id}: expected at least 1 hash, got 0"
 
         label, line = result[0]
@@ -1509,7 +1509,7 @@ class TestPcapHashcatFormat:
     def test_lmv2_companion(self, vec):
         """Vista and Srv08 produce LMv2 companion hashes (no MsvAvTimestamp)."""
         _id, challenge, user, domain, nt_resp, lm_resp, flags, _, _ = vec
-        result = NTLM_to_hashcat(challenge, user, domain, lm_resp, nt_resp, flags)
+        result = ntlm_to_hashcat(challenge, user, domain, lm_resp, nt_resp, flags)
         assert len(result) == 2, (
             f"{_id}: expected 2 hashes (primary + LMv2), got {len(result)}"
         )
@@ -1527,10 +1527,10 @@ class TestPcapHashcatFormat:
         ids=[v[0] for v in PCAP_VECTORS if v[7] == "NetNTLMv2" and not v[8]],
     )
     def test_lmv2_suppressed_when_null(self, vec):
-        """Win7+ sends LM=Z(24) due to MsvAvTimestamp — LMv2 must be suppressed."""
+        """Win7+ sends LM=Z(24) due to MsvAvTimestamp - LMv2 must be suppressed."""
         _id, challenge, user, domain, nt_resp, lm_resp, flags, _, _ = vec
         assert lm_resp == b"\x00" * 24, f"{_id}: expected Z(24) LM response"
-        result = NTLM_to_hashcat(challenge, user, domain, lm_resp, nt_resp, flags)
+        result = ntlm_to_hashcat(challenge, user, domain, lm_resp, nt_resp, flags)
         assert len(result) == 1, (
             f"{_id}: expected 1 hash (LMv2 suppressed), got {len(result)}"
         )
@@ -1598,7 +1598,7 @@ class TestPcapNtlmv2BlobParsing:
 
 
 class TestPcapFullAuthPipeline:
-    """End-to-end: run real pcap vectors through NTLM_handle_authenticate_message."""
+    """End-to-end: run real pcap vectors through ntlm_handle_authenticate_message."""
 
     @pytest.mark.parametrize(
         "vec",
@@ -1614,7 +1614,7 @@ class TestPcapFullAuthPipeline:
             nt_response=nt_resp,
             lm_response=lm_resp,
         )
-        result = NTLM_handle_authenticate_message(
+        result = ntlm_handle_authenticate_message(
             token,
             challenge=challenge,
             client=("10.0.0.99", 12345),
@@ -1681,7 +1681,7 @@ class TestPcapAnonymousProbes:
     def test_hashcat_returns_empty(self, probe):
         """Anonymous probes produce no hashcat output."""
         _id, flags, lm = probe
-        result = NTLM_to_hashcat(
+        result = ntlm_to_hashcat(
             b"\x00" * 8,  # challenge doesn't matter
             "",
             "",
@@ -1693,7 +1693,7 @@ class TestPcapAnonymousProbes:
 
 
 class TestPcapNegotiateFlags:
-    """Verify NTLM_build_challenge_message echoes real Windows negotiate flags correctly.
+    """Verify ntlm_build_challenge_message echoes real Windows negotiate flags correctly.
 
     Tests every unique negotiate flag combination from the pcap (14 Windows versions).
     Key behaviors validated:
@@ -1712,7 +1712,7 @@ class TestPcapNegotiateFlags:
     def test_challenge_mandatory_flags(self, client_id, neg_flags):
         """Server response always has NTLM + ALWAYS_SIGN + REQUEST_TARGET."""
         token = _build_ntlm_negotiate(neg_flags)
-        msg = NTLM_build_challenge_message(token, challenge=CHALLENGE)
+        msg = ntlm_build_challenge_message(token, challenge=CHALLENGE)
         resp_flags = msg["flags"]
         assert resp_flags & ntlm.NTLMSSP_NEGOTIATE_NTLM
         assert resp_flags & ntlm.NTLMSSP_NEGOTIATE_ALWAYS_SIGN
@@ -1726,7 +1726,7 @@ class TestPcapNegotiateFlags:
     def test_challenge_echoes_unicode(self, client_id, neg_flags):
         """Server echoes UNICODE flag from client."""
         token = _build_ntlm_negotiate(neg_flags)
-        msg = NTLM_build_challenge_message(token, challenge=CHALLENGE)
+        msg = ntlm_build_challenge_message(token, challenge=CHALLENGE)
         client_unicode = bool(neg_flags & ntlm.NTLMSSP_NEGOTIATE_UNICODE)
         server_unicode = bool(msg["flags"] & ntlm.NTLMSSP_NEGOTIATE_UNICODE)
         assert client_unicode == server_unicode, f"{client_id}: UNICODE echo mismatch"
@@ -1739,7 +1739,7 @@ class TestPcapNegotiateFlags:
     def test_challenge_ess_lm_key_exclusivity(self, client_id, neg_flags):
         """When client sends both ESS and LM_KEY, server keeps only ESS."""
         token = _build_ntlm_negotiate(neg_flags)
-        msg = NTLM_build_challenge_message(token, challenge=CHALLENGE)
+        msg = ntlm_build_challenge_message(token, challenge=CHALLENGE)
         resp_flags = msg["flags"]
         has_ess = bool(resp_flags & ntlm.NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY)
         has_lm_key = bool(resp_flags & ntlm.NTLMSSP_NEGOTIATE_LM_KEY)
@@ -1754,6 +1754,6 @@ class TestPcapNegotiateFlags:
     def test_challenge_has_target_info(self, client_id, neg_flags):
         """Server always includes TargetInfo (NTLMv2 AV_PAIRs) for pcap clients."""
         token = _build_ntlm_negotiate(neg_flags)
-        msg = NTLM_build_challenge_message(token, challenge=CHALLENGE)
+        msg = ntlm_build_challenge_message(token, challenge=CHALLENGE)
         assert msg["flags"] & ntlm.NTLMSSP_NEGOTIATE_TARGET_INFO
         assert msg["TargetInfoFields_len"] > 0

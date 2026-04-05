@@ -47,7 +47,7 @@ def mock_smb_config():
     cfg.smb_server_os = "Windows"
     cfg.smb_native_lanman = "Windows"
     cfg.smb_captures_per_connection = 0
-    cfg.smb_error_code = nt_errors.STATUS_SMB_BAD_UID
+    cfg.smb_error_code = None
     cfg.ntlm_challenge = b"\x01\x02\x03\x04\x05\x06\x07\x08"
     cfg.ntlm_disable_ess = False
     cfg.ntlm_disable_ntlmv2 = False
@@ -290,7 +290,7 @@ class TestGetServerTime:
 
 
 class TestSetSmbErrorCode:
-    """SMBServerConfig.set_smb_error_code(value) at line 288."""
+    """SMBServerConfig.set_smb_error_code(value)."""
 
     def _make_config(self):
         cfg = object.__new__(SMBServerConfig)
@@ -321,6 +321,11 @@ class TestSetSmbErrorCode:
         cfg = self._make_config()
         cfg.set_smb_error_code(0)
         assert cfg.smb_error_code == 0
+
+    def test_no_code(self):
+        cfg = self._make_config()
+        cfg.set_smb_error_code(None)
+        assert cfg.smb_error_code is None
 
 
 class TestSmb3NegContextPad:

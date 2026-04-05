@@ -297,8 +297,8 @@ Post-Auth Behaviour
         effect over CPC = 0.
 
 .. py:attribute:: ErrorCode
-    :type: str | int
-    :value: "STATUS_SMB_BAD_UID"
+    :type: str | int | None
+    :value: None
 
     *Maps to* :attr:`smb.SMBServerConfig.smb_error_code`
 
@@ -311,13 +311,13 @@ Post-Auth Behaviour
 
         * - Value
           - Effect
-        * - ``"STATUS_SMB_BAD_UID"`` (default)
+        * - ``"STATUS_SMB_BAD_UID"``
           - Client disconnects cleanly.
         * - ``"STATUS_ACCESS_DENIED"``
           - Client may retry, then disconnects.
         * - ``"STATUS_LOGON_FAILURE"``
           - Client disconnects cleanly.
-        * - ``"STATUS_SUCCESS"``
+        * - ``"STATUS_SUCCESS"`` (default behavior if no value is set)
           - Client proceeds to tree connect.  Useful for extending the
             session to capture tree-connect paths.
 
@@ -436,7 +436,7 @@ Default Configuration
     # ServerOS = "Windows"
     # NativeLanMan = "Windows"
     CapturesPerConnection = 0
-    ErrorCode = "STATUS_SMB_BAD_UID"
+    # ErrorCode = "STATUS_SMB_BAD_UID"
 
     # NTLM settings are in the [NTLM] section.
 
