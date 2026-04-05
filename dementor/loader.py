@@ -17,7 +17,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
 import types
 import typing
 import pathlib
@@ -249,9 +248,9 @@ class ProtocolLoader:
         1. Dementor package's internal `protocols/` directory
         2. External `DEMENTOR_PATH/protocols/` directory (for user extensions)
         """
-        self.rs_path: str = os.path.join(DEMENTOR_PATH, "protocols")
+        self.rs_path: str = str(pathlib.Path(DEMENTOR_PATH) / "protocols")
         self.search_path: list[str] = [
-            os.path.join(os.path.dirname(dementor.__file__), "protocols"),
+            str(pathlib.Path(dementor.__file__).parent / "protocols"),
             self.rs_path,
         ]
 
@@ -304,24 +303,22 @@ class ProtocolLoader:
         if session is not None:
             protocol_paths.extend(session.extra_modules)
 
-        for path in protocol_paths:
-            if not os.path.exists(path):
+        for path_str in protocol_paths:
+            path = pathlib.Path(path_str)
+            if not path.exists():
                 # Missing entries are ignored - they may be optional.
                 continue
 
-            if os.path.isfile(path):
-                if not path.endswith(".py"):
+            if path.is_file():
+                if path.suffix != ".py":
                     continue
-                name = os.path.basename(path)[:-3]  # strip .py
-                protocols[name] = path
+                protocols[path.stem] = str(path)
                 continue
 
-            for filename in os.listdir(path):
-                if not filename.endswith(".py") or filename == "__init__.py":
+            for child in path.iterdir():
+                if child.suffix != ".py" or child.name == "__init__.py":
                     continue
-                protocol_path = os.path.join(path, filename)
-                name = filename[:-3]  # strip extension
-                protocols[name] = protocol_path
+                protocols[child.stem] = str(child)
 
         return protocols
 
@@ -421,7 +418,6 @@ class ProtocolManager:
                 servers = self.loader.create_servers(protocol, self.session)
                 self.threads[name.lower()] = list(servers)
             except Exception as e:
-                # Log error if needed, but for now pass
                 dm_logger.error(f"Error creating servers for protocol '{name}': {e}")
                 self.threads[name.lower()] = []
 
@@ -433,7 +429,6 @@ class ProtocolManager:
             servers = self.loader.create_servers(protocol, self.session)
             self.threads[name.lower()] = list(servers)
         except Exception as e:
-            # Log error if needed, but for now pass
             dm_logger.error(f"Error creating servers for protocol '{name}': {e}")
             self.threads[name.lower()] = []
 

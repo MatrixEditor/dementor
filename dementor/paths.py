@@ -28,6 +28,21 @@ BANNER_PATH = os.path.join(ASSETS_PATH, "banner.txt")
 HTTP_TEMPLATES_PATH = os.path.join(ASSETS_PATH, "www")
 
 
+def get_dementor_path() -> str:
+    """Return the user workspace directory, re-resolving HOME each call.
+
+    Unlike the module-level :data:`DEMENTOR_PATH` constant (which is frozen
+    at import time), this function reads ``HOME`` on every call. Use it
+    when the path must reflect a ``HOME`` change after import (e.g., tests).
+    """
+    return os.path.expanduser("~/.dementor")
+
+
+def get_config_path() -> str:
+    """Return the user config file path, re-resolving HOME each call."""
+    return os.path.join(get_dementor_path(), "Dementor.toml")
+
+
 def main() -> None:
     print(f"DefaultWorkspace  : {DEMENTOR_PATH}")
     print(f"AssetsPath        : {ASSETS_PATH}")

@@ -98,19 +98,6 @@ class FilterObj:
         )
 
     @staticmethod
-    def from_string(target: str, extra: Any | None = None) -> "FilterObj":
-        """Create a `FilterObj` from a string pattern.
-
-        :param target: Pattern string.
-        :type target: str
-        :param extra: Optional metadata.
-        :type extra: Any, optional
-        :return: Filter object.
-        :rtype: FilterObj
-        """
-        return FilterObj(target, extra)
-
-    @staticmethod
     def from_file(source: str, extra: Any | None) -> list["FilterObj"]:
         """Load multiple filters from a text file (one per line).
 
@@ -263,7 +250,7 @@ class Filters:
                 # String means simple filter expression without extra config
                 if not filter_config:
                     continue
-                self.filters.append(FilterObj.from_string(filter_config))
+                self.filters.append(FilterObj(filter_config))
             else:
                 # must be a dictionary
                 # 1. Direct target specification
