@@ -36,7 +36,7 @@ from dementor.servers import (
     ServerThread,
     BaseServerThread,
 )
-from dementor.db import _NO_USER
+from dementor.db import NO_USER
 
 __proto__ = ["X11"]
 
@@ -52,7 +52,7 @@ class X11Config(TomlConfig):
         x11_ports: range
         x11_error_reason: str
 
-    def set_x11_ports(self, port_range: str | range | dict[str, int]):
+    def set_x11_ports(self, port_range: str | range | dict[str, int]) -> None:
         x11_ports = None
         match port_range:
             case range():
@@ -129,7 +129,7 @@ def pad(E):
     return _wrap
 
 
-def xConnClient_set_length(context):
+def x_conn_client_set_length(context):
     self = context._obj
     self.nbytesAuthProto = len(self.authProto)
     self.nbytesAuthString = len(self.authString)
@@ -143,7 +143,7 @@ class xConnClientPrefixLE:
     majorVersion: CARD16
     minorVersion: CARD16
 
-    _aset_length: py.Action(pack=xConnClient_set_length)
+    _aset_length: py.Action(pack=x_conn_client_set_length)
     nbytesAuthProto: CARD16
     nbytesAuthString: CARD16
     _pad2: py.padding[2]
@@ -164,7 +164,7 @@ class xConnClientPrefixBE:
     _pad: py.padding[1]
     majorVersion: CARD16
     minorVersion: CARD16
-    _aset_length: py.Action(pack=xConnClient_set_length)
+    _aset_length: py.Action(pack=x_conn_client_set_length)
     nbytesAuthProto: CARD16
     nbytesAuthString: CARD16
     _pad2: py.padding[2]
@@ -188,7 +188,7 @@ X_CONN_AUTHENTICATE = 2
 # 2     (n+p)/4           length in 4-byte units of "additional data"
 # n     STRING8           reason
 # p                       unused, p=pad(n)
-def xConnSetup_set_length(context):
+def x_conn_setup_set_length(context):
     self = context._obj
     self.lengthReason = len(self.reason)
     pad = (4 - (self.lengthReason % 4)) % 4
@@ -197,7 +197,7 @@ def xConnSetup_set_length(context):
 
 @py.struct(order=py.LittleEndian)
 class xConnSetupPrefixLE:
-    _aset_length: py.Action(pack=xConnSetup_set_length)
+    _aset_length: py.Action(pack=x_conn_setup_set_length)
 
     # Taken from Xproto.h#L286:
     # The protocol also defines a case of success == Authenticate, but
@@ -213,7 +213,7 @@ class xConnSetupPrefixLE:
 
 @py.struct(order=py.BigEndian)
 class xConnSetupPrefixBE:
-    _aset_length: py.Action(pack=xConnSetup_set_length)
+    _aset_length: py.Action(pack=x_conn_setup_set_length)
     success: CARD8 = X_CONN_SUCCESS
     lengthReason: BYTE = 0
     majorVersion: CARD16
@@ -265,7 +265,7 @@ class X11Handler(BaseProtoHandler):
             self.config.db.add_auth(
                 client=self.client_address,
                 credtype=request.authProto.decode(errors="replace").strip(),
-                username=_NO_USER,
+                username=NO_USER,
                 password=request.authString.hex(),
                 logger=self.logger,
                 custom=True,

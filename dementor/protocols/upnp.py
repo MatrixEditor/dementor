@@ -74,7 +74,7 @@ class UPNPConfig(TomlConfig):
         upnp_scpd_path: str
         upnp_present_path: str
 
-    def set_upnp_templates_path(self, path_list):
+    def set_upnp_templates_path(self, path_list) -> None:
         dirs = set()
         for templates_dir in path_list:
             path = pathlib.Path(templates_dir)
@@ -89,7 +89,7 @@ class UPNPConfig(TomlConfig):
         dirs.add(HTTP_TEMPLATES_PATH)
         self.upnp_templates_path = list(dirs)
 
-    def set_upnp_template(self, template):
+    def set_upnp_template(self, template) -> None:
         upnp_template = None
         for templates_dir in self.upnp_templates_path:
             path = pathlib.Path(templates_dir) / template
@@ -112,7 +112,7 @@ class UPnP(BaseProtocolModule[UPNPConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: UPNPConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[UPNPConfig]:
         return ServerThread(
             session,
             server_config,
@@ -150,7 +150,7 @@ class UPnPHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         pass
 
-    def send_page(self, template, content_type):
+    def send_page(self, template, content_type) -> None:
         self.logger.debug(escape(f"{self.command} {self.path} 200"), is_server=True)
         path = pathlib.Path(template)
         script = self.server.render(path.name, uuid=self.target_uuid)
@@ -162,7 +162,7 @@ class UPnPHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         self.logger.debug(f"Request for {self.path}", is_client=True)
         user_agent = escape(self.headers.get("User-Agent", "<no-user-agent>"))
         if len(user_agent) > 50:
@@ -192,7 +192,7 @@ class UPnPHandler(BaseHTTPRequestHandler):
 
         path = posixpath.normpath(path)
         try:
-            mime_type, _ = mimetypes.guess_file_type(path)
+            mime_type, _ = mimetypes.guess_file_type(path)  # ty:ignore[unresolved-attribute]
         except AttributeError:
             mime_type, _ = mimetypes.guess_type(path)
 
@@ -235,7 +235,7 @@ class UPnPServer(ThreadingHTTPServer):
         with contextlib.suppress(ConnectionError):
             self.RequestHandlerClass(self.config, request, client_address, self)
 
-    def render(self, template, **kwargs):
+    def render(self, template, **kwargs) -> str:
         return self.env.get_template(template).render(
             **kwargs,
             session=self.config,

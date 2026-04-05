@@ -147,7 +147,7 @@ class SPNEGONegotiator:
         )
 
         # Build response
-        response = negTokenInit_step(
+        response = build_neg_token_resp(
             0x00 if complete else 0x01, response_token, chosen_mech
         )
         return response.getData(), complete
@@ -182,8 +182,9 @@ class SPNEGONegotiator:
         )
 
         # Build final response
-        response = negTokenInit_step(0x00 if complete else 0x01, final_token)
+        response = build_neg_token_resp(0x00 if complete else 0x01, final_token)
         return response.getData(), complete
+
 
 # [RFC4178] §4.2.2 / [MS-SPNG]: negState enumeration values for NegTokenResp.
 # These indicate the outcome of each round of the SPNEGO exchange.
@@ -253,13 +254,6 @@ def build_neg_token_init(mech_types: list[str]) -> SPNEGO_NegTokenInit:
         (e.g., ``[SPNEGO_NTLMSSP_MECH]`` for NTLMSSP-only)
     :type mech_types: list[str]
     :return: Populated NegTokenInit ready for serialization via ``.getData()``
-    :rtype: SPNEGO_NegTokenInit
-    """
-def negTokenInit(mech_types: list[str]) -> SPNEGO_NegTokenInit:
-    """Create a NegTokenInit with specified mechanism types.
-
-    :param list mech_types: List of mechanism names
-    :return: NegTokenInit structure
     :rtype: SPNEGO_NegTokenInit
     """
     token_init = SPNEGO_NegTokenInit()

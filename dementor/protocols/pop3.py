@@ -28,6 +28,7 @@
 import base64
 import binascii
 import typing
+from typing import Literal, overload
 
 from typing_extensions import override
 from impacket import ntlm
@@ -35,9 +36,9 @@ from impacket import ntlm
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.protocols.ntlm import (
-    NTLM_build_challenge_message,
-    NTLM_handle_authenticate_message,
-    NTLM_handle_negotiate_message,
+    ntlm_build_challenge_message,
+    ntlm_handle_authenticate_message,
+    ntlm_handle_negotiate_message,
 )
 from dementor.servers import (
     ServerThread,
@@ -47,13 +48,12 @@ from dementor.servers import (
     BaseServerThread,
 )
 from dementor.log.logger import ProtocolLogger
-from dementor.db import _CLEARTEXT
+from dementor.db import CLEARTEXT
 from dementor.config.toml import (
     TomlConfig,
     Attribute as A,
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
-
 
 __proto__ = ["POP3"]
 
@@ -70,7 +70,6 @@ class POP3ServerConfig(TomlConfig):
     _section_ = "POP3"
     _fields_ = [
         A("pop3_port", "Port"),
-        A("pop3_fqdn", "FQDN", "Dementor", section_local=False),
         A("pop3_downgrade", "Downgrade", True),
         A("pop3_banner", "Banner", "POP3 Server ready"),
         A("pop3_auth_mechs", "AuthMechanisms", POP3_AUTH_MECHANISMS),
@@ -81,7 +80,6 @@ class POP3ServerConfig(TomlConfig):
 
     if typing.TYPE_CHECKING:
         pop3_port: int
-        pop3_fqdn: str
         pop3_downgrade: bool
         pop3_banner: str
         pop3_auth_mechs: list[str]
@@ -100,7 +98,7 @@ class POP3(BaseProtocolModule[POP3ServerConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: POP3ServerConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[POP3ServerConfig]:
         return ServerThread(
             session,
             server_config,
@@ -142,6 +140,22 @@ class POP3Handler(BaseProtoHandler):
         self.logger.debug(f"S: {line!r}")
         self.send(f"{line}\r\n".encode("utf-8", "strict"))
 
+    @overload
+    def challenge_auth(
+        self,
+        token: bytes | None = ...,
+        decode: Literal[False] = ...,
+        prefix: str | None = ...,
+    ) -> bytes: ...
+
+    @overload
+    def challenge_auth(
+        self,
+        token: bytes | None = ...,
+        decode: Literal[True] = ...,
+        prefix: str | None = ...,
+    ) -> str: ...
+
     def challenge_auth(
         self,
         token: bytes | None = None,
@@ -169,7 +183,7 @@ class POP3Handler(BaseProtoHandler):
             response = response.decode("utf-8", errors="replace")
         return response
 
-    def handle_data(self, data, transport):
+    def handle_data(self, data: bytes, transport) -> None:  # ty:ignore[invalid-method-override]
         self.request.settimeout(2)
         self.rfile = transport.makefile("rb")
 
@@ -200,13 +214,13 @@ class POP3Handler(BaseProtoHandler):
     # Implementation
     # [rfc1939] 4. The AUTHORIZATION State
     #   QUIT
-    def do_QUIT(self, args):
+    def do_QUIT(self, args: list[str]) -> None:
         self.ok("Goodbye")
         raise CloseConnection
 
     # [rfc1939] 7. Optional POP3 Commands
     #  USER
-    def do_USER(self, args):
+    def do_USER(self, args: list[str]) -> None:
         if len(args) != 1:
             self.err("Invalid number of arguments")
             return
@@ -216,10 +230,9 @@ class POP3Handler(BaseProtoHandler):
 
     # [rfc1939] 7. Optional POP3 Commands
     #  PASS
-    def do_PASS(self, args):
+    def do_PASS(self, args: list[str]) -> None:
         if len(args) < 1:
             return self.err("Invalid number of arguments")
-            return None
 
         if not hasattr(self, "username"):
             return self.err("Username not set")
@@ -234,7 +247,7 @@ class POP3Handler(BaseProtoHandler):
             username=self.username,
             password=self.password,
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
         )
         del self.username
         del self.password
@@ -242,7 +255,7 @@ class POP3Handler(BaseProtoHandler):
 
     # [rfc2449] 5.  The CAPA Command
     #   CAPA
-    def do_CAPA(self, args):
+    def do_CAPA(self, args: list[str]) -> None:
         self.ok("Capability list follows")
         # The USER capability indicates that the USER and PASS commands
         # are supported, although they may not be available to all users
@@ -257,7 +270,7 @@ class POP3Handler(BaseProtoHandler):
 
     # [rfc1734] 2. The AUTH command
     #   AUTH
-    def do_AUTH(self, args):
+    def do_AUTH(self, args: list[str]) -> None:
         if len(args) != 1:
             self.err("Invalid number of arguments")
             return None
@@ -282,7 +295,7 @@ class POP3Handler(BaseProtoHandler):
 
     # [rfc4616] 2.  PLAIN SASL Mechanism
     #   PLAIN
-    def auth_PLAIN(self, initial_response=None):
+    def auth_PLAIN(self, initial_response: str | None = None) -> None:
         if not initial_response:
             initial_response = self.challenge_auth(decode=True)
 
@@ -302,13 +315,13 @@ class POP3Handler(BaseProtoHandler):
             username=login,
             password=password,
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
         )
         self.err("Invalid username or password")
 
     # https://datatracker.ietf.org/doc/html/draft-murchison-sasl-login-00
     #   LOGIN
-    def auth_LOGIN(self, username: bytes | None = None):
+    def auth_LOGIN(self, username: str | None = None) -> None:
         if not username:
             # The server issues the string "User Name" in challenge, and receives a
             # client response.  This response is recorded as the authorization
@@ -332,7 +345,7 @@ class POP3Handler(BaseProtoHandler):
             username=username,
             password=password,
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
         )
         self.err("Invalid username or password")
 
@@ -353,8 +366,8 @@ class POP3Handler(BaseProtoHandler):
 
         # 3. The server sends a POP3_AUTH_NTLM_Blob_Response message containing
         # a base64-encoded NTLM CHALLENGE_MESSAGE.
-        negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
-        challenge = NTLM_build_challenge_message(
+        negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
+        challenge = ntlm_build_challenge_message(
             negotiate,
             challenge=self.config.ntlm_challenge,
             nb_computer=self.config.ntlm_nb_computer,
@@ -370,7 +383,7 @@ class POP3Handler(BaseProtoHandler):
         auth_message = ntlm.NTLMAuthChallengeResponse()
         auth_message.fromString(token)
 
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             auth_message,
             challenge=self.config.ntlm_challenge,
             client=self.client_address,
