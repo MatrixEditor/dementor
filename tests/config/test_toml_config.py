@@ -24,6 +24,7 @@ Covers:
 - ``dementor.config.util``: ``get_value``, ``is_true``
 - ``dementor.config``: ``get_global_config``, ``_set_global_config``
 """
+
 import pytest
 
 from unittest.mock import patch

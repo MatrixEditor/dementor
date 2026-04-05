@@ -5,8 +5,6 @@ Tests cover every public and private function in ntlm.py, organized by tier:
   Tier 2 (mock-dependent): require impacket objects or MagicMock
 """
 
-from __future__ import annotations
-
 import struct
 from unittest.mock import MagicMock
 

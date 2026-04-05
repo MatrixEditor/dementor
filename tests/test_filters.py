@@ -24,7 +24,6 @@ Covers:
 - ``Filters``: construction from strings, dicts (Target/File), and membership test
 - ``in_scope``: whitelist-only, blacklist-only, combined, and no-filter paths
 """
-from __future__ import annotations
 
 import sys
 import tempfile
@@ -132,7 +131,7 @@ class TestFilterObjGlob:
 
     def test_glob_target_stripped_of_prefix(self):
         if (sys.version_info.major, sys.version_info.minor) < (3, 13):
-            with pytest.warns(UserWarning):
+            with pytest.warns(UserWarning):  # noqa: PT030
                 f = FilterObj("g:*.local")
         else:
             f = FilterObj("g:*.local")
@@ -147,11 +146,13 @@ class TestFilterObjGlob:
 class TestFilterObjFromFile:
     def test_from_file_loads_patterns(self):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as fh:
-            fh.write(textwrap.dedent("""\
+            fh.write(
+                textwrap.dedent("""\
                 host1
                 host2
                 re:.*\\.admin\\.
-            """))
+            """)
+            )
             tmppath = fh.name
         try:
             filters = FilterObj.from_file(tmppath, extra=None)

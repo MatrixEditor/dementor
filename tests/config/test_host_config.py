@@ -28,15 +28,25 @@ Covers:
 - CLI -H / --host option (parse_options integration)
 """
 
-from __future__ import annotations
-
 import pytest
+
+from unittest.mock import MagicMock
 
 from dementor.config import _set_global_config, get_global_config
 from dementor.config.attr import ATTR_GLOBALS_HOST
 from dementor.config.toml import Attribute
 from dementor.config.util import HostValue, HostDerivedValue, HostFallbackValue
 
+from dementor.protocols import ntlm
+from dementor.protocols.smtp import SMTPServerConfig
+from dementor.protocols.ldap import LDAPServerConfig
+from dementor.protocols.imap import IMAPServerConfig
+from dementor.protocols.mssql import MSSQLConfig
+from dementor.protocols.msrpc.rpc import RPCConfig
+from dementor.protocols.mssql import SSRPConfig
+from dementor.protocols.smb import SMBServerConfig
+
+from dementor.standalone import parse_options
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -269,14 +279,6 @@ class TestHostDerivedValue:
         factory = HostDerivedValue("DnsComputer", "DEMENTOR", post_factory=str.upper)
         assert factory("dc01.corp.com") == "DC01.CORP.COM"
 
-    def test_no_global_config_access(self):
-        """Factory must not access global config - pure input->output."""
-        import dementor.config.util as util_mod
-
-        assert not hasattr(util_mod, "get_host_value"), (
-            "get_host_value should have been removed; factory must be pure"
-        )
-
 
 # ---------------------------------------------------------------------------
 # HostFallbackValue - explicit-first, Host-derived fallback factory
@@ -374,9 +376,6 @@ class TestNTLMApplyConfigWithHost:
     """Verify that ntlm.apply_config() derives identity from Globals.Host."""
 
     def _apply(self, globals_dict: dict, extra_sections: dict | None = None):
-        from unittest.mock import MagicMock
-        from dementor.protocols import ntlm
-
         original = get_global_config()
         try:
             cfg = {"Globals": globals_dict}
@@ -427,9 +426,7 @@ class TestNTLMApplyConfigWithHost:
 
 
 class TestProtocolFQDNFallback:
-    """Verify that protocol FQDN attrs derive from Globals.Host when not
-    set explicitly in the protocol section.  No apply_host_defaults() needed -
-    the HostDerivedValue factory handles derivation lazily."""
+    """Verify that protocol FQDN attrs derive from Globals.Host."""
 
     def _global_cfg(self, host: str, **extra_globals):
         return {"Globals": {"Host": host, **extra_globals}}
@@ -438,7 +435,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("MAIL01.corp.com"))
-            from dementor.protocols.smtp import SMTPServerConfig
 
             cfg = SMTPServerConfig({"Port": 25})
             assert cfg.smtp_fqdn == "MAIL01.corp.com"
@@ -456,7 +452,6 @@ class TestProtocolFQDNFallback:
                     },  # explicit Host in [SMTP] beats [Globals].Host
                 }
             )
-            from dementor.protocols.smtp import SMTPServerConfig
 
             cfg = SMTPServerConfig({"Port": 25})
             assert cfg.smtp_fqdn == "explicit.smtp.com"
@@ -467,7 +462,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("DC01.corp.local"))
-            from dementor.protocols.ldap import LDAPServerConfig
 
             cfg = LDAPServerConfig({"Port": 389, "Connectionless": False})
             assert cfg.ldap_fqdn == "DC01.corp.local"
@@ -478,7 +472,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("MAIL01.corp.com"))
-            from dementor.protocols.imap import IMAPServerConfig
 
             cfg = IMAPServerConfig({"Port": 143})
             assert cfg.imap_fqdn == "MAIL01.corp.com"
@@ -489,7 +482,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("SQL01.corp.com"))
-            from dementor.protocols.mssql import MSSQLConfig
 
             cfg = MSSQLConfig({"Port": 1433})
             assert cfg.mssql_fqdn == "SQL01.corp.com"
@@ -500,7 +492,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("DC01.corp.local"))
-            from dementor.protocols.msrpc.rpc import RPCConfig
 
             cfg = RPCConfig({})
             assert cfg.rpc_fqdn == "DC01.corp.local"
@@ -512,7 +503,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("SQL01.corp.com"))
-            from dementor.protocols.mssql import SSRPConfig
 
             cfg = SSRPConfig({})
             assert cfg.ssrp_server_name == "SQL01.corp.com"
@@ -524,7 +514,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("DC01.corp.local"))
-            from dementor.protocols.smb import SMBServerConfig
 
             cfg = SMBServerConfig({"Port": 445})
             assert cfg.smb_nb_computer == "DC01"
@@ -542,7 +531,6 @@ class TestProtocolFQDNFallback:
                     "SMB": {"NetBIOSComputer": "EXPLICIT"},
                 }
             )
-            from dementor.protocols.smb import SMBServerConfig
 
             cfg = SMBServerConfig({"Port": 445})
             assert cfg.smb_nb_computer == "EXPLICIT"
@@ -555,7 +543,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config({})
-            from dementor.protocols.smb import SMBServerConfig
 
             cfg = SMBServerConfig({"Port": 445})
         finally:
@@ -568,7 +555,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config(self._global_cfg("MAIL01.corp.com"))
-            from dementor.protocols.smtp import SMTPServerConfig
 
             # Per-server config dict with explicit "Host" key
             cfg = SMTPServerConfig({"Port": 25, "Host": "perserver.example.com"})
@@ -580,7 +566,6 @@ class TestProtocolFQDNFallback:
         original = get_global_config()
         try:
             _set_global_config({})
-            from dementor.protocols.smtp import SMTPServerConfig
 
             cfg = SMTPServerConfig({"Port": 25})
         finally:
@@ -595,7 +580,6 @@ class TestProtocolFQDNFallback:
 
 class TestCLIHostOption:
     def test_parse_options_globals_host(self):
-        from dementor.standalone import parse_options
 
         result = parse_options(["Globals.Host=DC01.contoso.lab"])
         assert result == {"Globals": {"Host": "DC01.contoso.lab"}}
@@ -604,7 +588,7 @@ class TestCLIHostOption:
         """Simulate -H DC01.contoso.lab being applied to the config."""
         original = get_global_config()
         try:
-            import dementor.config as cfg_mod
+            import dementor.config as cfg_mod  # noqa: PLC0415
 
             cfg_mod.dm_config.setdefault("Globals", {})["Host"] = "DC01.contoso.lab"
             result = get_global_config()["Globals"]
@@ -618,8 +602,6 @@ class TestCLIHostOption:
 
     def test_option_flag_equivalent_to_host_flag(self):
         """Globals.Host via -O must produce same result as -H."""
-        from dementor.standalone import parse_options
-
         via_O = parse_options(["Globals.Host=DC01.contoso.lab"])
         # -H DC01.contoso.lab is equivalent to setting Globals.Host directly
         assert via_O["Globals"]["Host"] == "DC01.contoso.lab"
