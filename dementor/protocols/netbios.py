@@ -81,7 +81,7 @@ class BrowserConfig(TomlConfig):
 
 
 class NetBiosNSPoisoner(BaseProtoHandler):
-    def proto_logger(self):
+    def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             extra={
                 "protocol": "NetBIOS",

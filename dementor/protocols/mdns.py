@@ -66,7 +66,7 @@ class MDNSConfig(TomlConfig):
         ignored: Filters | None
         targets: Filters | None
 
-    def set_mdns_qtypes(self, value: list[str | int]):
+    def set_mdns_qtypes(self, value: list[str | int]) -> None:
         # REVISIT: maybe add error check here
         self.mdns_qtypes = [x if isinstance(x, int) else QTYPES[x] for x in value]
 
@@ -108,10 +108,9 @@ def build_dns_answer(req_id: int, question: dns.DNSQR, config: SessionConfig):
 
 # --- Poisoner/Server ---------------------------------------------------------
 class MDNSPoisoner(BaseProtoHandler):
-    def proto_logger(self):
+    def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
-            extra={
-                "protocol": "MDNS",
+            {
                 "protocol_color": "deep_sky_blue1",
                 "host": self.client_host,
                 "port": self.client_port,
@@ -167,7 +166,7 @@ class MDNSPoisoner(BaseProtoHandler):
     def send_poisoned_answer(
         self, req, question: dns.DNSQR, transport, name: str
     ) -> None:
-        # check if we can send a response
+        # skip response if the address family (A vs AAAA) doesn't match local config
         if question.qtype == 28 and not self.config.ipv6:
             self.logger.highlight(
                 "Client requested AAAA record (IPv6) but local config does not specify IPv6 address. Ignoring..."

