@@ -292,8 +292,7 @@ class NETLOGON_PRIMARY_RESPONSE(smb.NETLOGON):
         StrNullFieldUtf16("UnicodePrimaryDCName", ""),
         ConditionalField(
             ByteField("UnicodePrimaryDCNamePad", default=0x00),
-            # +2 because of unicode encoding
-            lambda pkt: (len(pkt.MailslotName) + 2) % 2 != 0,
+            lambda pkt: len(pkt.PrimaryDCName) % 2 != 0,
         ),
         # UnicodeDomainName (variable, null-terminated UTF-16LE)
         # Per [MS-ADTS] § 6.3.1.5, Unicode NetBIOS name of the domain

@@ -343,7 +343,7 @@ class BrowserPoisoner(BaseProtoHandler):
         opcode: int = request.OpCode
         opcode_name = smb._NETLOGON_opcodes.get(opcode, f"Unknown({hex(opcode)})")
         match opcode:
-            case 0x12:  # LOGON_SAM_LOGON_REQUEST
+            case netlogon.LOGON_SAM_LOGON_REQUEST:  # LOGON_SAM_LOGON_REQUEST
                 # Decode Unicode strings (UTF-16LE encoded)
                 computer_name = request.UnicodeComputerName.rstrip("\x00")
                 user_name = (
@@ -384,7 +384,7 @@ class BrowserPoisoner(BaseProtoHandler):
                         f"Sent DC discovery response to {markup.escape(computer_name)} ({self.client_host})"
                     )
 
-            case 0x07:  # LOGON_PRIMARY_QUERY
+            case netlogon.LOGON_PRIMARY_QUERY:  # LOGON_PRIMARY_QUERY
                 # Extract request parameters
                 computer_name = getattr(request, "ComputerName", b"")
                 if isinstance(computer_name, bytes):
