@@ -53,7 +53,7 @@ from dementor.config.toml import (
     Attribute as A,
 )
 from dementor.config.attr import ATTR_TLS, ATTR_CERT, ATTR_KEY
-from dementor.config.util import HostDerivedValue, HostValue
+from dementor.config.util import HostValue, HostFallbackValue
 
 __proto__ = ["IMAP"]
 
@@ -77,7 +77,7 @@ class IMAPServerConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         A("imap_caps", "Capabilities", IMAP_CAPABILITIES),
         A("imap_auth_mechanisms", "AuthMechanisms", IMAP_AUTH_MECHS),
@@ -122,7 +122,9 @@ class StopHandler(Exception):
 
 
 class IMAPHandler(BaseProtoHandler):
-    def __init__(self, config, server_config: IMAPServerConfig, request, client_address, server) -> None:
+    def __init__(
+        self, config, server_config: IMAPServerConfig, request, client_address, server
+    ) -> None:
         self.server_config: IMAPServerConfig = server_config
         self.seq_id = None
         super().__init__(config, request, client_address, server)

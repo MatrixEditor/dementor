@@ -48,7 +48,7 @@ from impacket.ntlm import (
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import HostDerivedValue, HostValue
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     ntlm_build_challenge_message,
@@ -88,7 +88,7 @@ class SMTPServerConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         A("smtp_ident", "Ident", "Dementor 1.0dev0"),
         A("smtp_downgrade", "Downgrade", False),

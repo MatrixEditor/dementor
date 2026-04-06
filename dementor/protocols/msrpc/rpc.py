@@ -33,7 +33,7 @@ from impacket.dcerpc.v5 import rpcrt, epm
 from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import HostDerivedValue, HostValue
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
     ntlm_build_challenge_message,
@@ -82,7 +82,7 @@ class RPCConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         A("epm_port", "EPM.TargetPort", 49000),
         A("epm_port_range", "EPM.TargetPortRange", None),

@@ -92,7 +92,7 @@ from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A
 from dementor.config.toml import TomlConfig
 from dementor.config.tls import generate_self_signed_cert
-from dementor.config.util import HostDerivedValue, HostValue
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.db import CLEARTEXT, DIGEST_MD5
 from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.log import hexdump
@@ -342,7 +342,7 @@ class LDAPServerConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         # TLS configuration
         ATTR_TLS,

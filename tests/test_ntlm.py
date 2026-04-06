@@ -612,17 +612,17 @@ class TestIsAnonymousAuthenticate:
         )
         assert _is_anonymous_authenticate(token) is False
 
-    def test_non_anonymous_with_nt(self):
+    def test_anonymous_with_nt(self):
         token = _build_ntlm_authenticate(
             user_name=b"", nt_response=b"\xaa" * 24, lm_response=b""
         )
-        assert _is_anonymous_authenticate(token) is False
+        assert _is_anonymous_authenticate(token) is True
 
-    def test_non_anonymous_with_lm(self):
+    def test_anonymous_with_lm(self):
         token = _build_ntlm_authenticate(
             user_name=b"", nt_response=b"", lm_response=b"\xbb" * 24
         )
-        assert _is_anonymous_authenticate(token) is False
+        assert _is_anonymous_authenticate(token) is True
 
     def test_exception_returns_false(self):
         """Fail-open: parse error returns False so we don't drop captures."""

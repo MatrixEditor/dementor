@@ -186,7 +186,8 @@ class HostValue:
 
     DEFAULT = "DEMENTOR"
     DNS_COMPUTER = "DnsComputer"
-    FQDN = "FWDN"
+    FQDN = "FQDN"
+    HOST = "Host"
     DNS_HOSTNAME = "DNSHostName"
     DNS_DOMAIN = "DNSDomain"
     DNS_TREE = "DNSTree"
@@ -238,62 +239,6 @@ class HostValue:
     def __call__(self, value: Any) -> "HostValue":
         """Allow a :class:`HostValue` instance to serve as a factory callable."""
         return HostValue(value)
-
-
-class HostDerivedValue:
-    """Attribute factory that derives a single host-related field from ``Globals.Host``.
-
-    Used as the ``factory`` parameter for :class:`~dementor.config.toml.Attribute`
-    definitions.  Resolution rules:
-
-    - If the Attribute resolved a concrete value from any config section, that
-      value is returned as-is (after an optional *post_factory* transform).
-    - If the Attribute resolved ``None`` (the key was not found anywhere), the
-      value is derived lazily from :func:`get_host_value`.
-
-    This removes the need to pre-populate ``[Globals]`` with derived keys - each
-    Attribute is self-contained and derives its identity on first access by
-    receiving the raw ``Host`` value resolved by the Attribute system.
-
-    When you instead need the full priority chain (explicit field -> fallback to
-    Host derivation), use :class:`HostFallbackValue` with the field's own qname.
-
-    :param field: The :class:`HostValue` field to derive (e.g. ``"FQDN"``,
-        ``"NetBIOSComputer"``).
-    :type field: str
-    :param fallback: Hard-coded last-resort value when neither an explicit config
-        value nor a usable ``Globals.Host`` is available.
-    :type fallback: str
-    :param post_factory: Optional callable applied *after* the value has been
-        resolved or derived.  Useful for chaining with e.g.
-        :func:`format_string` for template expansion.
-    :type post_factory: Callable[[str], str] | None
-    """
-
-    def __init__(
-        self,
-        field: str,
-        fallback: str = "",
-        post_factory: Callable[[str], str] | None = None,
-    ) -> None:
-        self.field = field
-        self.fallback = fallback
-        self.post_factory = post_factory
-
-    def __call__(self, value: Any) -> str:
-        """Resolve *value* or derive from ``Globals.Host``.
-
-        :param value: Raw value resolved by the Attribute system, or ``None``
-            when no configuration key matched.
-        :type value: Any
-        :return: Final string value for the configuration attribute.
-        :rtype: str
-        """
-        if value is None:
-            result = self.fallback
-        else:
-            result = HostValue(value).get_value(self.field) or self.fallback
-        return self.post_factory(result) if self.post_factory else result
 
 
 class HostFallbackValue:
@@ -348,9 +293,13 @@ class HostFallbackValue:
         if value is not None:
             result = str(value)
         else:
-            host = get_value("Globals", "Host", default=None)
-            derived = HostValue(host).get_value(self.field) if host else ""
-            result = derived or self.fallback
+            explicit_value = get_value("Globals", self.field, default=None)
+            if explicit_value is not None:
+                result = str(explicit_value)
+            else:
+                host = get_value("Globals", "Host", default=None)
+                derived = HostValue(host).get_value(self.field) if host else ""
+                result = derived or self.fallback
         return self.post_factory(result) if self.post_factory else result
 
 

@@ -47,7 +47,7 @@ from dementor.config.session import SessionConfig
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.db import CLEARTEXT
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import HostDerivedValue, HostValue
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.log.hexdump import hexdump
 from dementor.log.logger import ProtocolLogger
 from dementor.protocols.ntlm import (
@@ -132,7 +132,7 @@ class SSRPConfig(TomlConfig):
             "MSSQL.Host",
             None,
             section_local=False,
-            factory=HostDerivedValue("FQDN", "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         A("ssrp_server_version", "MSSQL.Version", "9.00.1399.06"),
         A("ssrp_server_instance", "MSSQL.InstanceName", "MSSQLServer"),
@@ -224,7 +224,7 @@ class MSSQLConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostDerivedValue(HostValue.FQDN, "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         A("mssql_instance", "InstanceName", "MSSQLSerevr"),
         A("mssql_error_code", "ErrorCode", 1205),  # LK_VICTIM

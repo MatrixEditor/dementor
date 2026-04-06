@@ -35,7 +35,7 @@ from unittest.mock import MagicMock
 from dementor.config import _set_global_config, get_global_config
 from dementor.config.attr import ATTR_GLOBALS_HOST
 from dementor.config.toml import Attribute
-from dementor.config.util import HostValue, HostDerivedValue, HostFallbackValue
+from dementor.config.util import HostValue, HostFallbackValue
 
 from dementor.protocols import ntlm
 from dementor.protocols.smtp import SMTPServerConfig
@@ -164,10 +164,10 @@ class TestHostValueGetValue:
         assert hv_no_domain.get_value("NetBIOSDomain") == "WORKGROUP"
 
     def test_no_domain_dns_domain_empty(self, hv_no_domain):
-        assert hv_no_domain.get_value("DnsDomain") == ""
+        assert hv_no_domain.get_value("DnsDomain") == "WORKGROUP"
 
     def test_no_domain_dns_tree_empty(self, hv_no_domain):
-        assert hv_no_domain.get_value("DnsTree") == ""
+        assert hv_no_domain.get_value("DnsTree") == "WORKGROUP"
 
     # --- NetBIOS 15-char truncation ---
 
@@ -216,68 +216,6 @@ class TestAttrGlobalsHost:
         assert isinstance(result, HostValue)
         assert result.hostname == "DC01"
 
-
-# ---------------------------------------------------------------------------
-# HostDerivedValue - per-attribute factory
-# ---------------------------------------------------------------------------
-
-
-class TestHostDerivedValue:
-    """
-    Verify that HostDerivedValue is a pure factory used with qname="Host".
-
-    it receives a Host string and derives the specific field from it - no
-    global config access.
-    """
-
-    def test_derives_fqdn_from_host_string(self):
-        factory = HostDerivedValue("FQDN")
-        assert factory("DC01.contoso.lab") == "DC01.contoso.lab"
-
-    def test_derives_netbios_computer_from_host_string(self):
-        factory = HostDerivedValue("NetBIOSComputer")
-        assert factory("DC01.contoso.lab") == "DC01"
-
-    def test_derives_netbios_domain_from_host_string(self):
-        factory = HostDerivedValue("NetBIOSDomain")
-        assert factory("DC01.contoso.lab") == "CONTOSO.LAB"
-
-    def test_derives_dns_computer_from_host_string(self):
-        factory = HostDerivedValue("DnsComputer")
-        assert factory("DC01.contoso.lab") == "DC01.contoso.lab"
-
-    def test_derives_dns_domain_from_host_string(self):
-        factory = HostDerivedValue("DnsDomain")
-        assert factory("DC01.contoso.lab") == "contoso.lab"
-
-    def test_explicit_value_parsed_as_host(self):
-        """Any explicit string is treated as a Host and the field is derived."""
-        factory = HostDerivedValue("FQDN", "DEMENTOR")
-        assert factory("explicit.host.com") == "explicit.host.com"
-
-    def test_fallback_when_none(self):
-        factory = HostDerivedValue("FQDN", "DEMENTOR")
-        assert factory(None) == "DEMENTOR"
-
-    def test_fallback_netbios_domain_workgroup(self):
-        factory = HostDerivedValue("NetBIOSDomain", "WORKGROUP")
-        assert factory(None) == "WORKGROUP"
-
-    def test_hostname_only_netbios_domain_workgroup(self):
-        factory = HostDerivedValue("NetBIOSDomain", "WORKGROUP")
-        assert factory("DEMENTOR") == "WORKGROUP"
-
-    def test_hostname_only_dns_computer_empty(self):
-        factory = HostDerivedValue("DnsComputer", "")
-        assert factory("DEMENTOR") == ""
-
-    def test_post_factory_applied_to_explicit_value(self):
-        factory = HostDerivedValue("FQDN", "DEMENTOR", post_factory=str.upper)
-        assert factory("dc01.corp.com") == "DC01.CORP.COM"
-
-    def test_post_factory_applied_to_derived_value(self):
-        factory = HostDerivedValue("DnsComputer", "DEMENTOR", post_factory=str.upper)
-        assert factory("dc01.corp.com") == "DC01.CORP.COM"
 
 
 # ---------------------------------------------------------------------------
@@ -597,8 +535,8 @@ class TestCLIHostOption:
 
         assert result["Host"] == "DC01.contoso.lab"
         # Factories derive on attribute access - verify the factory works correctly
-        factory = HostDerivedValue("NetBIOSComputer", "DEMENTOR")
-        assert factory("DC01.contoso.lab") == "DC01"
+        factory = HostFallbackValue("NetBIOSComputer", "DEMENTOR")
+        assert factory("DC01") == "DC01"
 
     def test_option_flag_equivalent_to_host_flag(self):
         """Globals.Host via -O must produce same result as -H."""

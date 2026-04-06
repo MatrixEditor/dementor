@@ -25,7 +25,7 @@
 #   - https://www.rfc-editor.org/rfc/rfc1734
 #   - https://datatracker.ietf.org/doc/html/rfc4616
 #   - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-pop3/
-from dementor.config.util import HostDerivedValue, HostValue
+from dementor.config.util import HostValue, HostFallbackValue
 import base64
 import binascii
 import typing
@@ -76,7 +76,7 @@ class POP3ServerConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostDerivedValue(HostValue.FQDN, "DEMENTOR"),
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
         ),
         A("pop3_downgrade", "Downgrade", True),
         A("pop3_banner", "Banner", "POP3 Server ready"),
@@ -122,7 +122,9 @@ class CloseConnection(Exception):
 
 
 class POP3Handler(BaseProtoHandler):
-    def __init__(self, config, server_config: POP3ServerConfig, request, client_address, server) -> None:
+    def __init__(
+        self, config, server_config: POP3ServerConfig, request, client_address, server
+    ) -> None:
         self.server_config: POP3ServerConfig = server_config
         super().__init__(config, request, client_address, server)
 

@@ -407,16 +407,16 @@ Port = 445
 # Specifies the NetBIOS domain name to advertise in NETLOGON responses.
 # This value is used when responding to PDC queries (LOGON_PRIMARY_QUERY)
 # and DC discovery requests (LOGON_SAM_LOGON_REQUEST).
-# The default value is: "CONTOSO"
+# The default value is: "WORKGROUP"
 
-# DomainName = "WORKGROUP"
+# DNSDomain = "WORKGROUP"
 
 # Specifies the hostname to advertise as the domain controller in NETLOGON
 # responses. This value is used when responding to PDC queries and DC
 # discovery requests.
-# The default value is: "DC01"
+# The default value is: "DEMENTOR"
 
-# Hostname = "FILESERVER"
+# DnsComputer = "DC01"
 
 
 # =============================================================================

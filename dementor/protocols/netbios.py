@@ -33,6 +33,7 @@ from dementor.servers import BaseProtoHandler, ThreadingUDPServer
 from dementor.log.logger import ProtocolLogger
 from dementor.config.session import TomlConfig
 from dementor.config.toml import Attribute as A
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.filters import ATTR_BLACKLIST, ATTR_WHITELIST, in_scope
 from dementor.protocols import mailslot, netlogon
 
@@ -54,8 +55,18 @@ class NBTNSConfig(TomlConfig):
 class BrowserConfig(TomlConfig):
     _section_ = "Browser"
     _fields_ = [
-        A("browser_domain_name", "DomainName", "CONTOSO"),
-        A("browser_hostname", "Hostname", "DC01"),
+        A(
+            "browser_domain_name",
+            f"NTLM.{HostValue.DNS_DOMAIN}",
+            default_val=None,
+            factory=HostFallbackValue(HostValue.DNS_DOMAIN, "WORKGROUP"),
+        ),
+        A(
+            "browser_hostname",
+            f"NTLM.{HostValue.DNS_COMPUTER}",
+            default_val=None,
+            factory=HostFallbackValue(HostValue.DNS_COMPUTER, HostValue.DEFAULT),
+        ),
         ATTR_WHITELIST,
         ATTR_BLACKLIST,
     ]
@@ -108,7 +119,7 @@ class NetBiosNSPoisoner(BaseProtoHandler):
             }
         )
 
-    def handle_data(self, data: bytes, transport) -> None:
+    def handle_data(self, data: bytes, transport) -> None:  # ty:ignore[invalid-method-override]
         header = netbios.NBNSHeader(data)
         if header.RESPONSE:
             # response sent by server, ignore
