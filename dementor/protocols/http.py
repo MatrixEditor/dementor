@@ -44,7 +44,8 @@ from dementor.config.util import (
     format_string,
     get_value,
     is_true,
-    HostValue, HostFallbackValue,
+    HostValue,
+    HostFallbackValue,
 )
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server, BaseServerThread
@@ -131,7 +132,9 @@ class HTTPServerConfig(TomlConfig):
             "Host",
             None,
             section_local=False,
-            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR", post_factory=format_string),
+            factory=HostFallbackValue(
+                HostValue.HOST, "DEMENTOR", post_factory=format_string
+            ),
         ),
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),

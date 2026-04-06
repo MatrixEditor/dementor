@@ -67,6 +67,13 @@ Command-Line Options
         Options now support an "append" action using the ``+=`` operator for settings storing multiple
         values.
 
+-H, --host HOST
+
+    .. versionadded:: 1.0.0.dev22
+
+    Specify the host FQDN (fully qualified domain name) for all protocol servers
+    (e.g., ``DC01.contoso.lab``). This is a shortcut for ``-O Globals.Host=HOST``.
+
 --verbose
 
     Enables verbose output for protocol-specific loggers, including debug-level messages.

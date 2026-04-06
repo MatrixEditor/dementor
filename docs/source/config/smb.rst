@@ -358,6 +358,19 @@ Server Instances
         - **139** -- NetBIOS session service (used by XP/Server 2003 in
           addition to port 445; leaks NetBIOS CallingName)
 
+    .. py:attribute:: Server.Host
+        :type: str
+        :value: "DEMENTOR"
+
+        *Maps to* :attr:`smb.SMBServerConfig.smb_fqdn`. *Can also be set in* ``[SMB]`` *or* ``[Globals]``
+
+        Specifies the host identity for this server. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+        hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this
+        entry. Inherits from ``Globals.Host`` when not set here.
+
+        .. versionchanged:: 1.0.0.dev22
+            Renamed from ``FQDN`` to ``Host``
+
 
 SMB 3.1.1 Negotiate Contexts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -217,7 +217,6 @@ class TestAttrGlobalsHost:
         assert result.hostname == "DC01"
 
 
-
 # ---------------------------------------------------------------------------
 # HostFallbackValue - explicit-first, Host-derived fallback factory
 # ---------------------------------------------------------------------------

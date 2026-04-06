@@ -135,3 +135,36 @@ TLS Options
     :type: str
 
     Specifies the private key file corresponding to the certificate used for TLS.
+
+
+.. py:attribute:: Host
+    :type: str
+    :value: "DEMENTOR"
+
+    Specifies the host identity for all protocol servers. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+    hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this entry when
+    not configured explicitly.
+
+    When a Host value is set, the following identities are automatically derived:
+
+    - **NetBIOS Domain Name** (``NetBIOSDomainName``): Domain portion of the Host (after first dot), uppercase
+    - **DNS Host Name** (``DNSHostName``): Hostname portion (before first dot)
+    - **NetBIOS Name** (``NetBIOSName``): First 15 characters of hostname, uppercase
+    - **DNS Domain Name** (``DNSDomainName``): Domain portion of the Host, lowercase
+
+    Example:
+
+    .. code-block:: toml
+
+        [Globals]
+        Host = "DC01.contoso.lab"
+
+    Results in:
+
+    - ``NetBIOS Computer Name``: ``DC01``
+    - ``NetBIOS Domain Name``: ``CONTOSO``
+    - ``DNS Host Name``: ``dc01.contoso.lab``
+    - ``DNS Domain Name``: ``contoso.lab``
+
+    .. versionadded:: 1.0.0.dev22
+        Global Host configuration provides centralized identity management across all protocols.
