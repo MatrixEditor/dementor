@@ -26,6 +26,7 @@ import typing
 from typing_extensions import override
 
 from scapy.fields import NetBIOSNameField
+from rich.markup import escape
 from impacket import (
     nmb,
     ntlm,
@@ -516,24 +517,26 @@ class SMBHandler(BaseProtoHandler):
         AccountName, PrimaryDomain, tree connect Path.
         """
         keys = [
-            ("smb_os", "os"),
-            ("smb_lanman", "lanman"),
-            ("smb_calling_name", "calling"),
-            ("smb_called_name", "called"),
-            ("smb_account", "account"),
-            ("smb_domain", "domain"),
-            ("smb_path", "path"),
-            ("smb_dialect", "dialect"),
+            ("smb_os", "OS"),
+            ("smb_lanman", "LAN Manager"),
+            ("smb_calling_name", "Calling Name"),
+            ("smb_called_name", "Called Name"),
+            ("smb_account", "Account"),
+            ("smb_domain", "Domain"),
+            ("smb_path", "Path"),
+            ("smb_dialect", "Dialect"),
         ]
         parts = [
-            f"{label}:{self.client_info[k]}"
+            f"[b]{label}[/]: {escape(self.client_info[k])}"
             for k, label in keys
             if self.client_info.get(k)
         ]
         if self.client_files:
-            parts.append(f"files:{','.join(sorted(self.client_files))}")
+            filenames: str = escape(", ".join(sorted(self.client_files)))
+            parts.append(f"files:{filenames}")
         if parts:
-            self.logger.info("SMB: %s", " | ".join(parts))
+            conn_info = " [b]|[/] ".join(parts)
+            self.logger.display(f"Client connection: {conn_info} closed")
 
     # ══ Transport & Dispatch ════════════════════════════════════════════════════
 
