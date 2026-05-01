@@ -27,7 +27,7 @@ in development. The legend for each symbol is as follows:
         <tr>
             <th>Supported Protocols</th>
             <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
-            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev21)</a></th>
+            <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev22)</a></th>
         </tr>
     </thead>
     <tbody>
@@ -764,13 +764,18 @@ in development. The legend for each symbol is as follows:
     </tbody>
     </table>
 
+    <p id="ldap-issues">
+        [2] Responder's LDAP server does not handle initial unauthenticated queries, which drastically lowers the amount of hashes captured.
+        Additionally, the printed DIGEST-MD5 hash is invalid, since there is no public support for cracking DIGEST-MD5 hashes from LDAP connections.
+    </p>
+
     <h3>SMB Features</h3>
     <table>
         <thead>
             <tr>
                 <th>Feature</th>
                 <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
-                <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev21)</a></th>
+                <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev22)</a></th>
             </tr>
         </thead>
     <tbody>
@@ -780,19 +785,9 @@ in development. The legend for each symbol is as follows:
             <td><i class="i-lucide checkfb sd-text-success l"></i> SMB1 + SMB2</td>
         </tr>
         <tr>
-            <td>Logoff handling</td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-        </tr>
-        <tr>
             <td>Cleartext password capture</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-        </tr>
-        <tr>
-            <td>Multi-credential capture</td>
-            <td><i class="i-lucide triangle-alert sd-text-warning l"></i> SMB1 only</td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i> SMB1 + SMB2</td>
         </tr>
         <tr>
             <td>Filename capture</td>
@@ -800,34 +795,9 @@ in development. The legend for each symbol is as follows:
             <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
-            <td>Client info extraction</td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i> OS, LanMan, version, workstation</td>
-        </tr>
-        <tr>
-            <td>SMB 3.1.1 negotiate contexts</td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i> preauth, encryption, signing</td>
-        </tr>
-        <tr>
             <td>Configurable dialect range</td>
             <td><i class="i-lucide badge-alert sd-text-danger l"></i> hardcoded SMB 2.1</td>
             <td><i class="i-lucide checkfb sd-text-success l"></i> 2.002 - 3.1.1</td>
-        </tr>
-        <tr>
-            <td>SMB2 SessionID allocation</td>
-            <td><i class="i-lucide badge-alert sd-text-danger l"></i> echoes client value</td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i> server-allocated random</td>
-        </tr>
-        <tr>
-            <td>Configurable ErrorCode</td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-        </tr>
-        <tr>
-            <td>Configurable ServerOS</td>
-            <td><i class="i-lucide x sd-text-danger l"></i></td>
-            <td><i class="i-lucide checkfb sd-text-success l"></i></td>
         </tr>
         <tr>
             <td>Per-listener config</td>
@@ -843,22 +813,12 @@ in development. The legend for each symbol is as follows:
             <tr>
                 <th>Feature</th>
                 <th><a href="https://github.com/lgandx/Responder">Responder (3.2.2.0)</a></th>
-                <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev21)</a></th>
+                <th><a href="https://github.com/MatrixEditor/Dementor">Dementor (1.0.0.dev22)</a></th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>LMv2 companion capture</td>
-                <td><i class="i-lucide x sd-text-danger l"></i></td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            </tr>
-            <tr>
-                <td>Dummy LM filtering</td>
-                <td><i class="i-lucide x sd-text-danger l"></i></td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            </tr>
-            <tr>
-                <td>LM dedup filtering</td>
+                <td>Dummy LM filtering / LM dedup filtering</td>
                 <td><i class="i-lucide x sd-text-danger l"></i></td>
                 <td><i class="i-lucide checkfb sd-text-success l"></i></td>
             </tr>
@@ -866,21 +826,6 @@ in development. The legend for each symbol is as follows:
                 <td>Anonymous detection</td>
                 <td><i class="i-lucide badge-alert sd-text-danger l"></i> checks LM length only</td>
                 <td><i class="i-lucide checkfb sd-text-success l"></i> full structural check</td>
-            </tr>
-            <tr>
-                <td>Client flag mirroring</td>
-                <td><i class="i-lucide badge-alert sd-text-danger l"></i> hardcoded flags</td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i> dynamic per client</td>
-            </tr>
-            <tr>
-                <td>NTLMv2 detection threshold</td>
-                <td><i class="i-lucide badge-alert sd-text-danger l"></i> &gt;60 bytes (drops valid hashes)</td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i> &gt;24 bytes (spec-correct)</td>
-            </tr>
-            <tr>
-                <td>NTLMv2 threshold consistency</td>
-                <td><i class="i-lucide badge-alert sd-text-danger l"></i> SMB uses &gt;60, HTTP uses &gt;25</td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i> &gt;24 everywhere</td>
             </tr>
             <tr>
                 <td>AV_PAIR correctness</td>
@@ -903,24 +848,9 @@ in development. The legend for each symbol is as follows:
                 <td><i class="i-lucide checkfb sd-text-success l"></i> v1, v1-ESS, v2, LMv2</td>
             </tr>
             <tr>
-                <td>Client OS/version extraction</td>
-                <td><i class="i-lucide x sd-text-danger l"></i></td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            </tr>
-            <tr>
                 <td>Configurable challenge</td>
-                <td><i class="i-lucide triangle-alert sd-text-warning l"></i> hex or random</td>
+                <td><i class="i-lucide checkfb sd-text-success l"></i> hex or random</td>
                 <td><i class="i-lucide checkfb sd-text-success l"></i> hex, ascii, auto-detect</td>
-            </tr>
-            <tr>
-                <td>SPNEGO unwrapping</td>
-                <td><i class="i-lucide triangle-alert sd-text-warning l"></i></td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i></td>
-            </tr>
-            <tr>
-                <td>Non-NTLM mech redirect</td>
-                <td><i class="i-lucide x sd-text-danger l"></i></td>
-                <td><i class="i-lucide checkfb sd-text-success l"></i></td>
             </tr>
             <tr>
                 <td>ESS configurable</td>
