@@ -98,7 +98,7 @@ class LLMNRPoisoner(BaseProtoHandler):
                 self.send_poisoned_answer(packet, question, transport)
 
     def send_poisoned_answer(self, req, question: dns.DNSQR, transport) -> None:
-        # check if we can send a response
+        # skip response if the address family (A vs AAAA) doesn't match local config
         if question.qtype == 28 and not self.config.ipv6:
             self.logger.highlight(
                 "Client requested AAAA record (IPv6) but local config does not "

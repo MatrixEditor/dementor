@@ -48,14 +48,15 @@ from impacket.ntlm import (
 
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
-    NTLM_build_challenge_message,
-    NTLM_handle_authenticate_message,
-    NTLM_handle_negotiate_message,
+    ntlm_build_challenge_message,
+    ntlm_handle_authenticate_message,
+    ntlm_handle_negotiate_message,
 )
-from dementor.db import _CLEARTEXT
-from dementor.servers import AsyncServerThread
+from dementor.db import CLEARTEXT
+from dementor.servers import AsyncServerThread, BaseServerThread
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 
 __proto__ = ["SMTP"]
@@ -82,7 +83,13 @@ class SMTPServerConfig(TomlConfig):
     _fields_ = [
         A("smtp_port", "Port"),
         A("smtp_tls", "TLS", False),
-        A("smtp_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A(
+            "smtp_fqdn",
+            "Host",
+            None,
+            section_local=False,
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
+        ),
         A("smtp_ident", "Ident", "Dementor 1.0dev0"),
         A("smtp_downgrade", "Downgrade", False),
         A("smtp_auth_mechanisms", "AuthMechanisms", list),
@@ -108,12 +115,14 @@ class SMTPServerConfig(TomlConfig):
 class SMTP(BaseProtocolModule[SMTPServerConfig]):
     name = "SMTP"
     config_ty = SMTPServerConfig
-    config_attr = "smtp_servers"
+    config_attr = DEFAULT_ATTR
     config_enabled_attr = DEFAULT_ATTR
     config_list = True
 
     @override
-    def create_server_thread(self, session, server_config):
+    def create_server_thread(
+        self, session: SessionConfig, server_config: SMTPServerConfig
+    ) -> BaseServerThread[SMTPServerConfig]:
         return SMTPServerThread(session, server_config)
 
 
@@ -144,15 +153,8 @@ class SMTPDefaultAuthenticator:
     ) -> AuthResult:
         match auth_data:
             case NTLMAuth():
-                # successful NTLM authentication
-                # self.config.db.add_auth(
-                #     client=session.peer,
-                #     credtype=auth_data.hash_version,
-                #     password=auth_data.hash_string,
-                #     logger=self.logger,
-                #     username=auth_data.user_name,
-                #     domain=auth_data.domain_name,
-                # )
+                # Credentials are captured upstream in chapture_ntlm_auth via
+                # ntlm_handle_authenticate_message; nothing to do here.
                 pass
 
             case LoginPassword():
@@ -161,7 +163,7 @@ class SMTPDefaultAuthenticator:
                 password = auth_data.password.decode(errors="replace")
                 self.config.db.add_auth(
                     client=session.peer,
-                    credtype=_CLEARTEXT,
+                    credtype=CLEARTEXT,
                     password=password,
                     logger=self.logger,
                     username=username,
@@ -189,11 +191,6 @@ class SMTPServerHandler:
         self, server: SMTPServerBase, args: list[str]
     ) -> SMTP_AUTH_Result:
         return await server.auth_PLAIN(server, args)
-
-    async def auth_ntlm(
-        self, server: SMTPServerBase, args: list[str]
-    ) -> SMTP_AUTH_Result:
-        return await self.auth_NTLM(server, args)
 
     async def auth_NTLM(
         self, server: SMTPServerBase, args: list[bytes]
@@ -239,16 +236,23 @@ class SMTPServerHandler:
 
         negotiate_message = NTLMAuthNegotiate()
         negotiate_message.fromString(blob)
-        negotiate_fields = NTLM_handle_negotiate_message(negotiate_message, self.logger)
+        negotiate_fields = ntlm_handle_negotiate_message(negotiate_message, self.logger)
 
         # now we can build the challenge using the answer flags
-        ntlm_challenge = NTLM_build_challenge_message(
+        host = HostValue(self.server_config.smtp_fqdn)
+        ntlm_challenge = ntlm_build_challenge_message(
             negotiate_message,
             challenge=self.config.ntlm_challenge,
-            nb_computer=self.config.ntlm_nb_computer,
-            nb_domain=self.config.ntlm_nb_domain,
+            nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+            nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
             disable_ess=self.config.ntlm_disable_ess,
             disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+            target_type=self.config.ntlm_target_type,
+            version=self.config.ntlm_version,
+            dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+            dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+            # REVISIT: capture DNSTree too
+            # dns_tree=self.config.ntlm_dns_tree,
             log=self.logger,
         )
 
@@ -260,7 +264,7 @@ class SMTPServerHandler:
         # NTLM AUTHENTICATE_MESSAGE.
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             auth_message,
             challenge=self.config.ntlm_challenge,
             client=server.session.peer,
@@ -284,19 +288,21 @@ class SMTPServerHandler:
 
 
 class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
-    def __init__(self, config: SessionConfig, server_config: SMTPServerConfig):
+    def __init__(self, config: SessionConfig, server_config: SMTPServerConfig) -> None:
         super().__init__(config, server_config)
         self.controller: Controller | None = None
         self._running = False
 
     @override
-    def is_running(self):
+    def is_running(self) -> bool:
         return self._running
 
-    def get_service_name(self) -> str:
+    @property
+    def service_name(self) -> str:
         return "SMTPS" if self.server_config.smtp_tls else "SMTP"
 
-    def get_port(self):
+    @property
+    def get_port(self) -> int:
         return self.server_config.smtp_port
 
     def create_logger(self) -> ProtocolLogger:
@@ -307,9 +313,9 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
             }
         )
 
-    async def start_server(
+    def start_server(
         self, controller: Controller, config: SessionConfig, smtp_config
-    ):
+    ) -> None:
         controller.port = smtp_config.smtp_port
 
         # NOTE: hostname on the controller points to the local address that will be
@@ -358,7 +364,7 @@ class SMTPServerThread(AsyncServerThread[SMTPServerConfig]):
             tls_context=tls_context,
             require_starttls=server.smtp_require_starttls,
         )
-        await self.start_server(
+        self.start_server(
             self.controller,
             self.config,
             server,

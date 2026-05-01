@@ -22,17 +22,10 @@ import datetime
 import random
 import string
 import secrets
-import os
-import tempfile
 
 from typing import Any
+from collections.abc import Callable
 from jinja2.sandbox import SandboxedEnvironment
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
 
 from dementor.config import get_global_config
 
@@ -176,6 +169,140 @@ class BytesValue:
             return stripped.encode()
 
 
+class HostValue:
+    """Parse a host FQDN and derive all host-related configuration values.
+
+    A single ``Host = "HOSTNAME.DOMAIN"`` entry in ``[Globals]`` derives:
+
+    - ``NetBIOSDomainName`` / ``NetBIOSDomain``     -> ``domain.upper()``
+    - ``DNSHostName``                               -> ``hostname``
+    - ``NetBIOSName``       / ``NetBIOSComputer``   -> ``hostname[:15].upper()``
+    - ``DNSDomainName``     / ``DnsDomain``         -> ``domain.lower()``
+    - ``DnsComputer``       / ``FQDN``              -> full ``"hostname.domain"``
+
+    :param value: Raw host string, e.g. ``"DC01.contoso.lab"``
+    :type value: str
+    """
+
+    DEFAULT = "DEMENTOR"
+    DNS_COMPUTER = "DnsComputer"
+    FQDN = "FQDN"
+    HOST = "Host"
+    DNS_HOSTNAME = "DNSHostName"
+    DNS_DOMAIN = "DNSDomain"
+    DNS_TREE = "DNSTree"
+    NETBIOS_NAME = "NetBIOSName"
+    NETBIOS_COMPUTER = "NetBIOSComputer"
+    NETBIOS_DOMAIN = "NetBIOSDomain"
+
+    def __init__(self, value: Any) -> None:
+        self._raw = str(value).strip() if value is not None else self.DEFAULT
+        if "." in self._raw:
+            self.hostname, self.domain = self._raw.split(".", 1)
+        else:
+            self.hostname = self._raw
+            self.domain = ""
+
+    def get_value(self, field: str) -> str:
+        """Return the derived configuration value for *field*.
+
+        :param field: Supported field names: ``Host``, ``FQDN``, ``DnsComputer``,
+            ``DNSHostName``, ``NetBIOSName``, ``NetBIOSComputer``,
+            ``NetBIOSDomainName``, ``NetBIOSDomain``, ``DNSDomainName``,
+            ``DnsDomain``, ``DnsTree``.
+        :type field: str
+        :return: Derived string value.
+        :rtype: str
+        """
+        value: str = self.hostname
+        match field:
+            case "Host" | "FQDN":
+                value = self._raw
+            case "DnsComputer":
+                # Full FQDN when a domain is present; empty (omit AV_PAIR) otherwise
+                value = self._raw if self.domain else ""
+            case "DNSHostName":
+                value = self.hostname
+            case "NetBIOSName" | "NetBIOSComputer":
+                value = self.hostname[:15].upper()
+            case "NetBIOSDomainName" | "NetBIOSDomain":
+                value = self.domain.upper() if self.domain else "WORKGROUP"
+            case "DNSDomainName" | "DnsDomain" | "DnsTree":
+                value = self.domain.lower() if self.domain else "WORKGROUP"
+            case _:
+                pass
+        return value
+
+    def __str__(self) -> str:
+        return self._raw
+
+    def __call__(self, value: Any) -> "HostValue":
+        """Allow a :class:`HostValue` instance to serve as a factory callable."""
+        return HostValue(value)
+
+
+class HostFallbackValue:
+    """Attribute factory that applies an explicit-first, Host-derived fallback strategy.
+
+    Resolution order when used as an :class:`~dementor.config.toml.Attribute`
+    factory:
+
+    1. Any explicit value resolved by the Attribute system (e.g.
+       ``[Server].FQDN``, ``[Protocol].FQDN``, ``[Globals].FQDN``) - returned
+       as-is.
+    2. When the resolved value is ``None`` (nothing set anywhere): derive the
+       field from ``Globals.Host`` via :class:`HostValue`.
+    3. When ``Globals.Host`` is also absent: return *fallback*.
+
+    Unlike :class:`HostDerivedValue` (which always parses the input through
+    :class:`HostValue` and is used with ``qname="Host"``), this class treats
+    explicit values as opaque strings and invokes :class:`HostValue` derivation
+    only as a last resort.  Use this with the actual field's own ``qname``
+    (e.g. ``"FQDN"``, ``"NetBIOSComputer"``) so that each value can be
+    configured independently before Host derivation kicks in.
+
+    :param field: :class:`HostValue` field used for Host-based derivation
+        (e.g. ``"FQDN"``, ``"NetBIOSComputer"``).
+    :type field: str
+    :param fallback: Hard-coded last-resort value.
+    :type fallback: str
+    :param post_factory: Optional callable applied after the value is resolved
+        or derived.  Useful for chaining with e.g. :func:`format_string`.
+    :type post_factory: Callable[[str], str] | None
+    """
+
+    def __init__(
+        self,
+        field: str,
+        fallback: str = "",
+        post_factory: Callable[[str], str] | None = None,
+    ) -> None:
+        self.field = field
+        self.fallback = fallback
+        self.post_factory = post_factory
+
+    def __call__(self, value: Any) -> str:
+        """Resolve *value* with explicit-first, Host-derived fallback.
+
+        :param value: Raw value from the Attribute system, or ``None`` when no
+            configuration key matched.
+        :type value: Any
+        :return: Final string value.
+        :rtype: str
+        """
+        if value is not None:
+            result = str(value)
+        else:
+            explicit_value = get_value("Globals", self.field, default=None)
+            if explicit_value is not None:
+                result = str(explicit_value)
+            else:
+                host = get_value("Globals", "Host", default=None)
+                derived = HostValue(host).get_value(self.field) if host else ""
+                result = derived or self.fallback
+        return self.post_factory(result) if self.post_factory else result
+
+
 def random_value(size: int) -> str:
     """
     Produce a random alphabetic string of *size* characters.
@@ -214,8 +341,10 @@ def format_string(value: str, locals: dict[str, Any] | None = None) -> str:
     try:
         template = _SANDBOX.from_string(value)
         return template.render(config=config, random=random_value, **(locals or {}))
-    except Exception:  # pragma: no cover - defensive fallback
-        # TODO: replace with proper logging once the logging subsystem is ready.
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        from dementor.log.logger import dm_logger  # noqa: PLC0415
+
+        dm_logger.debug("Template render failed: %s", exc)
         return value
 
 
@@ -227,84 +356,3 @@ def now() -> str:
     :rtype: str
     """
     return datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")
-
-
-def generate_self_signed_cert(
-    cn: str,
-    org: str,
-    country: str,
-    state: str,
-    locality: str,
-    validity_days: int,
-) -> tuple[str, str, tempfile.TemporaryDirectory]:
-    """
-    Generate a self-signed certificate and private key in a temporary directory.
-
-    :param cn: Common name for the certificate.
-    :param org: Organization name.
-    :param country: Country code.
-    :param state: State or province.
-    :param locality: Locality or city.
-    :param validity_days: Number of days the certificate is valid.
-    :return: Tuple of (certificate path, key path, temporary directory object).
-    """
-    # Create temp dir
-    temp_dir = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
-
-    # Generate private key
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-    )
-
-    # Create certificate
-    subject = issuer = x509.Name(
-        [
-            x509.NameAttribute(NameOID.COUNTRY_NAME, country),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state),
-            x509.NameAttribute(NameOID.LOCALITY_NAME, locality),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-            x509.NameAttribute(NameOID.COMMON_NAME, cn),
-        ]
-    )
-
-    cert = (
-        x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(issuer)
-        .public_key(private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.now(datetime.UTC))
-        .not_valid_after(
-            datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=validity_days)
-        )
-        .add_extension(
-            x509.SubjectAlternativeName(
-                [
-                    x509.DNSName(cn),
-                ]
-            ),
-            critical=False,
-        )
-        .sign(private_key, hashes.SHA256())
-    )
-
-    # Save private key
-    key_id = "".join(random.choices(string.hexdigits))
-    key_path = os.path.join(temp_dir.name, f"key_{key_id}.pem")
-    with open(key_path, "wb") as f:
-        f.write(
-            private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption(),
-            )
-        )
-
-    # Save certificate
-    cert_id = "".join(random.choices(string.hexdigits))
-    cert_path = os.path.join(temp_dir.name, f"cert_{cert_id}.pem")
-    with open(cert_path, "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-
-    return cert_path, key_path, temp_dir

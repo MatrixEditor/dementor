@@ -33,11 +33,12 @@ from impacket.dcerpc.v5 import rpcrt, epm
 from impacket import ntlm
 
 from dementor.config.toml import TomlConfig, Attribute as A
+from dementor.config.util import HostValue, HostFallbackValue
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.protocols.ntlm import (
-    NTLM_build_challenge_message,
-    NTLM_handle_negotiate_message,
-    NTLM_handle_authenticate_message,
+    ntlm_build_challenge_message,
+    ntlm_handle_negotiate_message,
+    ntlm_handle_authenticate_message,
 )
 from dementor.servers import ThreadingTCPServer, BaseProtoHandler
 from dementor.loader import ProtocolLoader
@@ -76,7 +77,13 @@ if typing.TYPE_CHECKING:
 class RPCConfig(TomlConfig):
     _section_ = "RPC"
     _fields_ = [
-        A("rpc_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A(
+            "rpc_fqdn",
+            "Host",
+            None,
+            section_local=False,
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
+        ),
         A("epm_port", "EPM.TargetPort", 49000),
         A("epm_port_range", "EPM.TargetPortRange", None),
         A("rpc_modules", "Interfaces", list),
@@ -90,7 +97,7 @@ class RPCConfig(TomlConfig):
         rpc_modules: list[RPCModule]
         rpc_error_code: int
 
-    def set_rcp_error_code(self, value: str | int):
+    def set_rpc_error_code(self, value: str | int) -> None:
         if isinstance(value, str):
             value = rev_rpc_status_codes[value]
 
@@ -102,7 +109,7 @@ class RPCConfig(TomlConfig):
 
         self.rpc_error_code = value
 
-    def set_epm_port_range(self, value: str | dict):
+    def set_epm_port_range(self, value: str | dict) -> None:
         start = end = None
         match value:
             case dict():
@@ -128,7 +135,7 @@ class RPCConfig(TomlConfig):
             self.epm_port_range = (start, end)
             self.epm_port = random.randrange(start, end)
 
-    def set_rpc_modules(self, extra_paths: list):
+    def set_rpc_modules(self, extra_paths: list) -> None:
         loader = ProtocolLoader()
         loader.search_path = [os.path.dirname(__file__)]
         loader.search_path.extend(extra_paths)
@@ -152,7 +159,7 @@ class RPCHandler(BaseProtoHandler):
         server: "MSRPCServer"
 
     def __init__(self, config, request, client_address, server) -> None:
-        self.rpc_config = config.rpc_config
+        self.rpc_config: RPCConfig = config.rpc_config
         super().__init__(config, request, client_address, server)
 
     def proto_logger(self) -> ProtocolLogger:
@@ -234,7 +241,7 @@ class RPCHandler(BaseProtoHandler):
 
         ctx_items = []
         data = bind_req["ctx_items"]
-        conn = self.server.get_conn_by_call_id(header["call_id"])
+        conn = self.server.get_or_create_conn_by_call_id(header["call_id"])
         endpoints = set()
         for _ in range(bind_req["ctx_num"]):
             result = rpcrt.MSRPC_CONT_RESULT_PROV_REJECT
@@ -289,15 +296,22 @@ class RPCHandler(BaseProtoHandler):
                 # generate challenge
                 negotiate = ntlm.NTLMAuthNegotiate()
                 negotiate.fromString(token)
-                negotiate_fields = NTLM_handle_negotiate_message(negotiate, self.logger)
+                negotiate_fields = ntlm_handle_negotiate_message(negotiate, self.logger)
                 conn.negotiate_fields = negotiate_fields
-                challenge = NTLM_build_challenge_message(
+                host = HostValue(self.rpc_config.rpc_fqdn)
+                challenge = ntlm_build_challenge_message(
                     negotiate,
                     challenge=self.config.ntlm_challenge,
-                    nb_computer=self.config.ntlm_nb_computer,
-                    nb_domain=self.config.ntlm_nb_domain,
+                    nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+                    nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
                     disable_ess=self.config.ntlm_disable_ess,
                     disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                    target_type=self.config.ntlm_target_type,
+                    version=self.config.ntlm_version,
+                    dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+                    dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+                    # REVISIT: capture DNSTree too
+                    # dns_tree=self.config.ntlm_dns_tree,
                     log=self.logger,
                 )
                 bind_ack["auth_data"] = challenge.getData()
@@ -330,7 +344,7 @@ class RPCHandler(BaseProtoHandler):
             self.logger.display(f"Rejecting AUTH3 request using AuthType: {auth_type:#x}")
             return rev_rpc_status_codes["nca_s_unsupported_authn_level"]
 
-        conn = self.server.get_conn_by_call_id(header["call_id"])
+        conn = self.server.get_or_create_conn_by_call_id(header["call_id"])
         token = header["auth_data"]
         if not conn.challenge:
             # challenge not set, invalid request
@@ -338,7 +352,7 @@ class RPCHandler(BaseProtoHandler):
 
         auth_resp = ntlm.NTLMAuthChallengeResponse()
         auth_resp.fromString(token)
-        NTLM_handle_authenticate_message(
+        ntlm_handle_authenticate_message(
             auth_token=auth_resp,
             challenge=conn.challenge["challenge"],
             client=self.client_address,
@@ -350,7 +364,7 @@ class RPCHandler(BaseProtoHandler):
 
     def handle_request(self, data):
         request = rpcrt.MSRPCRequestHeader(data)
-        conn = self.server.get_conn_by_call_id(request["call_id"])
+        conn = self.server.get_or_create_conn_by_call_id(request["call_id"])
         conn.ctx_id = request["ctx_id"]
         if not conn.target:
             # Interface not set, we can't handle this
@@ -375,14 +389,14 @@ class MSRPCServer(ThreadingTCPServer):
         self._conn_lock = threading.Lock()
         super().__init__(config, server_address, RequestHandlerClass)
 
-    def get_conn_by_call_id(self, call_id: int) -> RPCConnection:
+    def get_or_create_conn_by_call_id(self, call_id: int) -> RPCConnection:
         with self._conn_lock:
             conn = self.conn_data[call_id]
             if conn.call_id == -1:
                 conn.call_id = call_id
         return conn
 
-    def get_conn_by_auth_ctx_id(self, auth_ctx_id: int) -> RPCConnection:
+    def get_or_create_conn_by_auth_ctx_id(self, auth_ctx_id: int) -> RPCConnection:
         conn = next(
             filter(lambda x: x.auth_ctx_id == auth_ctx_id, self.conn_data.values()),
             None,
@@ -404,6 +418,8 @@ class MSRPCServer(ThreadingTCPServer):
         handler_cls = getattr(module, "RPCEndpointHandlerClass", None)
         if handler_cls:
             return handler_cls()
+
+        return None
 
     def get_handler_by_uuid(self, uuid: bytes) -> RPCEndpointHandlerFunc | None:
         uuid_str, _ = rpcrt.bin_to_uuidtup(uuid)

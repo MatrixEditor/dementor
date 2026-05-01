@@ -362,7 +362,7 @@ class HashStreams(LoggingFileStream[HashesStreamConfig]):
                 write_to(f"HASH_{hash_type}", str(hash_value))
 
 
-def init_streams(session: SessionConfig):
+def init_streams(session: SessionConfig) -> None:
     """Initialize all configured logging streams at startup.
 
     Calls `.start()` on each stream class to load config and register instances.
@@ -376,7 +376,7 @@ def init_streams(session: SessionConfig):
     session.streams = dm_streams
 
 
-def add_stream(name: str, stream: LoggingStream[_T]):
+def add_stream(name: str, stream: LoggingStream[_T]) -> None:
     """Manually register a stream instance.
 
     Useful for dynamic or custom streams.
@@ -400,7 +400,7 @@ def get_stream(name: str) -> LoggingStream[_T] | None:
     return dm_streams.get(name)
 
 
-def close_streams(session: SessionConfig):
+def close_streams(session: SessionConfig) -> None:
     """Close all active streams.
 
     Called during graceful shutdown.
@@ -412,7 +412,7 @@ def close_streams(session: SessionConfig):
         stream.close()
 
 
-def log_to(__name: str, /, **kwargs: Any):
+def log_to(__name: str, /, **kwargs: Any) -> None:
     """Write structured data to a registered stream.
 
     :param __name: Stream name (e.g., `"hosts"`, `"hashes"`).
@@ -423,7 +423,7 @@ def log_to(__name: str, /, **kwargs: Any):
         dm_streams[__name].add(**kwargs)
 
 
-def write_to(name: str, line: str):
+def write_to(name: str, line: str) -> None:
     """Write a raw line to a stream (no formatting).
 
     :param name: Stream name.

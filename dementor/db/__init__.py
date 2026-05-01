@@ -40,6 +40,12 @@ NO_USER = "<missing-user>"
 HOST_INFO = "_host_info"
 """Key used in extras dict to store host information for credential logging."""
 
+BEARER_TOKEN = "BearerToken"  # noqa: S105
+"""Credential type for HTTP Bearer token authentication."""
+
+DIGEST_MD5 = "digest-md5"
+"""Credential type for SASL DIGEST-MD5 authentication."""
+
 # Backward-compatible aliases so existing imports like
 #   from dementor.db import _CLEARTEXT
 # keep working without a mass-rename across all protocol files.

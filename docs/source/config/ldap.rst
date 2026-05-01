@@ -77,14 +77,17 @@ Section ``[LDAP]``
         for operations.
 
 
-    .. py:attribute:: Server.FQDN
+    .. py:attribute:: Server.Host
         :type: str
 
         *Maps to* :attr:`ldap.LDAPServerConfig.ldap_fqdn`. *Can also be set in* ``[LDAP]``
 
-        Specifies the server's hostname or fully qualified domain name (FQDN). The domain portion is optional.
-        Example: ``"HOSTNAME.domain.local"``.
+        Specifies the host identity for this server. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+        hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this
+        entry. Inherits from ``Globals.Host`` when not set here.
 
+        .. versionchanged:: 1.0.0.dev22
+            Renamed from ``FQDN`` to ``Host``
 
     .. py:attribute:: Server.ErrorCode
         :type: str | int

@@ -62,6 +62,7 @@ Hashcat output formats (validated against module_05500.c and module_05600.c):
 """
 
 import time
+import struct
 import calendar
 import secrets
 
@@ -72,8 +73,8 @@ from impacket.smb3 import WIN_VERSIONS
 
 from dementor.config.toml import Attribute
 from dementor.config.session import SessionConfig
-from dementor.config.util import is_true, get_value, BytesValue
-from dementor.db import _HOST_INFO
+from dementor.config.util import is_true, get_value, BytesValue, HostFallbackValue
+from dementor.db import CLEARTEXT, HOST_INFO
 from dementor.log.logger import ProtocolLogger, dm_logger
 
 # --- Constants ---------------------------------------------------------------
@@ -103,7 +104,7 @@ NTLM_VERSION_PLACEHOLDER: bytes = b"\x00" * 8
 # VERSION structure per [MS-NLMP section 2.2.2.10]
 NTLM_VERSION_LEN: int = 8
 
-# NTLMSSP_REVISION_W2K3 per [MS-NLMP] §2.2.2.10 — all modern Windows use 0x0F.
+# NTLMSSP_REVISION_W2K3 per [MS-NLMP] §2.2.2.10 - all modern Windows use 0x0F.
 NTLM_REVISION_W2K3: int = 0x0F
 
 # Offset from the Unix epoch (1 Jan 1970) to the Windows FILETIME epoch
@@ -160,7 +161,7 @@ NTLM_V2_LM: str = "NetLMv2"  # Always paired with NetNTLMv2; both use hashcat -m
 
 
 # Challenge parsing is handled by BytesValue(NTLM_CHALLENGE_LEN) from
-# dementor.config.util — supports hex:/ascii: prefixes, auto-detect,
+# dementor.config.util - supports hex:/ascii: prefixes, auto-detect,
 # and length validation in a single reusable helper.
 _parse_challenge = BytesValue(NTLM_CHALLENGE_LEN)
 
@@ -228,7 +229,7 @@ ATTR_NTLM_DISABLE_NTLMV2 = Attribute(
 )
 
 # These control the server identity inside the NTLMSSP CHALLENGE_MESSAGE.
-# None means "derive from the protocol's own identity config" — each
+# None means "derive from the protocol's own identity config" - each
 # protocol handler resolves the fallback chain.
 
 ATTR_NTLM_TARGET_TYPE = Attribute(
@@ -248,38 +249,73 @@ ATTR_NTLM_VERSION = Attribute(
 
 ATTR_NTLM_NB_COMPUTER = Attribute(
     "ntlm_nb_computer",
-    "NTLM.NetBIOSComputer",
-    "DEMENTOR",  # MsvAvNbComputerName (AV_PAIR 0x0001)
+    "NTLM.NetBIOSComputer",  # explicit: [NTLM] > [Globals]; fallback: derived from [Globals].Host
+    None,
     section_local=False,
+    factory=HostFallbackValue("NetBIOSComputer", "DEMENTOR"),
 )
 
 ATTR_NTLM_NB_DOMAIN = Attribute(
     "ntlm_nb_domain",
-    "NTLM.NetBIOSDomain",
-    "WORKGROUP",  # MsvAvNbDomainName (AV_PAIR 0x0002)
+    "NTLM.NetBIOSDomain",  # explicit: [NTLM] > [Globals]; fallback: derived from [Globals].Host
+    None,
     section_local=False,
+    factory=HostFallbackValue("NetBIOSDomain", "WORKGROUP"),
 )
 
 ATTR_NTLM_DNS_COMPUTER = Attribute(
     "ntlm_dns_computer",
-    "NTLM.DnsComputer",
-    "",  # MsvAvDnsComputerName (AV_PAIR 0x0003); "" → omitted from AV_PAIRs
+    "NTLM.DnsComputer",  # explicit: [NTLM] > [Globals]; fallback: derived from [Globals].Host
+    None,
     section_local=False,
+    factory=HostFallbackValue("DnsComputer", ""),
 )
 
 ATTR_NTLM_DNS_DOMAIN = Attribute(
     "ntlm_dns_domain",
-    "NTLM.DnsDomain",
-    "",  # MsvAvDnsDomainName (AV_PAIR 0x0004); "" → omitted from AV_PAIRs
+    "NTLM.DnsDomain",  # explicit: [NTLM] > [Globals]; fallback: derived from [Globals].Host
+    None,
     section_local=False,
+    factory=HostFallbackValue("DnsDomain", ""),
 )
 
 ATTR_NTLM_DNS_TREE = Attribute(
     "ntlm_dns_tree",
-    "NTLM.DnsTree",
-    "",  # MsvAvDnsTreeName (AV_PAIR 0x0005); "" → omitted from AV_PAIRs
+    "NTLM.DnsTree",  # explicit: [NTLM] > [Globals]; fallback: derived from [Globals].Host
+    None,
     section_local=False,
+    factory=HostFallbackValue("DnsTree", ""),
 )
+
+
+def _apply_ntlm_field(
+    session: SessionConfig,
+    key: str,
+    attr: str,
+    transform,
+    factory,
+) -> None:
+    """Apply a single NTLM config field to the session, logging on failure.
+
+    Resolution order: ``[NTLM]`` -> ``[Globals]`` (explicit) -> *factory*.
+    When *factory* is a :class:`~dementor.config.util.HostFallbackValue`, a
+    ``None`` raw value triggers lazy derivation from ``Globals.Host``.
+
+    :param session: Session object to update.
+    :param key: TOML key name within the ``[NTLM]`` section.
+    :param attr: Session attribute name to set.
+    :param transform: Callable to coerce the raw value.
+    :param factory: Callable ``(value_or_none) -> resolved_value``.  For
+        identity fields pass a :class:`~dementor.config.util.HostFallbackValue`
+        instance; for plain defaults pass a simple fallback factory.
+    """
+    try:
+        raw = get_value("NTLM", key, default=None)
+        if raw is None:
+            raw = get_value("Globals", key, default=None)
+        setattr(session, attr, transform(factory(raw)))
+    except (TypeError, ValueError):
+        dm_logger.exception("Failed to apply NTLM.%s; using default", key)
 
 
 def apply_config(session: SessionConfig) -> None:
@@ -295,22 +331,23 @@ def apply_config(session: SessionConfig) -> None:
     :type session: SessionConfig
     """
     # Safe defaults (session remains valid even if config parsing fails).
+    # factory(None) triggers HostFallbackValue to read [Globals].Host if available.
     session.ntlm_challenge = secrets.token_bytes(NTLM_CHALLENGE_LEN)
     session.ntlm_disable_ess = False
     session.ntlm_disable_ntlmv2 = False
     session.ntlm_target_type = str(ATTR_NTLM_TARGET_TYPE.default_val)
     session.ntlm_version = _config_version_to_bytes(ATTR_NTLM_VERSION.default_val)
-    session.ntlm_nb_computer = str(ATTR_NTLM_NB_COMPUTER.default_val)
-    session.ntlm_nb_domain = str(ATTR_NTLM_NB_DOMAIN.default_val)
-    session.ntlm_dns_computer = str(ATTR_NTLM_DNS_COMPUTER.default_val)
-    session.ntlm_dns_domain = str(ATTR_NTLM_DNS_DOMAIN.default_val)
-    session.ntlm_dns_tree = str(ATTR_NTLM_DNS_TREE.default_val)
+    session.ntlm_nb_computer = str(ATTR_NTLM_NB_COMPUTER.factory(None))  # ty:ignore[call-non-callable]
+    session.ntlm_nb_domain = str(ATTR_NTLM_NB_DOMAIN.factory(None))  # ty:ignore[call-non-callable]
+    session.ntlm_dns_computer = str(ATTR_NTLM_DNS_COMPUTER.factory(None))  # ty:ignore[call-non-callable]
+    session.ntlm_dns_domain = str(ATTR_NTLM_DNS_DOMAIN.factory(None))  # ty:ignore[call-non-callable]
+    session.ntlm_dns_tree = str(ATTR_NTLM_DNS_TREE.factory(None))  # ty:ignore[call-non-callable]
 
     # -- ServerChallenge ---------------------------------------------------
     try:
         raw_challenge = get_value("NTLM", "Challenge", default=None)
         session.ntlm_challenge = _parse_challenge(raw_challenge)
-    except Exception:
+    except (TypeError, ValueError):
         dm_logger.exception("Failed to parse NTLM Challenge; using random bytes")
     dm_logger.debug(
         "NTLM Challenge set to value: %s with len %d",
@@ -318,29 +355,24 @@ def apply_config(session: SessionConfig) -> None:
         len(session.ntlm_challenge),
     )
 
-    # -- Extended Session Security -----------------------------------------
-    try:
-        raw = get_value("NTLM", "DisableExtendedSessionSecurity", default=False)
-        session.ntlm_disable_ess = bool(is_true(raw))
-    except Exception:
-        session.ntlm_disable_ess = False
-        dm_logger.exception(
-            "Failed to apply NTLM.DisableExtendedSessionSecurity; defaulting to False"
-        )
-    else:
-        dm_logger.debug(
-            "NTLM DisableExtendedSessionSecurity: %s", session.ntlm_disable_ess
-        )
+    # -- Boolean flags (ESS and NTLMv2) ------------------------------------
+    _apply_ntlm_field(
+        session,
+        "DisableExtendedSessionSecurity",
+        "ntlm_disable_ess",
+        is_true,
+        lambda v: v if v is not None else False,
+    )
+    dm_logger.debug("NTLM DisableExtendedSessionSecurity: %s", session.ntlm_disable_ess)
 
-    # -- Disable NTLMv2 ----------------------------------------------------
-    try:
-        raw = get_value("NTLM", "DisableNTLMv2", default=False)
-        session.ntlm_disable_ntlmv2 = bool(is_true(raw))
-    except Exception:
-        session.ntlm_disable_ntlmv2 = False
-        dm_logger.exception("Failed to apply NTLM.DisableNTLMv2; defaulting to False")
-    else:
-        dm_logger.debug("NTLM DisableNTLMv2: %s", session.ntlm_disable_ntlmv2)
+    _apply_ntlm_field(
+        session,
+        "DisableNTLMv2",
+        "ntlm_disable_ntlmv2",
+        is_true,
+        lambda v: v if v is not None else False,
+    )
+    dm_logger.debug("NTLM DisableNTLMv2: %s", session.ntlm_disable_ntlmv2)
 
     if session.ntlm_disable_ntlmv2:
         dm_logger.warning(
@@ -350,67 +382,42 @@ def apply_config(session: SessionConfig) -> None:
             + "Use with caution."
         )
 
-    # -- Target Type -------------------------------------------------------
-    try:
-        raw = get_value("NTLM", "TargetType", default=ATTR_NTLM_TARGET_TYPE.default_val)
-        session.ntlm_target_type = str(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.TargetType; using default")
-
-    # -- Version -----------------------------------------------------------
-    try:
-        raw = get_value("NTLM", "Version", default=ATTR_NTLM_VERSION.default_val)
-        session.ntlm_version = _config_version_to_bytes(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.Version; using default")
-
-    # -- NetBIOS Computer --------------------------------------------------
-    try:
-        raw = get_value(
-            "NTLM", "NetBIOSComputer", default=ATTR_NTLM_NB_COMPUTER.default_val
-        )
-        session.ntlm_nb_computer = str(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.NetBIOSComputer; using default")
-
-    # -- NetBIOS Domain ----------------------------------------------------
-    try:
-        raw = get_value("NTLM", "NetBIOSDomain", default=ATTR_NTLM_NB_DOMAIN.default_val)
-        session.ntlm_nb_domain = str(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.NetBIOSDomain; using default")
-
-    # -- DNS Computer ------------------------------------------------------
-    try:
-        raw = get_value("NTLM", "DnsComputer", default=ATTR_NTLM_DNS_COMPUTER.default_val)
-        session.ntlm_dns_computer = str(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.DnsComputer; using default")
-
-    # -- DNS Domain --------------------------------------------------------
-    try:
-        raw = get_value("NTLM", "DnsDomain", default=ATTR_NTLM_DNS_DOMAIN.default_val)
-        session.ntlm_dns_domain = str(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.DnsDomain; using default")
-
-    # -- DNS Tree ----------------------------------------------------------
-    try:
-        raw = get_value("NTLM", "DnsTree", default=ATTR_NTLM_DNS_TREE.default_val)
-        session.ntlm_dns_tree = str(raw)
-    except Exception:
-        dm_logger.exception("Failed to apply NTLM.DnsTree; using default")
+    # -- String / typed fields ---------------------------------------------
+    _target_type_default = ATTR_NTLM_TARGET_TYPE.default_val
+    _version_default = ATTR_NTLM_VERSION.default_val
+    for toml_key, attr_name, transform, factory in (
+        (
+            "TargetType",
+            "ntlm_target_type",
+            str,
+            lambda v: v if v is not None else _target_type_default,
+        ),
+        (
+            "Version",
+            "ntlm_version",
+            _config_version_to_bytes,
+            lambda v: v if v is not None else _version_default,
+        ),
+        # Identity fields: each checked explicitly in [NTLM] -> [Globals] first;
+        # HostFallbackValue derives from [Globals].Host only when both are absent.
+        ("NetBIOSComputer", "ntlm_nb_computer", str, ATTR_NTLM_NB_COMPUTER.factory),
+        ("NetBIOSDomain", "ntlm_nb_domain", str, ATTR_NTLM_NB_DOMAIN.factory),
+        ("DnsComputer", "ntlm_dns_computer", str, ATTR_NTLM_DNS_COMPUTER.factory),
+        ("DnsDomain", "ntlm_dns_domain", str, ATTR_NTLM_DNS_DOMAIN.factory),
+        ("DnsTree", "ntlm_dns_tree", str, ATTR_NTLM_DNS_TREE.factory),
+    ):
+        _apply_ntlm_field(session, toml_key, attr_name, transform, factory)
 
 
 # --- Encoding ----------------------------------------------------------------
 #
 # NEGOTIATE_MESSAGE fields: always OEM (Unicode not yet negotiated).
 # CHALLENGE_MESSAGE / AUTHENTICATE_MESSAGE: governed by NegotiateFlags:
-#   NTLMSSP_NEGOTIATE_UNICODE (0x01) → UTF-16LE (no BOM)
-#   NTLM_NEGOTIATE_OEM        (0x02) → cp437 baseline
+#   NTLMSSP_NEGOTIATE_UNICODE (0x01) -> UTF-16LE (no BOM)
+#   NTLM_NEGOTIATE_OEM        (0x02) -> cp437 baseline
 
 
-def NTLM_decode_string(
+def ntlm_decode_string(
     data: bytes | None,
     negotiate_flags: int,
     is_negotiate_oem: bool = False,
@@ -423,7 +430,7 @@ def NTLM_decode_string(
       Unicode has not been negotiated yet per [MS-NLMP] §2.2.1.1.
     * **AUTHENTICATE_MESSAGE** (``is_negotiate_oem=False``): encoding is
       determined by ``NTLMSSP_NEGOTIATE_UNICODE`` (flag A, 0x00000001)
-      in the message's NegotiateFlags.  When set → UTF-16LE, else OEM
+      in the message's NegotiateFlags.  When set -> UTF-16LE, else OEM
       (cp437 as baseline).  Per [MS-NLMP] §2.2.1.3.
 
     :param data: Raw bytes from the NTLM message field
@@ -446,11 +453,11 @@ def NTLM_decode_string(
     if negotiate_flags & ntlm.NTLMSSP_NEGOTIATE_UNICODE:
         return data.decode("utf-16-le", errors="replace").rstrip().rstrip("\x00")
 
-    # OEM fallback — cp437 as baseline; actual code page is system-dependent
+    # OEM fallback - cp437 as baseline; actual code page is system-dependent
     return data.decode("cp437", errors="replace")
 
 
-def NTLM_encode_string(string: str | None, negotiate_flags: int) -> bytes:
+def ntlm_encode_string(string: str | None, negotiate_flags: int) -> bytes:
     """Encode a Python str for inclusion in a CHALLENGE_MESSAGE.
 
     :param string: The string to encode (server name, domain, etc.)
@@ -500,7 +507,7 @@ def _decode_ntlmssp_os_version(
             major = ver_raw[0]
             minor = ver_raw[1]
             build = uint16.from_bytes(ver_raw[2:4], order=LittleEndian)
-        except Exception:
+        except (IndexError, KeyError, ValueError, struct.error):
             dm_logger.debug("Failed to parse VERSION bytes from NTLM message")
     elif "os_version" in token.fields:
         try:
@@ -508,7 +515,7 @@ def _decode_ntlmssp_os_version(
             major = ver_obj["ProductMajorVersion"]
             minor = ver_obj["ProductMinorVersion"]
             build = ver_obj["ProductBuild"]
-        except Exception:
+        except (KeyError, TypeError):
             dm_logger.debug("Failed to parse os_version from NTLM message")
 
     if major is None or minor is None or build is None:
@@ -541,7 +548,7 @@ def _is_anonymous_authenticate(token: ntlm.NTLMAuthChallengeResponse) -> bool:
     try:
         # Structural anonymous: all response fields empty or Z(1)
         flags: int = token["flags"]
-        user_name: bytes = token["user_name"] or b""
+        user_name: bytes = (token["user_name"] or b"").rstrip(b"\x00")
         nt_response: bytes = token["ntlm"] or b""
         lm_response: bytes = token["lanman"] or b""
 
@@ -555,10 +562,16 @@ def _is_anonymous_authenticate(token: ntlm.NTLMAuthChallengeResponse) -> bool:
             dm_logger.debug("Structurally anonymous AUTHENTICATE_MESSAGE detected")
             return True
 
+        if len(user_name.strip()) == 0:  # user name containts only spaces
+            dm_logger.debug(
+                "Anonymous AUTHENTICATE_MESSAGE detected (username with spaces only)"
+            )
+            return True
+
         # [MS-NLMP] §2.2.2.5 flag J: supplementary anonymous flag check
         return bool(flags & ntlm.NTLMSSP_NEGOTIATE_ANONYMOUS)
 
-    except Exception:
+    except (KeyError, TypeError):
         dm_logger.debug(
             "Failed to check anonymous status in AUTHENTICATE_MESSAGE; "
             + "treating as non-anonymous to avoid dropping captures",
@@ -570,7 +583,7 @@ def _is_anonymous_authenticate(token: ntlm.NTLMAuthChallengeResponse) -> bool:
 # --- NTLMSSP Transaction ----------------------------------------------------
 
 
-def NTLM_handle_negotiate_message(
+def ntlm_handle_negotiate_message(
     negotiate: ntlm.NTLMAuthNegotiate,
     logger: ProtocolLogger,
 ) -> dict[str, str]:
@@ -590,21 +603,21 @@ def NTLM_handle_negotiate_message(
     os_str = _decode_ntlmssp_os_version(negotiate)
     domain_str = ""
     workstation_str = ""
+    flags: int = 0
     try:
-        flags: int = negotiate["flags"]
+        flags = negotiate["flags"]
         # [MS-NLMP] §2.2.1.1: NEGOTIATE domain/workstation are OEM-encoded
         domain_str = (
-            NTLM_decode_string(negotiate["domain_name"], flags, is_negotiate_oem=True)
+            ntlm_decode_string(negotiate["domain_name"], flags, is_negotiate_oem=True)
             or ""
         )
         workstation_str = (
-            NTLM_decode_string(negotiate["host_name"], flags, is_negotiate_oem=True) or ""
+            ntlm_decode_string(negotiate["host_name"], flags, is_negotiate_oem=True) or ""
         )
-    except Exception:
+    except (KeyError, UnicodeDecodeError, TypeError):
         dm_logger.debug("Failed to parse hostname/domain from NEGOTIATE_MESSAGE")
 
     try:
-        flags = negotiate["flags"]
         parts = [f"flags=0x{flags:08x}"]
         parts.append(f"os={os_str!r}" if os_str else "os=(empty)")
         parts.append(f"domain={domain_str!r}" if domain_str else "domain=(empty)")
@@ -614,7 +627,7 @@ def NTLM_handle_negotiate_message(
             else "workstation=(empty)"
         )
         logger.debug("NTLMSSP NEGOTIATE: %s", " ".join(parts), is_client=True)
-    except Exception:
+    except (KeyError, TypeError):
         logger.debug("NTLMSSP NEGOTIATE: (failed to parse fields)", is_client=True)
 
     # Build return dict with only non-empty values
@@ -640,7 +653,7 @@ def NTLM_handle_negotiate_message(
 #     rainbow tables with a fixed ServerChallenge)
 
 
-def NTLM_build_challenge_message(
+def ntlm_build_challenge_message(
     token: ntlm.NTLMAuthNegotiate | dict[str, Any],
     *,
     challenge: bytes,
@@ -761,15 +774,15 @@ def NTLM_build_challenge_message(
 
     # -- Assemble the CHALLENGE_MESSAGE ------------------------------------
     # TargetName (§2.2.1.2): the server's authentication realm.
-    # [MS-NLMP] §3.2.5.1.1: TARGET_TYPE_SERVER → TargetName = NetBIOSComputer;
-    # TARGET_TYPE_DOMAIN → TargetName = NetBIOSDomain.
+    # [MS-NLMP] §3.2.5.1.1: TARGET_TYPE_SERVER -> TargetName = NetBIOSComputer;
+    # TARGET_TYPE_DOMAIN -> TargetName = NetBIOSDomain.
     if target_type == "domain":
         target_name_str = nb_domain.upper()
     else:
         target_name_str = nb_computer.upper()
-    target_name_bytes: bytes = NTLM_encode_string(target_name_str, response_flags)
+    target_name_bytes: bytes = ntlm_encode_string(target_name_str, response_flags)
 
-    # VERSION structure — [MS-NLMP] §2.2.2.10
+    # VERSION structure - [MS-NLMP] §2.2.2.10
     version_bytes = version if version is not None else NTLM_VERSION_PLACEHOLDER
 
     challenge_message = ntlm.NTLMAuthChallenge()
@@ -796,7 +809,7 @@ def NTLM_build_challenge_message(
         challenge_message["TargetInfoFields_offset"] = target_info_offset
     else:
         # TargetInfo is a sequence of AV_PAIR structures (§2.2.2.1).
-        # Full AvId space — disposition for each entry:
+        # Full AvId space - disposition for each entry:
         #
         #   AvId   Constant             Sent  Notes
         #   0x0000 MsvAvEOL             auto  List terminator; ntlm.AV_PAIRS appends it.
@@ -806,18 +819,18 @@ def NTLM_build_challenge_message(
         #   0x0004 MsvAvDnsDomainName   YES   DNS domain FQDN.
         #   0x0005 MsvAvDnsTreeName     COND  Forest FQDN; omitted when not domain-joined.
         #   0x0006 MsvAvFlags           NO    Constrained-auth flag (0x1); not applicable
-        #                                     here — Dementor does not enforce constrained
-        #                                     delegation.  0x2/0x4 bits are client→server.
+        #                                     here - Dementor does not enforce constrained
+        #                                     delegation.  0x2/0x4 bits are client->server.
         #   0x0007 MsvAvTimestamp       NO    Intentionally omitted; see note below.
-        #   0x0008 MsvAvSingleHost      N/A   Client→server only (AUTHENTICATE_MESSAGE).
-        #   0x0009 MsvAvTargetName      N/A   Client→server only (AUTHENTICATE_MESSAGE).
-        #   0x000A MsvAvChannelBindings N/A   Client→server only (AUTHENTICATE_MESSAGE).
+        #   0x0008 MsvAvSingleHost      N/A   Client->server only (AUTHENTICATE_MESSAGE).
+        #   0x0009 MsvAvTargetName      N/A   Client->server only (AUTHENTICATE_MESSAGE).
+        #   0x000A MsvAvChannelBindings N/A   Client->server only (AUTHENTICATE_MESSAGE).
         #
         # §2.2.2.1: 0x0001 and 0x0002 MUST be present.  MsvAvEOL is
         # appended automatically by ntlm.AV_PAIRS.  AV_PAIRs may appear in
         # any order per spec; ascending AvId matches real Windows behaviour.
 
-        # AV_PAIR values used directly from kwargs — no derivation chains.
+        # AV_PAIR values used directly from kwargs - no derivation chains.
         # 0x0001 and 0x0002 are required by spec (always sent).
         # 0x0003, 0x0004, 0x0005 are optional (omitted when empty).
 
@@ -828,7 +841,7 @@ def NTLM_build_challenge_message(
 
         # 4. AV_PAIRS -------------------------------------------------------
         # §2.2.2.1: 0x0001 and 0x0002 MUST be present.
-        # 0x0003-0x0005 are optional — omitted when empty/not configured.
+        # 0x0003-0x0005 are optional - omitted when empty/not configured.
         av_pairs = ntlm.AV_PAIRS()
         av_pairs[ntlm.NTLMSSP_AV_HOSTNAME] = nb_computer.encode(
             "utf-16le"
@@ -871,6 +884,42 @@ def NTLM_build_challenge_message(
     return challenge_message
 
 
+def ntlm_auth_create_challenge(
+    token: "ntlm.NTLMAuthNegotiate | dict[str, Any]",
+    nb_computer: str,
+    nb_domain: str,
+    *,
+    challenge: bytes,
+    disable_ess: bool = False,
+    disable_ntlmv2: bool = False,
+) -> "ntlm.NTLMAuthChallenge":
+    """Build a CHALLENGE_MESSAGE with positional computer/domain arguments.
+
+    Convenience wrapper around :func:`ntlm_build_challenge_message` for callers
+    (e.g. LDAP) that supply ``nb_computer`` and ``nb_domain`` as positional
+    arguments rather than keyword arguments.
+
+    :param token: Parsed NEGOTIATE_MESSAGE
+    :param nb_computer: NetBIOS computer name
+    :param nb_domain: NetBIOS domain name
+    :param challenge: 8-byte ServerChallenge nonce
+    :param disable_ess: Strip ESS flag
+    :param disable_ntlmv2: Omit TargetInfoFields
+    :return: Serialisable CHALLENGE_MESSAGE
+    """
+    return ntlm_build_challenge_message(
+        token,
+        challenge=challenge,
+        nb_computer=nb_computer,
+        nb_domain=nb_domain,
+        disable_ess=disable_ess,
+        disable_ntlmv2=disable_ntlmv2,
+    )
+
+
+# -- Hash capture helpers (within NTLMSSP Transaction) -----------------------
+
+
 def _log_ntlmv2_blob(
     auth_token: ntlm.NTLMAuthChallengeResponse,
     log: ProtocolLogger,
@@ -895,7 +944,7 @@ def _log_ntlmv2_blob(
     try:
         nt_response: bytes = auth_token["ntlm"] or b""
         if len(nt_response) <= NTLMV1_RESPONSE_LEN:
-            return None  # NTLMv1 — no blob
+            return None  # NTLMv1 - no blob
 
         # NTLMv2 blob starts after NTProofStr (16 bytes)
         blob = nt_response[NTLM_NTPROOFSTR_LEN:]
@@ -907,7 +956,7 @@ def _log_ntlmv2_blob(
         #   + ChallengeFromClient(8) + Reserved3(4) = 28 bytes
         # AV_PAIRs start at offset 28 in the blob.
 
-        # ClientChallenge — 8-byte client nonce at blob[16:24]
+        # ClientChallenge - 8-byte client nonce at blob[16:24]
         client_challenge = blob[16:24]
 
         av_data = blob[28:]
@@ -951,20 +1000,117 @@ def _log_ntlmv2_blob(
                 else "ChannelBindings=(empty)"
             )
 
-        # MsvAvSingleHost (0x0008) — machine identity claim
+        # MsvAvSingleHost (0x0008) - machine identity claim
         if ntlm.NTLMSSP_AV_RESTRICTIONS in av_pairs.fields:
             _, sh_raw = av_pairs[ntlm.NTLMSSP_AV_RESTRICTIONS]
             blob_parts.append(f"SingleHost={sh_raw.hex()}")
 
         log.debug("NTLMv2 blob: %s", " ".join(blob_parts), is_client=True)
 
-    except Exception:
+    except (KeyError, AttributeError, TypeError, struct.error):
         log.debug("Failed to parse NTLMv2 blob AV_PAIRs", exc_info=True)
 
     return target_name
 
 
-def NTLM_handle_authenticate_message(
+def _build_ntlm_display_line(
+    negotiate_fields: dict[str, str] | None,
+    os_str: str,
+    user_name: str,
+    domain_name: str,
+    host_name_str: str,
+    spn: str,
+) -> str | None:
+    """Build a deduped NTLM display line from Type 1 + Type 3 fields.
+
+    Returns a formatted ``'key:value | ...'`` string, or ``None`` when all
+    fields are empty.
+    """
+    ntlm_fields: dict[str, set[str]] = {
+        "os": set(),
+        "user": set(),
+        "domain": set(),
+        "name": set(),
+        "SPN": set(),
+    }
+    if negotiate_fields:
+        for k, v in negotiate_fields.items():
+            if v and k in ntlm_fields:
+                ntlm_fields[k].add(v)
+    for key, value in (
+        ("os", os_str),
+        ("user", user_name),
+        ("domain", domain_name),
+        ("name", host_name_str),
+        ("SPN", spn),
+    ):
+        if value:
+            ntlm_fields[key].add(value)
+
+    parts = [
+        f"{k}:{','.join(sorted(ntlm_fields[k]))}"
+        for k in ("os", "user", "domain", "name", "SPN")
+        if ntlm_fields.get(k)
+    ]
+    return " | ".join(parts) if parts else None
+
+
+def _build_ntlm_host_info(
+    os_str: str, host_name_str: str, domain_name: str
+) -> str | None:
+    """Build HOST_INFO string from NTLMSSP AUTHENTICATE fields."""
+    host_parts: list[str] = []
+    if os_str:
+        host_parts.append(os_str)
+    if host_name_str:
+        host_parts.append(f"(name: {host_name_str})")
+    if domain_name:
+        host_parts.append(f"(domain: {domain_name})")
+    return " ".join(host_parts) if host_parts else None
+
+
+def _store_ntlm_captures(
+    all_hashes: list[tuple[str, str]],
+    *,
+    user_name: str,
+    domain_name: str,
+    os_str: str,
+    host_name_str: str,
+    client: tuple[str, int],
+    session: "SessionConfig",
+    logger: "ProtocolLogger | None",
+    extras: dict[str, Any] | None,
+) -> None:
+    """Write captured NTLM hashes to the session capture database.
+
+    Separated from hash extraction so the auth-parsing and storage
+    concerns live in different functions.
+
+    :param all_hashes: Non-empty list of ``(version_label, hashcat_line)`` pairs
+    :param user_name: Decoded username from the AUTHENTICATE_MESSAGE
+    :param domain_name: Decoded domain name from the AUTHENTICATE_MESSAGE
+    :param os_str: OS version string for HOST_INFO annotation
+    :param host_name_str: Hostname string for HOST_INFO annotation
+    :param client: Client (host, port) tuple
+    :param session: Active session with capture database
+    :param logger: Protocol logger passed through to ``add_auth``
+    :param extras: Extra metadata dict; mutated to add HOST_INFO
+    """
+    extras = extras or {}
+    extras[HOST_INFO] = _build_ntlm_host_info(os_str, host_name_str, domain_name)
+    for version_label, hashcat_line in all_hashes:
+        session.db.add_auth(
+            client=client,
+            credtype=version_label,
+            username=user_name,
+            domain=domain_name,
+            password=hashcat_line,
+            logger=logger,
+            extras=extras,
+        )
+
+
+def ntlm_handle_authenticate_message(
     auth_token: ntlm.NTLMAuthChallengeResponse,
     *,
     challenge: bytes,
@@ -1003,9 +1149,9 @@ def NTLM_handle_authenticate_message(
     :param transport: NTLM transport identifier (NTLM_TRANSPORT_*); used for logging only
     :type transport: str
     :param negotiate_fields: Fields extracted from the NEGOTIATE_MESSAGE by
-        :func:`NTLM_handle_negotiate_message`.  Merged (Type 3 wins) into the display line
+        :func:`ntlm_handle_negotiate_message`.  Merged (Type 3 wins) into the display line
         so the deduped output reflects both messages.  This is ntlm.py's own
-        output passed back in — no protocol-layer state.
+        output passed back in - no protocol-layer state.
     :type negotiate_fields: dict[str, str] | None
     """
     # Use the protocol logger for session-linked messages; fall back to the
@@ -1013,7 +1159,7 @@ def NTLM_handle_authenticate_message(
     log = logger or dm_logger
 
     if _is_anonymous_authenticate(auth_token):
-        log.debug("Anonymous NTLM login attempt; skipping hash extraction")
+        log.display("Anonymous NTLM login attempt; skipping hash extraction")
         return False
 
     # -- AUTHENTICATE_MESSAGE parsed fields (single debug line) ------------
@@ -1023,11 +1169,11 @@ def NTLM_handle_authenticate_message(
         negotiate_flags: int = auth_token["flags"]
         try:
             host_name_str = (
-                NTLM_decode_string(auth_token["host_name"], negotiate_flags) or ""
+                ntlm_decode_string(auth_token["host_name"], negotiate_flags) or ""
             )
-        except Exception:
+        except (KeyError, UnicodeDecodeError):
             dm_logger.debug("Failed to parse host_name from AUTHENTICATE_MESSAGE")
-        mic_str: str = "(absent)"  # no VERSION flag → MIC field doesn't exist
+        mic_str: str = "(absent)"  # no VERSION flag -> MIC field doesn't exist
         try:
             if negotiate_flags & ntlm.NTLMSSP_NEGOTIATE_VERSION:
                 mic_val: bytes = auth_token["MIC"]
@@ -1036,12 +1182,13 @@ def NTLM_handle_authenticate_message(
                     if mic_val and len(mic_val) == 16 and mic_val != b"\x00" * 16
                     else "(empty)"
                 )
-        except Exception:  # noqa: S110
-            pass
+        except (KeyError, TypeError):
+            log.debug("Failed to parse MIC field", exc_info=True)
+            mic_str = "(parse error)"
         auth_parts = [f"flags=0x{negotiate_flags:08x}"]
         auth_parts.append(f"os={os_str!r}" if os_str else "os=(empty)")
-        user_name: str = NTLM_decode_string(auth_token["user_name"], negotiate_flags)
-        domain_name: str = NTLM_decode_string(auth_token["domain_name"], negotiate_flags)
+        user_name: str = ntlm_decode_string(auth_token["user_name"], negotiate_flags)
+        domain_name: str = ntlm_decode_string(auth_token["domain_name"], negotiate_flags)
         auth_parts.append(f"user={user_name!r}" if user_name else "user=(empty)")
         auth_parts.append(f"domain={domain_name!r}" if domain_name else "domain=(empty)")
         auth_parts.append(f"name={host_name_str!r}" if host_name_str else "name=(empty)")
@@ -1051,18 +1198,18 @@ def NTLM_handle_authenticate_message(
         auth_parts.append(f"LM_len={lm_len}")
         auth_parts.append(f"MIC={mic_str}")
         log.debug("NTLMSSP AUTHENTICATE: %s", " ".join(auth_parts), is_client=True)
-    except Exception:
+    except (KeyError, UnicodeDecodeError, TypeError):
         log.debug("Failed to parse AUTHENTICATE_MESSAGE fields", exc_info=True)
         try:
             negotiate_flags = auth_token["flags"]
-        except Exception:
+        except KeyError:
             negotiate_flags = 0
         user_name = ""
         domain_name = ""
 
     # -- Hash extraction ---------------------------------------------------
     try:
-        all_hashes = NTLM_to_hashcat(
+        all_hashes = ntlm_to_hashcat(
             server_challenge=challenge,
             user_name=auth_token["user_name"],
             domain_name=auth_token["domain_name"],
@@ -1084,47 +1231,11 @@ def NTLM_handle_authenticate_message(
         spn = _log_ntlmv2_blob(auth_token, log)
 
         # -- Consolidated display line (Type 1 + Type 3 deduped) -----------
-        # Collect all identity fields into sets so values from both
-        # NEGOTIATE (Type 1) and AUTHENTICATE (Type 3) are shown,
-        # with duplicates removed.  Empty strings are filtered.
-        ntlm_fields: dict[str, set[str]] = {
-            "os": set(),
-            "user": set(),
-            "domain": set(),
-            "name": set(),
-            "SPN": set(),
-        }
-        # Add Type 1 (NEGOTIATE) fields
-        if negotiate_fields:
-            for k, v in negotiate_fields.items():
-                if v and k in ntlm_fields:
-                    ntlm_fields[k].add(v)
-        # Add Type 3 (AUTHENTICATE) fields
-        if os_str:
-            ntlm_fields["os"].add(os_str)
-        if user_name:
-            ntlm_fields["user"].add(user_name)
-        if domain_name:
-            ntlm_fields["domain"].add(domain_name)
-        if host_name_str:
-            ntlm_fields["name"].add(host_name_str)
-        if spn:
-            ntlm_fields["SPN"].add(spn)
-
-        display_keys = [
-            ("os", "os"),
-            ("user", "user"),
-            ("domain", "domain"),
-            ("name", "name"),
-            ("SPN", "SPN"),
-        ]
-        parts = [
-            f"{label}:{','.join(sorted(ntlm_fields[k]))}"
-            for k, label in display_keys
-            if ntlm_fields.get(k)
-        ]
-        if parts:
-            log.info("NTLM: %s", " | ".join(parts))
+        display_line = _build_ntlm_display_line(
+            negotiate_fields, os_str, user_name, domain_name, host_name_str, spn
+        )
+        if display_line:
+            log.debug("NTLM: %s", display_line)
 
         log.debug(
             "Writing %d hash(es) to capture database for user=%r domain=%r",
@@ -1132,28 +1243,17 @@ def NTLM_handle_authenticate_message(
             user_name,
             domain_name,
         )
-        # Build host_info for model.py from extracted fields.
-        host_parts: list[str] = []
-        if os_str:
-            host_parts.append(os_str)
-        if host_name_str:
-            host_parts.append(f"(name: {host_name_str})")
-        if domain_name:
-            host_parts.append(f"(domain: {domain_name})")
-        host_info = " ".join(host_parts) if host_parts else None
-        extras = extras or {}
-        extras[_HOST_INFO] = host_info
-
-        for version_label, hashcat_line in all_hashes:
-            session.db.add_auth(
-                client=client,
-                credtype=version_label,
-                username=user_name,
-                domain=domain_name,
-                password=hashcat_line,
-                logger=logger,
-                extras=extras,
-            )
+        _store_ntlm_captures(
+            all_hashes,
+            user_name=user_name,
+            domain_name=domain_name,
+            os_str=os_str,
+            host_name_str=host_name_str,
+            client=client,
+            session=session,
+            logger=logger,
+            extras=extras,
+        )
 
         return bool(all_hashes)
 
@@ -1162,10 +1262,59 @@ def NTLM_handle_authenticate_message(
             "Invalid data in AUTHENTICATE_MESSAGE (bad challenge length or "
             "malformed response fields); skipping capture"
         )
-    except Exception:
+    except (AttributeError, KeyError, IndexError, TypeError, OverflowError):
         log.exception("Failed to extract NTLM hashes from AUTHENTICATE_MESSAGE")
 
     return False
+
+
+# -- Reporting helpers (within NTLMSSP Transaction) --------------------------
+
+
+def ntlm_report_auth(
+    auth_token: "ntlm.NTLMAuthChallengeResponse",
+    *,
+    challenge: bytes,
+    client: tuple[str, int],
+    logger: "ProtocolLogger | None" = None,
+    session: "SessionConfig",
+    negotiate_fields: "dict[str, str] | None" = None,
+) -> bool:
+    """Report captured NTLM credentials.
+
+    Convenience wrapper around :func:`ntlm_handle_authenticate_message` for
+    callers (e.g. LDAP) that pass ``auth_token`` positionally and want
+    keyword-only arguments for the remaining parameters.
+
+    :param auth_token: Parsed AUTHENTICATE_MESSAGE
+    :param challenge: 8-byte ServerChallenge from the CHALLENGE_MESSAGE
+    :param client: Client (host, port) tuple
+    :param logger: Protocol logger
+    :param session: Active session config with capture database
+    :param negotiate_fields: Fields from the NEGOTIATE_MESSAGE to merge
+    :return: ``True`` if credentials were captured
+    """
+    return ntlm_handle_authenticate_message(
+        auth_token,
+        challenge=challenge,
+        client=client,
+        session=session,
+        logger=logger,
+        negotiate_fields=negotiate_fields,
+    )
+
+
+def ntlm_split_fqdn(fqdn: str) -> tuple[str, str]:
+    """Split an FQDN into ``(hostname, domain)`` components.
+
+    :param fqdn: Fully-qualified domain name, e.g. ``"dc01.corp.example.com"``
+    :return: ``(hostname, domain)`` - ``domain`` is empty if no dot is present
+    :rtype: tuple[str, str]
+    """
+    if "." in fqdn:
+        hostname, domain = fqdn.split(".", 1)
+        return hostname, domain
+    return fqdn, "WORKGROUP"
 
 
 # --- Hash Formatting ---------------------------------------------------------
@@ -1286,7 +1435,25 @@ def _compute_dummy_lm_responses(server_challenge: bytes) -> set[bytes]:
 #   User/Domain MUST be decoded plain-text strings, NOT raw hex bytes.
 
 
-def NTLM_to_hashcat(
+def _decode_ntlm_identity_string(
+    value: bytes | str, negotiate_flags: int, field: str
+) -> str:
+    """Decode a UserName or DomainName field from an AUTHENTICATE_MESSAGE.
+
+    Handles both pre-decoded strings and raw wire bytes.  Returns an empty
+    string and logs a debug message on any decoding failure.
+    """
+    try:
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            return ntlm_decode_string(bytes(value), negotiate_flags)
+    except (UnicodeDecodeError, TypeError):
+        dm_logger.debug("Failed to decode %s; using empty string", field, exc_info=True)
+        return ""
+    else:
+        return value or ""
+
+
+def ntlm_to_hashcat(
     server_challenge: bytes,
     user_name: bytes | str,
     domain_name: bytes | str,
@@ -1345,29 +1512,12 @@ def NTLM_to_hashcat(
     # -- Decode identity strings ---------------------------------------------
     # Both hashcat modes require decoded plain-text strings, not raw wire
     # bytes.  Hashcat does its own toupper + UTF-16LE expansion internally.
-    try:
-        user: str = (
-            NTLM_decode_string(bytes(user_name), negotiate_flags)
-            if isinstance(user_name, (bytes, bytearray, memoryview))
-            else (user_name or "")
-        )
-    except Exception:
-        dm_logger.debug("Failed to decode UserName; using empty string", exc_info=True)
-        user = ""
-
-    try:
-        domain: str = (
-            NTLM_decode_string(bytes(domain_name), negotiate_flags)
-            if isinstance(domain_name, (bytes, bytearray, memoryview))
-            else (domain_name or "")
-        )
-    except Exception:
-        dm_logger.debug("Failed to decode DomainName; using empty string", exc_info=True)
-        domain = ""
+    user: str = _decode_ntlm_identity_string(user_name, negotiate_flags, "UserName")
+    domain: str = _decode_ntlm_identity_string(domain_name, negotiate_flags, "DomainName")
 
     try:
         hash_type: str = _classify_hash_type(nt_response, lm_response, negotiate_flags)
-    except Exception:
+    except (TypeError, ValueError, AttributeError):
         dm_logger.debug(
             "_classify_hash_type raised unexpectedly; defaulting to %s",
             NTLM_V1,
@@ -1402,7 +1552,7 @@ def NTLM_to_hashcat(
                 )
             )
             dm_logger.debug("Appended %s hash (nt_len=%d)", NTLM_V2, len(nt_response))
-        except Exception:
+        except (TypeError, AttributeError):
             dm_logger.debug("Failed to format %s hash; skipping", NTLM_V2, exc_info=True)
             return captures
 
@@ -1439,7 +1589,7 @@ def NTLM_to_hashcat(
                     len(lm_response),
                     NTLM_V2_LM,
                 )
-        except Exception:
+        except (TypeError, AttributeError):
             dm_logger.debug(
                 "Failed to format %s hash; skipping", NTLM_V2_LM, exc_info=True
             )
@@ -1465,7 +1615,7 @@ def NTLM_to_hashcat(
                 )
             )
             dm_logger.debug("Appended %s hash", NTLM_V1_ESS)
-        except Exception:
+        except (TypeError, AttributeError):
             dm_logger.debug(
                 "Failed to format %s hash; skipping", NTLM_V1_ESS, exc_info=True
             )
@@ -1507,7 +1657,7 @@ def NTLM_to_hashcat(
             )
         )
         dm_logger.debug("Appended %s hash (lm_slot_empty=%s)", NTLM_V1, lm_slot_hex == "")
-    except Exception:
+    except (TypeError, AttributeError):
         dm_logger.debug("Failed to format %s hash; skipping", NTLM_V1, exc_info=True)
 
     return captures
@@ -1516,7 +1666,21 @@ def NTLM_to_hashcat(
 # --- Legacy SMB1 Basic Auth (non-NTLMSSP) -----------------------------------
 
 
-def NTLM_handle_legacy_raw_auth(
+def _build_smb1_host_info(extras: dict[str, Any], domain: str, fallback: str) -> str:
+    """Build a HOST_INFO string from SMB1 basic-security auth fields.
+
+    Consumes the ``os`` key from *extras* (if present) and appends the domain.
+    Returns *fallback* when no parts are found.
+    """
+    host_parts: list[str] = []
+    if extras.get("os"):
+        host_parts.append(extras.pop("os"))
+    if domain:
+        host_parts.append(f"(domain: {domain})")
+    return " ".join(host_parts) if host_parts else fallback
+
+
+def ntlm_handle_legacy_raw_auth(
     *,
     user_name: bytes | str,
     domain_name: bytes | str,
@@ -1539,7 +1703,7 @@ def NTLM_handle_legacy_raw_auth(
 
     For NTLM_TRANSPORT_RAW: classifies LM/NT response bytes and formats
     hashcat lines using the existing pipeline. No NTLMSSP wrapper exists
-    on this path — do NOT create a fake NTLMAuthChallengeResponse.
+    on this path - do NOT create a fake NTLMAuthChallengeResponse.
 
     For NTLM_TRANSPORT_CLEARTEXT: stores the raw password directly.
 
@@ -1547,9 +1711,9 @@ def NTLM_handle_legacy_raw_auth(
     :type user_name: bytes | str
     :param domain_name: PrimaryDomain from SESSION_SETUP_ANDX
     :type domain_name: bytes | str
-    :param lm_response: OEMPassword (LM response) — None for cleartext
+    :param lm_response: OEMPassword (LM response) - None for cleartext
     :type lm_response: bytes | None
-    :param nt_response: UnicodePassword (NT response) — None for cleartext
+    :param nt_response: UnicodePassword (NT response) - None for cleartext
     :type nt_response: bytes | None
     :param challenge: 8-byte server challenge from negotiate
     :type challenge: bytes
@@ -1575,7 +1739,7 @@ def NTLM_handle_legacy_raw_auth(
         else (user_name or "")
     )
     # Protocol handlers should decode strings before calling this function.
-    # The bytes fallback assumes UTF-16LE for safety — only reachable if
+    # The bytes fallback assumes UTF-16LE for safety - only reachable if
     # a caller passes raw bytes directly.
     domain: str = (
         domain_name.decode("utf-16-le", errors="replace")
@@ -1592,15 +1756,10 @@ def NTLM_handle_legacy_raw_auth(
             f"Cleartext password captured: {user}\\{domain}",
         )
         extras = extras or {}
-        host_parts: list[str] = []
-        if extras.get("os"):
-            host_parts.append(extras.pop("os"))
-        if domain:
-            host_parts.append(f"(domain: {domain})")
-        extras[_HOST_INFO] = " ".join(host_parts) if host_parts else "SMB1 cleartext"
+        extras[HOST_INFO] = _build_smb1_host_info(extras, domain, "SMB1 cleartext")
         session.db.add_auth(
             client=client,
-            credtype="Cleartext",
+            credtype=CLEARTEXT,
             username=user,
             domain=domain,
             password=cleartext_password,
@@ -1609,11 +1768,11 @@ def NTLM_handle_legacy_raw_auth(
         )
         return
 
-    # RAW transport — classify and format hashes
+    # RAW transport - classify and format hashes
     lm_response = lm_response or b""
     nt_response = nt_response or b""
 
-    # Anonymous check — empty user + empty NT + empty/null LM
+    # Anonymous check - empty user + empty NT + empty/null LM
     if not user and not nt_response and (not lm_response or lm_response == b"\x00"):
         log.debug("Anonymous SMB1 basic-security login; skipping hash extraction")
         return
@@ -1624,7 +1783,7 @@ def NTLM_handle_legacy_raw_auth(
 
     try:
         # negotiate_flags=0: no NTLMSSP flags exist on this path
-        all_hashes = NTLM_to_hashcat(
+        all_hashes = ntlm_to_hashcat(
             server_challenge=challenge,
             user_name=user,
             domain_name=domain,
@@ -1649,12 +1808,7 @@ def NTLM_handle_legacy_raw_auth(
         # Build host_info from available SMB1 basic-security fields.
         # SMB1 basic-security has NativeOS and PrimaryDomain but no
         # workstation name (unlike NTLMSSP AUTHENTICATE).
-        host_parts: list[str] = []
-        if extras.get("os"):
-            host_parts.append(extras.pop("os"))
-        if domain:
-            host_parts.append(f"(domain: {domain})")
-        extras[_HOST_INFO] = " ".join(host_parts) if host_parts else "SMB1 raw"
+        extras[HOST_INFO] = _build_smb1_host_info(extras, domain, "SMB1 raw")
         for version_label, hashcat_line in all_hashes:
             session.db.add_auth(
                 client=client,
@@ -1668,20 +1822,20 @@ def NTLM_handle_legacy_raw_auth(
 
     except ValueError:
         log.exception("Invalid data in SMB1 basic-security auth; skipping capture")
-    except Exception:
+    except (AttributeError, KeyError, IndexError, TypeError, OverflowError):
         log.exception("Failed to extract hashes from SMB1 basic-security auth")
 
 
 # --- Utilities ---------------------------------------------------------------
 
 
-def NTLM_timestamp() -> int:
+def ntlm_timestamp() -> int:
     """Return the current UTC time as a Windows FILETIME (100ns ticks since 1601-01-01).
 
     :return: Current UTC time in 100-nanosecond intervals since Windows epoch (1601-01-01)
     :rtype: int
     """
-    # calendar.timegm() → UTC seconds since 1970; scaled to 100ns ticks since 1601.
+    # calendar.timegm() -> UTC seconds since 1970; scaled to 100ns ticks since 1601.
     return (
         NTLM_FILETIME_EPOCH_OFFSET
         + calendar.timegm(time.gmtime()) * NTLM_FILETIME_TICKS_PER_SECOND

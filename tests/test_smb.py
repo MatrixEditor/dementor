@@ -1,4 +1,4 @@
-"""Unit tests for dementor.protocols.smb — SMB protocol handler.
+"""Unit tests for dementor.protocols.smb - SMB protocol handler.
 
 Tests cover module-level functions, SMBServerConfig methods, and SMBHandler
 methods (via a mock handler that bypasses the real socket).
@@ -47,7 +47,7 @@ def mock_smb_config():
     cfg.smb_server_os = "Windows"
     cfg.smb_native_lanman = "Windows"
     cfg.smb_captures_per_connection = 0
-    cfg.smb_error_code = nt_errors.STATUS_SMB_BAD_UID
+    cfg.smb_error_code = None
     cfg.ntlm_challenge = b"\x01\x02\x03\x04\x05\x06\x07\x08"
     cfg.ntlm_disable_ess = False
     cfg.ntlm_disable_ntlmv2 = False
@@ -290,7 +290,7 @@ class TestGetServerTime:
 
 
 class TestSetSmbErrorCode:
-    """SMBServerConfig.set_smb_error_code(value) at line 288."""
+    """SMBServerConfig.set_smb_error_code(value)."""
 
     def _make_config(self):
         cfg = object.__new__(SMBServerConfig)
@@ -322,9 +322,14 @@ class TestSetSmbErrorCode:
         cfg.set_smb_error_code(0)
         assert cfg.smb_error_code == 0
 
+    def test_no_code(self):
+        cfg = self._make_config()
+        cfg.set_smb_error_code(None)
+        assert cfg.smb_error_code is None
+
 
 class TestSmb3NegContextPad:
-    """_smb3_neg_context_pad(data_len) — instance method at line 840."""
+    """_smb3_neg_context_pad(data_len) - instance method at line 840."""
 
     @pytest.mark.parametrize(
         ("data_len", "expected_pad_len"),
@@ -371,8 +376,8 @@ class TestBuildTrans2FileInfo:
             (26, 4),  # FileMailslotQueryInformation
             (30, 16),  # FileCompressionInformation
             # Pass-through levels
-            (0x03EC, None),  # FileBasicInfo (class 4) — size varies
-            (0x03ED, None),  # FileStandardInfo (class 5) — size varies
+            (0x03EC, None),  # FileBasicInfo (class 4) - size varies
+            (0x03ED, None),  # FileStandardInfo (class 5) - size varies
         ],
         ids=[
             "standard_0001",
@@ -419,7 +424,7 @@ class TestBuildTrans2FileInfo:
         assert len(result) > 0
 
     def test_file_all_info_raw_15(self, mock_handler):
-        """FileAllInformation (class 15) — XP SP3 sends as raw class."""
+        """FileAllInformation (class 15) - XP SP3 sends as raw class."""
         result = mock_handler._build_trans2_file_info(15)
         assert result is not None
         assert len(result) > 0
@@ -430,7 +435,7 @@ class TestBuildTrans2FileInfo:
         assert len(result) == 16
 
     def test_name_valid_0006(self, mock_handler):
-        """0x0006: FileInternalInformation / SMB_INFO_IS_NAME_VALID — 8 bytes."""
+        """0x0006: FileInternalInformation / SMB_INFO_IS_NAME_VALID - 8 bytes."""
         result = mock_handler._build_trans2_file_info(0x0006)
         assert result is not None
         assert len(result) == 8
@@ -930,7 +935,7 @@ class TestHandleSmbPacket:
 class TestSmb2SessionSetup:
     """handle_smb2_session_setup IS_GUEST logic at line 1597.
 
-    These are partial integration tests — we mock handle_ntlmssp to return
+    These are partial integration tests - we mock handle_ntlmssp to return
     a fixed response and only verify the IS_GUEST SessionFlags logic.
     """
 

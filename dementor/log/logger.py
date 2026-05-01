@@ -194,47 +194,19 @@ class ProtocolLogger(logging.LoggerAdapter[logging.Logger]):
     # Accessors used by the formatting helpers
     # -----------------------------------------------------------------
     def get_protocol_name(self, extra: dict[str, Any] | None = None) -> str:
-        """
-        Return the protocol name (or an empty string).
-
-        :param extra: Optional per-call extra mapping.
-        :type extra: dict | None
-        :return: Protocol name.
-        :rtype: str
-        """
+        """Return the protocol name (or an empty string)."""
         return str(self._get_extra("protocol", extra, ""))
 
     def get_protocol_color(self, extra: dict[str, Any] | None = None) -> str:
-        """
-        Return the colour used for the protocol prefix - defaults to ``white``.
-
-        :param extra: Optional per-call extra mapping.
-        :type extra: dict | None
-        :return: Colour name.
-        :rtype: str
-        """
+        """Return the colour used for the protocol prefix - defaults to ``white``."""
         return str(self._get_extra("protocol_color", extra, "white"))
 
     def get_host(self, extra: dict[str, Any] | None = None) -> str:
-        """
-        Return the host string (or empty).
-
-        :param extra: Optional per-call extra mapping.
-        :type extra: dict | None
-        :return: Host.
-        :rtype: str
-        """
+        """Return the host string (or empty)."""
         return str(self._get_extra("host", extra, ""))
 
     def get_port(self, extra: dict[str, Any] | None = None) -> str:
-        """
-        Return the port string (or empty).
-
-        :param extra: Optional per-call extra mapping.
-        :type extra: dict | None
-        :return: Port.
-        :rtype: str
-        """
+        """Return the port string (or empty)."""
         return str(self._get_extra("port", extra, ""))
 
     # -----------------------------------------------------------------
@@ -418,7 +390,7 @@ class ProtocolLogger(logging.LoggerAdapter[logging.Logger]):
         dm_print(msg, *args, **kwargs)
         self._emit_log_entry(msg, logging.INFO, *args)
 
-    def fail(self, msg: str, color: str | None = None, *args: Any, **kwargs: Any) -> None:
+    def fail(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any) -> None:
         """
         Log an error condition (red ``[-]`` prefix).
 
@@ -426,10 +398,10 @@ class ProtocolLogger(logging.LoggerAdapter[logging.Logger]):
         :type msg: str
         :param color: Override the colour of the ``[-]`` marker.
         :type color: str | None
-        :param _args: Positional arguments forwarded to :func:`dm_print`.
-        :type _args: typing.Any
-        :param _kwargs: Keyword arguments forwarded to :func:`dm_print`.
-        :type _kwargs: dict
+        :param args: Positional arguments forwarded to :func:`dm_print`.
+        :type args: typing.Any
+        :param kwargs: Keyword arguments forwarded to :func:`dm_print`.
+        :type kwargs: dict
         """
         colour = color or "red"
         prefix = f"[bold {colour}]" + r"\[-]" + f"[/bold {colour}]"

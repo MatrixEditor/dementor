@@ -20,8 +20,6 @@
 # pyright: reportAny=false, reportExplicitAny=false
 import contextlib
 import asyncio
-from dementor.config.toml import TomlConfig
-from asyncio import Task
 import traceback
 import pathlib
 import socket
@@ -33,11 +31,13 @@ import errno
 import sys
 
 from io import StringIO
+from asyncio import Task
 from typing import Any, ClassVar, Generic
 from socketserver import BaseRequestHandler
 from typing_extensions import override, TypeVar
 
 from dementor import db
+from dementor.config.toml import TomlConfig
 from dementor.log import hexdump
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.log.stream import log_host
@@ -56,24 +56,15 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
         self.address: str | None = None
         super().__init__(daemon=False)
 
-    def get_service_name(self) -> str:
-        """Get the service name for logging purposes.
-
-        This method should be overridden by subclasses to provide a specific service name.
-        :return: Service name string
-        :rtype: str
-        """
-        raise NotImplementedError("get_service_name must be implemented by subclasses")
-
     @property
     def service_name(self) -> str:
-        """Get the service name from server class or use class name as fallback.
+        """Return the display name for this service (used in logging).
 
-        :return: Service name.
-        :rtype: str
+        Subclasses must implement this property.
         """
-        return self.get_service_name()
+        raise NotImplementedError("service_name must be implemented by subclasses")
 
+    @property
     def get_port(self) -> int:
         """Return the listening port of the server.
 
@@ -88,6 +79,7 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
             raise ValueError("Port not set - the server may not have been started yet.")
         return self.port
 
+    @property
     def get_address(self) -> str:
         """Return the bound address of the server.
 
@@ -137,11 +129,8 @@ class AsyncServerThread(BaseServerThread[_ConfigTy]):
         return self._task
 
     async def arun(self) -> None:
-        """Asynchronous run method to start the server.
-
-        This method should be overridden to implement the actual async server logic.
-        """
-        # To be implemented with async server logic in the future
+        """Subclasses must override this to implement async server logic."""
+        raise NotImplementedError("arun must be implemented by subclasses")
 
     def run(self) -> None:
         """Start the asynchronous server."""
@@ -462,7 +451,37 @@ class BaseServerProtoHandler(BaseProtoHandler):
         super().__init__(config, request, client_address, server)
 
 
-class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
+class _ThreadingServerInitMixin:
+    """Shared ``__init__`` logic for :class:`ThreadingUDPServer` and :class:`ThreadingTCPServer`."""
+
+    default_port: ClassVar[int]
+    default_handler_class: ClassVar[type]
+    config: SessionConfig
+    ipv4_only: bool
+    stop_flag: threading.Event
+    address_family: int
+
+    def __init__(
+        self,
+        config: SessionConfig,
+        server_address: tuple[str, int] | None = None,
+        RequestHandlerClass: type | None = None,
+    ) -> None:
+        """Initialize the server with session config, optional address and handler overrides."""
+        self.config = config
+        self.ipv4_only = getattr(config, "ipv4_only", False)
+        self.stop_flag = threading.Event()
+        if config.ipv6 and not self.ipv4_only:
+            self.address_family = socket.AF_INET6
+        super().__init__(  # type: ignore[call-arg]
+            server_address or (self.config.bind_address, self.default_port),
+            RequestHandlerClass or self.default_handler_class,
+        )
+
+
+class ThreadingUDPServer(
+    _ThreadingServerInitMixin, socketserver.ThreadingMixIn, socketserver.UDPServer
+):
     """Threaded UDP server with IPv6 support and cross-platform binding.
 
     :var default_port: Default port to listen on
@@ -476,32 +495,6 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
 
     allow_reuse_address: bool = True
 
-    def __init__(
-        self,
-        config: SessionConfig,
-        server_address: tuple[str, int] | None = None,
-        RequestHandlerClass: type | None = None,
-    ) -> None:
-        """Initialize the UDP server.
-
-        :param config: Session configuration
-        :type config: SessionConfig
-        :param server_address: (host, port) tuple or None to use defaults
-        :type server_address: tuple[str, int] | None
-        :param RequestHandlerClass: Handler class or None to use default
-        :type RequestHandlerClass: type | None
-        """
-        self.config: SessionConfig = config
-        self.ipv4_only = getattr(config, "ipv4_only", False)
-        self.stop_flag = threading.Event()
-        if config.ipv6 and not self.ipv4_only:
-            self.address_family = socket.AF_INET6
-
-        super().__init__(
-            server_address or (self.config.bind_address, self.default_port),
-            RequestHandlerClass or self.default_handler_class,
-        )
-
     @override
     def server_bind(self) -> None:
         """Bind the server socket with interface and IPv6 settings."""
@@ -513,7 +506,7 @@ class ThreadingUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
         self,
         request: bytes,
         client_address: tuple[str, int],
-    ) -> None:
+    ) -> None:  # ty:ignore[invalid-method-override]
         """Finish a single request by instantiating the handler.
 
         :param request: The request data
@@ -555,7 +548,9 @@ def bind_server(
             dm_logger.warning(f"Failed to set IPV6_V6ONLY: {e}")
 
 
-class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class ThreadingTCPServer(
+    _ThreadingServerInitMixin, socketserver.ThreadingMixIn, socketserver.TCPServer
+):
     """Threaded TCP server with IPv6 support and cross-platform binding.
 
     :var default_port: Default port to listen on
@@ -568,31 +563,6 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     ipv4_only: bool
     allow_reuse_address: bool = True
 
-    def __init__(
-        self,
-        config: SessionConfig,
-        server_address: tuple[str, int] | None = None,
-        RequestHandlerClass: type | None = None,
-    ) -> None:
-        """Initialize the TCP server.
-
-        :param config: Session configuration
-        :type config: SessionConfig
-        :param server_address: (host, port) tuple or None to use defaults
-        :type server_address: tuple[str, int] | None
-        :param RequestHandlerClass: Handler class or None to use default
-        :type RequestHandlerClass: type | None
-        """
-        self.config: SessionConfig = config
-        self.ipv4_only = getattr(config, "ipv4_only", False)
-        self.stop_flag = threading.Event()
-        if config.ipv6 and not self.ipv4_only:
-            self.address_family = socket.AF_INET6
-        super().__init__(
-            server_address or (self.config.bind_address, self.default_port),
-            RequestHandlerClass or self.default_handler_class,
-        )
-
     @override
     def server_bind(self) -> None:
         """Bind the server socket with interface and IPv6 settings."""
@@ -604,7 +574,7 @@ class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self,
         request: socket.socket,
         client_address: tuple[str, int],
-    ) -> None:
+    ) -> None:  # ty:ignore[invalid-method-override]
         """Finish a single request by instantiating the handler.
 
         :param request: Connected socket

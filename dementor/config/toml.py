@@ -225,7 +225,7 @@ class TomlConfig:
             if alt_section:
                 # 1. Nested sub-dict within own section (e.g. SMB.NTLM.X)
                 sections.append(own_section_dict.get(alt_section, {}))
-            # 2. Own section flat key (e.g. SMB.X — doubles as default)
+            # 2. Own section flat key (e.g. SMB.X - doubles as default)
             sections.append(own_section_dict)
             # 3. Alt section (e.g. [NTLM])
             sections.append(get_value(alt_section or "", key=None, default={}))

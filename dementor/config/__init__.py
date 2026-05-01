@@ -21,6 +21,7 @@
 import sys
 import pathlib
 import tomllib
+import warnings
 
 from typing import Any
 
@@ -51,7 +52,7 @@ def _set_global_config(config: dict[str, Any]) -> None:
     :param config: New configuration dictionary.
     :type config: dict
     """
-    sys.modules[__name__].dm_config = config
+    sys.modules[__name__].dm_config = config  # ty:ignore[unresolved-attribute]
 
 
 def init_from_file(path: str) -> None:
@@ -82,8 +83,42 @@ def init_from_file(path: str) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Default initialisation - performed on import so that the rest of the
-# package can rely on ``dementor.config.dm_config`` being available.
+# Explicit entry point for application startup.
 # --------------------------------------------------------------------------- #
-init_from_file(DEFAULT_CONFIG_PATH)  # 1. bundled defaults
-init_from_file(CONFIG_PATH)  # 2. user-provided overrides
+def init_config(
+    default_path: str | None = None,
+    user_path: str | None = None,
+) -> None:
+    """Load the default and user TOML configuration files.
+
+    Call this explicitly from the application entry point (e.g. ``standalone.py``).
+    Using the defaults, it loads the bundled Dementor.toml first, then the
+    user-provided override, so user settings win.
+
+    :param default_path: Path to bundled defaults (uses :data:`DEFAULT_CONFIG_PATH`).
+    :param user_path: Path to user overrides (uses :data:`CONFIG_PATH`).
+    """
+    try:
+        init_from_file(default_path or DEFAULT_CONFIG_PATH)  # 1. bundled defaults
+        init_from_file(user_path or CONFIG_PATH)  # 2. user-provided overrides
+    except Exception as exc:  # pragma: no cover
+        warnings.warn(
+            f"dementor.config: failed to load configuration at startup: {exc}",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+
+
+# --------------------------------------------------------------------------- #
+# Default initialisation - runs on first import so that protocol modules
+# that call get_global_config() / get_value() without going through
+# standalone.py still get the bundled defaults.  standalone.py re-runs
+# init_config() with the user config path, which overwrites these defaults.
+# --------------------------------------------------------------------------- #
+init_config()
+
+__all__ = [
+    "get_global_config",
+    "init_config",
+    "init_from_file",
+]

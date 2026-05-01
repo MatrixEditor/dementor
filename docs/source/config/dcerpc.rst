@@ -92,14 +92,18 @@ Section ``[RPC]``
     are configured globally in the :ref:`config_ntlm` section and apply to
     all protocols including DCE/RPC.
 
-.. py:attribute:: Server.FQDN
+.. py:attribute:: Server.Host
     :type: str
     :value: "DEMENTOR"
 
     *Maps to* :attr:`rpc.RPCConfig.rpc_fqdn`. *Can also be set in* ``[Globals]``
 
-    Specifies the Fully Qualified Domain Name (FQDN) used by the server. The hostname part is
-    included in NTLM responses. The domain part is optional.
+    Specifies the host identity for this server. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+    hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this
+    entry. Inherits from ``Globals.Host`` when not set here.
+
+    .. versionchanged:: 1.0.0.dev22
+        Renamed from ``FQDN`` to ``Host``
 
 Section ``[EPM]``
 -----------------

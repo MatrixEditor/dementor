@@ -4,8 +4,6 @@
 All tests use SQLite :memory: with StaticPool -- no external DB required.
 """
 
-from __future__ import annotations
-
 import json
 import os
 import tempfile

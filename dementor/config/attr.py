@@ -20,7 +20,7 @@
 #
 # Shared attributes for all configuration classes
 from dementor.config.toml import Attribute
-from dementor.config.util import is_true
+from dementor.config.util import HostValue, is_true
 
 # TLS/Certificate Configuration Attributes
 # These attributes are shared across protocols that support TLS and
@@ -113,3 +113,18 @@ SELFSIGNED_COMMON_ATTRS = [
     ATTR_CERT_STATE,
     ATTR_CERT_VALIDITY_DAYS,
 ]
+
+
+# Host Configuration Attribute
+# Single attribute representing the host FQDN from [Globals].
+# Protocols that need the full HostValue object (e.g. to call get_value())
+# can include this in their _fields_ list.  The HostValue factory derives
+# NetBIOSComputer, NetBIOSDomain, DnsComputer, DnsDomain, FQDN, etc.
+
+ATTR_GLOBALS_HOST = Attribute(
+    attr_name="host",
+    qname="Host",
+    default_val=HostValue.DEFAULT,
+    section_local=False,
+    factory=HostValue,
+)

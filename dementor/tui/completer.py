@@ -75,7 +75,9 @@ class ReplCompleter(Completer):
 
     # Completer interface ------------------------------------------------------
     @override
-    def get_completions(self, document: Document, complete_event: CompleteEvent):
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
         """Yield :class:`prompt_toolkit.completion.Completion` objects.
 
         The logic mirrors the description in the class docstring.  It works on

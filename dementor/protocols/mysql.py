@@ -46,7 +46,6 @@ from caterpillar.py import (
     LittleEndian,
     uint16,
     uint64,
-    singleton,
     unpack,
 )
 from caterpillar.exception import DynamicSizeError, StructException
@@ -65,7 +64,7 @@ from dementor.servers import (
 from dementor.log.logger import ProtocolLogger
 from dementor.config.attr import Attribute as A, ATTR_TLS, ATTR_CERT, ATTR_KEY
 from dementor.config.toml import TomlConfig
-from dementor.db import _CLEARTEXT
+from dementor.db import CLEARTEXT
 
 
 __proto__ = ["MySQL"]
@@ -104,7 +103,7 @@ class MySQL(BaseProtocolModule[MySQLConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: MySQLConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[MySQLConfig]:
         return ServerThread(
             session,
             server_config,
@@ -153,7 +152,7 @@ CLIENT_SSL_VERIFY_SERVER_CERT = 1 << 30
 CLIENT_REMEMBER_OPTIONS = 1 << 31
 
 
-class SERVER_STATUS_flags_enum(enum.IntEnum):
+class ServerStatusFlags(enum.IntEnum):
     __struct__ = uint16
 
     SERVER_STATUS_IN_TRANS = 1
@@ -179,7 +178,7 @@ class SERVER_STATUS_flags_enum(enum.IntEnum):
 # 251         216     0xFC + 2-byte integer
 # 216         224     0xFD + 3-byte integer
 # 224         264     0xFE + 8-byte integer
-@singleton
+# @singleton
 class LengthEncodedInteger:
     def __type__(self):
         return int
@@ -283,7 +282,7 @@ class HandshakeV10:
 
     # default server a_protocol_character_set, only the lower 8-bits
     character_set: uint8_t = 0x3F
-    status_flags: SERVER_STATUS_flags_enum = 0x00
+    status_flags: ServerStatusFlags = 0x00
     flags_upper: uint16_t = 0x000
 
     # length of the combined auth_plugin_data (scramble), if
@@ -298,11 +297,11 @@ class HandshakeV10:
     # name of the auth_method that the auth_plugin_data belongs to
     auth_plugin_name: f[str | None, CString() // _has_auth_plugin_data]
 
-    def set_flags(self, flags):
+    def set_flags(self, flags) -> None:
         self.flags_lower = flags & 0xFFFF
         self.flags_upper = (flags >> 16) & 0xFFFF
 
-    def get_flags(self):
+    def get_flags(self) -> int:
         return self.flags_lower | (self.flags_upper << 16)
 
 
@@ -330,8 +329,8 @@ class SSLRequest:
 @struct(order=LittleEndian)
 class ConnectionAttribute(struct_factory.mixin):
     # will be stored as bytes rather than string
-    key: f[bytes, Prefixed(LengthEncodedInteger)]
-    value: f[bytes, Prefixed(LengthEncodedInteger)]
+    key: f[bytes, Prefixed(LengthEncodedInteger())]
+    value: f[bytes, Prefixed(LengthEncodedInteger())]
 
 
 # [Protocol::HandshakeResponse]
@@ -374,7 +373,7 @@ class HandshakeResponse:
 # --- MySQL Handler ---
 class MySQLHandler(BaseProtoHandler):
     @property
-    def mysql_config(self):
+    def mysql_config(self) -> "MySQLConfig":
         return self.config.mysql_config
 
     def proto_logger(self) -> ProtocolLogger:
@@ -441,7 +440,7 @@ class MySQLHandler(BaseProtoHandler):
             server_version=self.mysql_config.mysql_version,
             thread_id=10,
             salt=b"A" * 8,
-            status_flags=SERVER_STATUS_flags_enum.SERVER_STATUS_AUTOCOMMIT,
+            status_flags=ServerStatusFlags.SERVER_STATUS_AUTOCOMMIT,
             auth_plugin_data_len=21,  # REVISIT: maybe add automatic calculation here
             salt2=b"A" * 12 + b"\0",
             auth_plugin_name=plugin_name,
@@ -507,7 +506,9 @@ class MySQLHandler(BaseProtoHandler):
         else:
             self.logger.debug(f"Unknown authentication plugin: {resp_plugin_name}")
 
-    def mysql_clear_password(self, greeting: HandshakeV10, response: HandshakeResponse):
+    def mysql_clear_password(
+        self, greeting: HandshakeV10, response: HandshakeResponse
+    ) -> None:
         username = response.username
         password = response.auth_response.decode(errors="replace").strip("\x00")
 
@@ -525,7 +526,7 @@ class MySQLHandler(BaseProtoHandler):
             username=username,
             password=password,
             logger=self.logger,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
             extras=OrderedDict(sorted(extras.items())),
         )
 

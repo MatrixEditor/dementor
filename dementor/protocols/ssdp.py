@@ -87,7 +87,7 @@ class SSDP(BaseProtocolModule[SSDPConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: SSDPConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[SSDPConfig]:
         return ServerThread(
             session,
             server_config,
@@ -165,7 +165,7 @@ class SSDPPoisoner(BaseProtoHandler):
         super().__init__(config, request, client_address, server)
 
     @property
-    def ssdp_config(self):
+    def ssdp_config(self) -> "SSDPConfig":
         return self.config.ssdp_config
 
     @property
@@ -220,7 +220,7 @@ class SSDPPoisoner(BaseProtoHandler):
             return self.handle_search(transport)
 
     # [1.2 Advertisement]
-    def handle_advertisement(self):
+    def handle_advertisement(self) -> None:
         # All NOTIFY messages MUST store the NTS (notification subtype)
         match self.message["NTS"]:
             # [1.2.2 Device available - NOTIFY with ssdp:alive]
@@ -241,7 +241,7 @@ class SSDPPoisoner(BaseProtoHandler):
             # REVISIT: shoul we report ssdp:update?
 
     # [1.3.2 Search request with M-SEARCH]
-    def handle_search(self, transport):
+    def handle_search(self, transport) -> None:
         target = self.message["ST"] or "uuid:invalid"
         target_text = ""
         search_tyoe = ""
@@ -347,7 +347,7 @@ class SSDPPoisoner(BaseProtoHandler):
             f"Sent poisoned response to {self.client_host} for {target_text or search_tyoe}"
         )
 
-    def describe_server(self, server: str) -> tuple:
+    def describe_server(self, server: str) -> tuple[str, str, str]:
         os_name = product_name = ""
         if "UPnP/" in server:
             os_name, _, product_name = server.partition("UPnP/")

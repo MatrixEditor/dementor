@@ -297,8 +297,8 @@ Post-Auth Behaviour
         effect over CPC = 0.
 
 .. py:attribute:: ErrorCode
-    :type: str | int
-    :value: "STATUS_SMB_BAD_UID"
+    :type: str | int | None
+    :value: None
 
     *Maps to* :attr:`smb.SMBServerConfig.smb_error_code`
 
@@ -311,13 +311,13 @@ Post-Auth Behaviour
 
         * - Value
           - Effect
-        * - ``"STATUS_SMB_BAD_UID"`` (default)
+        * - ``"STATUS_SMB_BAD_UID"``
           - Client disconnects cleanly.
         * - ``"STATUS_ACCESS_DENIED"``
           - Client may retry, then disconnects.
         * - ``"STATUS_LOGON_FAILURE"``
           - Client disconnects cleanly.
-        * - ``"STATUS_SUCCESS"``
+        * - ``"STATUS_SUCCESS"`` (default behavior if no value is set)
           - Client proceeds to tree connect.  Useful for extending the
             session to capture tree-connect paths.
 
@@ -357,6 +357,19 @@ Server Instances
         - **445** -- direct TCP transport (used by all modern clients)
         - **139** -- NetBIOS session service (used by XP/Server 2003 in
           addition to port 445; leaks NetBIOS CallingName)
+
+    .. py:attribute:: Server.Host
+        :type: str
+        :value: "DEMENTOR"
+
+        *Maps to* :attr:`smb.SMBServerConfig.smb_fqdn`. *Can also be set in* ``[SMB]`` *or* ``[Globals]``
+
+        Specifies the host identity for this server. Accepts a full FQDN (e.g. ``DC01.contoso.lab``) or a bare
+        hostname. All protocol-level identity values (FQDN, NetBIOS names, DNS names) are derived from this
+        entry. Inherits from ``Globals.Host`` when not set here.
+
+        .. versionchanged:: 1.0.0.dev22
+            Renamed from ``FQDN`` to ``Host``
 
 
 SMB 3.1.1 Negotiate Contexts
@@ -436,7 +449,7 @@ Default Configuration
     # ServerOS = "Windows"
     # NativeLanMan = "Windows"
     CapturesPerConnection = 0
-    ErrorCode = "STATUS_SMB_BAD_UID"
+    # ErrorCode = "STATUS_SMB_BAD_UID"
 
     # NTLM settings are in the [NTLM] section.
 

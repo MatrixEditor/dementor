@@ -37,7 +37,7 @@ from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.servers import AsyncServerThread, BaseServerThread
 from dementor.config.toml import TomlConfig, Attribute as A
 from dementor.config.session import SessionConfig
-from dementor.config.util import generate_self_signed_cert
+from dementor.config.tls import generate_self_signed_cert
 from dementor.log.logger import ProtocolLogger, dm_logger
 
 if typing.TYPE_CHECKING:
@@ -109,12 +109,12 @@ class QuicHandler(QuicConnectionProtocol):
         self.config: SessionConfig = config
         #  stream_id -> (w, r)
         self.conn_data: dict[int, tuple[asyncio.StreamWriter, asyncio.StreamReader]] = {}
-        self.logger: ProtocolLogger = QuicHandler.proto_logger(
+        self.logger: ProtocolLogger = QuicHandler._make_proto_logger(
             self.config.quic_config.quic_port
         )
 
     @staticmethod
-    def proto_logger(port: int) -> ProtocolLogger:
+    def _make_proto_logger(port: int) -> ProtocolLogger:
         return ProtocolLogger(
             extra={
                 "protocol": "QUIC",
@@ -122,6 +122,11 @@ class QuicHandler(QuicConnectionProtocol):
                 "port": port,
             }
         )
+
+    @property
+    def proto_logger(self) -> ProtocolLogger:
+        """Return the protocol logger for this QUIC connection."""
+        return QuicHandler._make_proto_logger(self.config.quic_config.quic_port)
 
     @property
     def target_smb_host(self):
@@ -145,7 +150,9 @@ class QuicHandler(QuicConnectionProtocol):
             case _:
                 pass  # ignore other events for now
 
-    async def handle_data(self, stream_id: int, data: bytes):
+    # NOTE: This is intentionally out-of-band from BaseServerThread.handle_data(data, transport).
+    # QUIC multiplexes streams, so this method takes a stream_id instead of a transport socket.
+    async def handle_data(self, stream_id: int, data: bytes) -> None:
         if stream_id not in self.conn_data:
             # create new connection
             network_path = self._quic._network_paths[0]
@@ -218,7 +225,7 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
 
     def generate_self_signed_cert(self) -> None:
         """Generate a self-signed certificate and private key for QUIC server."""
-        logger = QuicHandler.proto_logger(self.server_config.quic_port)
+        logger = QuicHandler._make_proto_logger(self.server_config.quic_port)
         logger.display("Generating self-signed certificate for QUIC server")
 
         cert_path, key_path, temp_dir = generate_self_signed_cert(
@@ -236,7 +243,8 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
         self._temp_dir = temp_dir
         self._generated_temp_cert = True
 
-    def get_service_name(self) -> str:
+    @property
+    def service_name(self) -> str:
         return "QUIC"
 
     def create_handler(self, *args: typing.Any, **kwargs: typing.Any):

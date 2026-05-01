@@ -40,22 +40,28 @@ from impacket import ntlm
 from dementor.loader import BaseProtocolModule, DEFAULT_ATTR
 from dementor.config.session import SessionConfig
 from dementor.config.toml import TomlConfig, Attribute as A
-from dementor.config.util import format_string, get_value, is_true
+from dementor.config.util import (
+    format_string,
+    get_value,
+    is_true,
+    HostValue,
+    HostFallbackValue,
+)
 from dementor.log.logger import ProtocolLogger, dm_logger
 from dementor.servers import ServerThread, bind_server, BaseServerThread
-from dementor.db import _CLEARTEXT, normalize_client_address, _NO_USER
+from dementor.db import BEARER_TOKEN, CLEARTEXT, normalize_client_address, NO_USER
 from dementor.paths import HTTP_TEMPLATES_PATH
 from dementor.protocols.ntlm import (
-    NTLM_build_challenge_message,
-    NTLM_handle_negotiate_message,
-    NTLM_handle_authenticate_message,
+    ntlm_build_challenge_message,
+    ntlm_handle_negotiate_message,
+    ntlm_handle_authenticate_message,
 )
 
 
 __proto__ = ["HTTP", "WinRM"]
 
 
-def apply_config(session: SessionConfig):
+def apply_config(session: SessionConfig) -> None:
     session.proxy_config = ProxyAutoConfig(get_value("Proxy", key=None, default={}))
 
 
@@ -68,7 +74,7 @@ class ProxyAutoConfig(TomlConfig):
     if typing.TYPE_CHECKING:
         proxy_script: str | None
 
-    def set_proxy_script(self, script):
+    def set_proxy_script(self, script: str | None) -> None:
         self.proxy_script = None
         match script:
             case str():
@@ -123,10 +129,12 @@ class HTTPServerConfig(TomlConfig):
         ),
         A(
             "http_fqdn",
-            "FQDN",
-            "DEMENTOR",
+            "Host",
+            None,
             section_local=False,
-            factory=format_string,
+            factory=HostFallbackValue(
+                HostValue.HOST, "DEMENTOR", post_factory=format_string
+            ),
         ),
         A("http_extra_headers", "ExtraHeaders", list),
         A("http_wpad_enabled", "WPAD", True, factory=is_true),
@@ -154,7 +162,7 @@ class HTTPServerConfig(TomlConfig):
         http_cert_key: str | None
         http_use_ssl: bool
 
-    def set_http_templates(self, templates_dirs: list[str]):
+    def set_http_templates(self, templates_dirs: list[str]) -> None:
         dirs: list[str] = []
         for templates_dir in templates_dirs:
             path = pathlib.Path(templates_dir)
@@ -182,7 +190,7 @@ class HTTP(BaseProtocolModule[HTTPServerConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: HTTPServerConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[HTTPServerConfig]:
         return ServerThread(
             session,
             server_config,
@@ -203,7 +211,7 @@ class WinRM(BaseProtocolModule[HTTPServerConfig]):
     @override
     def create_server_thread(
         self, session: SessionConfig, server_config: HTTPServerConfig
-    ) -> BaseServerThread:
+    ) -> BaseServerThread[HTTPServerConfig]:
         return ServerThread(
             session,
             server_config,
@@ -216,12 +224,22 @@ class WinRM(BaseProtocolModule[HTTPServerConfig]):
 
     @override
     def apply_config(self, session: SessionConfig) -> None:
+        # Load from TOML [WinRM].Server entries first; fall back to hardcoded
+        # defaults (5985/5986) only when the user has not configured anything.
+        super().apply_config(session)
+        if session.winrm_config:
+            return
+
         winrm_config: list[HTTPServerConfig] = []
         config = HTTPServerConfig({"Port": 5985})
         config.http_wpad_enabled = False
         config.http_webdav_enabled = False
 
-        ssl_enabled = bool(config.http_cert)
+        # Use a fully-loaded config to check global SSL cert availability.
+        # HTTPServerConfig({"Port": 5985}) is a minimal dict with no TOML context,
+        # so config.http_cert is always None there. We need the global defaults instead.
+        global_config = TomlConfig.build_config(HTTPServerConfig)
+        ssl_enabled = bool(global_config.http_cert)
         config.http_cert = None
         config.http_cert_key = None
         winrm_config.append(config)
@@ -230,6 +248,8 @@ class WinRM(BaseProtocolModule[HTTPServerConfig]):
             ssl_config.http_wpad_enabled = False
             ssl_config.http_webdav_enabled = False
             ssl_config.http_use_ssl = True
+            ssl_config.http_cert = global_config.http_cert
+            ssl_config.http_cert_key = global_config.http_cert_key
             winrm_config.append(ssl_config)
 
         if not session.winrm_enabled:
@@ -243,7 +263,7 @@ class HTTPHeaders:
 
 
 class HTTPHandler(BaseHTTPRequestHandler):
-    # NTLM is a connection-based auth — the 3-message handshake must happen
+    # NTLM is a connection-based auth - the 3-message handshake must happen
     # on a single persistent connection.  HTTP/1.0 closes after each response,
     # breaking the handshake.  HTTP/1.1 keeps the connection alive by default.
     protocol_version = "HTTP/1.1"
@@ -251,17 +271,17 @@ class HTTPHandler(BaseHTTPRequestHandler):
     def __init__(
         self,
         session: SessionConfig,
-        config: HTTPServerConfig,
+        server_config: HTTPServerConfig,
         request,
         client_address: tuple[str, int],
         server,
     ) -> None:
-        self.config = config  # REVISIT: this is confusing
-        self.session = session
+        self.config = session
+        self.server_config = server_config
         self.client_address = client_address
         self.challenge = None
         self.setup_proto_logger()
-        for http_method in config.http_methods:
+        for http_method in server_config.http_methods:
             if http_method in ("OPTIONS", "PROPFIND"):
                 # reserved options
                 continue
@@ -274,13 +294,13 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         super().__init__(request, client_address, server)
 
-    def setup_proto_logger(self):
+    def setup_proto_logger(self) -> None:
         self.logger: ProtocolLogger = ProtocolLogger(
             extra={
                 "protocol": "HTTP",
                 "protocol_color": "chartreuse3",
                 "host": normalize_client_address(self.client_address[0]),
-                "port": self.config.http_port,
+                "port": self.server_config.http_port,
             }
         )
         self.webdav_logger: ProtocolLogger = ProtocolLogger(
@@ -288,34 +308,34 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 "protocol": "WebDAV",
                 "protocol_color": "sea_green3",
                 "host": normalize_client_address(self.client_address[0]),
-                "port": self.config.http_port,
+                "port": self.server_config.http_port,
             }
         )
 
-    def do_PROPFIND(self):
-        if self.config.http_webdav_enabled:
+    def do_PROPFIND(self) -> None:
+        if self.server_config.http_webdav_enabled:
             self.handle_request(self.webdav_logger)
         else:
             self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
 
-    def do_OPTIONS(self):
+    def do_OPTIONS(self) -> None:
         # always support everything
         self.send_response(HTTPStatus.OK)
         self.send_header("Allow", "OPTIONS,GET,HEAD,POST,TRACE,PROPFIND")
         self.end_headers()
 
-    def do_HEAD(self):
+    def do_HEAD(self) -> None:
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Length", "0")
         self.end_headers()
 
     def version_string(self) -> str:
-        return self.config.http_server_type
+        return self.server_config.http_server_type
 
     def log_message(self, format: str, *args) -> None:
         # let us log mssages
         text = format % args
-        msg = text.translate(self._control_char_table)
+        msg = text.translate(self._control_char_table)  # ty:ignore[unresolved-attribute]
         self.logger.debug(msg)
 
     def send_response(self, code: int, message: str | None = None) -> None:
@@ -323,7 +343,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
             self._headers_buffer = []
 
         super().send_response(code, message)
-        for header in self.config.http_extra_headers:
+        for header in self.server_config.http_extra_headers:
             self._headers_buffer.append(f"{header}\r\n".encode("latin-1", "strict"))
 
     def send_error(
@@ -359,27 +379,29 @@ class HTTPHandler(BaseHTTPRequestHandler):
         if body:
             self.wfile.write(body)
 
-    def is_wpad_request(self):
+    def is_wpad_request(self) -> bool:
         path = pathlib.Path(self.path)
         return path.suffix == ".pac" or path.stem == "wpad"
 
-    def display_request(self, req_type: str | None = None, logger=None):
+    def display_request(self, req_type: str | None = None, logger=None) -> None:
         line = f"{self.command} request for {markup.escape(self.path)}"
         if req_type:
             line = f"{line} ({req_type})"
         (logger or self.logger).display(line)
 
-    def send_wpad_script(self):
-        if self.config.proxy_config.proxy_script:
+    def send_wpad_script(self) -> None:
+        if self.server_config.proxy_config.proxy_script:
             # try to render the custom script
-            template = Template(self.config.proxy_config.proxy_script, autoescape=True)
+            template = Template(
+                self.server_config.proxy_config.proxy_script, autoescape=True
+            )
             script = template.render(
-                server=self.config,
-                session=self.session,
+                server=self.server_config,
+                session=self.config,
             )
         else:
             script = self.server.render_page("wpad.dat")
-            if self.config.http_wpad_enabled and not script:
+            if self.server_config.http_wpad_enabled and not script:
                 self.logger.fail("WPAD enabled but script not configured")
                 return self.send_error(HTTPStatus.NOT_FOUND)
 
@@ -392,13 +414,13 @@ class HTTPHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def handle_request(self, logger):
+    def handle_request(self, logger: "ProtocolLogger") -> None:
         if HTTPHeaders.AUTHORIZATION not in self.headers:
             # make sure the client authenticates to us
             if (
-                self.config.http_wpad_enabled
+                self.server_config.http_wpad_enabled
                 and self.is_wpad_request()
-                and not self.config.http_wpad_auth
+                and not self.server_config.http_wpad_auth
             ):
                 return self.send_wpad_script()
 
@@ -408,7 +430,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 "Unauthorized",
                 headers=[
                     (HTTPHeaders.WWW_AUTHENTICATE, scheme)
-                    for scheme in self.config.http_auth_schemes
+                    for scheme in self.server_config.http_auth_schemes
                 ],
             )
         else:
@@ -420,7 +442,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
                 logger.debug(f"Unknown authentication scheme: {name}")
                 self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
 
-    def auth_negotiate(self, token, logger):
+    def auth_negotiate(self, token: str, logger: "ProtocolLogger") -> None:
         # try to decode negotiate token
         if token.startswith("YII"):
             # possible kerberos authentication attempt, try to downgrade
@@ -428,7 +450,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         self.auth_ntlm(token, logger, scheme="Negotiate")
 
-    def auth_ntlm(self, token, logger, scheme=None):
+    def auth_ntlm(
+        self, token: str, logger: "ProtocolLogger", scheme: str | None = None
+    ) -> None:
         try:
             message = ntlm.NTLM_HTTP.get_instance(f"NTLM {token}")
         except Exception:
@@ -440,17 +464,24 @@ class HTTPHandler(BaseHTTPRequestHandler):
         match message:
             case ntlm.NTLM_HTTP_AuthNegotiate():
                 self.display_request("NTLMSSP_NEGOTIATE", logger)
-                self._ntlm_negotiate_fields = NTLM_handle_negotiate_message(
+                self._ntlm_negotiate_fields = ntlm_handle_negotiate_message(
                     message, logger
                 )
-                challenge = NTLM_build_challenge_message(
+                host = HostValue(self.server_config.http_fqdn)
+                challenge = ntlm_build_challenge_message(
                     message,
-                    challenge=self.session.ntlm_challenge,
-                    nb_computer=self.session.ntlm_nb_computer,
-                    nb_domain=self.session.ntlm_nb_domain,
-                    disable_ess=self.session.ntlm_disable_ess,
-                    disable_ntlmv2=self.session.ntlm_disable_ntlmv2,
-                    log=logger,
+                    challenge=self.config.ntlm_challenge,
+                    nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+                    nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
+                    disable_ess=self.config.ntlm_disable_ess,
+                    disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                    target_type=self.config.ntlm_target_type,
+                    version=self.config.ntlm_version,
+                    dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+                    dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+                    # REVISIT: capture DNSTree too
+                    # dns_tree=self.config.ntlm_dns_tree,
+                    log=self.logger,
                 )
                 self.send_response(HTTPStatus.UNAUTHORIZED, "Unauthorized")
                 data = base64.b64encode(challenge.getData()).decode()
@@ -462,35 +493,35 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             case ntlm.NTLM_HTTP_AuthChallengeResponse():
                 self.display_request("NTLMSSP_AUTH", logger)
-                NTLM_handle_authenticate_message(
+                ntlm_handle_authenticate_message(
                     message,
-                    challenge=self.session.ntlm_challenge,
+                    challenge=self.config.ntlm_challenge,
                     client=self.client_address,
-                    session=self.session,
+                    session=self.config,
                     logger=logger,
                     extras=self.get_extras(),
                     negotiate_fields=getattr(self, "_ntlm_negotiate_fields", None),
                 )
-                self.finish_request(logger)
+                self._complete_auth_request(logger)
 
             case _:
                 logger.fail(f"Invalid negotiate authentication: {token}")
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
 
-    def auth_bearer(self, token, logger):
+    def auth_bearer(self, token: str, logger: "ProtocolLogger") -> None:
         self.display_request("Bearer", logger)
-        self.session.db.add_auth(
+        self.config.db.add_auth(
             client=self.client_address,
-            credtype="BearerToken",
-            username=_NO_USER,
+            credtype=BEARER_TOKEN,
+            username=NO_USER,
             password=token.encode().hex(),
             logger=logger,
             extras=self.get_extras(),
             custom=True,
         )
-        self.finish_request(logger)
+        self._complete_auth_request(logger)
 
-    def auth_basic(self, token, logger):
+    def auth_basic(self, token: str, logger: "ProtocolLogger") -> None:
         self.display_request("Basic", logger)
         try:
             username, password = base64.b64decode(token).decode().split(":", 1)
@@ -499,24 +530,24 @@ class HTTPHandler(BaseHTTPRequestHandler):
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
             return
 
-        self.session.db.add_auth(
+        self.config.db.add_auth(
             client=self.client_address,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
             password=password,
             logger=logger,
             username=username,
             extras=self.get_extras(),
         )
-        self.finish_request(logger)
+        self._complete_auth_request(logger)
 
-    def finish_request(self, logger):
+    def _complete_auth_request(self, logger):
         # inspect the path first, WPAD Auth and custom files are handled separately
-        if self.is_wpad_request() and self.config.http_wpad_enabled:
+        if self.is_wpad_request() and self.server_config.http_wpad_enabled:
             return self.send_wpad_script()
 
         self.send_error(418, "I'm a teapot")
 
-    def get_extras(self):
+    def get_extras(self) -> dict[str, str]:
         extras = {}
         if "User-Agent" in self.headers:
             extras["User-Agent"] = self.headers["User-Agent"]
@@ -533,13 +564,13 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
 
 class WinRMHandler(HTTPHandler):
-    def setup_proto_logger(self):
+    def setup_proto_logger(self) -> None:
         self.logger = ProtocolLogger(
             extra={
                 "protocol": "WinRM",
                 "protocol_color": "spring_green1",
                 "host": normalize_client_address(self.client_address[0]),
-                "port": self.config.http_port,
+                "port": self.server_config.http_port,
             }
         )
 

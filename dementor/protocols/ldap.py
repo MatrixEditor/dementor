@@ -91,8 +91,9 @@ from dementor.config.attr import (
 from dementor.config.session import SessionConfig
 from dementor.config.toml import Attribute as A
 from dementor.config.toml import TomlConfig
-from dementor.config.util import generate_self_signed_cert
-from dementor.db import _CLEARTEXT
+from dementor.config.tls import generate_self_signed_cert
+from dementor.config.util import HostValue, HostFallbackValue
+from dementor.db import CLEARTEXT, DIGEST_MD5
 from dementor.loader import DEFAULT_ATTR, BaseProtocolModule
 from dementor.log import hexdump
 from dementor.log.logger import ProtocolLogger
@@ -100,9 +101,10 @@ from dementor.protocols.ntlm import (
     ATTR_NTLM_CHALLENGE,
     ATTR_NTLM_DISABLE_ESS,
     ATTR_NTLM_DISABLE_NTLMV2,
-    NTLM_AUTH_CreateChallenge,
-    NTLM_report_auth,
-    NTLM_split_fqdn,
+    ntlm_auth_create_challenge,
+    ntlm_report_auth,
+    ntlm_split_fqdn,
+    ntlm_build_challenge_message,
 )
 from dementor.protocols.spnego import SPNEGO_NTLMSSP_MECH, SPNEGONegotiator
 from dementor.servers import (
@@ -335,7 +337,13 @@ class LDAPServerConfig(TomlConfig):
         A("ldap_mech", "SASLMechanisms", LDAP_DEFAULT_MECH),
         # Connection settings
         A("ldap_timeout", "Timeout", 0),
-        A("ldap_fqdn", "FQDN", "DEMENTOR", section_local=False),
+        A(
+            "ldap_fqdn",
+            "Host",
+            None,
+            section_local=False,
+            factory=HostFallbackValue(HostValue.HOST, "DEMENTOR"),
+        ),
         # TLS configuration
         ATTR_TLS,
         ATTR_KEY,
@@ -639,11 +647,14 @@ class SessionAuthState:
         """
         self.sealing_active = True
 
-    def set_negotiated_qop(self, qop: str) -> None:
-        """Set the negotiated quality of protection.
+    def apply_negotiated_qop(self, qop: str) -> None:
+        """Set the negotiated quality of protection and activate security layers.
 
         :param qop: Quality of protection ("auth", "auth-int", or "auth-conf")
         :type qop: str
+
+        Side effects: "auth-int" activates signing; "auth-conf" activates both
+        signing and sealing.
         """
         self.negotiated_qop = qop
         if qop == "auth-int":
@@ -728,7 +739,7 @@ class LDAPServerMixin:
             "supportedSASLQoPOptions", self.server_config.ldap_sasl_qop_options
         )
 
-        dns_hostname, dns_domain = NTLM_split_fqdn(self.server_config.ldap_fqdn)
+        dns_hostname, dns_domain = ntlm_split_fqdn(self.server_config.ldap_fqdn)
         add_if_requested("dnsHostName", [dns_hostname])
 
         naming_context = self.server_config._parse_domain_to_dn(dns_domain)
@@ -1085,7 +1096,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             return False
 
     @override
-    def recv(self, size: int) -> LDAPMessage | None:  # type: ignore[override]
+    def recv(self, size: int) -> LDAPMessage | None:  # type: ignore[override]  # ty:ignore[invalid-method-override]
         """Receive and decode an LDAP message from the client.
 
         :param size: Maximum bytes to receive (ignored, uses 8192)
@@ -1121,7 +1132,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             return message
 
     @override
-    def send(self, data: LDAPMessage | list[LDAPMessage] | None) -> None:  # type: ignore[override]
+    def send(self, data: LDAPMessage | list[LDAPMessage] | None) -> None:  # type: ignore[override]  # ty:ignore[invalid-method-override]
         """Send an LDAP message or list of messages to the client.
 
         :param data: LDAP message(s) to send, or None to skip
@@ -1217,19 +1228,28 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             else:
                 token = ntlm.NTLMAuthNegotiate()
 
-            ntlm_challenge = NTLM_AUTH_CreateChallenge(
+            host = HostValue(self.server.server_config.ldap_fqdn)
+            ntlm_challenge = ntlm_build_challenge_message(
                 token,
-                *NTLM_split_fqdn(self.server.server_config.ldap_fqdn),
-                challenge=self.server.server_config.ntlm_challenge,
-                disable_ess=self.server.server_config.ntlm_disable_ess,
-                disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
+                challenge=self.config.ntlm_challenge,
+                nb_computer=host.get_value(HostValue.NETBIOS_COMPUTER),
+                nb_domain=host.get_value(HostValue.NETBIOS_DOMAIN),
+                disable_ess=self.config.ntlm_disable_ess,
+                disable_ntlmv2=self.config.ntlm_disable_ntlmv2,
+                target_type=self.config.ntlm_target_type,
+                version=self.config.ntlm_version,
+                dns_computer=host.get_value(HostValue.DNS_COMPUTER),
+                dns_domain=host.get_value(HostValue.DNS_DOMAIN),
+                # REVISIT: capture DNSTree too
+                # dns_tree=self.config.ntlm_dns_tree,
+                log=self.logger,
             )
             return ntlm_challenge.getData(), False
 
         if mech_token:
             token = ntlm.NTLMAuthChallengeResponse()
             token.fromString(mech_token)
-            NTLM_report_auth(
+            ntlm_report_auth(
                 auth_token=token,
                 challenge=self.server.server_config.ntlm_challenge,
                 client=self.client_address,
@@ -1347,7 +1367,8 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         :type message: LDAPMessage
         :param bind_req: Bind request protocol operation
         :type bind_req: BindRequest
-        :return: None (response is sent directly to client)
+        :return: ``None`` when the response is sent directly to the client, or
+            a :class:`LDAPMessage` on the unsupported-version path.
         :rtype: LDAPMessage | None
         """
         self.logger.debug(f"LDAP Bind Request from {self.client_address}")
@@ -1465,7 +1486,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         username, domain, extras = self._parse_cleartext_user(bind_name)
         self.config.db.add_auth(
             client=self.client_address,
-            credtype=_CLEARTEXT,
+            credtype=CLEARTEXT,
             username=username,
             password=bind_password,
             domain=domain,
@@ -1536,12 +1557,9 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             negotiate.fromString(nego_token_raw)
 
             fqdn = self.server.server_config.ldap_fqdn
-            name, domain = fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
-
-            ntlm_challenge = NTLM_AUTH_CreateChallenge(
+            ntlm_challenge = ntlm_auth_create_challenge(
                 negotiate,
-                name,
-                domain,
+                *ntlm_split_fqdn(fqdn),
                 challenge=self.server.server_config.ntlm_challenge,
                 disable_ess=self.server.server_config.ntlm_disable_ess,
                 disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
@@ -1587,7 +1605,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             self.logger.debug("NTLM authenticate phase")
             auth_message = NTLMAuthChallengeResponse()
             auth_message.fromString(blob)
-            NTLM_report_auth(
+            ntlm_report_auth(
                 auth_token=auth_message,
                 challenge=self.server.server_config.ntlm_challenge,
                 client=self.client_address,
@@ -1834,27 +1852,23 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         else:
             self.logger.debug(f"Extended OID: {req_oid}, no value")
 
-        print(req_oid)
         if req_oid == LDAP_STARTTLS_OID:
-            """Handle StartTLS Extended Operation per RFC 4513 §3.
-
-            Per RFC 4513 §3: StartTLS upgrades an existing LDAP connection to use
-            TLS encryption. This protects subsequent operations from eavesdropping.
-
-            StartTLS Protocol Flow (RFC 4513 §3.1):
-                1. Client sends StartTLS extended request
-                2. Server sends success response
-                3. Client and server perform TLS handshake
-                4. Connection is now encrypted, authentication can proceed
-
-            Restrictions (RFC 4513 §3.1.1):
-                - MUST NOT be used if TLS is already active
-                - MUST NOT be used during SASL negotiation
-                - MUST NOT be used after successful bind (some implementations)
-
-            Per RFC 5929: After StartTLS, channel binding can be used to bind
-            SASL authentication to the TLS channel, preventing relay attacks.
-            """
+            # Handle StartTLS Extended Operation per RFC 4513 §3.
+            # StartTLS upgrades an existing LDAP connection to use TLS encryption.
+            #
+            # Protocol flow (RFC 4513 §3.1):
+            #   1. Client sends StartTLS extended request
+            #   2. Server sends success response
+            #   3. Client and server perform TLS handshake
+            #   4. Connection is now encrypted, authentication can proceed
+            #
+            # Restrictions (RFC 4513 §3.1.1):
+            #   - MUST NOT be used if TLS is already active
+            #   - MUST NOT be used during SASL negotiation
+            #   - MUST NOT be used after successful bind (some implementations)
+            #
+            # Per RFC 5929: After StartTLS, channel binding can bind SASL auth
+            # to the TLS channel, preventing relay attacks.
             self.logger.debug("Processing StartTLS extended operation")
 
             # RFC 4513 §3.1.1: StartTLS MUST NOT be used if TLS is already active
@@ -2048,11 +2062,11 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             msg_type = data[8]
             if msg_type == 1:
                 self.logger.debug("Direct NTLM: detected NTLM negotiate message")
-                return self._handle_NTLM_Negotiate(message, data)
+                return self._handle_ntlm_negotiate(message, data)
 
             if msg_type == 3:
                 self.logger.debug("Direct NTLM: detected NTLM authenticate message")
-                return self._handle_NTLM_Auth(message, data)
+                return self._handle_ntlm_auth(message, data)
 
             self.logger.debug(f"Direct NTLM: unsupported NTLM message type {msg_type}")
             return self.server.bind_result(message, reason=LDAP_AUTH_METHOD_NOT_SUPPORTED)
@@ -2061,7 +2075,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             self.logger.debug(f"Direct NTLM: failed to parse token: {e}")
             return self.server.bind_result(message, reason=LDAP_AUTH_METHOD_NOT_SUPPORTED)
 
-    def _handle_NTLM_Negotiate(self, message: LDAPMessage, nego_token_raw: bytes) -> None:
+    def _handle_ntlm_negotiate(self, message: LDAPMessage, nego_token_raw: bytes) -> None:
         """Handle NTLM Negotiate message.
 
         :param message: LDAP message containing bind request
@@ -2073,19 +2087,16 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         negotiate.fromString(nego_token_raw)
 
         fqdn = self.server.server_config.ldap_fqdn
-        name, domain = fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
-
-        ntlm_challenge = NTLM_AUTH_CreateChallenge(
+        ntlm_challenge = ntlm_auth_create_challenge(
             negotiate,
-            name,
-            domain,
+            *ntlm_split_fqdn(fqdn),
             challenge=self.server.server_config.ntlm_challenge,
             disable_ess=self.server.server_config.ntlm_disable_ess,
             disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
         )
         self.send(self.server.bind_result(message, matched_dn=ntlm_challenge.getData()))
 
-    def _handle_NTLM_Auth(self, message: LDAPMessage, blob: bytes) -> None:
+    def _handle_ntlm_auth(self, message: LDAPMessage, blob: bytes) -> None:
         """Handle NTLM Authenticate message.
 
         :param message: LDAP message containing bind request
@@ -2096,7 +2107,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         """
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
-        NTLM_report_auth(
+        ntlm_report_auth(
             auth_token=auth_message,
             challenge=self.server.server_config.ntlm_challenge,
             client=self.client_address,
@@ -2160,17 +2171,14 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
 
         # RFC 2831 §2.1: Client may send empty initial response
         # Server responds with challenge containing realm, nonce, qop, etc.
-        if not credentials or len(credentials) == 0:
+        if not credentials:
             self.logger.debug("DIGEST-MD5: Sending initial challenge")
             nonce = f"+Upgraded+v1{secrets.token_hex(32)}"
-            timestamp = str(int(time.time()))
 
             # Use configured domain as realm instead of hardcoded value
-            _, realm = NTLM_split_fqdn(self.server.server_config.ldap_fqdn)
+            _, realm = ntlm_split_fqdn(self.server.server_config.ldap_fqdn)
             self.digest_md5_state = {
                 "nonce": nonce,
-                "timestamp": timestamp,
-                "realm": realm,
             }
 
             # Only offer QoP options that are actually supported
@@ -2246,7 +2254,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         )
         self.config.db.add_auth(
             client=self.client_address,
-            credtype="digest-md5",
+            credtype=DIGEST_MD5,
             username=username,
             password=digest_hash,
             domain=domain,
@@ -2258,7 +2266,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             "DIGEST-MD5: Captured digest response for offline analysis (WARNING: not currently crackable with hashcat)"
         )
         if qop and qop in ["auth", "auth-int", "auth-conf"]:
-            self.auth_state.set_negotiated_qop(qop)
+            self.auth_state.apply_negotiated_qop(qop)
             self.logger.debug(f"DIGEST-MD5: Negotiated QOP: {qop}")
 
         if self.server.server_config.ldap_require_sealing:
@@ -2302,7 +2310,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         try:
             directives = parse_http_list(response_str)
             parsed = parse_keqv_list(directives)
-        except Exception as e:
+        except ValueError as e:
             self.logger.debug(f"DIGEST-MD5: Failed to parse response: {e}")
             return None
         else:
@@ -2335,7 +2343,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
                 )
                 return self.server.bind_result(message, reason=LDAP_INVALID_CREDENTIALS)
 
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             self.logger.debug(f"SASL PLAIN: Failed to parse credentials: {e}")
             return self.server.bind_result(message, reason=LDAP_INVALID_CREDENTIALS)
         else:
@@ -2351,7 +2359,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             username, domain, extras = self._parse_cleartext_user(authcid)
             self.config.db.add_auth(
                 client=self.client_address,
-                credtype="plain",
+                credtype=CLEARTEXT,
                 username=username,
                 password=passwd,
                 domain=domain,
@@ -2442,12 +2450,9 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             return self.server.bind_result(message, reason=LDAP_AUTH_METHOD_NOT_SUPPORTED)
 
         fqdn = self.server.server_config.ldap_fqdn
-        name, domain = fqdn.split(".", 1) if "." in fqdn else (fqdn, "")
-
-        ntlm_challenge = NTLM_AUTH_CreateChallenge(
+        ntlm_challenge = ntlm_auth_create_challenge(
             negotiate,
-            name,
-            domain,
+            *ntlm_split_fqdn(fqdn),
             challenge=self.server.server_config.ntlm_challenge,
             disable_ess=self.server.server_config.ntlm_disable_ess,
             disable_ntlmv2=self.server.server_config.ntlm_disable_ntlmv2,
@@ -2485,7 +2490,7 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
                 self.sasl_state.transition(SASLAuthState.FAILED)
             return self.server.bind_result(message, reason=LDAP_AUTH_METHOD_NOT_SUPPORTED)
 
-        NTLM_report_auth(
+        ntlm_report_auth(
             auth_token=auth_message,
             challenge=self.server.server_config.ntlm_challenge,
             client=self.client_address,
