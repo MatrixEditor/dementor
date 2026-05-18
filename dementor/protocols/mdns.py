@@ -111,6 +111,7 @@ class MDNSPoisoner(BaseProtoHandler):
     def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             {
+                "protocol": "mDNS",
                 "protocol_color": "deep_sky_blue1",
                 "host": self.client_host,
                 "port": self.client_port,
