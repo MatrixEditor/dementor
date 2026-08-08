@@ -18,5 +18,5 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "1.0.0.dev23"
+__version__ = "1.0.0.dev24"
 __author__ = "MatrixEditor"
