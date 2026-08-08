@@ -74,7 +74,9 @@ class ProxyAutoConfig(TomlConfig):
     if typing.TYPE_CHECKING:
         proxy_script: str | None
 
-    def set_proxy_script(self, script: str | None) -> None:
+    def set_proxy_script(
+        self, script: str | dict[str, dict[str, str]] | object | None
+    ) -> None:
         self.proxy_script = None
         match script:
             case str():
@@ -94,11 +96,15 @@ class ProxyAutoConfig(TomlConfig):
 
                 path = pathlib.Path(script["file"])
                 if not path.exists() or not path.is_file():
-                    dm_logger.error(f"WPAD script at {path} does not exist - ignoring...")
+                    dm_logger.error(
+                        f"WPAD script at {path} does not exist - ignoring..."
+                    )
                     return
 
                 if not path.is_file():
-                    dm_logger.error(f"WPAD script at {path} is not a file - ignoring...")
+                    dm_logger.error(
+                        f"WPAD script at {path} is not a file - ignoring..."
+                    )
                     return
 
                 self.proxy_script = path.read_text()
@@ -276,10 +282,10 @@ class HTTPHandler(BaseHTTPRequestHandler):
         client_address: tuple[str, int],
         server,
     ) -> None:
-        self.config = session
-        self.server_config = server_config
+        self.config: SessionConfig = session
+        self.server_config: HTTPServerConfig = server_config
         self.client_address = client_address
-        self.challenge = None
+        self.challenge: bytes | None = None
         self.setup_proto_logger()
         for http_method in server_config.http_methods:
             if http_method in ("OPTIONS", "PROPFIND"):
@@ -335,7 +341,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         # let us log mssages
         text = format % args
-        msg = text.translate(self._control_char_table)  # ty:ignore[unresolved-attribute]
+        msg = text.translate(
+            self._control_char_table
+        )  # ty:ignore[unresolved-attribute]
         self.logger.debug(msg)
 
     def send_response(self, code: int, message: str | None = None) -> None:
@@ -506,7 +514,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             case _:
                 logger.fail(f"Invalid negotiate authentication: {token}")
-                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
+                self.send_error(
+                    HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"
+                )
 
     def auth_bearer(self, token: str, logger: "ProtocolLogger") -> None:
         self.display_request("Bearer", logger)
@@ -565,6 +575,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
 class WinRMHandler(HTTPHandler):
     def setup_proto_logger(self) -> None:
+        super().setup_proto_logger()
         self.logger = ProtocolLogger(
             extra={
                 "protocol": "WinRM",
