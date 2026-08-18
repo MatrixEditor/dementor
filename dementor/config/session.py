@@ -218,7 +218,10 @@ class SessionConfig(TomlConfig):
     def set_interface(self, interface: str) -> None:
         self.interface = interface
         self.ipv4 = get_if_addr(self.interface)
-        self.ipv6 = next(
-            (ip[0] for ip in in6_getifaddr() if ip[2] == self.interface),
-            None,
-        )
+        try:
+            self.ipv6 = next(
+                (ip[0] for ip in in6_getifaddr() if ip[2] == self.interface),
+                None,
+            )
+        except Exception:
+            self.ipv6 = None # see issue #40
