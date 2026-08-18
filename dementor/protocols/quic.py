@@ -226,7 +226,7 @@ class QuicServerThread(AsyncServerThread[QuicServerConfig]):
     def generate_self_signed_cert(self) -> None:
         """Generate a self-signed certificate and private key for QUIC server."""
         logger = QuicHandler._make_proto_logger(self.server_config.quic_port)
-        logger.display("Generating self-signed certificate for QUIC server")
+        logger.display("Generating self-signed certificate for QUIC server", host=" ")
 
         cert_path, key_path, temp_dir = generate_self_signed_cert(
             self.server_config.quic_cert_cn,

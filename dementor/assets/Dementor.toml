@@ -1201,8 +1201,9 @@ PresentationUri = "/present.html"
 [Log]
 
 # Enable logging output to a file
+# Changed in v1.0.0.dev25 - now enabled by default
 
-Enabled = false
+Enabled = true
 
 # Specify custom log directory under the current workspace
 

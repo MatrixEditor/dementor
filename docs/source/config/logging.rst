@@ -20,6 +20,9 @@ Section ``[Log]``
     format ``log_%Y-%m-%d-%H-%M-%S.log`` and cannot be customized. This setting does **not**
     affect terminal output.
 
+    .. versionchanged:: v1.0.0.dev25
+        Logging is now enabled by default.
+
 .. py:attribute:: LogDir
     :type: RelativePath | RelativeWorkspacePath | AbsolutePath
     :value: "logs"

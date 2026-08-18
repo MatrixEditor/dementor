@@ -476,7 +476,8 @@ class ProtocolLogger(logging.LoggerAdapter[logging.Logger]):
 
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        self.logger.info(f"Created log file handler for {log_file_path}")
+        self.success(f"Logging session to {log_file_path}", host=" ", port=" ", protocol="LOG")
+        # self.logger.info(f"Created log file handler for {log_file_path}")
 
     @staticmethod
     def init_logfile(session: SessionConfig) -> None:

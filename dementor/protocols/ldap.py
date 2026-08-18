@@ -746,6 +746,7 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
             "Generating self-signed certificate for LDAP server",
             port=self.server_config.ldap_port,
             protocol=self.server_config.service_name(),
+            host=" ",
         )
 
         cert_path, key_path, temp_dir = generate_self_signed_cert(
