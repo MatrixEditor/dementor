@@ -180,11 +180,7 @@ class POP3Handler(BaseProtoHandler):
         self.line(line)
         resp = self.rfile.readline(1024).strip().decode("utf-8", errors="replace")
         self.logger.debug(f"C: {resp!r}")
-        # A client response consists of a line containing a string
-        # encoded as Base64.  If the client wishes to cancel the
-        # authentication exchange, it issues a line with a single "*".
-        # If the server receives such a response, it MUST reject the AUTH
-        # command by sending an -ERR reply.
+        # [rfc1939] a lone "*" cancels the AUTH exchange and must be rejected.
         if resp == "*":
             self.err("Authentication canceled")
             raise CloseConnection
@@ -209,14 +205,14 @@ class POP3Handler(BaseProtoHandler):
             self.logger.debug(f"C: {line!r}")
             line = line.decode("utf-8", errors="replace").strip()
 
-            args = line.split(" ")
-            if len(args) > 0:
-                method = getattr(self, f"do_{args[0].upper()}", None)
-                if method:
-                    try:
-                        method(args[1:])
-                    except CloseConnection:
-                        break
+            args = line.split(" ") if line else []
+            command = args[0] if args else ""
+            method = getattr(self, f"do_{command.upper()}", None) if command else None
+            if method:
+                try:
+                    method(args[1:])
+                except CloseConnection:
+                    break
                 continue
 
             self.logger.debug(f"Unknown command: {line!r}")
@@ -311,12 +307,7 @@ class POP3Handler(BaseProtoHandler):
             initial_response = self.challenge_auth(decode=True)
 
         try:
-            # The mechanism consists of a single message, a string of [UTF-8]
-            # encoded [Unicode] characters, from the client to the server.  The
-            # client presents the authorization identity (identity to act as),
-            # followed by a NUL (U+0000) character, followed by the authentication
-            # identity (identity whose password will be used), followed by a NUL
-            # (U+0000) character, followed by the clear-text password.
+            # Message format: authzid \0 authcid \0 password
             _, login, password = initial_response.split("\x00")
         except ValueError:
             return self.err("Invalid login data")
