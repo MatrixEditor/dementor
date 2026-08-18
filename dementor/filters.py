@@ -22,7 +22,7 @@ import re
 import sys
 import glob
 import pathlib
-import warnings
+import fnmatch
 
 from typing import Any
 
@@ -63,12 +63,7 @@ class FilterObj:
             self.target = self.target[2:]
             # glob.translate is only available since 3.13
             if (sys.version_info.major, sys.version_info.minor) < (3, 13):
-                warnings.warn(
-                    "glob.translate is only available since 3.13, "
-                    + "using basic-string instead",
-                    stacklevel=2,
-                )
-                self.pattern = None
+                self.pattern = re.compile(fnmatch.translate(self.target))
             else:
                 self.pattern = re.compile(glob.translate(self.target))
         else:
