@@ -165,6 +165,10 @@ class SSRPPoisoner(BaseProtoHandler):
         if not in_scope(self.client_host, self.config):
             return
 
+        if not data:
+            # empty/malformed datagram
+            return
+
         instance_name = self.config.ssrp_config.ssrp_server_instance
         if data[0] == SSRP_CLNT_UCAST_INST:
             # request for a specific instance

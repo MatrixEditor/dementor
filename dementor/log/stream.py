@@ -204,7 +204,12 @@ class HostsStream(LoggingFileStream[HostsStreamConfig]):
         self.hosts: set[str] = set()
         self.ipv4: bool = config.log_ipv4
         self.ipv6: bool = config.log_ipv6
-        dm_logger.info(f"Logging host IPs to {path} (IPv4={self.ipv4}, IPv6={self.ipv6})")
+        dm_logger.success(
+            f"Logging host IPs to {path} (IPv4={self.ipv4}, IPv6={self.ipv6})",
+            host=" ",
+            port=" ",
+            protocol="LOG",
+        )
 
     @override
     def add(self, **kwargs: Any) -> None:
@@ -259,7 +264,9 @@ class DNSNamesStream(LoggingFileStream[DNSNamesStreamConfig]):
         """
         super().__init__(path, config)
         self.hosts: dict[str, set[str]] = defaultdict(set)
-        dm_logger.info(f"Logging DNS names to {path}")
+        dm_logger.success(
+            f"Logging DNS names to {path}", host=" ", port=" ", protocol="LOG"
+        )
 
     @override
     def add(self, **kwargs: Any) -> None:
@@ -325,7 +332,12 @@ class HashStreams(LoggingFileStream[HashesStreamConfig]):
         super().__init__(path if not config.split else "/dev/null", config)
         self.path: Path = Path(path)
         self.start_time: str = util.now()
-        dm_logger.info(f"Logging hashes to {path} (split files: {config.split})")
+        dm_logger.success(
+            f"Logging hashes to {path} (split files: {config.split})",
+            host=" ",
+            port=" ",
+            protocol="LOG",
+        )
 
     @override
     def add(self, **kwargs: Any) -> None:

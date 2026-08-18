@@ -385,7 +385,7 @@ class MSRPCServer(ThreadingTCPServer):
         server_address=None,
         RequestHandlerClass=None,
     ) -> None:
-        self.conn_data = handles or defaultdict(RPCConnection)
+        self.conn_data = handles if handles is not None else defaultdict(RPCConnection)
         self._conn_lock = threading.Lock()
         super().__init__(config, server_address, RequestHandlerClass)
 

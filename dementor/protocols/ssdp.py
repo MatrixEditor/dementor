@@ -232,7 +232,7 @@ class SSDPPoisoner(BaseProtoHandler):
                 self.logger.display(f"(Notify: [i]alive[/i]) {self.describe_device(usn)}")
 
             # [1.2.3 Device unavailable -- NOTIFY with ssdp:byebye]
-            case "ssdp::byebye":
+            case "ssdp:byebye":
                 usn = UDN(self.message["USN"] or "uuid:<invalid>")
                 self.logger.display(
                     f"(Notify: [i]byebye[/i]) {self.describe_device(usn)}"
@@ -259,7 +259,7 @@ class SSDPPoisoner(BaseProtoHandler):
                 if len(tokens) == 2:
                     search_tyoe = "UUID"
                     target_text = f"[i]{escape(tokens[1])}[/i]"
-                elif len(tokens) >= 3:
+                elif len(tokens) >= 4:
                     search_tyoe = escape(tokens[2])
                     target_text = f"[i]{escape(tokens[1])}[/i]/[b]{escape(tokens[3])}[/b]"
                 else:

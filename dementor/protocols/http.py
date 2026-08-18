@@ -96,15 +96,11 @@ class ProxyAutoConfig(TomlConfig):
 
                 path = pathlib.Path(script["file"])
                 if not path.exists() or not path.is_file():
-                    dm_logger.error(
-                        f"WPAD script at {path} does not exist - ignoring..."
-                    )
+                    dm_logger.error(f"WPAD script at {path} does not exist - ignoring...")
                     return
 
                 if not path.is_file():
-                    dm_logger.error(
-                        f"WPAD script at {path} is not a file - ignoring..."
-                    )
+                    dm_logger.error(f"WPAD script at {path} is not a file - ignoring...")
                     return
 
                 self.proxy_script = path.read_text()
@@ -341,9 +337,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         # let us log mssages
         text = format % args
-        msg = text.translate(
-            self._control_char_table
-        )  # ty:ignore[unresolved-attribute]
+        msg = text.translate(self._control_char_table)  # ty:ignore[unresolved-attribute]
         self.logger.debug(msg)
 
     def send_response(self, code: int, message: str | None = None) -> None:
@@ -514,9 +508,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
             case _:
                 logger.fail(f"Invalid negotiate authentication: {token}")
-                self.send_error(
-                    HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"
-                )
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
 
     def auth_bearer(self, token: str, logger: "ProtocolLogger") -> None:
         self.display_request("Bearer", logger)

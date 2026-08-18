@@ -32,6 +32,8 @@ For more information, see:
 - [MS-NRPC] Netlogon Remote Protocol
 """
 
+import enum
+
 from scapy.layers import smb
 from scapy.fields import (
     FlagsField,
@@ -312,43 +314,45 @@ class NETLOGON_PRIMARY_RESPONSE(smb.NETLOGON):
 # ===========================================================================
 # Response Type Selection per [MS-ADTS] § 6.3.5
 # ===========================================================================
-def select_response_type(nt_version: int) -> int:
+class ResponseFamily(enum.Enum):
+    """Selects which response builder to use for a NETLOGON reply.
+
+    NETLOGON_SAM_LOGON_RESPONSE_EX and NETLOGON_PRIMARY_RESPONSE share the
+    same on-wire opcode (0x17), so the opcode value alone cannot tell them
+    apart. This enum is the internal selector `build_response()` dispatches
+    on; the on-wire opcode is only decided when the chosen builder
+    constructs its response.
     """
-    Select appropriate NETLOGON response type based on NtVersion flags.
 
-    Per [MS-ADTS] § 6.3.5, the server selects the response structure based
-    on the NtVersion field in the client's request:
+    SAM_LOGON_EX = enum.auto()
+    SAM_LOGON = enum.auto()
+    PRIMARY = enum.auto()
+    SAM_LOGON_NT40 = enum.auto()
 
-    1. If dc.nt4EmulatorEnabled is TRUE and AVOID_NT4EMUL is not set,
-       use NETLOGON_SAM_LOGON_RESPONSE_NT40
-    2. Else if V5EX or V5EX_WITH_IP is set,
-       use NETLOGON_SAM_LOGON_RESPONSE_EX
-    3. Else if V5 is set,
-       use NETLOGON_SAM_LOGON_RESPONSE
-    4. Else if PDC is set,
-       use NETLOGON_PRIMARY_RESPONSE
-    5. Else,
-       use NETLOGON_SAM_LOGON_RESPONSE_NT40
 
-    :param nt_version: NtVersion field from client request
-    :type nt_version: int
-    :return: Opcode for response structure
-    :rtype: int
+def select_response_type(nt_version: int) -> ResponseFamily:
+    """Select the NETLOGON response family for the client's NtVersion flags.
+
+    Per [MS-ADTS] § 6.3.5: SAM_LOGON_EX if V5EX/V5EX_WITH_IP is set, else
+    SAM_LOGON if V5 is set, else PRIMARY if PDC is set, else SAM_LOGON_NT40.
+
+    NOTE: the spec's other NT40 case (DC has NT4 emulation enabled) is not
+    implemented, since this server has no such mode.
     """
     # Check for extended V5 support
     if nt_version & (NETLOGON_NT_VERSION_5EX | NETLOGON_NT_VERSION_5EX_WITH_IP):
-        return LOGON_SAM_LOGON_RESPONSE_EX
+        return ResponseFamily.SAM_LOGON_EX
 
     # Check for V5 support
     if nt_version & NETLOGON_NT_VERSION_5:
-        return LOGON_SAM_LOGON_RESPONSE
+        return ResponseFamily.SAM_LOGON
 
     # Check for PDC query
     if nt_version & NETLOGON_NT_VERSION_PDC:
-        return LOGON_PRIMARY_RESPONSE
+        return ResponseFamily.PRIMARY
 
     # Default to NT40 response
-    return LOGON_SAM_LOGON_RESPONSE  # NT40 response (opcode 19)
+    return ResponseFamily.SAM_LOGON_NT40
 
 
 # ===========================================================================
@@ -709,10 +713,10 @@ def build_response(
     user_name = getattr(request, "UnicodeUserName", "")
 
     # Select response type
-    response_type: int = select_response_type(nt_version)
+    response_type = select_response_type(nt_version)
 
     # Build appropriate response
-    if response_type == LOGON_SAM_LOGON_RESPONSE_EX:
+    if response_type == ResponseFamily.SAM_LOGON_EX:
         return build_sam_logon_response_ex(
             dc_name=dc_name,
             user_name=user_name,
@@ -725,7 +729,7 @@ def build_response(
             flags=flags,
         )
 
-    if response_type == LOGON_SAM_LOGON_RESPONSE:
+    if response_type == ResponseFamily.SAM_LOGON:
         if dc_ip_address:
             return build_sam_logon_response(
                 dc_name=dc_name,
@@ -744,7 +748,7 @@ def build_response(
             domain_name=domain_name,
         )
 
-    if response_type == LOGON_PRIMARY_RESPONSE:
+    if response_type == ResponseFamily.PRIMARY:
         return build_primary_response(
             domain_name=domain_name,
             dc_name=dc_name,

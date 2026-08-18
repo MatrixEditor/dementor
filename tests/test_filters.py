@@ -107,35 +107,11 @@ class TestFilterObjRegex:
 
 
 class TestFilterObjGlob:
-    @pytest.mark.skipif(
-        (sys.version_info.major, sys.version_info.minor) < (3, 13),
-        reason="glob.translate requires Python 3.13+",
-    )
     def test_glob_wildcard(self):
         f = FilterObj("g:*.example.com")
         assert f.matches("api.example.com") is True
         assert f.matches("www.example.com") is True
         assert f.matches("evil.net") is False
-
-    @pytest.mark.skipif(
-        (sys.version_info.major, sys.version_info.minor) >= (3, 13),
-        reason="This test covers the <3.13 fallback path only",
-    )
-    def test_glob_pre_313_falls_back_to_literal(self):
-        with pytest.warns(UserWarning, match="glob.translate"):
-            f = FilterObj("g:*.example.com")
-        # In fallback mode, pattern is None and matches uses exact string compare
-        assert f.pattern is None
-        # Target has the prefix stripped
-        assert f.target == "*.example.com"
-
-    def test_glob_target_stripped_of_prefix(self):
-        if (sys.version_info.major, sys.version_info.minor) < (3, 13):
-            with pytest.warns(UserWarning):  # noqa: PT030
-                f = FilterObj("g:*.local")
-        else:
-            f = FilterObj("g:*.local")
-        assert f.target == "*.local"
 
 
 # ---------------------------------------------------------------------------
