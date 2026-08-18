@@ -372,7 +372,6 @@ class HandshakeResponse:
 
 # --- MySQL Handler ---
 class MySQLHandler(BaseProtoHandler):
-
     # AuthPlugin values this handler implements a dispatch method for; any
     # other configured value falls back to the default below.
     _SUPPORTED_AUTH_PLUGINS: typing.ClassVar[tuple[str, ...]] = ("mysql_clear_password",)

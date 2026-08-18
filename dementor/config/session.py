@@ -224,4 +224,4 @@ class SessionConfig(TomlConfig):
                 None,
             )
         except Exception:
-            self.ipv6 = None # see issue #40
+            self.ipv6 = None  # see issue #40
