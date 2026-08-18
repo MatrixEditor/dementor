@@ -372,6 +372,11 @@ class HandshakeResponse:
 
 # --- MySQL Handler ---
 class MySQLHandler(BaseProtoHandler):
+
+    # AuthPlugin values this handler implements a dispatch method for; any
+    # other configured value falls back to the default below.
+    _SUPPORTED_AUTH_PLUGINS: typing.ClassVar[tuple[str, ...]] = ("mysql_clear_password",)
+
     @property
     def mysql_config(self) -> "MySQLConfig":
         return self.config.mysql_config
@@ -413,8 +418,8 @@ class MySQLHandler(BaseProtoHandler):
             return None
 
     def setup(self) -> None:
-        # plugin = self.config.mysql_config.mysql_plugin_name
-        plugin = "mysql_clear_password"
+        plugin = self.config.mysql_config.mysql_plugin_name
+        # plugin = "mysql_clear_password"
         self.logger.display(
             f"New Connection to MySQL Server (requesting handshake for {plugin})"
         )
@@ -424,18 +429,25 @@ class MySQLHandler(BaseProtoHandler):
 
     def handle_data(self, data, transport) -> None:
         transport.settimeout(2)
-        # Connection Phase:
-        # It starts with the client connect()ing to the server which may send a
-        # ERR packet and finish the handshake or send a Initial Handshake Packet
-        # which the client answers with a Handshake Response Packet.
+        # Connection Phase: the server either sends an ERR packet or an
+        # Initial Handshake Packet, which the client answers with a
+        # Handshake Response Packet.
         flags = 0xFFFFFFFF
         flags ^= CLIENT_CAPABILITY_EXTENSION
         if not self.mysql_config.use_ssl:
             flags ^= CLIENT_SSL
             flags ^= CLIENT_SSL_VERIFY_SERVER_CERT
 
-        # NOTE: the configuration value won't have any effect here for now
-        plugin_name = "mysql_clear_password"
+        # NOTE: only mysql_clear_password has a dispatch method implemented
+        # for now
+        plugin_name = self.mysql_config.mysql_plugin_name
+        if plugin_name not in self._SUPPORTED_AUTH_PLUGINS:
+            self.logger.debug(
+                f"Configured MySQL AuthPlugin {plugin_name!r} is not implemented; "
+                "falling back to mysql_clear_password"
+            )
+            plugin_name = "mysql_clear_password"
+
         greeting = HandshakeV10(
             server_version=self.mysql_config.mysql_version,
             thread_id=10,
@@ -452,9 +464,8 @@ class MySQLHandler(BaseProtoHandler):
         if packet is None:
             return
 
-        # After this, optionally, the client can request an SSL connection to be established
-        # with the Protocol::SSLRequest packet and then the client sends the Protocol::HandshakeResponse
-        # packet.
+        # The client may now request an SSL upgrade via SSLRequest
+        # before sending the HandshakeResponse packet.
         try:
             ssl_request: SSLRequest = unpack(SSLRequest, packet.payload)
         except Exception as e:
