@@ -45,27 +45,11 @@ OFF = r"[bold red]\[OFF][/bold red]"
 
 @command
 class ServiceCommand(ReplAction):
-    """Command implementation for managing protocol services.
-
-    This class is registered under the name proto and provides the
-    sub-commands on/start, off/stop and status.  The
-    status command can be invoked with a specific protocol name to show a
-    detailed view or without a name to list all services.
-    """
+    """Command implementation for managing protocol services."""
 
     names: list[str] = ["proto"]
 
     def get_proto_parser(self) -> argparse.ArgumentParser:
-        """Create an :class:`argparse.ArgumentParser` for the proto command.
-
-        The parser description contains a comma-separated list of currently
-        available protocol names.  Sub-commands are attached a fn attribute
-        that points to the concrete method handling the action; this attribute
-        is later used by :meth:`execute`.
-
-        :return: Configured argument parser.
-        :rtype: argparse.ArgumentParser
-        """
         # Available protocol names (lower-case) for the help text
         names = [name.lower() for name in self.repl.session.manager.threads]
         parser = argparse.ArgumentParser(
@@ -125,15 +109,6 @@ class ServiceCommand(ReplAction):
 
     @override
     def execute(self, argv: argparse.Namespace) -> None:
-        """Entry point invoked by the REPL for the proto command.
-
-        argv.args_raw holds the arguments following the proto keyword.
-        When no protocol name is supplied an error message is shown.  Supplying
-        status without additional arguments triggers a full service list.
-
-        :param argv: Parsed arguments from the REPL.
-        :type argv: argparse.Namespace
-        """
         args_raw: list[str] = list(argv.args_raw)
         if not args_raw:
             self.repl.console.print("[bold red]Service name must be specified[/]")
@@ -155,15 +130,6 @@ class ServiceCommand(ReplAction):
             parsed.fn(name, parsed)
 
     def service_stop(self, name: str, argv: argparse.Namespace) -> None:
-        """Stop a running protocol service.
-
-        Prompts the user for confirmation unless the --yes flag is set.
-
-        :param name: Protocol name (case-insensitive).
-        :type name: str
-        :param argv: Parsed arguments; argv.yes bypasses the prompt.
-        :type argv: argparse.Namespace
-        """
         manager: ProtocolManager = self.repl.session.manager
         if not manager.is_running(name):
             self.repl.console.print(f"[bold yellow]No servers running for {name}![/]")
@@ -195,19 +161,6 @@ class ServiceCommand(ReplAction):
     def service_status(
         self, name: str, argv: argparse.Namespace | None = None, details: bool = True
     ) -> None:
-        """Print the status of a single protocol service.
-
-        When details is True a tree view with address/port information
-        for each thread is rendered; otherwise a compact ON/OFF line is
-        printed.
-
-        :param name: Protocol name.
-        :type name: str
-        :param argv: Unused placeholder for compatibility with the parser.
-        :type argv: argparse.Namespace | None
-        :param details: Whether to show a detailed tree view.
-        :type details: bool
-        """
         console: Console = self.repl.console
         manager: ProtocolManager = self.repl.session.manager
         protocol = manager.protocols[name.lower()]
@@ -239,11 +192,6 @@ class ServiceCommand(ReplAction):
             console.print(tree)
 
     def service_reload(self, name: str, argv: argparse.Namespace) -> None:
-        """Reload a protocol service.
-
-        Stops the service if running, reloads the protocol module via the loader,
-        recreates threads and starts the service again.
-        """
         manager: ProtocolManager = self.repl.session.manager
         status = self.repl.console.status(
             f"[bold red]Reloading...[/bold red] ([dim]{name}[/])",
@@ -256,19 +204,15 @@ class ServiceCommand(ReplAction):
             status.start()
 
         try:
-            # Stop if running
             if manager.is_running(name):
                 status.update(f"[bold red]Stopping services...[/] ([dim]{name}[/])")
                 manager.stop(name)
             # Reload protocol module
-            # Resolve protocol path and reload using loader
             protocol_path = manager.session.protocols.get(name.lower())
             if protocol_path:
                 status.update(f"[bold red]Reloading module...[/] ([dim]{name}[/])")
-                # Load fresh module and replace in manager.loader
                 new_module = manager.loader.load_protocol(protocol_path)
                 # Recreate protocol instance
-                # Find protocol class name via __proto__ list
                 proto_names = getattr(new_module, "__proto__", [])
                 for proto_name in proto_names:
                     proto_ty = getattr(new_module, proto_name, None)
@@ -293,15 +237,6 @@ class ServiceCommand(ReplAction):
             status.stop()
 
     def service_start(self, name: str, argv: argparse.Namespace) -> None:
-        """Start a protocol service if it is not already running.
-
-        A spinner is shown while the service threads are created and started.
-
-        :param name: Protocol name.
-        :type name: str
-        :param argv: Parsed arguments (currently unused).
-        :type argv: argparse.Namespace
-        """
         manager: ProtocolManager = self.repl.session.manager
         if manager.is_running(name):
             self.repl.console.print(
@@ -324,7 +259,6 @@ class ServiceCommand(ReplAction):
             status.stop()
 
     def _list_fields(self, cfg: TomlConfig) -> None:
-        """List configurable fields of a TomlConfig instance."""
         fields = [f"[b]{attr.qname}[/]: {attr.attr_name}" for attr in cfg._fields_]
         console = self.repl.console
         console.print(
@@ -340,10 +274,6 @@ class ServiceCommand(ReplAction):
         )
 
     def service_config(self, name: str, argv: argparse.Namespace) -> None:
-        """Inspect or modify runtime server configuration for a protocol.
-
-        Only fields defined in the protocol's ``_fields_`` are editable.
-        """
         manager: ProtocolManager = self.repl.session.manager
         console = self.repl.console
         threads = manager.threads.get(name.lower(), [])
@@ -379,7 +309,6 @@ class ServiceCommand(ReplAction):
                 "[b red]Nested keys are not supported. Use a top-level field name.[/]"
             )
             return
-        # Parse key/value
         if "=" in key_path:
             key, raw_value = key_path.split("=", 1)
         else:
@@ -388,7 +317,6 @@ class ServiceCommand(ReplAction):
         cfg_targets = (
             [cfg] if not apply_all else [thread.server_config for thread in threads]
         )
-        # Resolve field (case-insensitive) from _fields_
         for i, cfg in enumerate(cfg_targets):
             cfg_fields: list[Attribute] = cfg._fields_
             target_key: str = key.lower()
@@ -438,12 +366,6 @@ class ServiceCommand(ReplAction):
                 )
 
     def service_status_all(self) -> None:
-        """Display the status of **all** configured protocol services.
-
-        Services are listed alphabetically, with poisoner protocols highlighted
-        separately.
-
-        """
         console: Console = self.repl.console
         manager: ProtocolManager = self.repl.session.manager
 
@@ -464,13 +386,6 @@ class ServiceCommand(ReplAction):
 
     @override
     def get_completions(self, word: str, document: Document) -> list[str]:
-        """Provide completions for protocol name, sub-commands and flags.
-
-        * Token 0 - the command name ``proto`` (already supplied by the REPL).
-        * Token 1 - the protocol service name.
-        * Token 2 - the sub-command (on/off/status/config/reload).
-        * Tokens 3+ - flags/options specific to the chosen sub-command.
-        """
         # Split the current line, handling simple quoting.
         try:
             tokens = shlex.split(document.text_before_cursor)

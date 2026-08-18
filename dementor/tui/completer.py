@@ -41,37 +41,17 @@ class ReplCompleter(Completer):
     1. **Command completion** - when the cursor is at the first word of the
        line, it suggests all registered command names from
        :data:`dementor.tui.action.REPL_COMMANDS`.
-    2. **Flag completion** - after a command has been entered, the completer
-       inspects the command's ``argparse`` parser (if any) and offers the
-       defined option strings (e.g. ``--interface``) as completions.
-
-    The goal is to provide a runtime, introspection-based completion experience
-    without requiring a static completion file.
+    2. **Argument completion** - after a command has been entered, the
+       completer delegates to that command's own
+       :meth:`~dementor.tui.action.ReplAction.get_completions` hook.
     """
 
     def __init__(self, repl: "Repl") -> None:
         self.repl: Repl = repl
 
-    # Helper -----------------------------------------------------------------
     def _iter_command_names(self) -> Iterable[str]:
         """Yield all command names/aliases registered in ``REPL_COMMANDS``."""
         yield from REPL_COMMANDS.keys()
-
-    def _get_parser_for_command(self, command_name: str):
-        """Return the ``argparse.ArgumentParser`` for *command_name* or ``None``.
-
-        The function lazily creates an instance of the action class associated
-        with *command_name* and calls its ``get_parser`` method.
-        """
-        action_cls = REPL_COMMANDS.get(command_name)
-        if not action_cls:
-            return None
-        try:
-            action_obj = action_cls(self.repl)
-            return action_obj.get_parser()
-        except Exception:
-            # Guard against actions that require additional runtime state.
-            return None
 
     # Completer interface ------------------------------------------------------
     @override
@@ -85,25 +65,21 @@ class ReplCompleter(Completer):
         quoting.
         """
         text_before = document.text_before_cursor.lstrip()
-        # Determine the current word to replace.
         word = document.get_word_before_cursor(WORD=True)
-        # Split the line into tokens - ``shlex`` is used for proper handling of
-        # quoted arguments but we fall back to a simple split if parsing fails.
+        # shlex handles quoted arguments correctly; fall back to a plain
+        # split if the line has unbalanced quotes (still being typed).
         try:
             tokens = shlex.split(text_before)
         except Exception:
             tokens = text_before.split()
 
-        # No tokens yet -> suggest command names.
         if not tokens:
             for name in self._iter_command_names():
                 if name.startswith(word):
                     yield Completion(name, start_position=-len(word))
             return
 
-        # First token is the command.
         command = tokens[0]
-        # After the command - collect completions from the command's hook.
         completions: set[str] = set()
         action_cls = REPL_COMMANDS.get(command)
         if action_cls:
@@ -118,7 +94,6 @@ class ReplCompleter(Completer):
                 if name.startswith(word):
                     yield Completion(name, start_position=-len(word))
 
-        # Yield matching completions
         for opt in sorted(completions):
             if opt.startswith(word):
                 yield Completion(opt, start_position=-len(word))
