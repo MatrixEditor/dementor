@@ -17,33 +17,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""
-LDAP Protocol Server Implementation.
+# Supported Authentication Mechanisms (per MS-ADTS §5.1.1.1):
+# - Simple Bind: Anonymous, unauthenticated, and name/password authentication
+# - Sicily Protocol: Microsoft extension for NTLM authentication over LDAP
+# - SASL Mechanisms:
+#   - GSS-SPNEGO: SPNEGO negotiation (typically NTLM)
+#   - DIGEST-MD5: Digest authentication
+#   - PLAIN: Cleartext authentication
+#   - NTLM: Direct NTLM (non-SPNEGO)
 
-This module implements an LDAPv3 server compliant with RFC 4511 (LDAPv3),
-focusing on authentication mechanisms as per RFC 4513 and Microsoft Active
-Directory Technical Specification [MS-ADTS].
-
-Supported Authentication Mechanisms (per MS-ADTS §5.1.1.1):
-- Simple Bind: Anonymous, unauthenticated, and name/password authentication
-- Sicily Protocol: Microsoft extension for NTLM authentication over LDAP
-- SASL Mechanisms:
-  - GSS-SPNEGO: SPNEGO negotiation (typically NTLM)
-  - DIGEST-MD5: Digest authentication
-  - PLAIN: Cleartext authentication
-  - NTLM: Direct NTLM (non-SPNEGO)
-
-References:
-- RFC 4511: Lightweight Directory Access Protocol (LDAP): The Protocol
-- RFC 4513: LDAP Authentication Methods and Security Mechanisms
-- RFC 2831: Using Digest Authentication as a SASL Mechanism
-- RFC 4178: SPNEGO Negotiation Mechanism
-- RFC 4616: The PLAIN SASL Mechanism
-- [MS-ADTS]: Active Directory Technical Specification
-- [MS-NLMP]: NT LAN Manager (NTLM) Authentication Protocol
-
-"""
-
+# References:
+# - RFC 4511: Lightweight Directory Access Protocol (LDAP): The Protocol
+# - RFC 4513: LDAP Authentication Methods and Security Mechanisms
+# - RFC 2831: Using Digest Authentication as a SASL Mechanism
+# - RFC 4178: SPNEGO Negotiation Mechanism
+# - RFC 4616: The PLAIN SASL Mechanism
+# - [MS-ADTS]: Active Directory Technical Specification
+# - [MS-NLMP]: NT LAN Manager (NTLM) Authentication Protocol
 import secrets
 
 import os
@@ -120,163 +110,57 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# Per RFC 4512 §5.1: The root DSE's 'supportedCapabilities' attribute lists
-# the OIDs of capabilities that the server supports. These OIDs identify
-# features beyond the base LDAP protocol.
-#
-# MS-ADTS §3.1.1.3.3 defines Active Directory-specific capability OIDs that
-# indicate the server is an AD DC and supports AD-specific features.
-
 LDAP_CAPABILITIES: list[str] = [
     # MS-ADTS §3.1.1.3.3.1: LDAP_CAP_ACTIVE_DIRECTORY_OID
     # Indicates the server is an Active Directory Domain Controller.
-    # Clients use this to detect AD vs. generic LDAP servers.
     "1.2.840.113556.1.4.800",
     # MS-ADTS §3.1.1.3.3.2: LDAP_CAP_ACTIVE_DIRECTORY_LDAP_INTEG_OID
     # Indicates support for LDAP integrity and privacy via SASL signing/sealing.
-    # Required for secure LDAP communications per MS-ADTS §5.1.1.1.1.
     "1.2.840.113556.1.4.1791",
     # MS-ADTS §3.1.1.3.3.3: LDAP_CAP_ACTIVE_DIRECTORY_V51_OID
     # Indicates Windows Server 2003 or later AD capabilities.
-    # Enables features like dynamic objects and application partitions.
     "1.2.840.113556.1.4.1670",
 ]
 
-# Per RFC 4513 §5.2.1.5: The root DSE's 'supportedSASLMechanisms' attribute
-# lists the SASL mechanisms the server supports for authentication.
-#
-# MS-ADTS §5.1.1.1 defines the authentication methods supported by AD:
-# - Simple Bind (§5.1.1.1.1): Anonymous, unauthenticated, name/password
-# - SASL (§5.1.1.1.2): GSS-SPNEGO, DIGEST-MD5, EXTERNAL, etc.
-# - Sicily (§5.1.1.1.3): Microsoft proprietary NTLM over LDAP
-
 LDAP_DEFAULT_MECH: list[str] = [
     # RFC 4178: SPNEGO (Simple and Protected GSS-API Negotiation Mechanism)
-    # Most common mechanism for Windows clients, typically negotiates NTLM or Kerberos.
-    # MS-ADTS §5.1.1.1.2.1: GSS-SPNEGO wraps NTLMSSP for NTLM authentication.
     "GSS-SPNEGO",
     # RFC 2831: DIGEST-MD5 SASL mechanism (DEPRECATED per RFC 6331)
-    # Challenge-response authentication using MD5 hashing.
-    # Still supported for legacy client compatibility.
     "DIGEST-MD5",
     # RFC 4616: PLAIN SASL mechanism
-    # Cleartext username/password authentication.
-    # MUST only be used over TLS per RFC 4616 §4 to prevent credential exposure.
     "PLAIN",
     # Direct NTLM (non-SPNEGO wrapped)
-    # Microsoft extension allowing NTLM authentication without SPNEGO wrapper.
-    # Used by some legacy Windows clients.
     "NTLM",
 ]
 
-# Per RFC 5929: Channel bindings allow authentication mechanisms to bind
-# to the underlying secure channel (TLS), preventing man-in-the-middle attacks.
-#
-# MS-ADTS §5.1.1.1.1.4: AD supports channel binding to prevent LDAP relay attacks.
-
 LDAP_CHANNEL_BINDING_TYPES: list[str] = [
-    # RFC 5929 §4.1: 'tls-unique' channel binding type
-    # Uses the TLS Finished message from the first handshake.
-    # Most secure option but requires TLS renegotiation support.
     "tls-unique",
-    # RFC 5929 §4.2: 'tls-server-end-point' channel binding type
-    # Uses a hash of the server's TLS certificate.
-    # More widely supported, works without TLS renegotiation.
     "tls-server-end-point",
 ]
 
-# Per RFC 4513 §5.2.4: SASL mechanisms can negotiate a security layer that
-# provides integrity protection and/or confidentiality for subsequent LDAP
-# operations after successful authentication.
-#
-# MS-ADTS §5.1.1.1.1.3: AD supports signing (integrity) and sealing (encryption)
-# via SASL security layers.
-
 LDAP_SASL_QOP_OPTIONS: list[str] = [
-    # RFC 2831 §2.1.2.1: Authentication only
-    # No integrity or confidentiality protection after authentication.
-    # Credentials are protected during auth, but subsequent LDAP ops are not.
     "auth",
-    # RFC 2831 §2.1.2.1: Authentication with integrity protection
-    # Each LDAP message is signed with a MAC to detect tampering.
-    # Provides integrity but not confidentiality (messages visible to eavesdroppers).
     "auth-int",
-    # RFC 2831 §2.1.2.1: Authentication with confidentiality
-    # Each LDAP message is encrypted and signed.
-    # Provides both integrity and confidentiality (strongest protection).
     "auth-conf",
 ]
 
-# Per RFC 2831: DIGEST-MD5 is a SASL mechanism using HTTP Digest Authentication.
-# NOTE: DIGEST-MD5 is DEPRECATED per RFC 6331 due to security concerns, but
-# still supported for legacy client compatibility.
-
-# RFC 2831 §2.1.1: The realm directive identifies the protection space.
-# Typically the DNS domain name. Can be overridden by server configuration.
 DIGEST_MD5_REALM: str = "dementor"
-
-# RFC 2831 §2.1.2.1: Quality of Protection (qop) directive.
-# "auth" = authentication only (no integrity/confidentiality layer).
 DIGEST_MD5_QOP: str = "auth"
-
-# RFC 2831 §2.1.1: Algorithm directive specifies the hash algorithm.
-# "md5-sess" = session-based MD5 (more secure than plain "md5").
 DIGEST_MD5_ALGORITHM: str = "md5-sess"
-
-# RFC 2831 §2.1.1: Charset directive for username/password encoding.
-# "utf-8" is the standard and only supported charset.
 DIGEST_MD5_CHARSET: str = "utf-8"
-
-# RFC 2831 §2.1.2.1: Maximum buffer size for integrity/confidentiality layers.
-# 65536 bytes is a common default value.
 DIGEST_MD5_MAXBUF: str = "65536"
 
-# Per RFC 4511 Appendix A: Result codes indicate the outcome of LDAP operations.
-# These are returned in LDAPResult structures (BindResponse, SearchResultDone, etc.).
-
-# RFC 4511 Appendix A.1: Operation completed successfully.
 LDAP_SUCCESS: int = 0x00
-
-# RFC 4511 Appendix A.2: Server encountered an internal error.
 LDAP_OPERATIONS_ERROR: int = 0x01
-
-# RFC 4511 Appendix A.3: Client sent a malformed or invalid request.
 LDAP_PROTOCOL_ERROR: int = 0x02
-
-# RFC 4511 Appendix A.8: The authentication method is not supported.
-# Returned when client requests unsupported SASL mechanism or bind type.
 LDAP_AUTH_METHOD_NOT_SUPPORTED: int = 0x07
-
-# RFC 4511 Appendix A.13: The LDAP protocol version is not supported.
-# This implementation only supports LDAPv3 (version 3).
 LDAP_UNSUPPORTED_LDAP_VERSION: int = 0x0C
-
-# RFC 4511 Appendix A.14: Operation requires confidentiality (TLS/SASL encryption).
-# Returned when server policy requires encryption but connection is not secured.
 LDAP_CONFIDENTIALITY_REQUIRED: int = 0x0D
-
-# RFC 4511 Appendix A.15: SASL bind is in progress (multi-step authentication).
-# Per RFC 4513 §5.2.1: SASL mechanisms may require multiple bind requests.
 LDAP_SASL_BIND_IN_PROGRESS: int = 0x0E
-
-# RFC 4511 Appendix A.17: Server is unwilling to perform the operation.
-# Generic error for operations the server chooses not to support.
 LDAP_UNWILLING_TO_PERFORM: int = 0x10
-
-# RFC 4511 Appendix A.50: Invalid credentials provided during bind.
-# Returned for failed simple bind or SASL authentication.
 LDAP_INVALID_CREDENTIALS: int = 0x31
 
-# Per RFC 4511 §4.12: Extended operations allow additional functionality
-# beyond the core LDAP protocol. Each operation is identified by an OID.
-
-# RFC 4511 §4.14 / RFC 4513 §3: StartTLS Extended Operation
-# OID: 1.3.6.1.4.1.1466.20037
-# Upgrades an existing LDAP connection to use TLS encryption.
-# Per RFC 4513 §3.1.1: StartTLS MUST NOT be used if TLS is already active.
-# Per RFC 4513 §3.1.2: StartTLS MUST NOT be used during SASL negotiation.
 LDAP_STARTTLS_OID: str = "1.3.6.1.4.1.1466.20037"
-
 DEFAULT_DOMAIN: str = "example.com"
 
 
@@ -285,8 +169,6 @@ class LDAPTerminateSession(Exception):
 
 
 class LDAPServerConfig(TomlConfig):
-    """Configurable LDAP server settings (port, TLS, SASL, capabilities, signing)."""
-
     _section_ = "LDAP"
     _fields_ = [
         # Network configuration
@@ -355,7 +237,6 @@ class LDAPServerConfig(TomlConfig):
         ntlm_disable_ntlmv2: bool
 
     def set_ldap_error_code(self, value: str | int) -> None:
-        """Set the LDAP error code for bind responses."""
         if isinstance(value, int):
             self.ldap_error_code = value
         else:
@@ -365,12 +246,6 @@ class LDAPServerConfig(TomlConfig):
         return ("C" if self.ldap_udp else "") + "LDAP" + ("S" if self.use_ssl else "")
 
     def _parse_domain_to_dn(self, domain: str) -> str:
-        """Convert a DNS-style domain name into LDAP DN format.
-
-        Splits on dots into DC (Domain Component) attributes:
-        - "example.com" -> "DC=example,DC=com"
-        - "sub.example.com" -> "DC=sub,DC=example,DC=com"
-        """
         if not domain:
             return ""
         parts = domain.split(".")
@@ -378,46 +253,15 @@ class LDAPServerConfig(TomlConfig):
 
 
 class SASLAuthState(Enum):
-    """SASL authentication state machine states per RFC 4513 §5.2.1.2.
-
-    Per RFC 4513 §5.2.1.2: SASL authentication is a multi-step process where
-    the client and server exchange challenges and responses until authentication
-    succeeds or fails.
-
-    State Transitions:
-    - INITIAL -> CHALLENGE_SENT: Server sends initial challenge
-    - CHALLENGE_SENT -> RESPONSE_RECEIVED: Client sends response
-    - RESPONSE_RECEIVED -> COMPLETE: Authentication succeeds
-    - RESPONSE_RECEIVED -> CHALLENGE_SENT: Additional challenge needed (multi-step)
-    - Any state -> FAILED: Authentication fails
-    """
-
     INITIAL = "initial"
-
-    # Per RFC 4513 §5.2.1.2: server returns saslBindInProgress (14)
     CHALLENGE_SENT = "challenge_sent"
-
     RESPONSE_RECEIVED = "response_received"
-
-    # Per RFC 4513 §5.2.1.2: server returns success (0)
     COMPLETE = "complete"
-
-    # Per RFC 4513 §5.2.1.2: server returns the appropriate error code
     FAILED = "failed"
 
 
 class SASLMechanismState:
-    """Tracks state for a single SASL mechanism negotiation (RFC 4513 §5.2.1).
-
-    Per RFC 4513 §5.2.1.2: the server must track the authentication state and
-    ensure proper sequencing of challenges and responses across bind requests.
-    """
-
     def __init__(self, mechanism: str) -> None:
-        """Initialize SASL mechanism state.
-
-        Per RFC 4513 §5.2.1.2: Servers SHOULD limit authentication time.
-        """
         self.mechanism: str = mechanism
         self.state: SASLAuthState = SASLAuthState.INITIAL
         self.challenge_data: bytes | None = None
@@ -425,23 +269,6 @@ class SASLMechanismState:
         self.context: dict[str, Any] = {}
 
     def transition(self, new_state: SASLAuthState) -> None:
-        """Transition to a new state with validation.
-
-        Per RFC 4513 §5.2.1.2: SASL authentication follows a specific sequence.
-        This method enforces valid state transitions to prevent protocol violations.
-
-        Valid transitions:
-            - INITIAL -> CHALLENGE_SENT: Server sends initial challenge
-            - INITIAL -> FAILED: Authentication fails immediately
-            - CHALLENGE_SENT -> RESPONSE_RECEIVED: Client responds to challenge
-            - CHALLENGE_SENT -> FAILED: Client fails to respond properly
-            - RESPONSE_RECEIVED -> COMPLETE: Authentication succeeds
-            - RESPONSE_RECEIVED -> CHALLENGE_SENT: Multi-step auth needs another round
-            - RESPONSE_RECEIVED -> FAILED: Authentication fails
-            - COMPLETE/FAILED: Terminal states, no further transitions
-
-        :raises ValueError: If the transition is invalid per RFC 4513 §5.2.1.2.
-        """
         valid_transitions: dict[SASLAuthState, list[SASLAuthState]] = {
             SASLAuthState.INITIAL: [SASLAuthState.CHALLENGE_SENT, SASLAuthState.FAILED],
             SASLAuthState.CHALLENGE_SENT: [
@@ -460,52 +287,19 @@ class SASLMechanismState:
         if new_state not in valid_transitions.get(self.state, []):
             raise ValueError(
                 f"Invalid state transition for {self.mechanism}: "
-                f"{self.state.value} -> {new_state.value}"
+                + f"{self.state.value} -> {new_state.value}"
             )
 
         self.state = new_state
 
 
 class AuthorizationState(Enum):
-    """Authorization state per RFC 4513 §4.
-
-    Per RFC 4513 §4: An LDAP session has an associated authorization state that
-    determines what operations the client is permitted to perform.
-
-    Authorization States:
-    - Anonymous: No authentication, limited access (RFC 4513 §4.1)
-    - Authenticated: Successfully authenticated, full access based on identity
-    - SASL In Progress: Multi-step SASL authentication underway
-    """
-
-    # RFC 4513 §4.1: no authentication performed; access limited to publicly
-    # readable data.
     ANONYMOUS = "anonymous"
-
-    # RFC 4513 §4.2: access determined by the authenticated identity's
-    # permissions.
     AUTHENTICATED = "authenticated"
-
-    # RFC 4513 §5.2.1: multi-step SASL mechanism being negotiated; limited
-    # access until authentication completes.
     SASL_IN_PROGRESS = "sasl_in_progress"
 
 
 class SessionAuthState:
-    """Tracks authorization state for an LDAP session per RFC 4513 §4.
-
-    Per RFC 4513 §4: Each LDAP session has an authorization state that tracks:
-    - The current authorization state (anonymous, authenticated, etc.)
-    - The authenticated identity (if any)
-    - The authentication method used
-    - Security layers active on the connection (TLS, SASL, etc.)
-
-    Per MS-ADTS §5.1.1.1.1: AD tracks additional security properties:
-    - Signing (integrity protection) status
-    - Sealing (encryption) status
-    - Channel binding status
-    """
-
     def __init__(self) -> None:
         self.state: AuthorizationState = AuthorizationState.ANONYMOUS
         self.authenticated_identity: str | None = None
@@ -520,56 +314,32 @@ class SessionAuthState:
         self.created_at: float = time.time()
 
     def authenticate(self, identity: str, method: str) -> None:
-        """Transition to authenticated state."""
         self.state = AuthorizationState.AUTHENTICATED
         self.authenticated_identity = identity
         self.authentication_method = method
 
     def reset_to_anonymous(self) -> None:
-        """Reset to anonymous state, clearing all authentication state (RFC 4513 §4)."""
         self.state = AuthorizationState.ANONYMOUS
         self.authenticated_identity = None
         self.authentication_method = None
 
     def enable_tls(self) -> None:
-        """Mark TLS as active on the connection.
-
-        Called after successful StartTLS negotiation or initial TLS handshake.
-        """
         self.tls_active = True
 
     def enable_sasl(self) -> None:
-        """Mark SASL security layer as active.
-
-        Indicates that SASL integrity/confidentiality protection is enabled.
-        """
         self.sasl_active = True
 
     def enable_channel_binding(self, binding_type: str) -> None:
-        """Enable channel binding on the connection."""
         self.channel_binding_active = True
         self.channel_binding_type = binding_type
 
     def enable_signing(self) -> None:
-        """Enable SASL signing (integrity protection).
-
-        Per MS-ADTS §5.1.1.1.1.3: Signing provides message integrity via MAC.
-        """
         self.signing_active = True
 
     def enable_sealing(self) -> None:
-        """Enable SASL sealing (encryption).
-
-        Per MS-ADTS §5.1.1.1.1.3: Sealing provides message confidentiality.
-        """
         self.sealing_active = True
 
     def apply_negotiated_qop(self, qop: str) -> None:
-        """Set the negotiated quality of protection and activate security layers.
-
-        Side effects: "auth-int" activates signing; "auth-conf" activates both
-        signing and sealing.
-        """
         self.negotiated_qop = qop
         if qop == "auth-int":
             self.enable_signing()
@@ -578,7 +348,6 @@ class SessionAuthState:
             self.enable_sealing()
 
     def is_authenticated(self) -> bool:
-        """Check if session is in authenticated state."""
         return self.state == AuthorizationState.AUTHENTICATED
 
 
@@ -599,11 +368,6 @@ class LDAPServerMixin:
         return self.new_message(req, result)
 
     def create_root_dse_entry(self, requested_attrs: list[str]) -> dict[str, list[str]]:
-        """Create a consolidated root DSE entry with all requested attributes.
-
-        Per RFC 4512 §5.1: The root DSE contains server capabilities and
-        configuration information accessible without authentication.
-        """
         attributes = {}
 
         def add_if_requested(attr_name: str, values: list[str]) -> None:
@@ -650,7 +414,6 @@ class LDAPServerMixin:
         return attributes
 
     def search_entry_list(self, entries: dict[str, list[str]]) -> SearchResultEntry:
-        """Build a SearchResultEntry from attribute dictionary."""
         search_entry = SearchResultEntry()
         search_entry["objectName"] = ""
 
@@ -671,7 +434,6 @@ class LDAPServerMixin:
         matched_dn: str | bytes | None = None,
         sasl_credentials: bytes | None = None,
     ) -> LDAPMessage:
-        """Generate BindResponse message."""
         bind = BindResponse()
         bind["resultCode"] = reason
         bind["matchedDN"] = matched_dn or ""
@@ -687,7 +449,6 @@ class LDAPServerMixin:
         response_name: str | None = None,
         response_value: bytes | None = None,
     ) -> LDAPMessage:
-        """Generate ExtendedResponse message."""
         extended = ExtendedResponse()
         extended["resultCode"] = reason
         extended["matchedDN"] = ""
@@ -699,7 +460,6 @@ class LDAPServerMixin:
         return self.new_message(req, extended)
 
     def new_message(self, req: LDAPMessage, op: Any) -> LDAPMessage:
-        """Create a new LDAPMessage with the same message ID as the request."""
         message = LDAPMessage()
         message["messageID"] = req["messageID"]
         message["protocolOp"].setComponentByType(op.getTagSet(), op)
@@ -737,11 +497,6 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         super().__init__(config, server_address, RequestHandlerClass)
 
     def generate_self_signed_cert(self) -> None:
-        """Generate a self-signed certificate and private key for LDAP server.
-
-        Creates temporary certificate files using configuration parameters.
-        Certificate is stored in a temporary directory and cleaned up on server close.
-        """
         ldap_logger.display(
             "Generating self-signed certificate for LDAP server",
             port=self.server_config.ldap_port,
@@ -769,11 +524,6 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         )
 
     def setup_ssl_context(self, transport: socket.socket | None = None) -> None:
-        """Initialize SSL/TLS context for LDAP server.
-
-        Loads certificate and key files, wraps the socket with TLS.
-        Generates self-signed certificate if configured and files not found.
-        """
         cert_path = self.server_config.certfile
         key_path = self.server_config.keyfile
         transport = transport or self.socket
@@ -787,7 +537,7 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
             if not self.server_config.self_signed:
                 ldap_logger.error(
                     "LDAP certificate or key not found and self-signed generation is disabled. "
-                    "Set SelfSigned=true in [Globals] or [LDAP] section to enable automatic generation."
+                    + "Set SelfSigned=true in [Globals] or [LDAP] section to enable automatic generation."
                 )
                 return
 
@@ -805,20 +555,12 @@ class LDAPServer(ThreadingTCPServer, LDAPServerMixin):
         ldap_logger.debug(f"TLS context initialized with certificate: {cert_path}")
 
     def server_bind(self) -> None:
-        """Initialize server socket and TLS context if configured.
-
-        Sets up TLS wrapping before binding if use_ssl is enabled.
-        """
         if self.server_config.use_ssl:
             self.setup_ssl_context()
 
         super().server_bind()
 
     def server_close(self) -> None:
-        """Clean up temporary certificate directory if generated.
-
-        Removes temporary certificate files created during server initialization.
-        """
         if self._generated_temp_cert and self._temp_dir:
             self._temp_dir.cleanup()
             self._generated_temp_cert = False
@@ -845,8 +587,6 @@ class CLDAPServer(ThreadingUDPServer, LDAPServerMixin):
 
 
 # Sicily Bind Response (MS-ADTS §5.1.1.1.3)
-
-
 class SicilyBindResponse(univ.Sequence):
     """SicilyBindResponse structure for package discovery."""
 
@@ -912,12 +652,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
 
     @override
     def recv(self, size: int) -> LDAPMessage | None:  # type: ignore[override]  # ty:ignore[invalid-method-override]
-        """Receive and decode an LDAP message from the client.
-
-        The size argument is ignored; always reads up to 8192 bytes.
-
-        :raises LDAPTerminateSession: If an encrypted SASL message is received.
-        """
         try:
             data = super().recv(8192)
             if not data:
@@ -1052,47 +786,17 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         return None, True
 
     def _normalize_sasl_mechanism(self, mech_name: str) -> str:
-        """Normalize SASL mechanism name for handler lookup.
-
-        Per RFC 4422 §3.1: SASL mechanism names are case-insensitive and may
-        contain hyphens. However, Python method names cannot contain hyphens.
-
-        This method normalizes mechanism names to match Python method naming:
-            - Convert to uppercase (RFC 4422 §3.1: case-insensitive)
-            - Replace hyphens with underscores (Python naming convention)
-            - Strip whitespace
-        """
         return mech_name.upper().replace("-", "_").strip()
 
     def _parse_cleartext_user(
         self, bind_name: str
     ) -> tuple[str, str | None, dict[str, str]]:
-        r"""Parse cleartext bind name into username + optional domain.
-
-        Per RFC 4513 §5.1.1: Simple bind uses a DN or other string as the name.
-        Per MS-ADTS §5.1.1.1.1: AD supports multiple name formats:
-            - Distinguished Name (DN): "CN=user,DC=domain,DC=com"
-            - User Principal Name (UPN): "user@domain.com"
-            - Down-level logon name: "DOMAIN\user"
-
-        This method parses these formats to extract username and domain.
-
-        Supported Formats:
-            1. Windows down-level: "DOMAIN\user" -> (user, DOMAIN)
-            2. UPN format: "user@domain.com" -> (user, domain.com)
-            3. LDAP DN: "CN=John Doe,DC=example,DC=com" -> (John Doe, None, {dn: ...})
-            4. Simple username: "user" -> (user, None)
-        """
         extras: dict[str, str] = {}
 
-        # MS-ADTS §5.1.1.1.1.1: Windows down-level logon name format "DOMAIN\user"
-        # Check for backslash but exclude LDAP DNs (which may contain escaped backslashes)
         if "\\" in bind_name and not bind_name.lower().startswith("cn="):
             domain, user = bind_name.split("\\", 1)
             return user, domain, extras
 
-        # MS-ADTS §5.1.1.1.1.2: User Principal Name (UPN) format "user@domain.com"
-        # Ensure it's not a DN (no = or ,) and not a down-level name (no \)
         if (
             "@" in bind_name
             and "\\" not in bind_name
@@ -1102,21 +806,16 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             user, domain = bind_name.rsplit("@", 1)
             return user, domain, extras
 
-        # RFC 4514: LDAP Distinguished Name (DN) format
-        # Example: "CN=John Doe,OU=Users,DC=example,DC=com"
         if "=" in bind_name and "," in bind_name:
             extras["dn"] = bind_name
-            # Extract username from common name attributes
             for part in bind_name.split(","):
                 if "=" not in part:
                     continue
                 key, val = part.split("=", 1)
                 key = key.strip().lower()
                 val = val.strip()
-                # Check common username attributes per RFC 4519
                 if key in ("cn", "uid", "samaccountname", "user", "name"):
                     return val, None, extras
-            # If no recognizable username attribute, use full DN
             return bind_name, None, extras
 
         # Simple username with no domain
@@ -1125,24 +824,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def handle_bindRequest(
         self, message: LDAPMessage, bind_req: BindRequest
     ) -> LDAPMessage | None:
-        """Handle LDAP Bind Request per RFC 4511 §4.2.
-
-        Per RFC 4511 §4.2: The Bind operation authenticates the client to the server.
-        It establishes the authorization identity for subsequent operations.
-
-        Per RFC 4513 §5: LDAP supports multiple authentication methods:
-            - Simple Bind (§5.1): Anonymous, unauthenticated, or name/password
-            - SASL (§5.2): Pluggable authentication mechanisms
-            - Sicily (MS-ADTS §5.1.1.1.3): Microsoft NTLM extension
-
-        Per RFC 4511 §4.2.1: Bind request contains:
-            - version: LDAP protocol version (must be 3 for LDAPv3)
-            - name: DN or other identifier (empty for anonymous)
-            - authentication: Simple password, SASL, or other method
-
-        Returns ``None`` when the response is sent directly to the client, or a
-        :class:`LDAPMessage` on the unsupported-version path.
-        """
         self.logger.debug(f"LDAP Bind Request from {self.client_address}")
         self.logger.debug(f"Bind message ID: {message['messageID']}")
 
@@ -1154,16 +835,12 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         self.logger.debug(f"Bind version: {version}, name: {bind_name!r}")
         self.logger.debug(f"Authentication type: {bind_req['authentication'].getName()}")
 
-        # RFC 4511 §4.2.1: Version must be 3 for LDAPv3
-        # This implementation does not support LDAPv2 (deprecated per RFC 3494)
         if version != 3:
             self.logger.debug(f"Unsupported LDAP version: {version}")
             return self.server.bind_result(message, reason=LDAP_UNSUPPORTED_LDAP_VERSION)
 
         auth_type = bind_req["authentication"].getName().lower()
 
-        # Reset authorization state for new bind per RFC 4513 §4
-        # But preserve SASL state if continuing same mechanism
         if auth_type == "sasl":
             mech_name_raw = str(bind_auth["mechanism"])
             mech_name = self._normalize_sasl_mechanism(mech_name_raw)
@@ -1210,33 +887,12 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_simple_bind(
         self, message: LDAPMessage, bind_name: str, bind_password: str
     ) -> LDAPMessage:
-        """Handle simple bind authentication per RFC 4513 §5.1.
-
-        Per RFC 4513 §5.1: Simple bind supports three authentication types:
-            1. Anonymous (§5.1.1): Empty name and password -> anonymous access
-            2. Unauthenticated (§5.1.2): Name but empty password -> anonymous access
-            3. Name/Password (§5.1.3): Both name and password -> authenticated access
-
-        Per RFC 4513 §5.1.4: Simple bind with password SHOULD only be used over
-        TLS to prevent credential exposure. However, we accept unencrypted simple
-        binds to capture credentials.
-
-        Security Considerations (RFC 4513 §6.1):
-            - Simple bind transmits password in cleartext (unless over TLS)
-            - Vulnerable to eavesdropping and replay attacks
-            - Should be disabled in production environments without TLS
-
-        :raises LDAPTerminateSession: After sending response.
-        """
         self.logger.debug("Processing simple authentication")
 
-        # RFC 4513 §5.1.1: Anonymous authentication (empty name and password)
         if not bind_name and not bind_password:
             self.logger.debug("Anonymous bind request")
             return self.server.bind_result(message)
 
-        # RFC 4513 §5.1.2: Unauthenticated bind (name present, empty password) is
-        # treated as anonymous; servers SHOULD NOT grant access based on DN alone.
         if bind_name and not bind_password:
             self.logger.debug(f"Unauthenticated bind for DN: {bind_name}")
             return self.server.bind_result(message)
@@ -1279,28 +935,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sicily_negotiate(
         self, message: LDAPMessage, bind_name: str, nego_token_raw: bytes
     ) -> None:
-        r"""Handle Sicily negotiate (NTLM negotiate phase) per MS-ADTS §5.1.1.1.3.
-
-        Per MS-ADTS §5.1.1.1.3: The Sicily protocol is a Microsoft extension that
-        allows NTLM authentication over LDAP without SASL wrapping.
-
-        Sicily Protocol Flow (MS-ADTS §5.1.1.1.3):
-            1. Package Discovery: Client requests supported auth packages
-            2. Negotiate: Client sends NTLM NEGOTIATE_MESSAGE
-            3. Challenge: Server responds with NTLM CHALLENGE_MESSAGE
-            4. Authenticate: Client sends NTLM AUTHENTICATE_MESSAGE
-
-        This method handles step 2 (Negotiate phase):
-            - Receives NTLM NEGOTIATE_MESSAGE from client
-            - Generates NTLM CHALLENGE_MESSAGE
-            - Returns challenge in BindResponse.matchedDN field
-
-        Per MS-NLMP §3.1.5.1: NEGOTIATE_MESSAGE contains:
-            - NTLM signature ("NTLMSSP\0")
-            - Message type (0x00000001)
-            - Negotiation flags (capabilities)
-            - Optional domain/workstation names
-        """
         self.logger.debug("Processing Sicily negotiate (NTLM)")
 
         # Normalize mechanism name - empty string means NTLM
@@ -1332,25 +966,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         self.send(self.server.bind_result(message, reason=LDAP_AUTH_METHOD_NOT_SUPPORTED))
 
     def _handle_sicily_response(self, message: LDAPMessage, blob: bytes) -> None:
-        r"""Handle Sicily response (NTLM authenticate phase) per MS-ADTS §5.1.1.1.3.
-
-        This method handles step 4 of the Sicily protocol (Authenticate phase):
-            - Receives NTLM AUTHENTICATE_MESSAGE from client
-            - Extracts and logs credentials (username, domain, NTLM hashes)
-            - Returns bind response
-
-        Per MS-NLMP §3.1.5.3: AUTHENTICATE_MESSAGE contains:
-            - NTLM signature ("NTLMSSP\0")
-            - Message type (0x00000003)
-            - LM response (legacy, often empty)
-            - NTLM response (NTLMv1 or NTLMv2)
-            - Domain name, username, workstation name
-            - Session key (if negotiated)
-
-        The NTLM response can be cracked offline to recover the password.
-
-        :raises LDAPTerminateSession: After sending response.
-        """
         self.logger.debug("Processing Sicily response (NTLM)")
         if self.mech_name == "ntlm":
             self.logger.debug("NTLM authenticate phase")
@@ -1373,29 +988,11 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
             raise LDAPTerminateSession
 
     def _handle_sicily_package_discovery(self, message: LDAPMessage) -> LDAPMessage:
-        """Handle Sicily package discovery per MS-ADTS §5.1.1.1.3.
-
-        This method handles step 1 of the Sicily protocol (Package Discovery):
-            - Client sends sicilyPackageDiscovery bind request
-            - Server responds with list of supported authentication packages
-            - Response is encoded as SicilyBindResponse in serverSaslCreds
-
-        Per MS-ADTS §5.1.1.1.3: The server returns a list of supported packages.
-        Common packages include:
-            - "NTLM": NT LAN Manager authentication
-
-        SicilyBindResponse Structure (MS-ADTS §5.1.1.1.3):
-            - resultCode: 0 for success
-            - serverCreds: Comma or semicolon-separated list of package names
-            - errorMessage: Empty for success
-        """
         self.logger.debug("Sicily package discovery: Returning supported packages (NTLM)")
 
         sicily_response = SicilyBindResponse()
         sicily_response["resultCode"] = 0
 
-        # Return only NTLM - Windows clients may not recognize SICILY as a package name
-        # The SICILY protocol itself is the transport, not a separate auth package
         sicily_response["serverCreds"] = b"NTLM"
         sicily_response["diagnosticMessage"] = b""
         return self.server.new_message(message, sicily_response)
@@ -1403,11 +1000,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_bind(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL bind request.
-
-        Dispatches to mechanism-specific handlers based on the requested
-        SASL mechanism. Manages SASL state machine transitions.
-        """
         mech_name_raw = str(bind_auth["mechanism"])
         mech_name = self._normalize_sasl_mechanism(mech_name_raw)
 
@@ -1462,40 +1054,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def handle_searchRequest(
         self, message: LDAPMessage, search_req: SearchRequest
     ) -> list[LDAPMessage]:
-        """Handle LDAP Search Request per RFC 4511 §4.5.
-
-        Per RFC 4511 §4.5: The Search operation searches the directory for entries
-        matching specified criteria and returns requested attributes.
-
-        Search Request Parameters (RFC 4511 §4.5.1):
-            - baseObject: DN where search starts (empty string = root DSE)
-            - scope: Search scope (base=0, one=1, sub=2)
-            - filter: Criteria for matching entries
-            - attributes: List of attributes to return (empty = all)
-
-        Root DSE (RFC 4512 §5.1):
-            - Special entry with DN "" (empty string)
-            - Contains server capabilities and configuration
-            - Accessible without authentication
-            - Attributes include:
-                * supportedLDAPVersion: LDAP versions supported
-                * supportedSASLMechanisms: SASL mechanisms available
-                * supportedCapabilities: Server capability OIDs
-                * namingContexts: Available directory partitions
-                * defaultNamingContext: Default partition (MS-ADTS)
-                * configurationNamingContext: Configuration partition (MS-ADTS)
-                * rootDomainNamingContext: Root domain partition (MS-ADTS)
-
-        Search Scopes (RFC 4511 §4.5.1.2):
-            - baseObject (0): Search only the base entry
-            - singleLevel (1): Search immediate children only
-            - wholeSubtree (2): Search base and all descendants
-
-        This implementation supports limited search functionality:
-            - Root DSE queries (base DN = "")
-            - Basic hostname/DN queries
-            - Does not implement full directory tree traversal
-        """
         self.logger.debug(f"LDAP Search Request from {self.client_address}")
         self.logger.debug(f"Search message ID: {message['messageID']}")
 
@@ -1550,24 +1108,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def handle_extendedReq(
         self, message: LDAPMessage, extended_req: ExtendedRequest
     ) -> None:
-        """Handle LDAP Extended Request per RFC 4511 §4.12.
-
-        Per RFC 4511 §4.12: Extended operations provide a mechanism for defining
-        additional operations beyond the core LDAP protocol. Each operation is
-        identified by a unique OID.
-
-        This implementation supports:
-            - StartTLS (RFC 4511 §4.14 / RFC 4513 §3): Upgrade connection to TLS
-
-        Extended Request Format (RFC 4511 §4.12):
-            - requestName: OID identifying the operation
-            - requestValue: Optional operation-specific data
-
-        Extended Response Format (RFC 4511 §4.12):
-            - resultCode: Success/failure indication
-            - responseName: Optional OID (typically echoes request)
-            - responseValue: Optional operation-specific result data
-        """
         self.logger.debug(f"LDAP Extended Request from {self.client_address}")
         self.logger.debug(f"Extended message ID: {message['messageID']}")
 
@@ -1650,24 +1190,11 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         message: LDAPMessage,
         unbind_req: UnbindRequest,
     ) -> bool:
-        """Handle LDAP Unbind Request per RFC 4511 §4.3.
-
-        Per RFC 4511 §4.3: The Unbind operation terminates the LDAP session.
-        No response is sent to the client.
-
-        :raises LDAPTerminateSession: Always, to terminate the session.
-        """
         raise LDAPTerminateSession
 
     def _handle_sasl_GSS_SPNEGO(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL GSS-SPNEGO mechanism.
-
-        Processes SPNEGO-wrapped NTLM authentication tokens.
-
-        :raises LDAPTerminateSession: When authentication completes
-        """
         data = bytes(bind_auth["credentials"])
         self.logger.debug(f"GSS-SPNEGO: Received token, length={len(data)}")
 
@@ -1741,10 +1268,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_direct_ntlm(
         self, message: LDAPMessage, data: bytes
     ) -> LDAPMessage | None:
-        """Fallback handler when SPNEGO parsing fails.
-
-        Attempts to parse token as direct NTLM without SPNEGO wrapper.
-        """
         try:
             if not data.startswith(b"NTLMSSP\x00"):
                 self.logger.debug(
@@ -1793,10 +1316,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         self.send(self.server.bind_result(message, matched_dn=ntlm_challenge.getData()))
 
     def _handle_ntlm_auth(self, message: LDAPMessage, blob: bytes) -> None:
-        """Handle NTLM AUTHENTICATE_MESSAGE and send the bind response.
-
-        :raises LDAPTerminateSession: After sending response.
-        """
         auth_message = NTLMAuthChallengeResponse()
         auth_message.fromString(blob)
         ntlm_report_auth(
@@ -1817,54 +1336,21 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_DIGEST_MD5(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL DIGEST-MD5 mechanism per RFC 2831.
-
-        DIGEST-MD5 Protocol Flow (RFC 2831 §2.1):
-            1. Client sends empty initial response (or no response)
-            2. Server sends challenge with realm, nonce, qop, etc.
-            3. Client sends response with username, realm, nonce, digest, etc.
-            4. Server verifies digest and sends success/failure
-
-        Challenge Format (RFC 2831 §2.1.1):
-            - realm: Protection space (typically DNS domain)
-            - nonce: Server-generated random value (prevents replay)
-            - qop: Quality of protection options (auth, auth-int, auth-conf)
-            - algorithm: Hash algorithm (md5-sess recommended)
-            - charset: Character encoding (utf-8)
-            - maxbuf: Maximum buffer size for integrity/confidentiality layers
-
-        Response Format (RFC 2831 §2.1.2):
-            - username: User's identity
-            - realm: Selected realm from challenge
-            - nonce: Echoed from challenge
-            - cnonce: Client-generated nonce
-            - nc: Nonce count (prevents replay)
-            - qop: Selected quality of protection
-            - digest-uri: Service and host (e.g., "ldap/server.example.com")
-            - response: MD5 digest proving knowledge of password
-
-        :raises LDAPTerminateSession: When authentication completes
-        """
         try:
             credentials = bytes(bind_auth["credentials"])
             self.logger.debug(f"DIGEST-MD5: Received credentials: {credentials!r}")
         except (PyAsn1Error, KeyError):
             credentials = b""
 
-        # RFC 2831 §2.1: Client may send empty initial response
-        # Server responds with challenge containing realm, nonce, qop, etc.
         if not credentials:
             self.logger.debug("DIGEST-MD5: Sending initial challenge")
             nonce = f"+Upgraded+v1{secrets.token_hex(32)}"
 
-            # Use configured domain as realm instead of hardcoded value
             _, realm = ntlm_split_fqdn(self.server.server_config.ldap_fqdn)
             self.digest_md5_state = {
                 "nonce": nonce,
             }
 
-            # Only offer QoP options that are actually supported
-            # Windows clients work best with just "auth"
             qop_options = (
                 self.server.server_config.ldap_sasl_qop_options or LDAP_SASL_QOP_OPTIONS
             )
@@ -1932,7 +1418,8 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         }
 
         self.logger.fail(
-            "DIGEST-MD5 (md5-sess) hash captured but NOT CRACKABLE with current hashcat versions. See hashcat/issues/2359"
+            "DIGEST-MD5 (md5-sess) hash captured but NOT CRACKABLE "
+            + "with current hashcat versions. See hashcat/issues/2359"
         )
         self.config.db.add_auth(
             client=self.client_address,
@@ -1945,7 +1432,8 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
         )
 
         self.logger.debug(
-            "DIGEST-MD5: Captured digest response for offline analysis (WARNING: not currently crackable with hashcat)"
+            "DIGEST-MD5: Captured digest response for offline analysis "
+            + "(WARNING: not currently crackable with hashcat)"
         )
         if qop and qop in ["auth", "auth-int", "auth-conf"]:
             self.auth_state.apply_negotiated_qop(qop)
@@ -2059,7 +1547,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_NTLM(
         self, message: LDAPMessage, bind_auth: Any
     ) -> LDAPMessage | None:
-        """Handle SASL NTLM mechanism (direct, not wrapped in SPNEGO)."""
         credentials = bytes(bind_auth["credentials"])
         self.logger.debug(f"SASL NTLM: Received token, length={len(credentials)}")
 
@@ -2093,7 +1580,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_ntlm_negotiate(
         self, message: LDAPMessage, negotiate_data: bytes
     ) -> LDAPMessage | None:
-        """Handle NTLM Negotiate message in SASL NTLM."""
         try:
             negotiate = NTLMAuthNegotiate()
             negotiate.fromString(negotiate_data)
@@ -2126,7 +1612,6 @@ class LDAPHandler(BaseProtoHandler["LDAPServer"]):
     def _handle_sasl_ntlm_authenticate(
         self, message: LDAPMessage, authenticate_data: bytes
     ) -> LDAPMessage:
-        """Handle NTLM Authenticate message in SASL NTLM."""
         try:
             auth_message = NTLMAuthChallengeResponse()
             auth_message.fromString(authenticate_data)
@@ -2179,23 +1664,6 @@ CLDAPServer.default_handler_class = LDAPHandler
 
 
 class LDAP(BaseProtocolModule[LDAPServerConfig]):
-    """LDAP Protocol Module.
-
-    Manages LDAP server instances, supporting both TCP (LDAP) and UDP (CLDAP)
-    connections. Handles server thread creation and configuration.
-
-    Implemented Operations (RFC 4511):
-    - Bind: Simple auth, NTLM via Sicily, SASL mechanisms (GSS-SPNEGO, DIGEST-MD5, PLAIN, NTLM)
-    - Search: Limited to root DSE queries for capabilities/mechanisms
-    - Extended: StartTLS only
-    - Unbind: Connection termination
-
-    Authentication Mechanisms (MS-ADTS §5.1.1.1):
-    - Simple Bind: Anonymous, unauthenticated, and credentialed binds
-    - Sicily: Microsoft NTLM authentication extension
-    - SASL: GSS-SPNEGO (NTLM), DIGEST-MD5, PLAIN, NTLM
-    """
-
     name: str = "LDAP"
     config_ty = LDAPServerConfig
     config_attr = DEFAULT_ATTR
@@ -2206,7 +1674,6 @@ class LDAP(BaseProtocolModule[LDAPServerConfig]):
     def create_server_thread(
         self, session: SessionConfig, server_config: LDAPServerConfig
     ) -> BaseServerThread[LDAPServerConfig]:
-        """Create a server thread for LDAP or CLDAP based on configuration."""
         server_cls = CLDAPServer if server_config.ldap_udp else LDAPServer
         return ServerThread(
             session,
