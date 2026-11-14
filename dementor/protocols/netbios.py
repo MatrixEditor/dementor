@@ -210,26 +210,6 @@ _BWRS_SERVER_TYPES = {
     # other flags are not relevant here
 }
 
-# ============================================================================
-# NETLOGON Mailslot Ping Protocol Implementation
-# ============================================================================
-# The following classes implement the NETLOGON mailslot ping protocol
-# Based on [MS-ADTS] section 6.3.5 - Mailslot Ping
-# Used for domain controller discovery and verification
-
-# [MS-ADTS] 6.3.1.3 - NETLOGON Operation Codes
-_NETLOGON_OPCODES = {
-    0x07: "LOGON_PRIMARY_QUERY",
-    0x12: "LOGON_SAM_LOGON_REQUEST",
-    0x13: "LOGON_SAM_LOGON_RESPONSE",
-    0x14: "LOGON_SAM_PAUSE_RESPONSE",
-    0x15: "LOGON_SAM_USER_UNKNOWN",
-    0x16: "LOGON_SAM_LOGON_RESPONSE_EX",
-    0x17: "LOGON_PRIMARY_RESPONSE",
-}
-
-
-class BrowserPoisoner(BaseProtoHandler):
     def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             extra={
@@ -308,16 +288,6 @@ class BrowserPoisoner(BaseProtoHandler):
                 pass
 
     def parse_nt_version_flags(self, nt_version: int) -> dict[str, str]:
-        """
-        Parse NtVersion bitfield into human-readable flags (MS-ADTS 6.3.1.1).
-
-        Args:
-            nt_version: NtVersion field from NETLOGON request
-
-        Returns:
-            Dictionary mapping flag names to descriptions
-
-        """
         flags: dict[str, str] = {}
         flag_definitions = {
             "V1": (netlogon.NETLOGON_NT_VERSION_1, "Version 1 support"),
@@ -342,20 +312,10 @@ class BrowserPoisoner(BaseProtoHandler):
         return flags
 
     def handle_netlogon(self, request: smb.NETLOGON, transport: socket.socket) -> None:
-        """
-        Handle NETLOGON mailslot ping requests (MS-ADTS 6.3.5).
-
-        Mailslot pings are used by Windows clients to:
-        - Discover domain controllers
-        - Verify PDC availability
-        - Validate user accounts
-        - Map domain structure
-        """
         opcode: int = request.OpCode
         opcode_name = smb._NETLOGON_opcodes.get(opcode, f"Unknown({hex(opcode)})")
         match opcode:
             case netlogon.LOGON_SAM_LOGON_REQUEST:  # LOGON_SAM_LOGON_REQUEST
-                # Decode Unicode strings (UTF-16LE encoded)
                 computer_name = request.UnicodeComputerName.rstrip("\x00")
                 user_name = (
                     request.UnicodeUserName.rstrip("\x00")
@@ -366,12 +326,10 @@ class BrowserPoisoner(BaseProtoHandler):
                     "utf-8", errors="replace"
                 ).rstrip("\x00")
 
-                # Parse NtVersion flags
                 nt_version = request.NtVersion
                 version_flags = self.parse_nt_version_flags(nt_version)
                 version_str = "|".join(version_flags.keys()) if version_flags else ""
 
-                # Display parsed information
                 text = f"[bold]DC Discovery[/bold] from [i]{markup.escape(computer_name)}[/i]"
                 if user_name:
                     text = f"{text} (user: [b]{markup.escape(user_name)}[/])"
@@ -381,13 +339,11 @@ class BrowserPoisoner(BaseProtoHandler):
                     text = f"{text} (mailslot: [b]{markup.escape(mailslot_name)}[/])"
 
                 self.logger.display(text)
-                # Analysis-only mode - don't respond
                 if self.config.analysis or not in_scope(
                     self.client_host, self.config.netbiosns_config
                 ):
                     return
 
-                # Build and send LOGON_SAM_LOGON_RESPONSE (MS-ADTS 6.3.5.2)
                 response = self.build_dc_response(request, mailslot_name)
                 if response:
                     transport.sendto(response, self.client_address)
@@ -396,7 +352,6 @@ class BrowserPoisoner(BaseProtoHandler):
                     )
 
             case netlogon.LOGON_PRIMARY_QUERY:  # LOGON_PRIMARY_QUERY
-                # Extract request parameters
                 computer_name = getattr(request, "ComputerName", b"")
                 if isinstance(computer_name, bytes):
                     computer_name = computer_name.decode("ascii", errors="replace")
@@ -407,7 +362,6 @@ class BrowserPoisoner(BaseProtoHandler):
                     mailslot_name = mailslot_name.decode("ascii", errors="replace")
                 mailslot_name = mailslot_name.rstrip("\x00")
 
-                # Display parsed information
                 text = (
                     f"[bold]PDC Query[/bold] from [i]{markup.escape(computer_name)}[/i]"
                 )
@@ -415,13 +369,11 @@ class BrowserPoisoner(BaseProtoHandler):
                     text = f"{text} (mailslot: [b]{markup.escape(mailslot_name)}[/])"
 
                 self.logger.display(text)
-                # Analysis-only mode - don't respond
                 if self.config.analysis or not in_scope(
                     self.client_host, self.config.netbiosns_config
                 ):
                     return
 
-                # Build and send LOGON_PRIMARY_RESPONSE
                 response = self.build_dc_response(request, mailslot_name)
                 if response:
                     transport.sendto(response, self.client_address)
@@ -430,7 +382,6 @@ class BrowserPoisoner(BaseProtoHandler):
                     )
 
             case _:
-                # Display information about other NETLOGON opcodes
                 self.logger.display(
                     f"NETLOGON {opcode_name} from [i]{self.client_host}[/i]"
                 )
@@ -440,25 +391,7 @@ class BrowserPoisoner(BaseProtoHandler):
         request: smb.NETLOGON_SAM_LOGON_REQUEST | smb.NETLOGON_LOGON_QUERY,
         mailslot_name: str,
     ) -> bytes | None:
-        """Build a LOGON_SAM_LOGON_RESPONSE_EX per MS-ADTS 6.3.5.
-
-        The response is sent as a mailslot write message per MS-MAIL 2.2.1,
-        wrapped in an NBT datagram per RFC1001/1002.
-
-        This response makes the attacker appear as a valid DC, potentially
-        causing clients to attempt authentication against the poisoned server.
-
-        :param request: The LOGON_SAM_LOGON_REQUEST packet from the client
-        :type request: smb.NETLOGON_SAM_LOGON_REQUEST
-        :param mailslot_name: The mailslot to respond to (from request)
-        :type mailslot_name: str
-        :return: Raw bytes of the NBT datagram, or None on error
-        :rtype: bytes | None
-        """
         try:
-            # ==================================================================
-            # Extract request parameters
-            # ==================================================================
             domain_name = self.config.browser_config.browser_domain_name
             computer_name: str | bytes = getattr(request, "ComputerName", b"")
             if not computer_name:
@@ -470,14 +403,10 @@ class BrowserPoisoner(BaseProtoHandler):
                 computer_name = computer_name.decode("ascii")
 
             computer_name = computer_name.rstrip("\x00")
-            # Get hostname from configuration
             dc_name = self.config.browser_config.browser_hostname
             dc_netbios = dc_name.upper()[:15]  # NetBIOS names are max 15 chars
             dc_fqdn = f"{dc_name}.{domain_name.lower()}"
 
-            # ==================================================================
-            # Build DC flags per MS-ADTS 6.3.1.2 (DS_FLAG Options Bits)
-            # ==================================================================
             dc_flags = (
                 netlogon.DS_PDC_FLAG
                 | netlogon.DS_DS_FLAG
@@ -490,10 +419,6 @@ class BrowserPoisoner(BaseProtoHandler):
                 | netlogon.DS_DNS_FOREST_FLAG
             )
 
-            # ==================================================================
-            # Build NETLOGON_SAM_LOGON_RESPONSE_EX per MS-ADTS 6.3.1.9
-            # Scapy handles DNS compression automatically per RFC1035
-            # ==================================================================
             netlogon_response = netlogon.build_response(
                 request=request,
                 dc_name=dc_netbios,
@@ -505,7 +430,6 @@ class BrowserPoisoner(BaseProtoHandler):
                 dc_ip_address=self.config.ipv4,
                 flags=dc_flags,
             )
-            # Encode NetBIOS names (pad to 16 bytes with spaces, last byte is type)
             source_nb_name = dc_netbios.ljust(15) + "\x00"
             dest_nb_name = computer_name.upper()[:15].ljust(15) + "\x00"
 
