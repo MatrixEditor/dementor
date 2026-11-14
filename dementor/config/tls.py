@@ -17,8 +17,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""TLS certificate generation utilities."""
-
 import datetime
 import pathlib
 import random
@@ -38,18 +36,8 @@ def generate_self_signed_cert(
     state: str,
     locality: str,
     validity_days: int,
-) -> tuple[str, str, tempfile.TemporaryDirectory]:
-    """
-    Generate a self-signed certificate and private key in a temporary directory.
-
-    :param cn: Common name for the certificate.
-    :param org: Organization name.
-    :param country: Country code.
-    :param state: State or province.
-    :param locality: Locality or city.
-    :param validity_days: Number of days the certificate is valid.
-    :return: Tuple of (certificate path, key path, temporary directory object).
-    """
+) -> tuple[str, str, tempfile.TemporaryDirectory[str]]:
+    """Generate a self-signed certificate and private key in a temporary directory."""
     temp_dir = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
 
     private_key = rsa.generate_private_key(
@@ -86,7 +74,7 @@ def generate_self_signed_cert(
 
     key_id = "".join(random.choices(string.hexdigits))
     key_path = pathlib.Path(temp_dir.name) / f"key_{key_id}.pem"
-    key_path.write_bytes(
+    _ = key_path.write_bytes(
         private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
@@ -96,6 +84,5 @@ def generate_self_signed_cert(
 
     cert_id = "".join(random.choices(string.hexdigits))
     cert_path = pathlib.Path(temp_dir.name) / f"cert_{cert_id}.pem"
-    cert_path.write_bytes(cert.public_bytes(serialization.Encoding.PEM))
-
+    _ = cert_path.write_bytes(cert.public_bytes(serialization.Encoding.PEM))
     return str(cert_path), str(key_path), temp_dir

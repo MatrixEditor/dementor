@@ -52,7 +52,6 @@ ATTR_TLS = Attribute(
 # Self-Signed Certificate Generation Attributes
 # These attributes configure automatic self-signed certificate generation
 # when TLS is enabled but no certificates are provided.
-# Similar to QUIC implementation, allows global configuration across protocols.
 
 ATTR_SELF_SIGNED = Attribute(
     attr_name="self_signed",

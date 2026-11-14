@@ -26,37 +26,12 @@ from dementor.config.util import get_value
 
 _T = TypeVar("_T", bound="TomlConfig")
 
-# --------------------------------------------------------------------------- #
 # Helper sentinel used to differentiate "no default supplied" from "None".
-# --------------------------------------------------------------------------- #
 _LOCAL = object()
 
 
 class Attribute(NamedTuple):
-    """
-    Metadata describing a single configuration attribute.
-
-    The :class:`TomlConfig` base class uses a list of ``Attribute`` objects
-    (``_fields_``) to know how to populate its instance attributes from a TOML
-    configuration dictionary.
-
-    :param attr_name: Name of the instance attribute that will receive the value.
-    :type attr_name: str
-    :param qname: Qualified name of the configuration key.  May contain a dot
-        (``"."``) to indicate that the key lives in a *different* configuration
-        section.
-    :type qname: str
-    :param default_val: Default value to fall back to when the key is missing.
-        ``_LOCAL`` (a private sentinel) means "no default - the key is required".
-    :type default_val: Any | None, optional
-    :param section_local: If ``True`` the key is looked for only in the section
-        defined by the concrete subclass (``self._section_``).  If ``False`` the
-        ``Globals`` section is also consulted.
-    :type section_local: bool, optional
-    :param factory: Optional callable that post-processes the raw value (e.g.
-        converting a string to ``bytes``).
-    :type factory: Callable[[Any], Any] | None, optional
-    """
+    """Metadata describing a single configuration attribute."""
 
     attr_name: str
     qname: str
@@ -94,13 +69,6 @@ class TomlConfig:
     _fields_: ClassVar[list[Attribute]]
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
-        """
-        Initialise the configuration object.
-
-        :param config: Raw configuration dictionary that originates from the
-            TOML file; may be ``None`` to indicate an empty configuration.
-        :type config: dict[str, Any] | None, optional
-        """
         for field in self._fields_:
             self._set_field(
                 config or {},
@@ -112,18 +80,6 @@ class TomlConfig:
             )
 
     def __getitem__(self, key: str) -> Any:
-        """
-        Dictionary-style access to configuration attributes.
-
-        The lookup first tries the real attribute name, then falls back to the
-        short name extracted from the qualified ``qname`` of each field.
-
-        :param key: Attribute name to retrieve.
-        :type key: str
-        :raises KeyError: If *key* does not match any known attribute.
-        :return: The stored value.
-        :rtype: Any
-        """
         if hasattr(self, key):
             return getattr(self, key)
 
@@ -138,26 +94,12 @@ class TomlConfig:
 
     @staticmethod
     def build_config(cls_ty: type[_T], section: str | None = None) -> _T:
-        """Build a concrete ``TomlConfig`` subclass from the global configuration.
-
-        :param cls_ty: Concrete subclass of :class:`TomlConfig` to instantiate.
-        :type cls_ty: type[_T]
-        :param section: Override the subclass' ``_section_`` attribute.  If not
-            supplied the subclass' own ``_section_`` is used.
-        :type section: str | None, optional
-        :raises ValueError: If *section* resolves to ``None``.
-        :return: An instantiated configuration object.
-        :rtype: _T
-        """
         section_name = section or cls_ty._section_
         if not section_name:
             raise ValueError("section cannot be None")
 
         return cls_ty(get_value(section_name, key=None, default={}))
 
-    # --------------------------------------------------------------------- #
-    # Internal helper - resolves a single field according to the rules
-    # --------------------------------------------------------------------- #
     def _set_field(
         self,
         config: dict[str, Any],
@@ -167,58 +109,30 @@ class TomlConfig:
         section_local: bool = False,
         factory: Callable[[Any], Any] | None = None,
     ) -> None:
-        """
-        Resolve and assign a single configuration attribute.
-
-        The resolution algorithm follows three steps:
-
-        1. **Default value** - if ``default_val`` is not the sentinel ``_LOCAL`` the
-           method looks for a value in the configuration hierarchy:
-
-           * first in the subclass' ``_section_``,
-           * then in an *alternative* section encoded in ``qname`` (everything
-             before the last ``"."``), and
-           * finally in the ``Globals`` section when ``section_local`` is
-             ``False``.
-
-        2. **Actual value** - the value from the caller-provided *config* dict
-           overrides the default.
-
-        3. **Post-processing** - optionally run a ``factory`` on the value and
-           finally store the value either via a custom ``set_<field_name>`` method
-           or directly with ``setattr``.
-
-        :param config: The user-supplied configuration dictionary.
-        :type config: dict
-        :param field_name: Instance attribute that will receive the value.
-        :type field_name: str
-        :param qname: Qualified configuration key (may contain a section prefix).
-        :type qname: str
-        :param default_val: Default value or ``_LOCAL`` sentinel.
-        :type default_val: Any, optional
-        :param section_local: When ``False`` also search the ``Globals`` section.
-        :type section_local: bool, optional
-        :param factory: Callable that transforms the raw value.
-        :type factory: Callable[[Any], Any] | None, optional
-        :raises Exception: If the key is required (``_LOCAL``) but missing.
-        """
+        # The resolution follows three steps:
+        # 1. Default value - if default_val is not the _LOCAL the
+        #    method looks for a value in the configuration hierarchy:
+        #    - first in the subclass' _section_,
+        #    - then in an alternative section encoded in qname (everything
+        #      before the last "."), and
+        #    - finally in the Globals section when section_local is False.
+        # 2. Actual value - the value from the caller-provided config dict
+        #    overrides the default.
+        # 3. Post-processing - optionally run a factory on the value and
+        #    finally store the value either via a custom set_<field_name> method
+        #    or directly with setattr.
         section = getattr(self, "_section_", None)
         if "." in qname:
             alt_section, qname = qname.rsplit(".", 1)
         else:
             alt_section = None
 
-        # --------------------------------------------------------------- #
-        # Resolve the default value (if any) by walking the hierarchy.
-        # --------------------------------------------------------------- #
         if default_val is not _LOCAL:
             # When the original qname was dotted (e.g. "NTLM.Challenge"),
             # the own-section lookup checks the nested sub-dict first
             # (e.g. SMB.NTLM.Challenge), then the flat key (e.g.
             # SMB.Challenge), then the alt section (e.g. [NTLM]), then
-            # Globals.  The nested-first order ensures that explicit
-            # overrides like ``NTLM.NetBIOSComputer = "NTLMBOX99"``
-            # shadow the SMB-layer ``NetBIOSComputer = "SMBBOX01"``.
+            # Globals.
             own_section_dict = get_value(section or "", key=None, default={})
 
             sections = []
@@ -238,18 +152,12 @@ class TomlConfig:
                     default_val = section_config[qname]
                     break
 
-        # ----------------------------------------------------------------- #
-        # Pull the actual value from the caller-supplied ``config`` dict,
-        # falling back to the default we just resolved.
-        # ----------------------------------------------------------------- #
-        # For dotted qnames, also check the nested sub-dict in the
-        # instance config (e.g. [[SMB.Server]] with NTLM.X = ...).
         if alt_section:
             value = config.get(alt_section, {}).get(qname, default_val)
         else:
             value = config.get(qname, default_val)
         if value is _LOCAL:
-            # ``_LOCAL`` means "required but not supplied".
+            # _LOCAL means "required but not supplied".
             raise ValueError(
                 f"Expected '{qname}' in config or section({section}) for "
                 + f"{self.__class__.__name__}!"
@@ -258,7 +166,6 @@ class TomlConfig:
         if value is default_val and isinstance(value, type):
             value = value()
 
-        # Apply any user-supplied conversion ``factory``.
         if factory:
             value = factory(value)
 
