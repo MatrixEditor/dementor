@@ -226,33 +226,26 @@ class WinRM(BaseProtocolModule[HTTPServerConfig]):
 
     @override
     def apply_config(self, session: SessionConfig) -> None:
-        # Load from TOML [WinRM].Server entries first; fall back to hardcoded
-        # defaults (5985/5986) only when the user has not configured anything.
-        super().apply_config(session)
-        if session.winrm_config:
-            return
-
         winrm_config: list[HTTPServerConfig] = []
         config = HTTPServerConfig({"Port": 5985})
         config.http_wpad_enabled = False
         config.http_webdav_enabled = False
-
-        # Use a fully-loaded config to check global SSL cert availability.
-        # HTTPServerConfig({"Port": 5985}) is a minimal dict with no TOML context,
-        # so config.http_cert is always None there. We need the global defaults instead.
-        global_config = TomlConfig.build_config(HTTPServerConfig)
-        ssl_enabled = bool(global_config.http_cert)
         config.http_cert = None
         config.http_cert_key = None
         winrm_config.append(config)
-        if ssl_enabled:
-            ssl_config = HTTPServerConfig({"Port": 5986})
-            ssl_config.http_wpad_enabled = False
-            ssl_config.http_webdav_enabled = False
-            ssl_config.http_use_ssl = True
-            ssl_config.http_cert = global_config.http_cert
-            ssl_config.http_cert_key = global_config.http_cert_key
-            winrm_config.append(ssl_config)
+
+        # this does not work
+        # global_config = TomlConfig.build_config(HTTPServerConfig)
+        for config in session.http_config:
+            if config.http_use_ssl:
+                ssl_config = HTTPServerConfig({"Port": 5986})
+                ssl_config.http_wpad_enabled = False
+                ssl_config.http_webdav_enabled = False
+                ssl_config.http_use_ssl = True
+                ssl_config.http_cert = config.http_cert
+                ssl_config.http_cert_key = config.http_cert_key
+                winrm_config.append(ssl_config)
+                break
 
         if not session.winrm_enabled:
             winrm_config = []
@@ -265,9 +258,6 @@ class HTTPHeaders:
 
 
 class HTTPHandler(BaseHTTPRequestHandler):
-    # NTLM is a connection-based auth - the 3-message handshake must happen
-    # on a single persistent connection.  HTTP/1.0 closes after each response,
-    # breaking the handshake.  HTTP/1.1 keeps the connection alive by default.
     protocol_version = "HTTP/1.1"
 
     def __init__(
