@@ -40,9 +40,6 @@ from dementor.db import CLEARTEXT
 
 __proto__ = ["FTP"]
 
-# --------------------------------------------------------------------------- #
-# RFC-959 reply codes used by this minimal implementation.
-# --------------------------------------------------------------------------- #
 ReplyCodes: dict[int, bytes] = {
     220: b"220 Service ready for new user.",  # Service ready
     230: b"230 User logged in, proceed.",  # Successful login
@@ -54,21 +51,7 @@ ReplyCodes: dict[int, bytes] = {
 }
 
 
-# --------------------------------------------------------------------------- #
-# Configuration handling
-# --------------------------------------------------------------------------- #
 class FTPServerConfig(TomlConfig):
-    """
-    Configuration container for a single FTP server instance.
-
-    The configuration is read from the ``[FTP]`` section of the TOML file.
-    Only the listening port is required.
-
-    :param ftp_port: TCP port on which the FTP server should listen,
-        defaults to the standard FTP port ``21``.
-    :type ftp_port: int
-    """
-
     _section_ = "FTP"
     _fields_ = [A("ftp_port", "Port")]
 
@@ -87,13 +70,6 @@ class FTP(BaseProtocolModule[FTPServerConfig]):
     def create_server_thread(
         self, session: SessionConfig, server_config: FTPServerConfig
     ) -> BaseServerThread[FTPServerConfig]:
-        """Build a :class:`ServerThread` for the given FTP server config.
-
-        :param session: Active session configuration.
-        :type session: :class:`dementor.config.session.SessionConfig`
-        :return: A ready-to-start :class:`ServerThread` object.
-        :rtype: ServerThread
-        """
         return ServerThread(
             session,
             server_config,
@@ -102,24 +78,7 @@ class FTP(BaseProtocolModule[FTPServerConfig]):
         )
 
 
-# --------------------------------------------------------------------------- #
-# FTP request handling
-# --------------------------------------------------------------------------- #
 class FTPHandler(BaseProtoHandler):
-    """
-    Minimal FTP request handler.
-
-    The handler sends the initial ``220`` greeting, then processes a very
-    small login sequence (``USER`` -> ``PASS``).  All other commands result
-    in a ``501`` reply.
-
-    :class:`ProtocolLogger` is used to attach FTP-specific metadata to log
-    records.
-    """
-
-    # ------------------------------------------------------------------- #
-    # Logging helper
-    # ------------------------------------------------------------------- #
     @override
     def proto_logger(self) -> ProtocolLogger:
         """
@@ -137,15 +96,8 @@ class FTPHandler(BaseProtoHandler):
             }
         )
 
-    # ------------------------------------------------------------------- #
-    # Core request processing
-    # ------------------------------------------------------------------- #
     @override
     def handle_data(self, data: bytes | None, transport: socket) -> None:
-        """Process client commands after a TCP connection is accepted."""
-        # -----------------------------------------------------------------
-        # 1. Send the initial greeting as required by RFC-959.
-        # -----------------------------------------------------------------
         self.reply(220)
 
         while True:
@@ -154,25 +106,17 @@ class FTPHandler(BaseProtoHandler):
                 # Client closed the connection.
                 break
 
-            # Strip CRLF and split on whitespace; FTP commands are case-insensitive.
-            parts = raw.strip().split(None, 1)  # e.g. [b'USER', b'alice']
+            parts = raw.strip().split(None, 1)
             cmd = parts[0].upper() if parts else b""
-
-            # -----------------------------------------------------------------
-            # USER command handling
-            # -----------------------------------------------------------------
             if cmd == b"USER":
                 username = (
                     parts[1].decode(errors="replace").strip() if len(parts) > 1 else ""
                 )
                 if not username:
-                    self.reply(501)  # Empty username -> syntax error
+                    self.reply(501)
                     continue
 
-                self.reply(331)  # Password required
-                # -------------------------------------------------------------
-                # Expect PASS command next; loop back to receive it.
-                # -------------------------------------------------------------
+                self.reply(331)
                 raw = self.request.recv(1024)
                 if not raw:
                     break
@@ -197,49 +141,19 @@ class FTPHandler(BaseProtoHandler):
                 self.reply(502)
                 break
 
-            # -----------------------------------------------------------------
-            # Any other command is treated as a syntax error.
-            # -----------------------------------------------------------------
             self.reply(501)
 
-        # Send a polite closing message before the socket is closed by the
-        # server framework (optional, but makes the dialogue look more genuine).
         with contextlib.suppress(Exception):
             self.reply(221)
 
-    # ------------------------------------------------------------------- #
-    # Helper to send a reply line.
-    # ------------------------------------------------------------------- #
     def reply(self, code: int) -> None:
-        """
-        Send a one-line FTP reply identified by *code*.
-
-        The reply string is taken from :data:`ReplyCodes` and terminated with
-        CRLF as required by the protocol.
-
-        :param code: Numeric FTP reply code (e.g. ``220``).
-        :type code: int
-        :raises KeyError: If *code* is not present in :data:`ReplyCodes`.
-        """
         try:
             self.request.sendall(ReplyCodes[code] + b"\r\n")
         except OSError as exc:
-            # Logging the failure helps debugging but we do not re-raise,
-            # because the connection is likely already broken.
             self.logger.debug(f"Failed to send FTP reply {code}: {exc}")
 
 
-# --------------------------------------------------------------------------- #
-# Server class - thin wrapper around ``ThreadingTCPServer``.
-# --------------------------------------------------------------------------- #
 class FTPServer(ThreadingTCPServer):
-    """
-    TCP server that accepts FTP connections.
-
-    Only the class-level defaults are defined here; all functional behaviour
-    is provided by :class:`ThreadingTCPServer` and :class:`FTPHandler`.
-    """
-
     default_port: ClassVar[int] = 21
     default_handler_class: ClassVar[type[FTPHandler]] = FTPHandler
     service_name: str = "FTP"
