@@ -16,31 +16,20 @@
 #
 # The three NTLM settings (Challenge, DisableExtendedSessionSecurity,
 # DisableNTLMv2) additionally fall back through two more levels:
-#   3. [NTLM] section     -- shared default for all NTLM-enabled protocols
-#   4. [Globals] section  -- last resort
+#   3. [NTLM] section
+#   4. [Globals] section
 #
 # Host identity settings (NetBIOSComputer, NetBIOSDomain, DnsComputer,
 # DnsDomain) follow the same chain as NTLM:
 #   1. [[Protocol.Server]] entry
 #   2. [Protocol] section
 #   3. [NTLM] section
-#   4. [Globals] section -- derived automatically from Globals.Host
-#
-# Protocol Host values (SMTP, LDAP, MSSQL, ...) resolve as:
-#   1. [[Protocol.Server]] entry
-#   2. [Protocol] section
-#   3. [Globals] section -- Host derived from Globals.Host
+#   4. [Globals] section
 #
 # All other settings stop at step 2.
 #
 # Note: Some settings can only be used in the most local section (e.g. "Port").
 # These are also described in the docs.
-#
-# Server Configuration:
-# ---------------------
-# For brevity, servers are configured via array tables. This means each server
-# configuration for a protocol can be placed under an extra section named
-# [[PROTOCOL.Server]].
 
 
 # =============================================================================
@@ -240,8 +229,6 @@ UPnP = true
 
 # --- Url (advanced) ----------------------------------------------------------
 # Full SQLAlchemy database URL.  When set, Path is ignored.
-# Use this to connect to an external database server for multi-session or
-# shared access.  Leave empty (the default) to use the SQLite Path below.
 #
 # Examples:
 #   Url = "mysql-pymysql://user:pass@127.0.0.1/dementor"       # MySQL / MariaDB
@@ -253,7 +240,7 @@ UPnP = true
 # Path to the SQLite database file.  Only used when Url is empty.
 #
 #   Relative paths are resolved from the workspace directory:
-#     Path = "Dementor.db"           (default -- file in workspace)
+#     Path = "Dementor.db"           (default, file in workspace)
 #     Path = "data/captures.db"      (subfolder, created automatically)
 #
 #   Absolute paths are used as-is:
@@ -262,14 +249,15 @@ UPnP = true
 #   In-memory database (fast, but all data is lost when Dementor exits;
 #   the TUI can still query captured creds while running):
 #     Path = ":memory:"
-#
+
 # Path = "Dementor.db"
 
-# --- DuplicateCreds -----------------------------------------------------------
 # When true, every captured hash is stored even if an identical credential
 # (same domain - username - type - protocol) was seen before.  When false,
 # only the first capture is kept and repeats are silently skipped.
+
 DuplicateCreds = true
+
 
 # =============================================================================
 # mDNS
@@ -302,69 +290,52 @@ AllowedQueryTypes = ["A", "AAAA", "ALL"]
 
 # AnswerName = "other-srv"
 
+
 # =============================================================================
 # SMB (Server Message Block) Configuration
-# =============================================================================
-# Dementor's SMB server captures NTLM hashes by implementing enough of the SMB
-# protocol to complete authentication handshakes.
-#
-# SMB and NTLM are independent layers:
-#   - SMB settings (this section) control the transport: dialects, ports, post-
-#     auth behaviour, and SMB1-only identity strings.
-#   - NTLM settings ([NTLM] section) control authentication: challenge nonce,
-#     AV_PAIRs, hash types.
-#
-# All settings are optional. Defaults work out of the box for hash capture.
 # =============================================================================
 [SMB]
 
 # --- Transport & Protocol ---
-
-# Optional. Accept SMB1 connections (0xFF header). When false, SMB1-only
+# Optional. Accept SMB1 connections. When false, SMB1-only
 # clients (XP, Server 2003, NT 4.0) are silently dropped.
 # Default: true
+
 EnableSMB1 = true
 
 # Optional. Accept SMB2/3 connections (0xFE header). When false, all modern
 # clients (Vista through Server 2022) are silently dropped.
 # Default: true
+
 EnableSMB2 = true
 
 # Optional. Allow SMB1-to-SMB2 protocol upgrade when a client offers SMB2
 # dialect strings inside an SMB1 NEGOTIATE.
 # Default: true
+
 AllowSMB1Upgrade = true
 
-# Optional. Floor and ceiling for SMB2/3 dialect negotiation. Clients offering
-# only dialects outside this range receive STATUS_NOT_SUPPORTED.
+# Optional. Clients offering only dialects outside this range
+# receive STATUS_NOT_SUPPORTED.
 # Valid values: "2.002", "2.1", "3.0", "3.0.2", "3.1.1"
 # Default: "2.002" / "3.1.1"
+
 # SMB2MinDialect = "2.002"
 # SMB2MaxDialect = "3.1.1"
 
-# --- Post-Auth Behaviour ---
-
 # Optional. Number of NTLM credentials to capture before accepting the session.
-# 0 (default) = capture once, then return STATUS_SUCCESS so the client proceeds
-# to TREE_CONNECT (allows share-path capture). N > 0 = return
-# STATUS_ACCOUNT_DISABLED for the first N-1 attempts to trigger SSPI retry,
-# then STATUS_SUCCESS on the Nth capture.
-# Default: 0
+# 0 (default) = capture once, then return the configured error code (see below)
+# N > 0 = return STATUS_ACCOUNT_DISABLED for the first N-1 attempts to trigger retry,
+
 CapturesPerConnection = 0
 
-# Optional. NTSTATUS code returned after the final capture. Accepts an integer
-# value or a string name from impacket.nt_errors (e.g. "STATUS_ACCESS_DENIED",
-# "STATUS_LOGON_FAILURE"). The string is resolved via getattr(nt_errors, value).
+# Accepts an integer value or a string name from impacket.nt_errors
+# (e.g. "STATUS_ACCESS_DENIED", "STATUS_LOGON_FAILURE").
 #
-# WARNING: Enabling this feature with disable all file path capture events
-# Default: Not set
 # ErrorCode = "STATUS_SMB_BAD_UID"
 
 # --- SMB1 Identity (optional) ---
 # These strings appear only in SMB1 negotiate and session-setup responses.
-# They are purely SMB-layer and do NOT affect the NTLM CHALLENGE_MESSAGE.
-# SMB2/3 has no equivalent fields - these are ignored for modern clients.
-# To control the NTLM identity (AV_PAIRs), use the [NTLM] section instead.
 
 # Optional. ServerName in the SMB1 non-extended-security negotiate response.
 # Default: "DEMENTOR"
@@ -383,14 +354,12 @@ CapturesPerConnection = 0
 # NativeLanMan = "Windows"
 
 # --- Server Instances ---
-# Each [[SMB.Server]] creates a listener. Port is required.
-# Standard ports: 445 (direct TCP), 139 (NetBIOS session service).
 [[SMB.Server]]
 Port = 139
 
 [[SMB.Server]]
 Port = 445
-# Per-server overrides (highest priority  -- override [SMB] and [NTLM] for this port only):
+# Per-server overrides
 # Host = "other.corp.com"
 # ServerOS = "Windows Server 2022"
 # ErrorCode = "STATUS_ACCESS_DENIED"
@@ -399,21 +368,19 @@ Port = 445
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
 
+
 # =============================================================================
 # Browser (NetBIOS Datagram Service)
 # =============================================================================
 [Browser]
 
 # Specifies the NetBIOS domain name to advertise in NETLOGON responses.
-# This value is used when responding to PDC queries (LOGON_PRIMARY_QUERY)
-# and DC discovery requests (LOGON_SAM_LOGON_REQUEST).
 # The default value is: "WORKGROUP"
 
 # DNSDomain = "WORKGROUP"
 
 # Specifies the hostname to advertise as the domain controller in NETLOGON
-# responses. This value is used when responding to PDC queries and DC
-# discovery requests.
+# responses.
 # The default value is: "DEMENTOR"
 
 # DnsComputer = "DC01"
@@ -471,116 +438,66 @@ Port = 25
 # =============================================================================
 # NTLM Authentication
 # =============================================================================
-# This section provides shared defaults for all NTLM-enabled protocols:
-# SMB, HTTP, SMTP, LDAP, RPC, MSSQL, POP3, and IMAP.
-#
-# Resolution order for these three settings (highest priority first):
-#   1. [[Protocol.Server]] entry  -- per-server override (list-based protocols only:
-#                                  SMB, HTTP, SMTP, LDAP, POP3, IMAP)
-#   2. [Protocol] section         -- per-protocol override (e.g. [SMB], [HTTP])
-#   3. [NTLM] section             -- this section; the shared default
-#   4. [Globals] section          -- broadest fallback
-#
-# If a protocol section does not define Challenge, DisableExtendedSessionSecurity,
-# or DisableNTLMv2, it inherits the values set here. This lets you configure one
-# shared challenge for all protocols while still being able to override it for a
-# specific protocol or a single server instance within that protocol.
-#
-
 [NTLM]
 
-# --- Capture Behaviour ---
-
-# Optional. 8-byte ServerChallenge nonce embedded in the CHALLENGE_MESSAGE.
+# 8-byte ServerChallenge nonce embedded in the CHALLENGE_MESSAGE.
 # Appears verbatim in captured hashcat lines.
 #
 # Accepted formats:
 #   "hex:1122334455667788"   explicit hex (preferred, unambiguous)
 #   "ascii:1337LEET"         explicit ASCII (preferred)
-#   "1122334455667788"       16 hex characters  -- auto-detected as hex
-#   "1337LEET"               8 ASCII characters  -- auto-detected as ASCII
-#   omitted / not set        cryptographically random 8 bytes per run
-#
-# A fixed Challenge combined with DisableExtendedSessionSecurity = true makes
-# NTLMv1 hashes crackable with precomputed rainbow tables.
+#   "1122334455667788"       16 hex characters
+#   "1337LEET"               8 ASCII characters
+#   not set                  random 8 bytes per run
 
 Challenge = "1337LEET"
 
-# Optional. Remove the NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY flag from the
-# CHALLENGE_MESSAGE, controlling which NTLMv1 hash variant clients produce.
-#   false (default): NTLMv1 clients produce NetNTLMv1-ESS (MD5-mixed, hashcat -m 5500).
-#   true:            NTLMv1 clients produce bare NetNTLMv1 (DES-only, rainbow-table crackable).
-# Has no effect on NTLMv2 clients.
+# Remove the NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY flag from the
+# CHALLENGE_MESSAGE.
 # Default: false
+
 DisableExtendedSessionSecurity = false
 
-# Optional. Omit TargetInfoFields (AV_PAIRs) from the CHALLENGE_MESSAGE. This
-# prevents clients from constructing NTLMv2 responses.
-#   false (default): AV_PAIRs present. All clients (LmCompat 0-5) can authenticate.
-#   true:            AV_PAIRs absent. LmCompat 0-2 clients fall back to NTLMv1.
-#                    LmCompat 3- clients (all modern Windows defaults) will REFUSE
-#                    to authenticate, producing zero hashes. Use with caution.
+# Disable NTLMv2 support.
 # Default: false
-DisableNTLMv2 = false
 
-# --- Server Identity (optional) ---
-# These control the identity fields inside the NTLMSSP CHALLENGE_MESSAGE.
-# They are INDEPENDENT from SMB identity - [SMB] NetBIOSComputer is the SMB1
-# negotiate ServerName, while [NTLM] NetBIOSComputer is AV_PAIR 0x0001.
-#
-# Resolution order (highest priority first):
-#   1. [[Protocol.Server]] entry
-#   2. [Protocol] section
-#   3. [NTLM] section        <- override here to apply to ALL NTLM protocols
-#   4. [Globals] section     <- derived automatically from Globals.Host
+DisableNTLMv2 = false
 
 # Optional. Controls the NTLMSSP_TARGET_TYPE flag and the TargetName field
 # in the CHALLENGE_MESSAGE.
-#   "server" (default): sets NTLMSSP_TARGET_TYPE_SERVER (bit 17),
-#                        TargetName = NetBIOSComputer value.
-#   "domain":           sets NTLMSSP_TARGET_TYPE_DOMAIN (bit 16),
-#                        TargetName = NetBIOSDomain value.
 # Default: "server"
+
 # TargetType = "server"
 
-# Optional. VERSION structure in the CHALLENGE_MESSAGE, formatted as
-# "major.minor.build". Sent when the NEGOTIATE_VERSION flag is present.
-#   "0.0.0" (default): all-zero placeholder (spec-correct, not identifiable as any OS).
-#   "10.0.20348":       impersonates Windows Server 2022.
-#   "6.1.7601":         impersonates Windows 7 SP1.
+# VERSION structure in the CHALLENGE_MESSAGE:
 # Default: "0.0.0"
+
 # Version = "0.0.0"
 
-# --- AV_PAIR Identity Fields (optional) ---
-# These appear inside the TargetInfoFields of the CHALLENGE_MESSAGE.
-# AV_PAIRs 0x0001 and 0x0002 are always sent (required by MS-NLMP spec).
-# AV_PAIRs 0x0003, 0x0004, 0x0005 are omitted when set to "" (empty string).
-#
-# When Globals.Host is configured these values are derived automatically.
-# Set them here to override only the NTLM identity without changing other
-# protocol server names.
+# NetBIOS name of the server.
+# Default: derived from Globals.Host, else "DEMENTOR"
 
-# Required. MsvAvNbComputerName (AV_PAIR 0x0001). NetBIOS name of the server.
-# Also used as TargetName when TargetType="server".
-# Default: derived from Globals.Host (hostname[:15].upper()), else "DEMENTOR"
 # NetBIOSComputer = "DC01"
 
-# Required. MsvAvNbDomainName (AV_PAIR 0x0002). NetBIOS domain name.
-# Also used as TargetName when TargetType="domain".
-# Default: derived from Globals.Host (domain.upper()), else "WORKGROUP"
+# NetBIOS domain name.
+# Default: derived from Globals.Host, else "WORKGROUP"
+
 # NetBIOSDomain = "CONTOSO"
 
-# Optional. MsvAvDnsComputerName (AV_PAIR 0x0003). DNS FQDN of the server.
-# Default: derived from Globals.Host (full FQDN), else "" (omitted)
+# DNS FQDN of the server.
+# Default: derived from Globals.Host (full FQDN)
+
 # DnsComputer = "dc01.contoso.lab"
 
-# Optional. MsvAvDnsDomainName (AV_PAIR 0x0004). DNS domain name.
-# Default: derived from Globals.Host (domain.lower()), else "" (omitted)
+# DNS domain name.
+# Default: derived from Globals.Host
+
 # DnsDomain = "contoso.lab"
 
-# Optional. MsvAvDnsTreeName (AV_PAIR 0x0005). Active Directory forest name.
-# Default: "" (omitted from CHALLENGE_MESSAGE)
+# Active Directory forest name.
+
 # DnsTree = "contoso.lab"
+
 
 # =============================================================================
 # FTP Server(s)
@@ -613,8 +530,7 @@ EncType = "aes256_cts_hmac_sha1_96"
 [LDAP]
 
 
-# A list of capabilities to support. You can also set this option in each server.
-# These OIDs identify Active Directory-specific features per MS-ADTS §3.1.1.3.3.
+# A list of capabilities to support.
 
 # Capabilities = [
 #     "1.2.840.113556.1.4.800",    # LDAP_CAP_ACTIVE_DIRECTORY_OID
@@ -628,12 +544,11 @@ EncType = "aes256_cts_hmac_sha1_96"
 # SASLMechanisms = ["GSS-SPNEGO", "DIGEST-MD5", "PLAIN", "NTLM"]
 
 # Global timeout configuration (can be changed in each server). Zero (0) indicates
-# no timeout (default), all other values are set in seconds. Note that no timeout
-# will lead to problems when closing Dementor.
+# no timeout (default), all other values are set in seconds.
 
 Timeout = 0
 
-# Hostname - fully qualified domain name used in LDAP responses.
+# Fully qualified domain name used in LDAP responses.
 # Derives from Globals.Host when not set here.
 
 # Host = "DC01.contoso.lab"
@@ -643,8 +558,8 @@ Timeout = 0
 TLS = false
 
 # TLS key and certificate (for all TCP servers)
-# Cert = "..."
 
+# Cert = "..."
 # Key = "/path/to/key"
 
 # The error code to return after successful authentication. It is recommended to return
@@ -653,32 +568,15 @@ TLS = false
 
 # ErrorCode = "unwillingToPerform"
 
-# Enable channel binding per RFC 5929 to prevent LDAP relay attacks.
-# Requires TLS to be active.
-
+# Experimental options
 # ChannelBinding = false
-
-# Require SASL signing (integrity protection) for all connections.
-
 # RequireSigning = false
-
-# Require SASL sealing (encryption) for all connections.
-
 # RequireSealing = false
 
-# List of supported channel binding types per RFC 5929 §4.
-# Options: "tls-unique", "tls-server-end-point"
-
 # ChannelBindingTypes = ["tls-unique", "tls-server-end-point"]
-
-# List of supported SASL Quality of Protection (QoP) options per RFC 4513 §5.2.4.
-# Options: "auth" (authentication only), "auth-int" (integrity), "auth-conf" (confidentiality)
-
 # SASLQoPOptions = ["auth", "auth-int", "auth-conf"]
 
-# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
-#   LDAP servers, or inside [[LDAP.Server]] to override for a single server only.
+# NTLM Settings
 
 # Challenge = "1337LEET"
 # DisableExtendedSessionSecurity = false
@@ -704,8 +602,8 @@ TLS = true
 # =============================================================================
 [QUIC]
 Port = 443
-Cert = "default.cert"
-Key = "default.key"
+# Cert = "default.cert"
+# Key = "default.key"
 
 # Control the target smb server to connect to.
 # TargetSMBPort = 445
@@ -783,21 +681,18 @@ AuthSchemes = ["Basic", "Negotiate", "NTLM", "Bearer"]
 
 WebDAV = true
 
-# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
-#   HTTP servers, or inside [[HTTP.Server]] to override for a single server only.
-
+# NTLM settings
 # Challenge = "1337LEET"
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
 
 # Indicates whether WPAD/PAC file serving is enabled. This setting is enabled by
-# default.Refer to the [Proxy] section for configuring the WPAD script source.
+# default. Refer to the [Proxy] section for configuring the WPAD script source.
 
 WPAD = true
 
 # Determines whether authentication is required to access the WPAD script. When set
-# to `true`, clients must authenticate before retrieving the PAC file. Disabling this
+# to true, clients must authenticate before retrieving the PAC file. Disabling this
 # may prevent the server from capturing authentication headers for requests to WPAD
 # files.
 
@@ -835,10 +730,7 @@ Port = 80
 # =============================================================================
 [RPC]
 
-# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here -> falls back to [NTLM]. RPC uses a single server instance so
-#   there is no per-server item level; only [RPC] or [NTLM] apply.
-
+# NTLM settings
 # Challenge = "1337LEET"
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
@@ -851,15 +743,12 @@ ErrorCode = "rpc_s_access_denied"
 # These can be either:
 #   - Python modules defining RPC interfaces (files ending in `.py`), or
 #   - Directories containing multiple interface definitions.
-#
-# This allows extension of the server with custom protocol handling logic for
-# different interface UUIDs and operation numbers.
 
 # Interfaces = [ "/path/to/proto.py", "/path/to/directory/"]
 
 
 # =============================================================================
-# EMP
+# EPM
 # =============================================================================
 [EPM]
 
@@ -883,16 +772,10 @@ TargetPort = 49000
 # =============================================================================
 [MSSQL]
 
-# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here -> falls back to [NTLM]. MSSQL uses a single server instance so
-#   there is no per-server item level; only [MSSQL] or [NTLM] apply.
-
+# NTLM settings
 # Challenge = "1337LEET"
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
-
-# Defines the error response configuration used to simulate MSSQL authentication
-# failure or control behavior.
 
 # Numeric error code returned to the client.
 
@@ -946,10 +829,7 @@ InstanceName = "MSSQLServer"
 # =============================================================================
 [POP3]
 
-# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
-#   POP3 servers, or inside [[POP3.Server]] to override for a single server only.
-
+# NTLM settings
 # Challenge = "1337LEET"
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
@@ -991,10 +871,7 @@ Port = 110
 # =============================================================================
 [IMAP]
 
-# NTLM settings: Challenge, DisableExtendedSessionSecurity, DisableNTLMv2
-#   Not set here -> falls back to [NTLM]. Set here to override [NTLM] for all
-#   IMAP servers, or inside [[IMAP.Server]] to override for a single server only.
-
+# NTLM settings
 # Challenge = "1337LEET"
 # DisableExtendedSessionSecurity = false
 # DisableNTLMv2 = false
@@ -1140,6 +1017,7 @@ Port = 631
 # =============================================================================
 # SSDP
 # =============================================================================
+[SSDP]
 
 # Specifies the target location of the UPnP webserver. This value will point to
 # the current host if not explicitly set
