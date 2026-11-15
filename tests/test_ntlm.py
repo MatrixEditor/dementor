@@ -1,10 +1,3 @@
-"""Unit tests for dementor.protocols.ntlm - NTLM authentication helpers.
-
-Tests cover every public and private function in ntlm.py, organized by tier:
-  Tier 1 (pure functions): no mocking needed
-  Tier 2 (mock-dependent): require impacket objects or MagicMock
-"""
-
 import struct
 from unittest.mock import MagicMock
 

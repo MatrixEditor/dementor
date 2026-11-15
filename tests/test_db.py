@@ -1,9 +1,4 @@
 # ruff: noqa: S105, S106
-"""Comprehensive test suite for dementor.db (__init__, connector, model).
-
-All tests use SQLite :memory: with StaticPool -- no external DB required.
-"""
-
 import json
 import os
 import tempfile

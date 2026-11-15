@@ -17,20 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Unit tests for dementor.filters.
-
-Covers:
-- ``FilterObj``: literal, regex, and glob pattern matching
-- ``Filters``: construction from strings, dicts (Target/File), and membership test
-- ``in_scope``: whitelist-only, blacklist-only, combined, and no-filter paths
-"""
-
-import sys
 import tempfile
 import textwrap
 from pathlib import Path
-
-import pytest
 
 from dementor.filters import FilterObj, Filters, in_scope
 
