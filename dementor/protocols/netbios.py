@@ -210,6 +210,7 @@ _BWRS_SERVER_TYPES = {
     # other flags are not relevant here
 }
 
+class BrowserPoisoner(BaseProtoHandler):
     def proto_logger(self) -> ProtocolLogger:
         return ProtocolLogger(
             extra={

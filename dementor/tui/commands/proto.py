@@ -45,7 +45,7 @@ OFF = r"[bold red]\[OFF][/bold red]"
 
 @command
 class ServiceCommand(ReplAction):
-    """Command implementation for managing protocol services."""
+    """Protocol service configuration and status, use proto <name>."""
 
     names: list[str] = ["proto"]
 
@@ -116,14 +116,12 @@ class ServiceCommand(ReplAction):
             return
 
         name, *args = args_raw
-        # proto status (no further args) lists all services
         if name.lower() == "status" and not args:
             self.service_status_all()
             return
 
         parser = self.get_proto_parser()
         parsed = parser.parse_args(args)
-        # fn was attached by get_service_parser
         if name.lower() not in self.repl.session.manager.protocols:
             self.repl.console.print(f"[bold yellow]Unknown service name: {name!r}[/]")
         else:
@@ -280,10 +278,8 @@ class ServiceCommand(ReplAction):
         if not threads:
             console.print(f"[bold red]No running servers for {name}![/]")
             return
-        # Determine which thread's config to use (default first thread)
         cfg = threads[0].server_config
         key_path: str = argv.key or ""
-        # Support optional thread index prefix (e.g., "0.smtp_port") or wildcard '*' to apply to all threads.
         apply_all = False
         if key_path and "." in key_path:
             prefix, rest = key_path.split(".", 1)
@@ -298,12 +294,10 @@ class ServiceCommand(ReplAction):
                 else:
                     console.print(f"[b red]Server index {idx} out of range for {name}[/]")
                     return
-        # If no key specified, list available fields
         if not key_path:
             console.print(f"[b]Active servers[/]: {len(threads)}")
             self._list_fields(cfg)
             return
-        # Disallow nested keys - only top-level fields are allowed
         if "." in key_path:
             console.print(
                 "[b red]Nested keys are not supported. Use a top-level field name.[/]"
@@ -334,8 +328,6 @@ class ServiceCommand(ReplAction):
                 return
 
             if raw_value is not None:
-                # Perform type-aware conversion based on existing value
-                # Determine new value based on type of current field in first thread (or cfg)
                 def convert(val: Any) -> Any:
                     match val:
                         case bool():
@@ -354,7 +346,6 @@ class ServiceCommand(ReplAction):
                 setattr(cfg, field.attr_name, new_val)
                 console.print(f"[b green]Set {i}.{field.qname} = {new_val}[/]")
             else:
-                # Display current value (for single config; if apply_all, show first)
                 target_cfg = threads[0].server_config if apply_all else cfg
                 value = getattr(target_cfg, field.attr_name)
                 console.print(
@@ -386,32 +377,26 @@ class ServiceCommand(ReplAction):
 
     @override
     def get_completions(self, word: str, document: Document) -> list[str]:
-        # Split the current line, handling simple quoting.
         try:
             tokens = shlex.split(document.text_before_cursor)
         except Exception:
             tokens = document.text_before_cursor.split()
 
-        # Available protocol names (lower-case).
         services = [name.lower() for name in self.repl.session.manager.threads]
         services.append("status")
         subcommands = ["on", "off", "status", "config", "reload", "start", "stop"]
 
-        # No service name yet - suggest protocol names.
         if len(tokens) <= 1 or (len(tokens) == 2 and word):
             return [s for s in services if s.startswith(word.lower())]
 
-        # Service name provided, suggest sub-commands.
         if len(tokens) == 2 or (len(tokens) == 3 and word):
             return [sc for sc in subcommands if sc.startswith(word)]
 
-        # Sub-command identified - suggest its flags (if any).
         sub = tokens[2]
         flags: dict[str, list[str]] = {
             "off": ["-y", "--yes"],
             "stop": ["-y", "--yes"],
         }
-        # Unknown sub-command - fall back to sub-command suggestions.
         if sub not in subcommands:
             return [sc for sc in subcommands if sc.startswith(word)]
 

@@ -39,10 +39,7 @@ if TYPE_CHECKING:
 
 @command
 class ConfigCommand(ReplAction):
-    """Interact with the runtime configuration of the current session.
-
-    Provides commands to view, modify, and list configuration sections.
-    """
+    """Interact with the runtime configuration of the current session."""
 
     names: list[str] = ["config"]
 
@@ -151,17 +148,7 @@ class ConfigCommand(ReplAction):
                 value = target.get(final)
             self._display_value(key, value, console)
 
-    # ---------------------------------------------------------------------
-    # Helper methods
-    # ---------------------------------------------------------------------
     def _list_sections(self, config: dict[str, Any], console: "Console") -> None:
-        """Display a table of top-level configuration sections.
-
-        :param config: The global configuration dictionary.
-        :type config: dict[str, Any]
-        :param console: Rich console used for output.
-        :type console: Console
-        """
         console.print(
             Panel(
                 Columns(
@@ -177,28 +164,14 @@ class ConfigCommand(ReplAction):
     def _resolve_key_path(
         self, config: dict[str, Any], key: str
     ) -> tuple[Any | None, str | int | None]:
-        """Resolve a dotted/key-with-index path case-insensitively.
-
-        :param config: Configuration dictionary to search.
-        :type config: dict[str, Any]
-        :param key: Dotted path or key with optional list index.
-        :type key: str
-        :return: Tuple ``(container, final)`` where ``container`` is the dict or
-                 list holding the target value and ``final`` is the actual key
-                 (preserving case) or list index. Returns ``(None, None)`` if
-                 resolution fails.
-        :rtype: tuple[Any | None, str | int | None]
-        """
         # Default result when resolution fails
         result_container: Any | None = None
         result_key: str | int | None = None
         invalid = False
 
         if not key:
-            # Empty key is considered invalid - keep defaults
             invalid = True
         else:
-            # Helper for case-insensitive dict lookup returning the actual key
             def ci_lookup(d: dict[str, Any], lookup: str) -> str | None:
                 for k in d:
                     if k.lower() == lookup.lower():
@@ -260,15 +233,6 @@ class ConfigCommand(ReplAction):
         return result_container, result_key
 
     def _display_value(self, key: str, value: Any, console: "Console") -> None:
-        """Render a configuration value using Rich widgets.
-
-        :param key: The configuration key (used for titles).
-        :type key: str
-        :param value: The value to display; may be a ``dict``, ``list`` or scalar.
-        :type value: Any
-        :param console: Rich console for output.
-        :type console: Console
-        """
         if value is None:
             console.print(f"[b yellow]No value found for '{key}'.[/]")
             return

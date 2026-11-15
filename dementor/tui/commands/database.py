@@ -42,17 +42,12 @@ if TYPE_CHECKING:
 
 @command
 class DBCommand(ReplAction):
-    """Query the database for captured credentials and host information.
-
-    This command provides subcommands to interact with the database,
-    including listing credentials and displaying host information.
-    """
+    """Query the database for captured credentials and host information."""
 
     names: list[str] = ["db"]
 
     @override
     def get_parser(self) -> argparse.ArgumentParser | None:
-        """Create and return the argument parser for database commands."""
         parser = argparse.ArgumentParser(
             prog="db", description="Query the database for various information."
         )
@@ -115,13 +110,11 @@ class DBCommand(ReplAction):
 
     @override
     def execute(self, argv: argparse.Namespace) -> None:
-        """Execute the selected subcommand."""
         func = getattr(argv, "fn", None)
         if func:
             func(argv)
 
     def credentials(self, argv: argparse.Namespace) -> None:
-        """Display captured credentials from the database."""
         session: SessionConfig = self.repl.session
         console: Console = self.repl.console
 
@@ -164,7 +157,7 @@ class DBCommand(ReplAction):
             if argv.raw:
                 console.print(
                     f"([dim grey]{markup.escape(credential.timestamp)}[/]): "
-                    f"{credential.protocol}/{credential.credtype}",
+                    + f"{credential.protocol}/{credential.credtype}",
                     highlight=False,
                 )
                 console.print(f"  Host: {markup.escape(host_info)}")
@@ -177,7 +170,6 @@ class DBCommand(ReplAction):
             console.print(table)
 
     def hosts(self, argv: argparse.Namespace) -> None:
-        """Display discovered hosts from the database."""
         session: SessionConfig = self.repl.session
         console: Console = self.repl.console
 
@@ -236,11 +228,8 @@ class DBCommand(ReplAction):
             return
 
         try:
-            # Create a metadata object
             metadata = sqlalchemy.MetaData()
-            # Reflect the database schema
             metadata.reflect(bind=session.db.db_engine)
-            # Iterate over all tables and delete all rows
             for table in reversed(metadata.sorted_tables):
                 db_session.execute(table.delete())
             db_session.commit()
@@ -251,7 +240,6 @@ class DBCommand(ReplAction):
             console.print(f"[bold red]Failed to clean database:[/] {e}")
 
     def export(self, argv: argparse.Namespace) -> None:
-        """Export captured credentials in hashcat-compatible format."""
         session: SessionConfig = self.repl.session
         console: Console = self.repl.console
 
@@ -296,37 +284,25 @@ class DBCommand(ReplAction):
 
     @override
     def get_completions(self, word: str, document: Document) -> list[str]:
-        """Provide completions for sub-commands and their options.
-
-        The REPL already supplies the command name (``db``). This method
-        suggests the four sub-commands and, once a sub-command is identified,
-        offers the relevant ``--`` flags.
-        """
-        # Split the current line into tokens, handling simple quoting.
         try:
             tokens = shlex.split(document.text_before_cursor)
         except Exception:
             tokens = document.text_before_cursor.split()
 
-        # No sub-command yet - suggest the four possible actions.
         subcommands = ["creds", "hosts", "clean", "export"]
         if len(tokens) <= 1:
             return [sc for sc in subcommands if sc.startswith(word)]
 
-        # Determine which sub-command is being used.
         sub = tokens[1]
-        # Map sub-command to its specific flag completions.
         flags: dict[str, list[str]] = {
             "creds": ["--raw", "--credtype"],
             "hosts": ["--raw"],
             "clean": ["--yes"],
             "export": ["--credtype"],
         }
-        # If the sub-command is unknown, fall back to sub-command suggestions.
         if sub not in flags:
             return [sc for sc in subcommands if sc.startswith(word)]
 
-        # Provide flag completions for the recognized sub-command.
         return [
             flag for flag in flags[sub] if flag.startswith(word) and flag not in tokens
         ]

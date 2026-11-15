@@ -18,8 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # pyright: basic
-"""REPL action registration utilities."""
-
 import argparse
 
 from abc import ABC, abstractmethod
@@ -32,7 +30,6 @@ if TYPE_CHECKING:
 
 _AT = TypeVar("_AT", bound="ReplAction")
 
-# Registry mapping command names to their implementing :class:`ReplAction` subclasses.
 REPL_COMMANDS: dict[str, type["ReplAction"]] = {}
 
 
