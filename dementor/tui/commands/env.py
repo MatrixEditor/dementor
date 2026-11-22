@@ -45,36 +45,23 @@ class EnvCommand(ReplAction):
 
     @override
     def execute(self, argv: argparse.Namespace) -> None:
-        # argv is unused; the command has no options.
         session: SessionConfig = self.repl.session
         console: Console = self.repl.console
 
-        # -----------------------------------------------------------------
-        # Network section
-        # -----------------------------------------------------------------
         iface = session.interface or "<none>"
         ipv4 = session.ipv4 or "<none>"
         ipv6 = session.ipv6 or "<none>"
         bind_addr = session.bind_address
         ipv6_sup = "[b green]yes[/]" if session.ipv6_support else "[b red]no[/]"
 
-        # -----------------------------------------------------------------
-        # Database section - values are optional, provide placeholders.
-        # -----------------------------------------------------------------
         db_dialect = session.db.db_engine.dialect.name
         db_path = session.db.db_path
 
-        # -----------------------------------------------------------------
-        # Logging configuration - built from the global TOML config.
-        # -----------------------------------------------------------------
         log_cfg: LoggingConfig = TomlConfig.build_config(LoggingConfig)
         log_enable = log_cfg.log_enable
         log_dir = session.resolve_path(log_cfg.log_dir) if log_enable else "-"
         effective_level = logging.getLevelName(dm_logger.logger.getEffectiveLevel())
 
-        # -----------------------------------------------------------------
-        # General session information.
-        # -----------------------------------------------------------------
         mode = "[b grey]Analysis[/]" if session.analysis else "[b red]Attack[/]"
         workspace = session.workspace_path
         proto_cnt = len(session.manager.protocols) if hasattr(session, "manager") else 0
@@ -83,7 +70,6 @@ class EnvCommand(ReplAction):
         table.add_column(justify="right", style="bold", no_wrap=True)
         table.add_column(style="dim")
 
-        # Helper to insert a section header row (underlined key).
         def header(title: str, space: bool = False) -> None:
             if space:
                 table.add_row("", "")

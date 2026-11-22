@@ -34,25 +34,15 @@ if TYPE_CHECKING:
 
 @command
 class IPConfigCommand(ReplAction):
-    """Display the current IP configuration of the session.
-
-    Shows IPv4, IPv6 addresses, selected interface, bind address and whether IPv6
-    support is enabled. No arguments are required.
-    """
+    """Display the current IP configuration of the session."""
 
     names: list[str] = ["ip", "ipconfig"]
 
     @override
     def execute(self, argv: Namespace):
-        """Print the IP configuration to the REPL console.
-
-        ``argv`` is ignored because this command does not accept any options.
-        """
-        # Retrieve session and console
         session: SessionConfig = self.repl.session
         console: Console = self.repl.console
 
-        # Gather information
         ipv4 = getattr(session, "ipv4", None)
         ipv6 = getattr(session, "ipv6", None)
         interface = getattr(session, "interface", None)

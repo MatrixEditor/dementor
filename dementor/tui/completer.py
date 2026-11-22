@@ -34,40 +34,18 @@ if TYPE_CHECKING:
 
 
 class ReplCompleter(Completer):
-    """A ``prompt_toolkit`` completer for the interactive REPL.
-
-    The completer works in two stages:
-
-    1. **Command completion** - when the cursor is at the first word of the
-       line, it suggests all registered command names from
-       :data:`dementor.tui.action.REPL_COMMANDS`.
-    2. **Argument completion** - after a command has been entered, the
-       completer delegates to that command's own
-       :meth:`~dementor.tui.action.ReplAction.get_completions` hook.
-    """
-
     def __init__(self, repl: "Repl") -> None:
         self.repl: Repl = repl
 
     def _iter_command_names(self) -> Iterable[str]:
-        """Yield all command names/aliases registered in ``REPL_COMMANDS``."""
         yield from REPL_COMMANDS.keys()
 
-    # Completer interface ------------------------------------------------------
     @override
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
-        """Yield :class:`prompt_toolkit.completion.Completion` objects.
-
-        The logic mirrors the description in the class docstring.  It works on
-        the raw text before the cursor and tries to be tolerant of incomplete
-        quoting.
-        """
         text_before = document.text_before_cursor.lstrip()
         word = document.get_word_before_cursor(WORD=True)
-        # shlex handles quoted arguments correctly; fall back to a plain
-        # split if the line has unbalanced quotes (still being typed).
         try:
             tokens = shlex.split(text_before)
         except Exception:

@@ -36,23 +36,9 @@ class FilterObj:
     - Literal string match
     - Regular expression (prefixed with `re:`)
     - Glob pattern (prefixed with `g:`), translated to regex (Python 3.13+)
-
-    :param target: Pattern string. May be literal, `re:...`, or `g:...`.
-    :type target: str
-    :param extra: Optional metadata associated with this filter.
-    :type extra: Any, optional
     """
 
     def __init__(self, target: str, extra: dict[str, Any] | None = None) -> None:
-        """Initialize a filter object with pattern and optional metadata.
-
-        Automatically detects pattern type and compiles regex if applicable.
-
-        :param target: Pattern string (literal, `re:regex`, or `g:glob`).
-        :type target: str
-        :param extra: Additional context or metadata (e.g., source file, rule ID).
-        :type extra: Any, optional
-        """
         self.target: str = target
         self.extra: dict[str, Any] = extra or {}
         # Determine the concrete matching strategy (regex, glob or plain)
@@ -72,11 +58,6 @@ class FilterObj:
     def matches(self, source: str) -> bool:
         r"""Check if the source string matches this filter.
 
-        :param source: String to test against the filter.
-        :type source: str
-        :return: `True` if match, `False` otherwise.
-        :rtype: bool
-
         Example:
         >>> f = FilterObj("re:.*\\.example\\.com")
         >>> f.matches("api.example.com")
@@ -94,15 +75,6 @@ class FilterObj:
 
     @staticmethod
     def from_file(source: str, extra: Any | None) -> list["FilterObj"]:
-        """Load multiple filters from a text file (one per line).
-
-        :param source: Path to file containing filter patterns.
-        :type source: str
-        :param extra: Metadata to attach to each filter.
-        :type extra: Any, optional
-        :return: List of `FilterObj` instances.
-        :rtype: list[FilterObj]
-        """
         filters = []
         path = pathlib.Path(source)
         if path.exists() and path.is_file():
@@ -113,15 +85,6 @@ class FilterObj:
 def _optional_filter(
     value: list[str | dict[str, Any]] | None,
 ) -> "Filters | None":
-    """Factory function to convert optional config list into `Filters` instance.
-
-    Used with `Attribute` to auto-convert config values. Returns `None` if input is `None`.
-
-    :param value: List of filter specs or `None`.
-    :type value: list[str | dict[str, Any]] | None
-    :return: `Filters` instance or `None`.
-    :rtype: Filters | None
-    """
     return None if value is None else Filters(value)
 
 
@@ -173,13 +136,6 @@ def in_scope(value: str, config: Any) -> bool:
     2. If `ignored` exists and value is in it -> `False`
     3. Otherwise -> `True`
 
-    :param value: String to test (e.g., hostname, IP).
-    :type value: str
-    :param config: Object with optional `targets` and `ignored` attributes (`Filters`).
-    :type config: Any
-    :return: `True` if value is in scope, `False` otherwise.
-    :rtype: bool
-
     Example:
     >>> class C:
     ...     pass
@@ -206,28 +162,12 @@ def in_scope(value: str, config: Any) -> bool:
 
 
 class Filters:
-    """Collection of `FilterObj` instances for matching against multiple patterns.
-
-    Supports loading filters from:
-    - Direct string patterns
-    - File paths containing patterns (one per line)
-    - Config dictionaries with `Target` or `File` keys
-
-    Implements `__contains__` for easy membership testing.
-
-    :ivar filters: List of compiled `FilterObj` instances.
-    :vartype filters: list[FilterObj]
-    """
-
     def __init__(self, config: list[str | dict[str, Any]]) -> None:
         r"""Initialize filters from a configuration list.
 
         Each item can be:
         - A string: treated as literal or pattern (`re:...`, `g:...`)
         - A dict: with `Target` (pattern) or `File` (path to patterns)
-
-        :param config: List of filter specifications.
-        :type config: list[str | dict[str, Any]]
 
         Example:
         >>> filters = Filters(
@@ -263,41 +203,13 @@ class Filters:
                     self.filters.extend(FilterObj.from_file(source, filter_config))
 
     def __contains__(self, host: str) -> bool:
-        """Check if a host matches any filter.
-
-        :param host: String to test.
-        :type host: str
-        :return: `True` if any filter matches.
-        :rtype: bool
-        """
         return self.has_match(host)
 
     def get_matched(self, host: str) -> list[FilterObj]:
-        """Return all filters that match the host.
-
-        :param host: String to test.
-        :type host: str
-        :return: List of matching `FilterObj` instances.
-        :rtype: list[FilterObj]
-        """
         return list(filter(lambda x: x.matches(host), self.filters))
 
     def get_first_match(self, host: str) -> FilterObj | None:
-        """Return the first matching filter, or `None` if none match.
-
-        :param host: String to test.
-        :type host: str
-        :return: First matching filter or `None`.
-        :rtype: FilterObj | None
-        """
         return next(iter(self.get_matched(host)), None)
 
     def has_match(self, host: str) -> bool:
-        """Check if at least one filter matches the host.
-
-        :param host: String to test.
-        :type host: str
-        :return: `True` if any filter matches.
-        :rtype: bool
-        """
         return len(self.get_matched(host)) > 0

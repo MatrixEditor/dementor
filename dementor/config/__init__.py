@@ -27,50 +27,23 @@ from typing import Any
 
 from dementor.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH
 
-# --------------------------------------------------------------------------- #
 # Global configuration storage
-# --------------------------------------------------------------------------- #
 dm_config: dict[str, Any]
 
 
 def get_global_config() -> dict[str, Any]:
-    """Return the current global configuration dictionary.
-
-    :return: The configuration mapping, empty if ``init_from_file`` has not
-        been called yet.
-    :rtype: dict
-    """
     return getattr(sys.modules[__name__], "dm_config", {})
 
 
 def _set_global_config(config: dict[str, Any]) -> None:
-    """Replace the current global configuration with *config*.
-
-    The helper mirrors :func:`get_global_config` and writes the value back to
-    the module namespace.
-
-    :param config: New configuration dictionary.
-    :type config: dict
-    """
     sys.modules[__name__].dm_config = config  # ty:ignore[unresolved-attribute]
 
 
 def init_from_file(path: str) -> None:
     """Load a TOML configuration file and merge it into the global config.
 
-    The function follows a *replace-then-overwrite* strategy: the file at
-    *path* is parsed with :mod:`tomllib`.  If the file exists and can be
-    read, its content completely replaces the previous ``dm_config`` value.
-    The caller is responsible for ordering calls to obtain the desired
-    precedence.
-
     If the file does not exist or is not a regular file the function returns
     silently.
-
-    :param path: Filesystem path to a TOML file.
-    :type path: str
-    :raises tomllib.TOMLDecodeError: Propagated if the file exists but contains
-        invalid TOML.
     """
     target = pathlib.Path(path)
     if not target.exists() or not target.is_file():
@@ -82,22 +55,10 @@ def init_from_file(path: str) -> None:
         _set_global_config(new_config)
 
 
-# --------------------------------------------------------------------------- #
-# Explicit entry point for application startup.
-# --------------------------------------------------------------------------- #
 def init_config(
     default_path: str | None = None,
     user_path: str | None = None,
 ) -> None:
-    """Load the default and user TOML configuration files.
-
-    Call this explicitly from the application entry point (e.g. ``standalone.py``).
-    Using the defaults, it loads the bundled Dementor.toml first, then the
-    user-provided override, so user settings win.
-
-    :param default_path: Path to bundled defaults (uses :data:`DEFAULT_CONFIG_PATH`).
-    :param user_path: Path to user overrides (uses :data:`CONFIG_PATH`).
-    """
     try:
         init_from_file(default_path or DEFAULT_CONFIG_PATH)  # 1. bundled defaults
         init_from_file(user_path or CONFIG_PATH)  # 2. user-provided overrides
@@ -109,12 +70,6 @@ def init_config(
         )
 
 
-# --------------------------------------------------------------------------- #
-# Default initialisation - runs on first import so that protocol modules
-# that call get_global_config() / get_value() without going through
-# standalone.py still get the bundled defaults.  standalone.py re-runs
-# init_config() with the user config path, which overwrites these defaults.
-# --------------------------------------------------------------------------- #
 init_config()
 
 __all__ = [

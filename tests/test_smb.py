@@ -1,9 +1,3 @@
-"""Unit tests for dementor.protocols.smb - SMB protocol handler.
-
-Tests cover module-level functions, SMBServerConfig methods, and SMBHandler
-methods (via a mock handler that bypasses the real socket).
-"""
-
 from __future__ import annotations
 
 import struct

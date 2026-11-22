@@ -313,10 +313,6 @@ class IPPHandler(BaseHTTPRequestHandler):
 
     def ipp_get_printer_attributes(self, req: dict[str, Any]) -> None:
         # [4.2.5.  Get-Printer-Attributes Operation]
-        # This REQUIRED operation allows a Client to request the values of the
-        # attributes of a Printer.  In the request, the Client supplies the set
-        # of Printer attribute names and/or attribute group names in which the
-        # requester is interested.
         attrib = req["operation-attributes"]
 
         # [4.2.5.2.  Get-Printer-Attributes Response]

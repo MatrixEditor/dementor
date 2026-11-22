@@ -1,14 +1,3 @@
-"""Concurrency stress tests for DementorDB.
-
-Spawns multiple threads that call add_auth() simultaneously and verifies:
-  - Zero exceptions (no PendingRollbackError, no packet sequence errors)
-  - All credentials are persisted (no lost writes)
-
-Tests run against SQLite backends only (no external DB required):
-  1. SQLite :memory: (StaticPool, single shared connection)
-  2. SQLite file (QueuePool, SQLAlchemy 2.0 default)
-"""
-
 import os
 import tempfile
 import threading

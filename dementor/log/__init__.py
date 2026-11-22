@@ -26,9 +26,7 @@ from typing import Any
 from rich.console import Console
 
 # When stdout is not a TTY (e.g., redirected to a file), Rich defaults to
-# 80 columns and wraps long lines. Use COLUMNS env var if set, otherwise
-# force a wide width (200) for file output so log lines stay on one line.
-# On a real TTY, Rich auto-detects the terminal width.
+# 80 columns and wraps long lines.
 _width: int | None = None
 if not sys.stdout.isatty():
     _width = int(os.environ.get("COLUMNS", "200"))
@@ -41,41 +39,11 @@ dm_console: Console = Console(
     width=_width,
     no_color=not sys.stdout.isatty(),
 )
-"""Rich Console instance for thread-safe terminal output.
-
-Used globally for formatted logging output. Disables automatic highlighting and word wrapping
-to ensure consistent rendering across platforms and loggers.
-
-Note: All output should go through `dm_print` to ensure thread safety.
-"""
 
 dm_console_lock: threading.Lock = threading.Lock()
-"""Threading lock to serialize console output.
-
-Prevents interleaved or corrupted log messages when multiple threads write to `dm_console`
-simultaneously (e.g., during concurrent protocol execution).
-
-All `dm_print` calls respect this lock unless explicitly marked `locked=True`.
-"""
 
 
 def dm_print(msg: str, *args: Any, **kwargs: Any) -> None:
-    """Thread-safe wrapper for `dm_console.print()`.
-
-    Ensures log messages are printed atomically. If `locked=True` is passed,
-    bypasses the lock for internal use (e.g., when already holding the lock).
-
-    :param msg: Message to print (supports Rich markup).
-    :type msg: str
-    :param args: Positional arguments passed to `Console.print()`.
-    :param kwargs: Keyword arguments passed to `Console.print()`.
-    :keyword locked: If `True`, skips acquiring `dm_console_lock` (internal use).
-    :type locked: bool, optional
-
-    Example:
-    >>> dm_print("[bold green]Success![/]", locked=True)
-
-    """
     if kwargs.pop("locked", False):
         dm_console.print(msg, *args, **kwargs)
     else:

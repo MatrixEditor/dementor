@@ -47,7 +47,7 @@ _ConfigTy = TypeVar("_ConfigTy", bound=TomlConfig, default=TomlConfig)
 
 
 class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
-    """Base thread class for running protocol servers with graceful shutdown support."""
+    """Base thread class for running protocol servers."""
 
     def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
         self.config: SessionConfig = config
@@ -58,38 +58,16 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
 
     @property
     def service_name(self) -> str:
-        """Return the display name for this service (used in logging).
-
-        Subclasses must implement this property.
-        """
         raise NotImplementedError("service_name must be implemented by subclasses")
 
     @property
     def get_port(self) -> int:
-        """Return the listening port of the server.
-
-        The port is set when the server starts. If the server has not been started
-        and the port is still ``None``, a ``ValueError`` is raised.
-
-        :return: Port number.
-        :rtype: int
-        :raises ValueError: If the port has not been assigned yet.
-        """
         if self.port is None:
             raise ValueError("Port not set - the server may not have been started yet.")
         return self.port
 
     @property
     def get_address(self) -> str:
-        """Return the bound address of the server.
-
-        The address is set when the server starts. If the address is ``None`` a
-        ``ValueError`` is raised.
-
-        :return: Address string.
-        :rtype: str
-        :raises ValueError: If the address has not been assigned yet.
-        """
         if self.address is None:
             raise ValueError(
                 "Address not set - the server may not have been started yet."
@@ -105,39 +83,24 @@ class BaseServerThread(threading.Thread, Generic[_ConfigTy]):
 
 
 class AsyncServerThread(BaseServerThread[_ConfigTy]):
-    """Thread class for running asynchronous protocol servers (e.g., asyncio-based).
-
-    This is a placeholder for future async server implementations. It currently
-    does not implement any specific async server logic but can be extended to
-    support asyncio event loops and async server classes.
-    """
-
     def __init__(self, config: SessionConfig, server_config: _ConfigTy) -> None:
         super().__init__(config, server_config)
         self._task: Task[None] | None = None
 
     @property
     def task(self) -> Task[None]:
-        """Get the asyncio Task running the server.
-
-        :return: The asyncio Task instance for the server.
-        :rtype: Task[None] | None
-        """
         if not self._task:
             raise ValueError("Async server task has not been started yet")
 
         return self._task
 
     async def arun(self) -> None:
-        """Subclasses must override this to implement async server logic."""
         raise NotImplementedError("arun must be implemented by subclasses")
 
     def run(self) -> None:
-        """Start the asynchronous server."""
         self._task = self.config.loop.create_task(self.arun())
 
     async def ashutdown(self) -> None:
-        """Asynchronously shutdown the server."""
         if self._task:
             self._task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
@@ -145,28 +108,12 @@ class AsyncServerThread(BaseServerThread[_ConfigTy]):
 
     @override
     def shutdown(self) -> None:
-        """Gracefully shutdown the asynchronous server."""
         dm_logger.debug(f"Shutting down {self.service_name} Service")
         if self._task:
             _ = self.config.loop.create_task(self.ashutdown())
 
 
 class ServerThread(BaseServerThread[_ConfigTy]):
-    """
-    A thread-based server wrapper for running network protocol handlers.
-
-    Provides graceful startup/shutdown and proper error handling.
-
-    :param config: Session configuration object
-    :type config: SessionConfig
-    :param server_class: The server class to instantiate
-    :type server_class: type
-    :param args: Additional positional arguments for server_class
-    :type args: tuple[Any, ...]
-    :param kwargs: Additional keyword arguments for server_class
-    :type kwargs: dict[str, Any]
-    """
-
     def __init__(
         self,
         config: SessionConfig,
@@ -186,11 +133,6 @@ class ServerThread(BaseServerThread[_ConfigTy]):
 
     @property
     def service_name(self) -> str:
-        """Get the service name from server class or use class name as fallback.
-
-        :return: Service name.
-        :rtype: str
-        """
         return getattr(
             self.server_class,
             "service_name",
@@ -199,18 +141,12 @@ class ServerThread(BaseServerThread[_ConfigTy]):
 
     @property
     def server(self) -> socketserver.BaseServer:
-        """Get the server instance if it has been created.
-
-        :return: Server instance.
-        :rtype: socketserver.BaseServer
-        """
         if not self._server:
             raise ValueError("Server has not been initialized yet")
         return self._server
 
     @override
     def run(self) -> None:
-        """Start and run the server indefinitely until shutdown is requested."""
         address: str = ""
         port: int = 0
         try:
@@ -246,7 +182,6 @@ class ServerThread(BaseServerThread[_ConfigTy]):
             dm_logger.debug(f"Closed {self.service_name} Service")
 
     def shutdown(self) -> None:
-        """Gracefully shutdown the server thread."""
         dm_logger.debug(f"Shutting down {self.service_name} Service")
         if self._server is not None:
             try:
@@ -259,12 +194,6 @@ _ServerTy = TypeVar("_ServerTy", default=socketserver.BaseServer)
 
 
 class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
-    """Base handler for protocol-specific request processing.
-
-    Provides common functionality for TCP/UDP protocol handlers including
-    data sending/receiving, client tracking, and exception handling.
-    """
-
     class TerminateConnection(Exception):
         """Exception to signal handler should terminate the connection."""
 
@@ -275,17 +204,6 @@ class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
         client_address: tuple[str, int],
         server: _ServerTy,
     ) -> None:
-        """Initialize the protocol handler.
-
-        :param config: Session configuration
-        :type config: SessionConfig
-        :param request: Socket or (data, transport) tuple for UDP
-        :type request: socket.socket | tuple[bytes, socket.socket]
-        :param client_address: Client address tuple (host, port)
-        :type client_address: tuple[str, int]
-        :param server: Parent server instance
-        :type server: _ServerTy
-        """
         self.client_address: tuple[str, int] = client_address
         self.server: _ServerTy = server
         self.config: SessionConfig = config
@@ -295,32 +213,13 @@ class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
         _ = self.config.db.add_host(self.client_host)
 
     def handle_data(self, data: bytes | None, transport: socket.socket) -> None:
-        """Process incoming protocol data. Must be implemented by subclasses.
-
-        :param data: Received data bytes (None for TCP)
-        :type data: bytes | None
-        :param transport: Socket object for sending responses
-        :type transport: socket.socket
-        """
         raise NotImplementedError("handle_data must be implemented by protocol handlers")
 
     def proto_logger(self) -> ProtocolLogger:
-        """Return the :class:`ProtocolLogger` instance that will be exposed as ``self.logger``.
-
-        Concrete classes typically return ``dm_logger`` or a subclass
-        customised for a specific protocol.
-
-        :return: Protocol logger instance.
-        :rtype: ProtocolLogger
-        """
         raise NotImplementedError
 
     @override
     def handle(self) -> None:
-        """Main request handler. Retrieves data and dispatches to handle_data().
-
-        Handles common exceptions and logs errors appropriately.
-        """
         data: bytes | None = None
         try:
             if isinstance(self.request, tuple):
@@ -350,19 +249,10 @@ class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
             data = data or b""
             self.logger.debug(
                 f"Error while handling request. Traceback:\n{out.getvalue()}\n"
-                f"Client request:\n{hexdump.hexdump(data)}"
+                + f"Client request:\n{hexdump.hexdump(data)}"
             )
 
     def recv(self, size: int) -> bytes:
-        """Receive data from client.
-
-        Handles both TCP and UDP sockets appropriately.
-
-        :param size: Maximum bytes to receive
-        :type size: int
-        :return: Received data bytes
-        :rtype: bytes
-        """
         if isinstance(self.request, tuple):
             # UDP: data already received in tuple
             data, transport = self.request
@@ -374,13 +264,6 @@ class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
         return data
 
     def send(self, data: bytes) -> None:
-        """Send data to client.
-
-        Handles both TCP and UDP sockets appropriately.
-
-        :param data: Bytes to send
-        :type data: bytes
-        """
         if isinstance(self.request, tuple):
             _, transport = self.request
             transport.sendto(data, self.client_address)
@@ -390,29 +273,14 @@ class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
 
     @property
     def client_host(self) -> str:
-        """Get normalized client host address.
-
-        :return: Normalized client host address.
-        :rtype: str
-        """
         return db.normalize_client_address(self.client_address[0])
 
     @property
     def client_port(self) -> int:
-        """Get client port number.
-
-        :return: Client port number.
-        :rtype: int
-        """
         return self.client_address[1]
 
     @property
     def server_port(self) -> int:
-        """Get server port number.
-
-        :return: Server port number.
-        :rtype: int
-        """
         address: tuple[str, int] | None = getattr(self.server, "server_address", None)
         if not address:
             raise ValueError("server does not define any address")
@@ -420,12 +288,6 @@ class BaseProtoHandler(BaseRequestHandler, Generic[_ServerTy]):
 
 
 class BaseServerProtoHandler(BaseProtoHandler):
-    """Extended handler for protocol servers with protocol-specific configuration.
-
-    Adds support for per-protocol configuration objects in addition to
-    the session-level configuration.
-    """
-
     def __init__(
         self,
         config: SessionConfig,
@@ -434,26 +296,11 @@ class BaseServerProtoHandler(BaseProtoHandler):
         client_address: tuple[str, int],
         server: socketserver.BaseServer,
     ) -> None:
-        """Initialize the server protocol handler.
-
-        :param config: Session configuration
-        :type config: SessionConfig
-        :param server_config: Protocol-specific server configuration
-        :type server_config: Any
-        :param request: Socket or (data, transport) tuple
-        :type request: socket.socket | tuple[bytes, socket.socket]
-        :param client_address: Client address tuple
-        :type client_address: tuple[str, int]
-        :param server: Parent server instance
-        :type server: socketserver.BaseServer
-        """
         self.server_config: Any = server_config
         super().__init__(config, request, client_address, server)
 
 
 class _ThreadingServerInitMixin:
-    """Shared ``__init__`` logic for :class:`ThreadingUDPServer` and :class:`ThreadingTCPServer`."""
-
     default_port: ClassVar[int]
     default_handler_class: ClassVar[type]
     config: SessionConfig
@@ -467,7 +314,6 @@ class _ThreadingServerInitMixin:
         server_address: tuple[str, int] | None = None,
         RequestHandlerClass: type | None = None,
     ) -> None:
-        """Initialize the server with session config, optional address and handler overrides."""
         self.config = config
         self.ipv4_only = getattr(config, "ipv4_only", False)
         self.stop_flag = threading.Event()
@@ -482,13 +328,6 @@ class _ThreadingServerInitMixin:
 class ThreadingUDPServer(
     _ThreadingServerInitMixin, socketserver.ThreadingMixIn, socketserver.UDPServer
 ):
-    """Threaded UDP server with IPv6 support and cross-platform binding.
-
-    :var default_port: Default port to listen on
-    :var default_handler_class: Handler class for processing requests
-    :var ipv4_only: Whether to only use IPv4 (skip IPv6)
-    """
-
     default_port: ClassVar[int]
     default_handler_class: ClassVar[type]
     ipv4_only: bool
@@ -497,7 +336,6 @@ class ThreadingUDPServer(
 
     @override
     def server_bind(self) -> None:
-        """Bind the server socket with interface and IPv6 settings."""
         bind_server(self, self.config)
         socketserver.UDPServer.server_bind(self)
 
@@ -506,14 +344,7 @@ class ThreadingUDPServer(
         self,
         request: bytes,
         client_address: tuple[str, int],
-    ) -> None:  # ty:ignore[invalid-method-override]
-        """Finish a single request by instantiating the handler.
-
-        :param request: The request data
-        :type request: bytes
-        :param client_address: Client address tuple
-        :type client_address: tuple[str, int]
-        """
+    ) -> None:  # ty:ignore[incompatible-method-override]
         self.RequestHandlerClass(self.config, request, client_address, self)
 
 
@@ -521,18 +352,6 @@ def bind_server(
     server: socketserver.TCPServer | socketserver.UDPServer,
     session: SessionConfig,
 ) -> None:
-    """Configure socket options for interface binding and IPv6 behavior.
-
-    Handles platform-specific socket options safely:
-    - SO_BINDTODEVICE (Linux only)
-    - IPV6_V6ONLY (IPv6 dual-stack behavior)
-
-    :param server: Server instance with socket to configure
-    :type server: socketserver.TCPServer | socketserver.UDPServer
-    :param session: Session configuration with interface and IPv6 settings
-    :type session: SessionConfig
-    """
-    # Platform-specific: SO_BINDTODEVICE only available on Linux
     if sys.platform == "linux" and hasattr(session, "interface"):
         try:
             interface = (session.interface or "").encode("ascii") + b"\x00"
@@ -540,7 +359,6 @@ def bind_server(
         except (OSError, AttributeError) as e:
             dm_logger.warning(f"Failed to bind to interface '{session.interface}': {e}")
 
-    # Configure IPv6 dual-stack behavior (affects both IPv4 and IPv6 traffic)
     if session.ipv6 and not getattr(session, "ipv4_only", False):
         try:
             server.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
@@ -551,13 +369,6 @@ def bind_server(
 class ThreadingTCPServer(
     _ThreadingServerInitMixin, socketserver.ThreadingMixIn, socketserver.TCPServer
 ):
-    """Threaded TCP server with IPv6 support and cross-platform binding.
-
-    :var default_port: Default port to listen on
-    :var default_handler_class: Handler class for processing requests
-    :var ipv4_only: Whether to only use IPv4 (skip IPv6)
-    """
-
     default_port: ClassVar[int]
     default_handler_class: ClassVar[type]
     ipv4_only: bool
@@ -565,7 +376,6 @@ class ThreadingTCPServer(
 
     @override
     def server_bind(self) -> None:
-        """Bind the server socket with interface and IPv6 settings."""
         bind_server(self, self.config)
         socketserver.TCPServer.server_bind(self)
 
@@ -574,14 +384,7 @@ class ThreadingTCPServer(
         self,
         request: socket.socket,
         client_address: tuple[str, int],
-    ) -> None:  # ty:ignore[invalid-method-override]
-        """Finish a single request by instantiating the handler.
-
-        :param request: Connected socket
-        :type request: socket.socket
-        :param client_address: Client address tuple
-        :type client_address: tuple[str, int]
-        """
+    ) -> None:  # ty:ignore[incompatible-method-override]
         self.RequestHandlerClass(self.config, request, client_address, self)
 
 
@@ -590,19 +393,6 @@ def create_tls_context(
     server: socketserver.BaseServer | None = None,
     force: bool = False,
 ) -> ssl.SSLContext | None:
-    """Create an SSL/TLS context from server configuration.
-
-    :param server_config: Configuration object with use_ssl, certfile, keyfile attributes
-    :type server_config: Any
-    :param server: Optional server instance for logging service name
-    :type server: socketserver.BaseServer | None
-    :param force: Force SSL context creation even if use_ssl is False
-    :type force: bool
-    :return: Configured SSLContext or None if SSL not needed or files missing
-    :rtype: ssl.SSLContext | None
-
-    .. note:: Logs errors if certificate or key files not found.
-    """
     if getattr(server_config, "use_ssl", False) or force:
         # if defined use ssl
         cert_path = pathlib.Path(str(getattr(server_config, "certfile", None)))
@@ -629,28 +419,9 @@ def add_mcast_membership(
     group6: str | None = None,
     ttl: int = 255,
 ) -> None:
-    """Add multicast group memberships to a socket.
-
-    Handles both IPv4 and IPv6 multicast with platform-specific behavior.
-    IPv6 multicast requires interface support (not available on Windows).
-
-    :param target: Socket to configure
-    :type target: socket.socket
-    :param session: Session configuration with interface and IP info
-    :type session: SessionConfig
-    :param group4: IPv4 multicast group address (e.g., "224.0.0.1")
-    :type group4: str | None
-    :param group6: IPv6 multicast group address (e.g., "ff02::1")
-    :type group6: str | None
-    :param ttl: Time-to-live for multicast packets (default 255)
-    :type ttl: int
-
-    .. note:: Logs warnings for IPv6 multicast failures on Windows.
-    """
-    # Set TTL for all multicast packets
+    # REVISIT: what about the TTL?
     target.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 
-    # IPv4 multicast
     if session.ipv4 and group4:
         try:
             mreq = socket.inet_aton(group4) + socket.inet_aton(session.ipv4)
@@ -659,7 +430,6 @@ def add_mcast_membership(
         except OSError as e:
             dm_logger.warning(f"Failed to join IPv4 multicast group {group4}: {e}")
 
-    # IPv6 multicast (requires if_nametoindex, not available on Windows)
     if session.ipv6 and group6:
         try:
             mreq = socket.inet_pton(socket.AF_INET6, group6)

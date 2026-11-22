@@ -17,34 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-"""Dementor database package -- constants, helpers, and ORM models.
-
-Provides the :class:`~dementor.db.model.DementorDB` wrapper for thread-safe
-credential storage, the :class:`~dementor.db.connector.DatabaseConfig` for
-``[DB]`` TOML configuration, and engine initialization via
-:func:`~dementor.db.connector.create_db`.
-"""
-
 __all__ = ["CLEARTEXT", "HOST_INFO", "NO_USER", "normalize_client_address"]
 
 # --------------------------------------------------------------------------- #
 # Public constants
 # --------------------------------------------------------------------------- #
 CLEARTEXT = "Cleartext"
-"""Constant indicating plaintext credentials (as opposed to hashes)."""
-
 NO_USER = "<missing-user>"
-"""Placeholder string used when username is absent or invalid in credential logging."""
-
 HOST_INFO = "_host_info"
-"""Key used in extras dict to store host information for credential logging."""
-
 BEARER_TOKEN = "BearerToken"  # noqa: S105
-"""Credential type for HTTP Bearer token authentication."""
-
 DIGEST_MD5 = "digest-md5"
-"""Credential type for SASL DIGEST-MD5 authentication."""
 
 # Backward-compatible aliases so existing imports like
 #   from dementor.db import _CLEARTEXT
@@ -56,20 +38,5 @@ _HOST_INFO = HOST_INFO
 
 
 def normalize_client_address(client: str) -> str:
-    """Normalize IPv6-mapped IPv4 addresses by stripping IPv6 prefix.
-
-    Converts addresses like `::ffff:192.168.1.1` to `192.168.1.1` for consistent storage and display.
-
-    :param client: Raw client address string (e.g., from socket).
-    :type client: str
-    :return: Normalized address without IPv6 mapping prefix.
-    :rtype: str
-
-    Example:
-    >>> normalize_client_address("::ffff:192.168.1.1")
-    '192.168.1.1'
-    >>> normalize_client_address("2001:db8::1")
-    '2001:db8::1'
-
-    """
+    """Normalize IPv6-mapped IPv4 addresses by stripping IPv6 prefix."""
     return client.removeprefix("::ffff:")
